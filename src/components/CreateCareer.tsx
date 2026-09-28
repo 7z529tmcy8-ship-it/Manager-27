@@ -125,14 +125,28 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
 
 function RealPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
   const [query, setQuery] = useState('');
-  const list = REAL_PLAYERS.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()));
+  const [leagueId, setLeagueId] = useState('');
+  const q = query.trim().toLowerCase();
+  const list = REAL_PLAYERS.filter(
+    (p) =>
+      (!q || p.name.toLowerCase().includes(q) || p.nation.toLowerCase().includes(q) || getClub(p.clubId).name.toLowerCase().includes(q)) &&
+      (!leagueId || getClub(p.clubId).leagueId === leagueId),
+  ).sort((a, b) => b.ovr - a.ovr || a.age - b.age);
 
   const start = (p: RealPlayerTemplate) => onCreate(createCareer({ ...p }));
 
   return (
     <section className="panel">
-      <input className="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Spieler suchen…" />
-      <p className="hint">Werte sind eigene Schätzungen zum Saisonstart 2025/26 – keine offiziellen EA-Ratings.</p>
+      <div className="row">
+        <input className="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Name, Verein oder Nation…" />
+        <select value={leagueId} onChange={(e) => setLeagueId(e.target.value)} aria-label="Liga">
+          <option value="">Alle Ligen</option>
+          {LEAGUES.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+        </select>
+      </div>
+      <p className="hint">
+        {list.length} Spieler · Werte sind eigene Schätzungen zum Saisonstart 2025/26 – keine offiziellen EA-Ratings.
+      </p>
       <ul className="real-list">
         {list.map((p) => (
           <li key={p.name}>

@@ -1,5 +1,5 @@
-import { clamp, normal, randInt } from './random';
-import type { PlayerState, SeasonRecord } from './types';
+import { chance, clamp, normal, randInt } from './random';
+import type { PlayerState } from './types';
 
 /** Wie schnell sich die Lücke zum Potenzial pro Saison schließt – abhängig vom Alter. */
 function growthRate(age: number): number {
@@ -9,21 +9,42 @@ function growthRate(age: number): number {
   return age < 16 ? 0.34 : (table[age] ?? 0);
 }
 
+/** Grundlage der Entwicklung: Spielzeit und Leistung in einem Zeitraum. */
+export interface DevStats {
+  minutes: number;
+  possibleMinutes: number;
+  avgRating: number | null;
+}
+
+export interface DevOptions {
+  /** Anteil einer ganzen Saison (0.5 = Halbserie). */
+  weight: number;
+  /** Nur am Saisonende: ganze Saison, nach der das Potenzial angepasst wird. */
+  potentialStats?: DevStats;
+}
+
 export interface DevelopmentResult {
   ovr: number;
   potential: number;
   reasons: string[];
 }
 
+const shareOf = (s: DevStats) => (s.possibleMinutes > 0 ? s.minutes / s.possibleMinutes : 0);
+
 /**
- * Entwicklung nach einer Saison:
+ * Entwicklung nach einer Halbserie bzw. Saison:
  * - junge Spieler wachsen Richtung Potenzial, umso schneller, je mehr und je besser sie spielen
  * - ab ~29 Jahren baut der Spieler ab (Torhüter etwas später), Spielpraxis bremst den Abbau
  * - starke Saisons können das Potenzial erhöhen, verschenkte Jahre senken es
  */
-export function developPlayer(p: PlayerState, season: SeasonRecord, teamStrength: number): DevelopmentResult {
-  const share = season.possibleMinutes > 0 ? season.minutes / season.possibleMinutes : 0;
-  const rating = season.avgRating ?? 6.3;
+export function developPlayer(
+  p: PlayerState,
+  stats: DevStats,
+  teamStrength: number,
+  { weight, potentialStats }: DevOptions = { weight: 1 },
+): DevelopmentResult {
+  const share = shareOf(stats);
+  const rating = stats.avgRating ?? 6.3;
   const reasons: string[] = [];
 
   const ptFactor = 0.35 + 0.95 * Math.min(1, share / 0.75);
@@ -31,14 +52,17 @@ export function developPlayer(p: PlayerState, season: SeasonRecord, teamStrength
   const trainingFactor = 1 + (teamStrength - 75) * 0.01;
 
   let potential = p.potential;
-  if (p.age <= 24 && share >= 0.5 && rating >= 7.3) {
-    const up = randInt(1, 2);
-    potential = Math.min(99, potential + up);
-    reasons.push('Starke Saison – das Potenzial ist gestiegen.');
-  } else if (p.age <= 23 && share < 0.25) {
-    const down = randInt(0, 2);
-    potential -= down;
-    if (down > 0) reasons.push('Zu wenig Spielpraxis – das Potenzial ist gesunken.');
+  if (potentialStats) {
+    const seasonShare = shareOf(potentialStats);
+    const seasonRating = potentialStats.avgRating ?? 6.3;
+    if (p.age <= 24 && seasonShare >= 0.5 && seasonRating >= 7.3) {
+      potential = Math.min(99, potential + randInt(1, 2));
+      reasons.push('Starke Saison – das Potenzial ist gestiegen.');
+    } else if (p.age <= 23 && seasonShare < 0.25) {
+      const down = randInt(0, 2);
+      potential -= down;
+      if (down > 0) reasons.push('Zu wenig Spielpraxis – das Potenzial ist gesunken.');
+    }
   }
 
   const ageShift = p.position === 'TW' ? 2 : 0;
@@ -46,17 +70,19 @@ export function developPlayer(p: PlayerState, season: SeasonRecord, teamStrength
   let change: number;
   if (age <= 28) {
     const gap = Math.max(0, potential - p.ovr);
-    change = gap * growthRate(age) * ptFactor * perfFactor * trainingFactor + normal(0, 0.8);
+    change = (gap * growthRate(age) * ptFactor * perfFactor * trainingFactor + normal(0, 0.8)) * weight;
     if (share < 0.25 && age <= 23) reasons.push('Kaum Einsätze – die Entwicklung stockt.');
     else if (share >= 0.6 && age <= 23) reasons.push('Viel Spielzeit – ideal für die Entwicklung.');
   } else {
     const decline = (age - 29) * 0.75 + 0.3 + normal(0, 0.7);
     const protection = 1.1 - 0.2 * Math.min(1, share / 0.75);
-    change = -Math.max(0, decline * protection);
+    change = -Math.max(0, decline * protection) * weight;
     if (change <= -1) reasons.push('Alterungsbedingter Leistungsabfall.');
   }
 
-  let ovr = p.ovr + Math.round(change);
+  // Zufälliges Runden, damit auch kleine Veränderungen pro Halbserie im Schnitt korrekt wirken.
+  const whole = Math.floor(change);
+  let ovr = p.ovr + whole + (chance(change - whole) ? 1 : 0);
   if (change > 0) ovr = Math.min(ovr, Math.max(potential, p.ovr));
   ovr = clamp(ovr, 40, 99);
   potential = Math.max(potential, ovr);

@@ -12,6 +12,9 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
   Ligue 1, Liga Portugal, Eredivisie – mit Auf- und Abstieg und Europapokal-Plätzen
 - **Saison-Simulation:** Alle Ligen werden komplett durchgespielt, dazu nationaler Pokal und
   Champions/Europa/Conference League. Für den Spieler: Einsätze, Minuten, Tore, Vorlagen, Noten, Verletzungen
+- **Hinrunde & Rückrunde mit Wintertransferfenster:** Nach der Hinrunde gibt es eine Zwischenbilanz und
+  Winter-Angebote (Leihe bis Saisonende, Transfer). Wer wechselt, spielt die Rückrunde beim neuen Verein –
+  Pokal und Europapokal laufen dann ohne ihn weiter. „Ganze Saison“ überspringt die Winterpause
 - **Realistische Entwicklung:**
   - junge Spieler wachsen Richtung (verborgenem) Potenzial – je jünger, desto schneller
   - Spielzeit und Leistung (Ø-Note) beschleunigen die Entwicklung; wer auf der Bank sitzt, stagniert
@@ -22,6 +25,9 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
   „Auf Transferliste setzen“, „Um Leihe bitten“, Karriereende
 - **Karriere-Übersicht:** Stationen, Verlauf der Gesamtwertung, Trophäenschrank, Auszeichnungen
   (Torschützenkönig, Golden Boy, Ballon d’Or …), Länderspiele inkl. WM/EM
+- **Hall of Fame:** Rangliste aller Karrieren nach Legendenpunkten (sortierbar), Rekorde über alle Karrieren
+  und Vergleich von bis zu drei Karrieren inklusive Entwicklungskurven
+- Über 80 echte Spieler als Startvorlage (u. a. Hayate Matsuda, Kubo, Mitoma, Musiala, Wirtz, Yamal)
 - Spielstände werden im Browser gespeichert (localStorage)
 
 ## Lokal starten
@@ -47,7 +53,8 @@ Einmalig in GitHub unter **Settings → Pages → Source: „GitHub Actions“**
 | `src/game/season.ts` | Saison-Simulation (Poisson-Modell für Tore, Einsätze, Noten, Pokal, Europapokal) |
 | `src/game/development.ts` | Entwicklung nach der Saison (Alter, Spielzeit, Leistung, Potenzial) |
 | `src/game/offers.ts` | Angebote im Transferfenster |
-| `src/game/career.ts` | Ablauf: Saison spielen → Transferfenster → nächste Saison |
+| `src/game/career.ts` | Ablauf: Hinrunde → Winterfenster → Rückrunde → Sommerfenster → nächste Saison |
+| `src/game/legacy.ts` | Hall of Fame: Karriere-Bilanz, Legendenpunkte, Rekorde |
 | `src/components/` | Oberfläche (React) |
 
 ## Hinweis

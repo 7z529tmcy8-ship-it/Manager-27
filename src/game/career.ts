@@ -1,9 +1,9 @@
 import { getClub, getLeague, initialClubLeague } from '../data/leagues';
 import { developPlayer } from './development';
 import { generateOffers, type OfferMode } from './offers';
-import { clubLeagueId, clubStrength, createProfile, playerValue, roleFor, wageFor } from './player';
+import { clubLeagueId, clubStrength, createProfile, currentClubId, playerValue, roleFor, wageFor } from './player';
 import { uid } from './random';
-import { applyLeagueChanges, initialEuropeSlots, simulateSeason } from './season';
+import { applyLeagueChanges, finishSeason, halfStats, initialEuropeSlots, playHalf, startSeason } from './season';
 import type { Career, Offer, Position } from './types';
 
 export const START_YEAR = 2025;
@@ -56,19 +56,82 @@ export function createCareer(np: NewPlayer): Career {
   };
 }
 
-/** Simuliert die aktuelle Saison und öffnet danach das Transferfenster. */
-export function playSeason(prev: Career): Career {
+/** Spielt die Hinrunde und öffnet das Wintertransferfenster. */
+export function playFirstHalf(prev: Career): Career {
   const career: Career = structuredClone(prev);
   const p = career.player;
-  const { record, tables } = simulateSeason(career);
+  const prog = startSeason(career);
+  playHalf(career, prog, 1);
 
-  const dev = developPlayer(p, record, clubStrength(career, record.clubId));
+  const clubId = currentClubId(p);
+  const stats = halfStats(prog.matches);
+  const dev = developPlayer(p, stats, clubStrength(career, clubId), { weight: 0.5 });
   p.ovr = dev.ovr;
   p.potential = dev.potential;
+  prog.ovrWinter = dev.ovr;
+
+  career.progress = prog;
+  career.phase = 'winter';
+  // Verliehene Spieler bleiben bis Saisonende beim Leihverein.
+  career.offers = p.loan ? [] : generateOffers(career, { clubId, onLoan: false, ...stats }, 'normal', true);
+  career.requestsLeft = p.loan ? 0 : 1;
+  career.updatedAt = Date.now();
+  return career;
+}
+
+/** Winterpause ohne Wechsel: Rückrunde beim aktuellen Verein spielen. */
+export function stayInWinter(prev: Career): Career {
+  return finishSecondHalf(structuredClone(prev));
+}
+
+/** Wechsel im Winter annehmen und direkt die Rückrunde spielen. */
+export function acceptWinterOffer(prev: Career, offer: Offer): Career {
+  const career: Career = structuredClone(prev);
+  const p = career.player;
+  const prog = career.progress!;
+  const fromClubId = currentClubId(p);
+  if (offer.type === 'Leihe') {
+    p.loan = { clubId: offer.clubId, parentClubId: p.contract.clubId, role: offer.role };
+  } else {
+    p.contract = { clubId: offer.clubId, yearsLeft: offer.years, wage: offer.wage, role: offer.role };
+    p.loan = null;
+  }
+  prog.winterMove = { fromClubId, toClubId: offer.clubId, type: offer.type };
+  // Pokal und Europapokal laufen mit dem alten Verein weiter – der Spieler ist dort nicht mehr dabei.
+  prog.cup.eligible = false;
+  if (prog.euro) prog.euro.eligible = false;
+  prog.notes.push(
+    `Winterwechsel (${offer.type}): ${getClub(fromClubId).name} → ${getClub(offer.clubId).name}.`,
+  );
+  return finishSecondHalf(career);
+}
+
+/** Ganze Saison am Stück: Hinrunde, im Winter bleiben, Rückrunde. */
+export function playSeason(prev: Career): Career {
+  return stayInWinter(playFirstHalf(prev));
+}
+
+/** Rückrunde spielen, Saison abschließen und das Sommer-Transferfenster öffnen. */
+function finishSecondHalf(career: Career): Career {
+  const p = career.player;
+  const prog = career.progress!;
+  playHalf(career, prog, 2);
+
+  const clubId = currentClubId(p);
+  const second = halfStats(prog.matches.filter((m) => m.half === 2));
+  const dev = developPlayer(p, second, clubStrength(career, clubId), {
+    weight: 0.5,
+    potentialStats: halfStats(prog.matches),
+  });
+  p.ovr = dev.ovr;
+  p.potential = dev.potential;
+
+  const { record, tables } = finishSeason(career, prog);
   p.caps += record.caps;
   p.internationalGoals += record.internationalGoals;
-  record.ovrEnd = dev.ovr;
+  record.ovrWinter = prog.ovrWinter;
   record.notes.unshift(...dev.reasons);
+  career.progress = null;
 
   const leagueBefore = clubLeagueId(career, p.contract.clubId);
   applyLeagueChanges(career, tables);
@@ -128,9 +191,12 @@ export function stayAtClub(prev: Career): Career {
 
 export function requestOffers(prev: Career, mode: OfferMode): Career {
   const career: Career = structuredClone(prev);
-  const last = career.history[career.history.length - 1];
   const known = new Set(career.offers.map((o) => `${o.type}:${o.clubId}`));
-  const fresh = generateOffers(career, last, mode).filter(
+  const winter = career.phase === 'winter' && career.progress;
+  const basis = winter
+    ? { clubId: currentClubId(career.player), onLoan: false, ...halfStats(career.progress!.matches) }
+    : career.history[career.history.length - 1];
+  const fresh = generateOffers(career, basis, mode, !!winter).filter(
     (o) => o.type !== 'Verlängerung' && !known.has(`${o.type}:${o.clubId}`),
   );
   career.offers = [...career.offers, ...fresh];

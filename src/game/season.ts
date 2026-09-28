@@ -15,9 +15,11 @@ import type {
   Club,
   Competition,
   CompetitionStats,
+  EuroState,
   MatchLine,
   PlayerState,
   Position,
+  SeasonProgress,
   SeasonRecord,
   TableRow,
 } from './types';
@@ -43,14 +45,10 @@ const EURO_KO = ['Playoffs', 'Achtelfinale', 'Viertelfinale', 'Halbfinale', 'Fin
 interface SeasonContext {
   career: Career;
   player: PlayerState;
+  /** Verein, für den der Spieler in dieser Halbserie spielt. */
   clubId: string;
-  /** Stärke aller Vereine in dieser Saison (inkl. Tagesform über die Saison). */
-  strength: Map<string, number>;
-  form: number;
-  injuredFor: number;
-  injuryWeeks: number;
-  matches: MatchLine[];
-  notes: string[];
+  half: 1 | 2;
+  prog: SeasonProgress;
 }
 
 function goalsExpected(att: number, def: number, home: boolean, leagueGoals: number): number {
@@ -124,18 +122,18 @@ function playerMatch(
   goalsPerGame: number,
   rotation = 0,
 ): MatchLine {
-  const { player } = ctx;
-  const own = ctx.strength.get(ctx.clubId)!;
-  const opp = ctx.strength.get(opponentId) ?? getClub(opponentId).strength;
+  const { player, prog } = ctx;
+  const own = prog.strength[ctx.clubId];
+  const opp = prog.strength[opponentId] ?? getClub(opponentId).strength;
   const rel = player.ovr - own;
   let status: MatchLine['status'] = 'bench';
   let minutes = 0;
 
-  if (ctx.injuredFor > 0) {
-    ctx.injuredFor--;
+  if (prog.injuredFor > 0) {
+    prog.injuredFor--;
     status = 'injured';
   } else {
-    const selection = rel + ROLE_BONUS[currentRole(player)] + (ctx.form - 6.8) * 2 + rotation;
+    const selection = rel + ROLE_BONUS[currentRole(player)] + (prog.form - 6.8) * 2 + rotation;
     const startP = player.position === 'TW' ? sigmoid((selection + 1) / 1.2) : sigmoid((selection + 1.5) / 2.2);
     if (chance(startP)) {
       status = 'start';
@@ -170,26 +168,29 @@ function playerMatch(
     r += normal(0, 0.45);
     if (minutes < 30) r = 6.5 + (r - 6.5) * 0.6;
     rating = Math.round(clamp(r, 3, 10) * 10) / 10;
-    ctx.form = ctx.form * 0.8 + rating * 0.2;
+    prog.form = prog.form * 0.8 + rating * 0.2;
 
     const injuryRisk = 0.012 + Math.max(0, player.age - 30) * 0.002;
     if (chance(injuryRisk * share)) {
       const weeks = injuryWeeks();
-      ctx.injuredFor = Math.round(weeks * 1.3);
-      ctx.injuryWeeks += weeks;
-      ctx.notes.push(`Verletzung gegen ${getClub(opponentId).name}: ${weeks} ${weeks === 1 ? 'Woche' : 'Wochen'} Pause.`);
+      prog.injuredFor = Math.round(weeks * 1.3);
+      prog.injuryWeeks += weeks;
+      prog.notes.push(`Verletzung gegen ${getClub(opponentId).name}: ${weeks} ${weeks === 1 ? 'Woche' : 'Wochen'} Pause.`);
     }
   }
 
-  const line: MatchLine = { competition, opponent: opponentId, home, goalsFor: gf, goalsAgainst: ga, status, minutes, goals, assists, rating };
-  ctx.matches.push(line);
+  const line: MatchLine = {
+    competition, opponent: opponentId, home, goalsFor: gf, goalsAgainst: ga, status, minutes, goals, assists, rating,
+    clubId: ctx.clubId, half: ctx.half,
+  };
+  prog.matches.push(line);
   return line;
 }
 
 /** Zieht einen Gegner aus einem Pool, bevorzugt Vereine nahe an der Zielstärke. */
-function drawOpponent(pool: Club[], target: number, exclude: Set<string>, strength: Map<string, number>): Club {
-  const options = pool.filter((c) => !exclude.has(c.id));
-  return weightedPick(options, (c) => Math.exp(-(((strength.get(c.id) ?? c.strength) - target) ** 2) / 18) + 0.01);
+function drawOpponent(pool: Club[], target: number, exclude: string[], strength: Record<string, number>): Club {
+  const options = pool.filter((c) => !exclude.includes(c.id));
+  return weightedPick(options, (c) => Math.exp(-(((strength[c.id] ?? c.strength) - target) ** 2) / 18) + 0.01);
 }
 
 interface Scheduled {
@@ -197,98 +198,90 @@ interface Scheduled {
   play: () => void;
 }
 
-function scheduleCup(ctx: SeasonContext, leagueGoals: number, onEnd: (reached: string, won: boolean) => void): Scheduled[] {
+// Zeitpunkte im Saisonverlauf (0 = Saisonstart, 1 = Saisonende); < 0.5 liegt in der Hinrunde.
+const CUP_AT = [0.05, 0.3, 0.48, 0.62, 0.78, 0.99];
+const EURO_PHASE_AT = [0.1, 0.17, 0.24, 0.3, 0.36, 0.42, 0.52, 0.58];
+const EURO_KO_AT: [number, number][] = [[0.64, 0.67], [0.72, 0.75], [0.8, 0.83], [0.88, 0.91], [1.0, 1.0]];
+
+function scheduleCup(ctx: SeasonContext, leagueGoals: number): Scheduled[] {
+  const cup = ctx.prog.cup;
   const country = getLeague(clubLeagueId(ctx.career, ctx.clubId)).country;
   const pool = CLUBS.filter((c) => getLeague(clubLeagueId(ctx.career, c.id)).country === country && c.id !== ctx.clubId);
-  const sorted = [...pool].sort((a, b) => (ctx.strength.get(a.id) ?? 0) - (ctx.strength.get(b.id) ?? 0));
-  const fractions = [0.05, 0.3, 0.48, 0.62, 0.78, 0.99];
-  let alive = true;
-  const used = new Set<string>();
+  const sorted = [...pool].sort((a, b) => (ctx.prog.strength[a.id] ?? 0) - (ctx.prog.strength[b.id] ?? 0));
   return CUP_ROUNDS.map((name, i) => ({
-    at: fractions[i],
+    at: CUP_AT[i],
     play: () => {
-      if (!alive) return;
+      if (!cup.alive || !cup.eligible) return;
       // Frühe Runden eher gegen schwächere, späte Runden gegen stärkere Gegner.
       const lo = Math.floor((sorted.length * i) / (CUP_ROUNDS.length + 2));
-      const opponent = pick(sorted.slice(lo).filter((c) => !used.has(c.id)));
-      used.add(opponent.id);
+      const opponent = pick(sorted.slice(lo).filter((c) => !cup.used.includes(c.id)));
+      cup.used.push(opponent.id);
       const line = playerMatch(ctx, 'Pokal', opponent.id, chance(0.5), leagueGoals, i < 3 ? 3 : 0);
       let won = line.goalsFor > line.goalsAgainst;
       if (line.goalsFor === line.goalsAgainst) won = chance(0.5);
       if (!won) {
-        alive = false;
-        onEnd(name, false);
-      } else if (name === 'Finale') onEnd('Sieger', true);
+        cup.alive = false;
+        cup.reached = name;
+      } else if (name === 'Finale') {
+        cup.alive = false;
+        cup.reached = 'Sieger';
+        cup.won = true;
+      }
     },
   }));
 }
 
-function scheduleEurope(
-  ctx: SeasonContext,
-  competition: Competition,
-  onEnd: (reached: string, won: boolean) => void,
-): Scheduled[] {
+function scheduleEurope(ctx: SeasonContext, euro: EuroState): Scheduled[] {
   const ownLeague = clubLeagueId(ctx.career, ctx.clubId);
-  const pool = CLUBS.filter((c) => {
-    const l = getLeague(clubLeagueId(ctx.career, c.id));
-    return l.tier === 1 && c.id !== ctx.clubId;
-  });
-  const mean = EURO_MEAN[competition];
-  const phaseFractions = [0.1, 0.17, 0.24, 0.3, 0.36, 0.42, 0.52, 0.58];
-  const koFractions: [number, number][] = [[0.64, 0.67], [0.72, 0.75], [0.8, 0.83], [0.88, 0.91], [1.0, 1.0]];
-  const used = new Set<string>();
-  let points = 0;
-  let stage: 'phase' | 'out' | number = 'phase';
+  const pool = CLUBS.filter((c) => getLeague(clubLeagueId(ctx.career, c.id)).tier === 1 && c.id !== ctx.clubId);
+  const mean = EURO_MEAN[euro.competition];
   const items: Scheduled[] = [];
 
-  phaseFractions.forEach((at, i) =>
+  EURO_PHASE_AT.forEach((at, i) =>
     items.push({
       at,
       play: () => {
-        const opponent = drawOpponent(
-          pool.filter((c) => clubLeagueId(ctx.career, c.id) !== ownLeague),
-          mean + normal(0, 3),
-          used,
-          ctx.strength,
-        );
-        used.add(opponent.id);
-        const line = playerMatch(ctx, competition, opponent.id, i % 2 === 0, 2.9, 0.5);
-        points += line.goalsFor > line.goalsAgainst ? 3 : line.goalsFor === line.goalsAgainst ? 1 : 0;
-        if (i === phaseFractions.length - 1) {
-          if (points >= 16) stage = 1;
-          else if (points >= 10) stage = 0;
+        if (euro.stage !== 'phase' || !euro.eligible) return;
+        const foreign = pool.filter((c) => clubLeagueId(ctx.career, c.id) !== ownLeague);
+        const opponent = drawOpponent(foreign, mean + normal(0, 3), euro.used, ctx.prog.strength);
+        euro.used.push(opponent.id);
+        const line = playerMatch(ctx, euro.competition, opponent.id, i % 2 === 0, 2.9, 0.5);
+        euro.points += line.goalsFor > line.goalsAgainst ? 3 : line.goalsFor === line.goalsAgainst ? 1 : 0;
+        if (i === EURO_PHASE_AT.length - 1) {
+          if (euro.points >= 16) euro.stage = 1;
+          else if (euro.points >= 10) euro.stage = 0;
           else {
-            stage = 'out';
-            onEnd('Ligaphase', false);
+            euro.stage = 'out';
+            euro.reached = 'Ligaphase';
           }
         }
       },
     }),
   );
 
-  koFractions.forEach(([first, second], round) => {
-    let opponent: Club | null = null;
-    let agg = [0, 0];
+  EURO_KO_AT.forEach(([first, second], round) => {
     const isFinal = EURO_KO[round] === 'Finale';
     const leg = (legNo: number) => () => {
-      if (stage !== round) return;
+      if (euro.stage !== round || !euro.eligible) return;
       if (legNo === 0) {
-        opponent = drawOpponent(pool, mean + round * 2 + normal(0, 2), used, ctx.strength);
-        used.add(opponent.id);
-        agg = [0, 0];
+        const opponent = drawOpponent(pool, mean + round * 2 + normal(0, 2), euro.used, ctx.prog.strength);
+        euro.used.push(opponent.id);
+        euro.opponentId = opponent.id;
+        euro.agg = [0, 0];
       }
-      const line = playerMatch(ctx, competition, opponent!.id, isFinal ? chance(0.5) : legNo === 1, 2.8);
-      agg[0] += line.goalsFor;
-      agg[1] += line.goalsAgainst;
+      const line = playerMatch(ctx, euro.competition, euro.opponentId!, isFinal ? chance(0.5) : legNo === 1, 2.8);
+      euro.agg[0] += line.goalsFor;
+      euro.agg[1] += line.goalsAgainst;
       if (isFinal || legNo === 1) {
-        const won = agg[0] > agg[1] || (agg[0] === agg[1] && chance(0.5));
+        const won = euro.agg[0] > euro.agg[1] || (euro.agg[0] === euro.agg[1] && chance(0.5));
         if (!won) {
-          stage = 'out';
-          onEnd(EURO_KO[round], false);
+          euro.stage = 'out';
+          euro.reached = EURO_KO[round];
         } else if (isFinal) {
-          stage = 'out';
-          onEnd('Sieger', true);
-        } else stage = round + 1;
+          euro.stage = 'out';
+          euro.reached = 'Sieger';
+          euro.won = true;
+        } else euro.stage = round + 1;
       }
     };
     items.push({ at: first, play: leg(0) });
@@ -312,19 +305,116 @@ function summarize(matches: MatchLine[], competition: Competition): CompetitionS
 
 const TITLE_ODDS: Record<string, number> = {
   Spanien: 0.15, Frankreich: 0.14, England: 0.12, Argentinien: 0.12, Brasilien: 0.1, Deutschland: 0.09,
-  Portugal: 0.08, Niederlande: 0.06, Italien: 0.05, Belgien: 0.03, Kroatien: 0.03,
+  Portugal: 0.08, Niederlande: 0.06, Italien: 0.05, Belgien: 0.03, Kroatien: 0.03, Kolumbien: 0.03, Japan: 0.02,
 };
 const EUROPEAN = ['Deutschland', 'Österreich', 'Schweiz', 'Türkei', 'England', 'Frankreich', 'Spanien', 'Italien',
-  'Portugal', 'Niederlande', 'Belgien', 'Kroatien', 'Polen', 'Norwegen'];
+  'Portugal', 'Niederlande', 'Belgien', 'Kroatien', 'Polen', 'Norwegen', 'Schweden'];
 
 function tournamentName(nation: string, summer: number): string | null {
   if (summer % 4 === 2) return `Weltmeisterschaft ${summer}`;
   if (summer % 4 !== 0) return null;
   if (EUROPEAN.includes(nation)) return `Europameisterschaft ${summer}`;
-  if (nation === 'Brasilien' || nation === 'Argentinien') return `Copa América ${summer}`;
+  if (['Brasilien', 'Argentinien', 'Kolumbien'].includes(nation)) return `Copa América ${summer}`;
   if (nation === 'USA') return `Gold Cup ${summer}`;
-  if (nation === 'Japan') return `Asienmeisterschaft ${summer}`;
+  if (nation === 'Japan' || nation === 'Südkorea') return `Asienmeisterschaft ${summer}`;
   return null;
+}
+
+/** Neue Saison vorbereiten: Tagesform der Vereine, leere Tabellen, Pokal und Europapokal. */
+export function startSeason(career: Career): SeasonProgress {
+  const clubId = currentClubId(career.player);
+  const strength: Record<string, number> = {};
+  for (const c of CLUBS) strength[c.id] = clubStrength(career, c.id) + normal(0, 1.2);
+  const rows: Record<string, TableRow[]> = {};
+  for (const l of LEAGUES) {
+    rows[l.id] = CLUBS.filter((c) => clubLeagueId(career, c.id) === l.id).map((c) => emptyRow(c.id));
+  }
+  const slot = career.europeSlots[clubId];
+  return {
+    strength,
+    rows,
+    matches: [],
+    form: 6.8,
+    injuredFor: 0,
+    injuryWeeks: 0,
+    notes: [],
+    startClubId: clubId,
+    ovrStart: career.player.ovr,
+    cup: { alive: true, eligible: true, reached: '', won: false, used: [] },
+    euro: slot
+      ? { competition: slot, eligible: true, points: 0, stage: 'phase', reached: '', won: false, used: [], opponentId: null, agg: [0, 0] }
+      : null,
+    winterMove: null,
+  };
+}
+
+/**
+ * Spielt eine Halbserie (1 = Hinrunde, 2 = Rückrunde) in allen Ligen.
+ * Nur die Spiele des aktuellen Vereins des Spielers werden mit seinen Einsätzen simuliert.
+ */
+export function playHalf(career: Career, prog: SeasonProgress, half: 1 | 2): void {
+  const player = career.player;
+  const clubId = currentClubId(player);
+  const leagueId = clubLeagueId(career, clubId);
+  const ctx: SeasonContext = { career, player, clubId, half, prog };
+  const inHalf = (at: number) => (half === 1 ? at < 0.5 : at >= 0.5);
+
+  for (const l of LEAGUES) {
+    const rowList = prog.rows[l.id];
+    const rows = new Map(rowList.map((r) => [r.clubId, r]));
+    // Spielplan ist deterministisch (gleiche Reihenfolge der Vereine) und damit in beiden Halbserien gleich.
+    const rounds = roundRobin(rowList.map((r) => r.clubId).sort());
+    const mid = Math.floor(rounds.length / 2);
+    const [from, to] = half === 1 ? [0, mid] : [mid, rounds.length];
+
+    const extras: Scheduled[] = [];
+    if (l.id === leagueId) {
+      extras.push(...scheduleCup(ctx, l.goalsPerGame));
+      if (prog.euro) extras.push(...scheduleEurope(ctx, prog.euro));
+    }
+    const due = extras.filter((e) => inHalf(e.at)).sort((a, b) => a.at - b.at);
+
+    let next = 0;
+    for (let r = from; r < to; r++) {
+      while (next < due.length && due[next].at <= r / rounds.length) due[next++].play();
+      for (const [h, a] of rounds[r]) {
+        let gh: number;
+        let ga: number;
+        if (h === clubId || a === clubId) {
+          const home = h === clubId;
+          const line = playerMatch(ctx, 'Liga', home ? a : h, home, l.goalsPerGame);
+          [gh, ga] = home ? [line.goalsFor, line.goalsAgainst] : [line.goalsAgainst, line.goalsFor];
+        } else [gh, ga] = playMatch(prog.strength[h], prog.strength[a], l.goalsPerGame);
+        addResult(rows.get(h)!, gh, ga);
+        addResult(rows.get(a)!, ga, gh);
+      }
+    }
+    while (next < due.length) due[next++].play();
+  }
+}
+
+export interface HalfStats {
+  apps: number;
+  starts: number;
+  minutes: number;
+  possibleMinutes: number;
+  goals: number;
+  assists: number;
+  avgRating: number | null;
+}
+
+export function halfStats(matches: MatchLine[]): HalfStats {
+  const played = matches.filter((m) => m.minutes > 0);
+  const ratings = played.map((m) => m.rating!);
+  return {
+    apps: played.length,
+    starts: matches.filter((m) => m.status === 'start').length,
+    minutes: played.reduce((a, m) => a + m.minutes, 0),
+    possibleMinutes: matches.length * 90,
+    goals: played.reduce((a, m) => a + m.goals, 0),
+    assists: played.reduce((a, m) => a + m.assists, 0),
+    avgRating: ratings.length ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 100) / 100 : null,
+  };
 }
 
 export interface SeasonOutcome {
@@ -332,94 +422,41 @@ export interface SeasonOutcome {
   tables: Record<string, TableRow[]>;
 }
 
-/** Simuliert eine komplette Saison: alle Ligen, Pokal, Europapokal und die Einsätze des Spielers. */
-export function simulateSeason(career: Career): SeasonOutcome {
+/** Saison abschließen: Tabellen, Titel, Auszeichnungen und Nationalmannschaft. */
+export function finishSeason(career: Career, prog: SeasonProgress): SeasonOutcome {
   const player = career.player;
   const clubId = currentClubId(player);
   const leagueId = clubLeagueId(career, clubId);
   const league = getLeague(leagueId);
+  const matches = prog.matches;
+  const notes = [...prog.notes];
 
-  const strength = new Map<string, number>();
-  for (const c of CLUBS) strength.set(c.id, clubStrength(career, c.id) + normal(0, 1.2));
-
-  const ctx: SeasonContext = {
-    career, player, clubId, strength, form: 6.8, injuredFor: 0, injuryWeeks: 0, matches: [], notes: [],
-  };
-
-  let cupReached = '';
-  let euro: { competition: Competition; reached: string } | null = null;
-  const trophies: string[] = [];
-
-  // Alle Ligen werden komplett durchgespielt; nur die eigene Liga mit Einsätzen des Spielers.
   const tables: Record<string, TableRow[]> = {};
-  for (const l of LEAGUES) {
-    const ids = CLUBS.filter((c) => clubLeagueId(career, c.id) === l.id).map((c) => c.id);
-    const rows = new Map(ids.map((id) => [id, emptyRow(id)]));
-    const rounds = roundRobin(ids);
-    const extras: Scheduled[] = [];
-
-    if (l.id === leagueId) {
-      extras.push(
-        ...scheduleCup(ctx, l.goalsPerGame, (reached, won) => {
-          cupReached = reached;
-          if (won) trophies.push(l.cup);
-        }),
-      );
-      const slot = career.europeSlots[clubId];
-      if (slot) {
-        const entry = { competition: slot, reached: '' };
-        euro = entry;
-        extras.push(
-          ...scheduleEurope(ctx, slot, (reached, won) => {
-            entry.reached = reached;
-            if (won) trophies.push(slot);
-          }),
-        );
-      }
-      extras.sort((a, b) => a.at - b.at);
-    }
-
-    let next = 0;
-    rounds.forEach((round, r) => {
-      while (next < extras.length && extras[next].at <= r / rounds.length) extras[next++].play();
-      for (const [h, a] of round) {
-        let gh: number;
-        let ga: number;
-        if (h === clubId || a === clubId) {
-          const home = h === clubId;
-          const line = playerMatch(ctx, 'Liga', home ? a : h, home, l.goalsPerGame);
-          [gh, ga] = home ? [line.goalsFor, line.goalsAgainst] : [line.goalsAgainst, line.goalsFor];
-        } else [gh, ga] = playMatch(strength.get(h)!, strength.get(a)!, l.goalsPerGame);
-        addResult(rows.get(h)!, gh, ga);
-        addResult(rows.get(a)!, ga, gh);
-      }
-    });
-    while (next < extras.length) extras[next++].play();
-    tables[l.id] = sortTable([...rows.values()]);
-  }
+  for (const l of LEAGUES) tables[l.id] = sortTable(prog.rows[l.id]);
 
   const table = tables[leagueId];
   const position = table.findIndex((r) => r.clubId === clubId) + 1;
-  const played = ctx.matches.filter((m) => m.minutes > 0);
-  const ratings = played.map((m) => m.rating!);
-  const avgRating = ratings.length ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 100) / 100 : null;
-  const goals = played.reduce((a, m) => a + m.goals, 0);
-  const assists = played.reduce((a, m) => a + m.assists, 0);
-  const minutes = played.reduce((a, m) => a + m.minutes, 0);
+  const stats = halfStats(matches);
+  const played = matches.filter((m) => m.minutes > 0);
+  const playedForEndClub = played.some((m) => m.clubId === clubId);
 
   const allTrophies: string[] = [];
-  if (played.length > 0) {
-    if (position === 1) allTrophies.push(league.tier === 1 ? `Meister (${league.name})` : `Meister (${league.name}, Aufstieg)`);
-    allTrophies.push(...trophies);
+  if (playedForEndClub && position === 1) {
+    allTrophies.push(league.tier === 1 ? `Meister (${league.name})` : `Meister (${league.name}, Aufstieg)`);
   }
+  // Titel zählen nur, wenn der Spieler im Wettbewerb auch eingesetzt wurde.
+  const playedIn = (c: Competition) => played.some((m) => m.competition === c);
+  if (prog.cup.won && playedIn('Pokal')) allTrophies.push(getLeague(clubLeagueId(career, prog.startClubId)).cup);
+  if (prog.euro?.won && playedIn(prog.euro.competition)) allTrophies.push(prog.euro.competition);
 
   const awards: string[] = [];
-  const leagueStats = summarize(ctx.matches, 'Liga');
+  const leagueStats = summarize(matches, 'Liga');
   const topScorerMark = Math.max(12, Math.round(league.topScorerGoals * normal(1, 0.12)));
   if (leagueStats.goals >= topScorerMark) awards.push(`Torschützenkönig ${league.name}`);
   if (leagueStats.avgRating !== null && leagueStats.avgRating >= 7.5 && leagueStats.apps >= 20 && position <= 4) {
     awards.push(`Spieler der Saison ${league.name}`);
   }
+  const avgRating = stats.avgRating;
   if (player.age <= 20 && player.ovr >= 80 && avgRating !== null && avgRating >= 7.2 && played.length >= 25 && chance(0.6)) {
     awards.push('Golden Boy');
   }
@@ -432,7 +469,7 @@ export function simulateSeason(career: Career): SeasonOutcome {
   const nation = getNation(player.nation);
   let caps = 0;
   let intGoals = 0;
-  if (player.ovr >= nation.callUp - 3 && ctx.injuryWeeks < 20) {
+  if (player.ovr >= nation.callUp - 3 && prog.injuryWeeks < 20) {
     const p = sigmoid((player.ovr - nation.callUp + 1) / 1.5);
     const windows = 5;
     for (let i = 0; i < windows; i++) if (chance(p)) caps += randInt(1, 2);
@@ -442,7 +479,7 @@ export function simulateSeason(career: Career): SeasonOutcome {
       caps += randInt(3, 7);
       const odds = (TITLE_ODDS[player.nation] ?? 0.01) + (player.ovr >= 88 ? 0.02 : 0);
       if (chance(odds)) allTrophies.push(tournament);
-      else ctx.notes.push(`Mit ${player.nation} bei der ${tournament} dabei.`);
+      else notes.push(`Mit ${player.nation} bei der ${tournament} dabei.`);
     }
     const rate = (GOAL_SHARE[player.position] * 1.2) * Math.exp((player.ovr - nation.callUp) * 0.05);
     for (let i = 0; i < caps; i++) intGoals += poisson(rate);
@@ -454,19 +491,19 @@ export function simulateSeason(career: Career): SeasonOutcome {
     clubId,
     onLoan: player.loan !== null,
     leagueId,
-    ovrStart: player.ovr,
+    ovrStart: prog.ovrStart,
     ovrEnd: player.ovr,
-    apps: played.length,
-    starts: ctx.matches.filter((m) => m.status === 'start').length,
-    minutes,
-    possibleMinutes: ctx.matches.length * 90,
-    goals,
-    assists,
+    apps: stats.apps,
+    starts: stats.starts,
+    minutes: stats.minutes,
+    possibleMinutes: stats.possibleMinutes,
+    goals: stats.goals,
+    assists: stats.assists,
     cleanSheets: ['TW', 'IV', 'AV'].includes(player.position)
       ? played.filter((m) => m.goalsAgainst === 0 && m.minutes >= 60).length
       : 0,
     avgRating,
-    injuryWeeks: ctx.injuryWeeks,
+    injuryWeeks: prog.injuryWeeks,
     leaguePosition: position,
     marketValue: playerValue(player),
     trophies: allTrophies,
@@ -474,12 +511,13 @@ export function simulateSeason(career: Career): SeasonOutcome {
     caps,
     internationalGoals: intGoals,
     byCompetition: (['Liga', 'Pokal', 'Champions League', 'Europa League', 'Conference League'] as Competition[])
-      .map((c) => summarize(ctx.matches, c))
-      .filter((s, i) => i < 2 || ctx.matches.some((m) => m.competition === s.competition)),
+      .map((c) => summarize(matches, c))
+      .filter((s, i) => i < 2 || matches.some((m) => m.competition === s.competition)),
     table,
-    europe: euro,
-    cupReached: cupReached || 'Sieger',
-    notes: ctx.notes,
+    europe: prog.euro ? { competition: prog.euro.competition, reached: prog.euro.reached || 'nach Wechsel nicht dabei' } : null,
+    cupReached: prog.cup.reached || (prog.cup.eligible ? 'Sieger' : 'nach Wechsel nicht dabei'),
+    notes,
+    winterMove: prog.winterMove,
   };
   return { record, tables };
 }

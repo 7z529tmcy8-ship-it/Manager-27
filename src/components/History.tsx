@@ -1,7 +1,7 @@
 import { getClub } from '../data/leagues';
 import { formatMoney } from '../game/player';
 import type { Career } from '../game/types';
-import OvrChart from './OvrChart';
+import AgeChart, { careerPoints } from './AgeChart';
 
 export default function History({ career }: { career: Career }) {
   const h = career.history;
@@ -38,7 +38,21 @@ export default function History({ career }: { career: Career }) {
           <div className="tile"><span className="tile-label">Höchster Marktwert</span><span className="tile-value">{formatMoney(topValue)}</span></div>
           <div className="tile"><span className="tile-label">Länderspiele</span><span className="tile-value">{career.player.caps}</span></div>
         </div>
-        <OvrChart history={h} />
+        <AgeChart
+          title="Gesamtwertung nach Alter"
+          series={[
+            {
+              id: career.id,
+              name: career.player.name,
+              points: careerPoints(h).map((pt, i) => {
+                const s = h[i - 1];
+                return s
+                  ? { ...pt, detail: [`nach ${s.season} · ${getClub(s.clubId).name}`, `${s.apps} Sp. · ${s.goals} T · ${s.assists} V`] }
+                  : pt;
+              }),
+            },
+          ]}
+        />
       </div>
 
       {cabinet.size > 0 && (

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { getClub, getLeague } from '../data/leagues';
-import { playSeason } from '../game/career';
+import { playFirstHalf, playSeason } from '../game/career';
 import { clubLeagueId, currentClubId, seasonLabel } from '../game/player';
+import { sortTable } from '../game/season';
 import type { Career } from '../game/types';
+import HalfReport from './HalfReport';
 import History from './History';
 import LeagueTable from './LeagueTable';
 import PlayerCard from './PlayerCard';
@@ -47,7 +49,7 @@ export default function Game({ career, onChange, onExit }: Props) {
           <div className="tabs">
             <button className={tab === 'overview' ? 'active' : ''} onClick={() => setTab('overview')}>Übersicht</button>
             <button className={tab === 'career' ? 'active' : ''} onClick={() => setTab('career')}>Karriere</button>
-            <button className={tab === 'table' ? 'active' : ''} onClick={() => setTab('table')} disabled={!last}>Tabelle</button>
+            <button className={tab === 'table' ? 'active' : ''} onClick={() => setTab('table')} disabled={!last && !career.progress}>Tabelle</button>
           </div>
 
           {tab === 'overview' && (
@@ -61,12 +63,20 @@ export default function Game({ career, onChange, onExit }: Props) {
                       <strong>{p.loan ? p.loan.role : p.contract.role}</strong>
                     </p>
                   </div>
-                  <button className="btn primary big" onClick={() => onChange(playSeason(career))}>
-                    Saison simulieren ▶
-                  </button>
+                  <div className="action-buttons">
+                    <button className="btn primary big" onClick={() => onChange(playFirstHalf(career))}>
+                      Hinrunde simulieren ▶
+                    </button>
+                    <button className="btn" onClick={() => onChange(playSeason(career))} title="Ohne Stopp im Wintertransferfenster">
+                      Ganze Saison ▶▶
+                    </button>
+                  </div>
                 </div>
               )}
-              {career.phase === 'window' && <TransferWindow career={career} onChange={onChange} />}
+              {(career.phase === 'window' || career.phase === 'winter') && (
+                <TransferWindow career={career} onChange={onChange} />
+              )}
+              {career.phase === 'winter' && career.progress && <HalfReport career={career} />}
               {career.phase === 'retired' && (
                 <div className="panel action">
                   <div>
@@ -76,7 +86,7 @@ export default function Game({ career, onChange, onExit }: Props) {
                   <button className="btn" onClick={() => setTab('career')}>Karriere ansehen</button>
                 </div>
               )}
-              {last ? (
+              {career.phase === 'winter' ? null : last ? (
                 <SeasonReport season={last} />
               ) : (
                 <div className="panel empty">
@@ -86,7 +96,22 @@ export default function Game({ career, onChange, onExit }: Props) {
             </>
           )}
           {tab === 'career' && <History career={career} />}
-          {tab === 'table' && last && <LeagueTable season={last} />}
+          {tab === 'table' && career.progress && (
+            <LeagueTable
+              title={`Tabelle zur Winterpause · ${league.name}`}
+              table={sortTable(career.progress.rows[league.id])}
+              leagueId={league.id}
+              clubId={clubId}
+            />
+          )}
+          {tab === 'table' && !career.progress && last && (
+            <LeagueTable
+              title={`Abschlusstabelle ${getLeague(last.leagueId).name} ${last.season}`}
+              table={last.table}
+              leagueId={last.leagueId}
+              clubId={last.clubId}
+            />
+          )}
         </section>
       </div>
     </main>

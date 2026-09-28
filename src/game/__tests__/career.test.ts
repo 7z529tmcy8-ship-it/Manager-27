@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { slugify } from '../../data/leagues';
-import { acceptOffer, createCareer, playSeason, stayAtClub } from '../career';
+import { acceptOffer, acceptWinterOffer, createCareer, playFirstHalf, playSeason, requestOffers, stayAtClub, stayInWinter } from '../career';
 import type { Career } from '../types';
 
 function runCareer(career: Career, seasons: number, choose: (c: Career) => Career = stayOrFirst): Career {
@@ -71,5 +71,32 @@ describe('Saison-Simulation', () => {
       }
       c = stayOrFirst(c);
     }
+  });
+
+  it('Winterpause: Zwischenstand überlebt Speichern/Laden, Rückrunde vervollständigt die Saison', () => {
+    const winter = playFirstHalf(talent());
+    expect(winter.phase).toBe('winter');
+    expect(winter.progress!.rows.bl1.reduce((a, r) => a + r.played, 0)).toBe(18 * 17);
+    const reloaded = JSON.parse(JSON.stringify(winter));
+    const done = stayInWinter(reloaded);
+    expect(done.phase).toBe('window');
+    expect(done.progress).toBeNull();
+    expect(done.history[0].table.reduce((a, r) => a + r.played, 0)).toBe(18 * 34);
+  });
+
+  it('Winterwechsel: Rückrunde beim neuen Verein, danach kein Pokal mehr', () => {
+    let c = createCareer({ name: 'W', nation: 'Japan', position: 'AV', age: 19, ovr: 64, potential: 80, clubId: slugify('FC Bayern München') });
+    c = playFirstHalf(c);
+    c = requestOffers(c, 'loan');
+    const loan = c.offers.find((o) => o.type === 'Leihe')!;
+    expect(loan).toBeDefined();
+    const done = acceptWinterOffer(c, loan);
+    const s = done.history[0];
+    expect(s.winterMove?.toClubId).toBe(loan.clubId);
+    expect(s.clubId).toBe(loan.clubId);
+    expect(s.onLoan).toBe(true);
+    // Nach Saisonende kehrt der Spieler zurück.
+    expect(done.player.loan).toBeNull();
+    expect(done.player.contract.clubId).toBe(slugify('FC Bayern München'));
   });
 });

@@ -1,29 +1,36 @@
 import { getClub, getLeague } from '../data/leagues';
-import type { SeasonRecord } from '../game/types';
+import type { TableRow } from '../game/types';
 
-export default function LeagueTable({ season }: { season: SeasonRecord }) {
-  const league = getLeague(season.leagueId);
+interface Props {
+  title: string;
+  table: TableRow[];
+  leagueId: string;
+  clubId: string;
+}
+
+export default function LeagueTable({ title, table, leagueId, clubId }: Props) {
+  const league = getLeague(leagueId);
   const { cl, el, conf } = league.europe;
   const zone = (pos: number) => {
     if (pos <= cl) return 'cl';
     if (pos <= cl + el) return 'el';
     if (pos <= cl + el + conf) return 'conf';
     if (league.up && pos <= league.up.spots) return 'cl';
-    if (league.down && pos > season.table.length - league.down.spots) return 'down';
+    if (league.down && pos > table.length - league.down.spots) return 'down';
     return '';
   };
 
   return (
     <div className="panel">
-      <h2>Abschlusstabelle {league.name} {season.season}</h2>
+      <h2>{title}</h2>
       <div className="table-scroll">
         <table className="stats league">
           <thead>
             <tr><th>#</th><th className="left">Verein</th><th>Sp.</th><th>S</th><th>U</th><th>N</th><th>Tore</th><th>Diff.</th><th>Pkt.</th></tr>
           </thead>
           <tbody>
-            {season.table.map((r, i) => (
-              <tr key={r.clubId} className={r.clubId === season.clubId ? 'own' : ''}>
+            {table.map((r, i) => (
+              <tr key={r.clubId} className={r.clubId === clubId ? 'own' : ''}>
                 <td><span className={`zone ${zone(i + 1)}`}>{i + 1}</span></td>
                 <td className="left">{getClub(r.clubId).name}</td>
                 <td>{r.played}</td>

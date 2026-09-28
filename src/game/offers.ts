@@ -1,9 +1,18 @@
 import { CLUBS, getClub, getLeague } from '../data/leagues';
 import { clubLeagueId, clubStrength, formatMoney, playerValue, roleFor, wageFor } from './player';
 import { chance, clamp, poisson, rand, randInt, uid, weightedPick } from './random';
-import type { Career, Offer, SeasonRecord } from './types';
+import type { Career, Offer } from './types';
 
 export type OfferMode = 'normal' | 'transfer' | 'loan';
+
+/** Worauf Vereine ihr Interesse stützen: Spielzeit und Leistung der letzten Saison bzw. Hinrunde. */
+export interface OfferBasis {
+  clubId: string;
+  onLoan: boolean;
+  minutes: number;
+  possibleMinutes: number;
+  avgRating: number | null;
+}
 
 function contractYears(age: number): number {
   if (age <= 24) return randInt(4, 5);
@@ -13,10 +22,16 @@ function contractYears(age: number): number {
 }
 
 /**
- * Erzeugt Angebote für das Transferfenster nach einer Saison.
- * Interesse hängt von Stärke, Alter/Potenzial, Leistung der Vorsaison und Vertragslage ab.
+ * Erzeugt Angebote für das Transferfenster nach einer Saison (Sommer) oder zur Winterpause.
+ * Interesse hängt von Stärke, Alter/Potenzial, Leistung und Vertragslage ab.
+ * Im Winter gibt es weniger Angebote und keine Vertragsverlängerungen.
  */
-export function generateOffers(career: Career, last: SeasonRecord | undefined, mode: OfferMode = 'normal'): Offer[] {
+export function generateOffers(
+  career: Career,
+  last: OfferBasis | undefined,
+  mode: OfferMode = 'normal',
+  winter = false,
+): Offer[] {
   const p = career.player;
   const parentId = p.contract.clubId;
   const parentStrength = clubStrength(career, parentId);
@@ -33,7 +48,7 @@ export function generateOffers(career: Career, last: SeasonRecord | undefined, m
 
   // Vertragsverlängerung beim eigenen Verein
   const wanted = share >= 0.35 || (p.age <= 22 && p.potential >= parentStrength) || p.ovr >= parentStrength - 2;
-  if (p.contract.yearsLeft <= 2 && wanted && !(p.age >= 34 && p.ovr < parentStrength - 3)) {
+  if (!winter && p.contract.yearsLeft <= 2 && wanted && !(p.age >= 34 && p.ovr < parentStrength - 3)) {
     const role = roleFor(p.ovr, parentStrength, p.age);
     const wage = Math.max(p.contract.wage, Math.round(wageFor(p.ovr, parentStrength) * rand(1.0, 1.2) / 500) * 500);
     offers.push({
@@ -51,7 +66,7 @@ export function generateOffers(career: Career, last: SeasonRecord | undefined, m
   }
 
   // Leihverein möchte fest verpflichten
-  if (last?.onLoan && share >= 0.6 && rating >= 6.9 && chance(0.6)) {
+  if (!winter && last?.onLoan && share >= 0.6 && rating >= 6.9 && chance(0.6)) {
     const id = last.clubId;
     const s = clubStrength(career, id);
     taken.add(id);
@@ -59,7 +74,9 @@ export function generateOffers(career: Career, last: SeasonRecord | undefined, m
   }
 
   // Transferangebote
-  let count = poisson(clamp(0.8 + perf * 0.4 + share, 0.3, 3.5));
+  let count = winter
+    ? poisson(clamp(0.2 + perf * 0.3 + share * 0.3, 0.1, 1.5))
+    : poisson(clamp(0.8 + perf * 0.4 + share, 0.3, 3.5));
   if (mode === 'transfer') count += 2;
   if (freeAgent) count = Math.max(count, 3);
   if (p.age >= 35) count = Math.min(count, 2);
@@ -87,7 +104,7 @@ export function generateOffers(career: Career, last: SeasonRecord | undefined, m
   }
 
   // Leihangebote für junge Spieler mit wenig Spielzeit
-  if (!freeAgent && p.age <= 23 && (share < 0.45 || mode === 'loan')) {
+  if (!freeAgent && p.age <= 23 && (share < (winter ? 0.3 : 0.45) || mode === 'loan')) {
     const loans = mode === 'loan' ? randInt(3, 4) : randInt(1, 2);
     for (let i = 0; i < loans; i++) {
       const options = CLUBS.filter((c) => !taken.has(c.id) && clubStrength(career, c.id) < parentStrength - 1);
@@ -107,7 +124,9 @@ export function generateOffers(career: Career, last: SeasonRecord | undefined, m
         wage: p.contract.wage,
         years: 1,
         fee: 0,
-        message: `${club.name} möchte dich für eine Saison ausleihen und plant dich als ${role} ein.`,
+        message: winter
+          ? `${club.name} möchte dich bis Saisonende ausleihen und plant dich als ${role} ein.`
+          : `${club.name} möchte dich für eine Saison ausleihen und plant dich als ${role} ein.`,
       });
     }
   }

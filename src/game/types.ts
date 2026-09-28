@@ -72,6 +72,9 @@ export interface MatchLine {
   goals: number;
   assists: number;
   rating: number | null;
+  /** Verein, für den der Spieler in diesem Spiel im Kader stand. */
+  clubId: string;
+  half: 1 | 2;
 }
 
 export interface TableRow {
@@ -122,6 +125,54 @@ export interface SeasonRecord {
   europe: { competition: Competition; reached: string } | null;
   cupReached: string;
   notes: string[];
+  /** Wechsel im Wintertransferfenster (Verein der Hinrunde → Verein der Rückrunde). */
+  winterMove?: WinterMove | null;
+  /** Gesamtwertung zur Winterpause. */
+  ovrWinter?: number;
+}
+
+export interface WinterMove {
+  fromClubId: string;
+  toClubId: string;
+  type: OfferType;
+}
+
+export interface CupState {
+  alive: boolean;
+  /** Ab dem Winterwechsel ist der Spieler im Pokal nicht mehr dabei. */
+  eligible: boolean;
+  reached: string;
+  won: boolean;
+  used: string[];
+}
+
+export interface EuroState {
+  competition: Competition;
+  eligible: boolean;
+  points: number;
+  stage: 'phase' | 'out' | number;
+  reached: string;
+  won: boolean;
+  used: string[];
+  opponentId: string | null;
+  agg: [number, number];
+}
+
+/** Zwischenstand einer laufenden Saison (wird zur Winterpause gespeichert). */
+export interface SeasonProgress {
+  strength: Record<string, number>;
+  rows: Record<string, TableRow[]>;
+  matches: MatchLine[];
+  form: number;
+  injuredFor: number;
+  injuryWeeks: number;
+  notes: string[];
+  startClubId: string;
+  ovrStart: number;
+  ovrWinter?: number;
+  cup: CupState;
+  euro: EuroState | null;
+  winterMove: WinterMove | null;
 }
 
 export type OfferType = 'Transfer' | 'Leihe' | 'Verlängerung' | 'Ablösefrei';
@@ -149,7 +200,9 @@ export interface Career {
   history: SeasonRecord[];
   /** Offene Angebote im Transferfenster nach der Saison. */
   offers: Offer[];
-  phase: 'season' | 'window' | 'retired';
+  phase: 'season' | 'winter' | 'window' | 'retired';
+  /** Laufende Saison zwischen Hin- und Rückrunde. */
+  progress?: SeasonProgress | null;
   /** Wie viele Angebotsrunden in diesem Fenster noch angefragt werden können. */
   requestsLeft: number;
   /** Vereinsstärken können sich über die Jahre leicht verändern. */

@@ -14,6 +14,12 @@ export default function SeasonReport({ season }: { season: SeasonRecord }) {
         Rückblick {season.season} · {getClub(season.clubId).name}
         {season.onLoan && <span className="pill">Leihe</span>}
       </h2>
+      {season.winterMove && (
+        <p className="hint">
+          Hinrunde bei {getClub(season.winterMove.fromClubId).name}, im Winter {season.winterMove.type === 'Leihe' ? 'ausgeliehen' : 'gewechselt'} zu{' '}
+          {getClub(season.winterMove.toClubId).name}.
+        </p>
+      )}
 
       <div className="tiles">
         <Tile label="Spiele" value={season.apps} sub={`${season.starts} von Beginn`} />
@@ -25,7 +31,7 @@ export default function SeasonReport({ season }: { season: SeasonRecord }) {
         <Tile
           label="Gesamtwertung"
           value={`${season.ovrStart} → ${season.ovrEnd}`}
-          sub={delta === 0 ? '±0' : delta > 0 ? `+${delta}` : `${delta}`}
+          sub={`${delta === 0 ? '±0' : delta > 0 ? `+${delta}` : `${delta}`}${season.ovrWinter !== undefined ? ` · Winter: ${season.ovrWinter}` : ''}`}
           tone={delta > 0 ? 'up' : delta < 0 ? 'down' : undefined}
         />
         <Tile label="Marktwert" value={formatMoney(season.marketValue)} />
