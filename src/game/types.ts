@@ -17,7 +17,7 @@ export interface League {
   name: string;
   country: string;
   cup: string;
-  tier: 1 | 2;
+  tier: 1 | 2 | 3 | 4;
   /** Durchschnittliche Tore pro Spiel in dieser Liga. */
   goalsPerGame: number;
   /** Anzahl Startplätze für CL / EL / Conference League. */
@@ -214,6 +214,17 @@ export interface Career {
   retiredReason?: string;
   /** Eigene Bewerbungen im aktuellen Transferfenster (ab 30 Jahren). */
   applications?: Application[];
+  /** Alle Vereinswechsel inkl. Leihen (für Transferhistorie und Gesamt-Ablöse). */
+  transfers?: TransferEntry[];
+}
+
+export interface TransferEntry {
+  season: string;
+  window: 'Sommer' | 'Winter';
+  type: OfferType;
+  fromClubId: string;
+  toClubId: string;
+  fee: number;
 }
 
 export interface Application {

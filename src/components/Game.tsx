@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { getClub, getLeague } from '../data/leagues';
-import { playFirstHalf, playSeason } from '../game/career';
-import { clubLeagueId, currentClubId, seasonLabel } from '../game/player';
+import { playFirstHalf, playSeason, totalTransferFees } from '../game/career';
+import { clubLeagueId, currentClubId, formatMoney, seasonLabel } from '../game/player';
 import { sortTable } from '../game/season';
 import type { Career } from '../game/types';
 import HalfReport from './HalfReport';
@@ -79,6 +79,10 @@ export default function Game({ career, onChange, onExit }: Props) {
                   <div>
                     <h2>Karriereende</h2>
                     <p>{career.retiredReason}</p>
+                    <p>
+                      Ablösesummen gesamt: <strong>{formatMoney(totalTransferFees(career))}</strong>
+                      {career.transfers ? ` · ${career.transfers.filter((t) => t.fee > 0).length} Wechsel mit Ablöse` : ''}
+                    </p>
                   </div>
                   <button className="btn" onClick={() => setTab('career')}>Karriere ansehen</button>
                 </div>

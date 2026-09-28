@@ -1,10 +1,10 @@
 import { getClub, getLeague, initialClubLeague } from '../data/leagues';
 import { developPlayer } from './development';
 import { APPLICATIONS_PER_WINDOW, APPLICATION_AGE, answerApplication, generateOffers, type OfferMode } from './offers';
-import { clubLeagueId, clubStrength, createProfile, currentClubId, playerValue, roleFor, wageFor } from './player';
+import { clubLeagueId, clubStrength, createProfile, currentClubId, playerValue, roleFor, seasonLabel, wageFor } from './player';
 import { uid } from './random';
 import { applyLeagueChanges, finishSeason, halfStats, initialEuropeSlots, playHalf, startSeason } from './season';
-import type { Career, Offer, Position } from './types';
+import type { Career, Offer, Position, TransferEntry } from './types';
 
 export const START_YEAR = 2025;
 export const MAX_AGE = 41;
@@ -53,6 +53,7 @@ export function createCareer(np: NewPlayer): Career {
     clubDrift: {},
     europeSlots: initialEuropeSlots(),
     clubLeague: initialClubLeague(),
+    transfers: [],
   };
 }
 
@@ -91,6 +92,7 @@ export function acceptWinterOffer(prev: Career, offer: Offer): Career {
   const p = career.player;
   const prog = career.progress!;
   const fromClubId = currentClubId(p);
+  recordTransfer(career, 'Winter', fromClubId, offer);
   if (offer.type === 'Leihe') {
     p.loan = { clubId: offer.clubId, parentClubId: p.contract.clubId, role: offer.role };
   } else {
@@ -171,6 +173,7 @@ function finishSecondHalf(career: Career): Career {
 export function acceptOffer(prev: Career, offer: Offer): Career {
   const career: Career = structuredClone(prev);
   const p = career.player;
+  if (offer.type !== 'Verlängerung') recordTransfer(career, 'Sommer', p.contract.clubId, offer);
   if (offer.type === 'Leihe') {
     p.loan = { clubId: offer.clubId, parentClubId: p.contract.clubId, role: offer.role };
   } else {
@@ -214,6 +217,18 @@ export function retire(prev: Career): Career {
   career.offers = [];
   career.updatedAt = Date.now();
   return career;
+}
+
+function recordTransfer(career: Career, window: TransferEntry['window'], fromClubId: string, offer: Offer) {
+  career.transfers = [
+    ...(career.transfers ?? []),
+    { season: seasonLabel(career.year), window, type: offer.type, fromClubId, toClubId: offer.clubId, fee: offer.fee },
+  ];
+}
+
+/** Summe aller gezahlten Ablösen für den Spieler (Leihen und ablösefreie Wechsel zählen 0). */
+export function totalTransferFees(career: Career): number {
+  return (career.transfers ?? []).reduce((a, t) => a + t.fee, 0);
 }
 
 export function applicationsLeft(career: Career): number {

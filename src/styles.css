@@ -246,3 +246,4 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .9rem; font-var
 .apply h3 { font-size: 1rem; }
 .apply .row { margin-top: 10px; align-items: center; }
 .apply .btn:disabled { opacity: .5; cursor: default; }
+.stats tfoot td { border-bottom: 0; border-top: 2px solid var(--border); }

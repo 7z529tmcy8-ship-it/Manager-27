@@ -1,4 +1,4 @@
-import { CLUBS, LEAGUES, getClub, getLeague } from '../data/leagues';
+import { CLUBS, LEAGUES, canPlayIn, getClub, getLeague } from '../data/leagues';
 import { getNation } from '../data/players';
 import {
   ROLE_BONUS,
@@ -533,7 +533,10 @@ export function applyLeagueChanges(career: Career, tables: Record<string, TableR
     if (l.down) {
       const lower = tables[l.down.leagueId];
       const down = table.slice(-l.down.spots).map((r) => r.clubId);
-      const up = lower.slice(0, l.down.spots).map((r) => r.clubId);
+      const up = lower
+        .filter((r) => canPlayIn(r.clubId, l.id, career.clubLeague))
+        .slice(0, l.down.spots)
+        .map((r) => r.clubId);
       down.forEach((id) => {
         clubLeague[id] = l.down!.leagueId;
         drift[id] = (drift[id] ?? 0) - 1;

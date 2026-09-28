@@ -10,7 +10,16 @@ export const LEAGUES: League[] = [
   },
   {
     id: 'bl2', name: '2. Bundesliga', country: 'Deutschland', cup: 'DFB-Pokal', tier: 2, goalsPerGame: 2.9,
-    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'bl1', spots: 3 }, topScorerGoals: 20,
+    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'bl1', spots: 3 }, down: { leagueId: 'l3', spots: 3 }, topScorerGoals: 20,
+  },
+  {
+    id: 'l3', name: '3. Liga', country: 'Deutschland', cup: 'DFB-Pokal', tier: 3, goalsPerGame: 2.9,
+    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'bl2', spots: 3 }, down: { leagueId: 'rln', spots: 1 }, topScorerGoals: 20,
+  },
+  {
+    // Vereinfacht: Nur die Regionalliga Nord ist enthalten, daher tauscht sie genau einen Platz mit der 3. Liga.
+    id: 'rln', name: 'Regionalliga Nord', country: 'Deutschland', cup: 'DFB-Pokal', tier: 4, goalsPerGame: 3.2,
+    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'l3', spots: 1 }, topScorerGoals: 24,
   },
   {
     id: 'pl', name: 'Premier League', country: 'England', cup: 'FA Cup', tier: 1, goalsPerGame: 2.9,
@@ -56,6 +65,20 @@ const RAW: Record<string, [string, number][]> = {
     ['Fortuna Düsseldorf', 68], ['Karlsruher SC', 67], ['SV Elversberg', 67], ['1. FC Nürnberg', 67],
     ['1. FC Magdeburg', 67], ['Arminia Bielefeld', 67], ['Eintracht Braunschweig', 66], ['SpVgg Greuther Fürth', 66],
     ['Dynamo Dresden', 66], ['Preußen Münster', 66],
+  ],
+  l3: [
+    ['TSV 1860 München', 64], ['FC Energie Cottbus', 64], ['FC Hansa Rostock', 64], ['1. FC Saarbrücken', 64],
+    ['Rot-Weiss Essen', 64], ['SSV Ulm 1846', 64], ['SSV Jahn Regensburg', 64], ['Alemannia Aachen', 63],
+    ['FC Ingolstadt 04', 63], ['VfL Osnabrück', 63], ['SV Wehen Wiesbaden', 63], ['MSV Duisburg', 63],
+    ['FC Erzgebirge Aue', 62], ['SV Waldhof Mannheim', 62], ['SC Verl', 62], ['FC Viktoria Köln', 61],
+    ['VfB Stuttgart II', 60], ['TSG Hoffenheim II', 60], ['TSV Havelse', 59], ['1. FC Schweinfurt 05', 59],
+  ],
+  rln: [
+    ['SV Meppen', 60], ['VfB Oldenburg', 59], ['SV Drochtersen/Assel', 57], ['1. FC Phönix Lübeck', 57],
+    ['VfB Lübeck', 57], ['Hannover 96 II', 57], ['Hamburger SV II', 57], ['SV Werder Bremen II', 56],
+    ['Kickers Emden', 56], ['SC Weiche Flensburg 08', 56], ['SSV Jeddeloh II', 55], ['FC St. Pauli II', 55],
+    ['Eintracht Norderstedt', 55], ['Holstein Kiel II', 54], ['SC BW Lohne', 54], ['Altona 93', 54],
+    ['HSC Hannover', 54], ['FSV Schöningen', 53],
   ],
   pl: [
     ['Liverpool FC', 85], ['Manchester City', 84], ['Arsenal FC', 84], ['Chelsea FC', 83],
@@ -137,6 +160,20 @@ export function getLeague(id: string): League {
   const league = LEAGUE_MAP.get(id);
   if (!league) throw new Error(`Unbekannte Liga: ${id}`);
   return league;
+}
+
+/**
+ * Zweite Mannschaften dürfen höchstens in die 3. Liga aufsteigen und nie in dieselbe
+ * oder eine höhere Liga als ihre erste Mannschaft.
+ */
+export function canPlayIn(clubId: string, leagueId: string, clubLeague: Record<string, string>): boolean {
+  const club = getClub(clubId);
+  if (!club.name.endsWith(' II')) return true;
+  const tier = getLeague(leagueId).tier;
+  if (tier <= 2) return false;
+  const first = CLUB_MAP.get(slugify(club.name.slice(0, -3)));
+  if (!first) return true;
+  return getLeague(clubLeague[first.id] ?? first.leagueId).tier < tier;
 }
 
 export function initialClubLeague(): Record<string, string> {

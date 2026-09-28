@@ -157,6 +157,7 @@ function Comparison({ items }: { items: CareerSummary[] }) {
     { label: 'Ballon d’Or', value: (s) => s.ballonDor },
     { label: 'Länderspiele', value: (s) => s.caps },
     { label: 'Höchster Marktwert', value: (s) => s.topValue, format: formatMoney },
+    { label: 'Ablösesummen gesamt', value: (s) => s.transferFees, format: formatMoney },
   ];
 
   return (

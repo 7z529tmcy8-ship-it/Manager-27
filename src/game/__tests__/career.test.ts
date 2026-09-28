@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { slugify } from '../../data/leagues';
-import { acceptOffer, acceptWinterOffer, applicationsLeft, applyToClub, createCareer, playFirstHalf, playSeason, requestOffers, stayAtClub, stayInWinter } from '../career';
+import { canPlayIn, initialClubLeague, slugify } from '../../data/leagues';
+import { acceptOffer, acceptWinterOffer, applicationsLeft, applyToClub, createCareer, totalTransferFees, playFirstHalf, playSeason, requestOffers, stayAtClub, stayInWinter } from '../career';
 import type { Career } from '../types';
 
 function runCareer(career: Career, seasons: number, choose: (c: Career) => Career = stayOrFirst): Career {
@@ -40,6 +40,9 @@ describe('Saison-Simulation', () => {
     expect(counts.bl1).toBe(18);
     expect(counts.pl).toBe(20);
     expect(counts.ch).toBe(24);
+    expect(counts.bl2).toBe(18);
+    expect(counts.l3).toBe(20);
+    expect(counts.rln).toBe(18);
   });
 
   it('Toptalente mit Spielzeit entwickeln sich deutlich, alte Spieler bauen ab', () => {
@@ -115,5 +118,23 @@ describe('Saison-Simulation', () => {
       expect(applyToClub(c, slugify('VfL Bochum'))).toBe(c);
     }
     expect(accepted).toBeGreaterThanOrEqual(12);
+  });
+
+  it('Zweite Mannschaften steigen nicht über die 3. Liga bzw. ihre erste Mannschaft hinaus', () => {
+    const leagues = initialClubLeague();
+    expect(canPlayIn(slugify('VfB Stuttgart II'), 'bl2', leagues)).toBe(false);
+    expect(canPlayIn(slugify('Hannover 96 II'), 'l3', leagues)).toBe(true);
+    expect(canPlayIn(slugify('Hannover 96 II'), 'l3', { ...leagues, [slugify('Hannover 96')]: 'l3' })).toBe(false);
+    expect(canPlayIn(slugify('SV Meppen'), 'l3', leagues)).toBe(true);
+  });
+
+  it('Transfers werden mit Ablöse erfasst und summiert', () => {
+    let c = playSeason(createCareer({ name: 'T', nation: 'Deutschland', position: 'ST', age: 24, ovr: 80, potential: 84, clubId: slugify('SC Freiburg') }));
+    c = requestOffers(c, 'transfer');
+    const offer = c.offers.find((o) => o.type === 'Transfer')!;
+    c = acceptOffer(c, offer);
+    expect(c.transfers).toHaveLength(1);
+    expect(c.transfers![0]).toMatchObject({ window: 'Sommer', fromClubId: slugify('SC Freiburg'), toClubId: offer.clubId, fee: offer.fee });
+    expect(totalTransferFees(c)).toBe(offer.fee);
   });
 });

@@ -1,4 +1,5 @@
 import { getClub } from '../data/leagues';
+import { totalTransferFees } from './career';
 import type { Career } from './types';
 
 export interface CareerSummary {
@@ -16,6 +17,8 @@ export interface CareerSummary {
   caps: number;
   topValue: number;
   clubs: string[];
+  /** Summe aller gezahlten Ablösen. */
+  transferFees: number;
   /** Legendenpunkte: grobe Gesamtbewertung einer Karriere für die Rangliste. */
   score: number;
 }
@@ -56,6 +59,7 @@ export function summarizeCareer(career: Career): CareerSummary {
     caps: career.player.caps,
     topValue: h.length ? Math.max(...h.map((s) => s.marketValue)) : 0,
     clubs,
+    transferFees: totalTransferFees(career),
     score,
   };
 }

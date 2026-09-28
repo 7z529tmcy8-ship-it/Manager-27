@@ -1,7 +1,9 @@
 import { getClub } from '../data/leagues';
+import { totalTransferFees } from '../game/career';
 import { formatMoney } from '../game/player';
 import type { Career } from '../game/types';
 import AgeChart, { careerPoints } from './AgeChart';
+import TransferHistory from './TransferHistory';
 
 export default function History({ career }: { career: Career }) {
   const h = career.history;
@@ -37,6 +39,7 @@ export default function History({ career }: { career: Career }) {
           <div className="tile"><span className="tile-label">Höchstwertung</span><span className="tile-value">{peak}</span></div>
           <div className="tile"><span className="tile-label">Höchster Marktwert</span><span className="tile-value">{formatMoney(topValue)}</span></div>
           <div className="tile"><span className="tile-label">Länderspiele</span><span className="tile-value">{career.player.caps}</span></div>
+          <div className="tile"><span className="tile-label">Ablösesummen gesamt</span><span className="tile-value">{formatMoney(totalTransferFees(career))}</span></div>
         </div>
         <AgeChart
           title="Gesamtwertung nach Alter"
@@ -65,6 +68,8 @@ export default function History({ career }: { career: Career }) {
           </div>
         </div>
       )}
+
+      <TransferHistory career={career} />
 
       <div className="panel">
         <h2>Stationen</h2>

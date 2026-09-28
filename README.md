@@ -8,8 +8,10 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
 
 - **Eigener Spieler** (Name, Nation, Position, Alter, Talentstufe, Startverein) oder **echter Spieler** als Start
   (z. B. Lennart Karl, Musiala, Yamal, Haaland – Werte sind eigene Schätzungen, keine EA-Ratings)
-- **9 Ligen, Stand 2025/26:** Bundesliga, 2. Bundesliga, Premier League, Championship, LaLiga, Serie A,
-  Ligue 1, Liga Portugal, Eredivisie – mit Auf- und Abstieg und Europapokal-Plätzen
+- **11 Ligen, Stand 2025/26:** Bundesliga, 2. Bundesliga, 3. Liga, Regionalliga Nord, Premier League,
+  Championship, LaLiga, Serie A, Ligue 1, Liga Portugal, Eredivisie – mit Auf- und Abstieg und Europapokal-Plätzen.
+  Zweite Mannschaften steigen höchstens in die 3. Liga auf. Vereinfachung: Da nur die Regionalliga Nord enthalten ist,
+  tauscht sie genau einen Platz mit der 3. Liga
 - **Saison-Simulation:** Alle Ligen werden komplett durchgespielt, dazu nationaler Pokal und
   Champions/Europa/Conference League. Für den Spieler: Einsätze, Minuten, Tore, Vorlagen, Noten, Verletzungen
 - **Hinrunde & Rückrunde mit Wintertransferfenster:** Nach der Hinrunde gibt es eine Zwischenbilanz und
@@ -28,6 +30,7 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
 - **Hall of Fame:** Rangliste aller Karrieren nach Legendenpunkten (sortierbar), Rekorde über alle Karrieren
   und Vergleich von bis zu drei Karrieren inklusive Entwicklungskurven
 - Über 80 echte Spieler als Startvorlage (u. a. Hayate Matsuda, Kubo, Mitoma, Musiala, Wirtz, Yamal)
+- **Transferhistorie:** alle Wechsel und Leihen mit Ablöse, Gesamtsumme der Ablösen (auch am Karriereende)
 - Spielstände werden im Browser gespeichert (localStorage)
 
 ## Lokal starten
