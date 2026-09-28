@@ -31,6 +31,16 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
   „Auf Transferliste setzen“, „Um Leihe bitten“, Karriereende
 - **Karriere-Übersicht:** Stationen, Verlauf der Gesamtwertung, Trophäenschrank, Auszeichnungen
   (Torschützenkönig, Golden Boy, Ballon d’Or …), Länderspiele inkl. WM/EM
+- **Live-Finals:** Pokal-, Europapokal- und Turnierfinals (WM/EM/Copa) laufen als Live-Ticker. In deinen Szenen
+  entscheidest du selbst (abziehen, querlegen, dribbeln / grätschen, stellen / rauslaufen, Elfmeter-Ecke) – das
+  beeinflusst Ergebnis, Tore und Note. „Ganze Saison“ spielt Finals automatisch
+- **Entscheidungen:** Positionswechsel, angeschlagen ins Topspiel, Trainingslager, Interview zu Wechselgerüchten,
+  Elfmeterschütze, Mannschaftsabend, Mentor – jede Wahl hat Folgen für Wertung, Vertrauen oder Verletzungen
+- **Rivale:** ein Talent auf deiner Position macht parallel Karriere (eigene Entwicklung und Wechsel); jede Saison
+  gibt es ein Duell, und ein stärkerer Rivale gleicher Nation kann dir den Platz in der Nationalelf wegnehmen
+- **Kapitän & Vereinslegende:** nach einigen Jahren als Stammspieler Kapitänsbinde (mehr Einsätze), nach vielen
+  Jahren oder Titeln Legendenstatus – beim Karriereende wird die Rückennummer nicht mehr vergeben
+- **Schlagzeilen:** Presse-Feed zu deinen Leistungen, Titeln, Transfers, dem Rivalen und den Ligen
 - **Hall of Fame:** Rangliste aller Karrieren nach Legendenpunkten (sortierbar), Rekorde über alle Karrieren
   und Vergleich von bis zu drei Karrieren inklusive Entwicklungskurven
 - Über 80 echte Spieler als Startvorlage (u. a. Hayate Matsuda, Kubo, Mitoma, Musiala, Wirtz, Yamal)

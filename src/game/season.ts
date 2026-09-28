@@ -17,6 +17,7 @@ import type {
   CompetitionStats,
   EuroState,
   MatchLine,
+  NationalSeason,
   PlayerState,
   Position,
   SeasonProgress,
@@ -133,7 +134,8 @@ function playerMatch(
     prog.injuredFor--;
     status = 'injured';
   } else {
-    const selection = rel + ROLE_BONUS[currentRole(player)] + (prog.form - 6.8) * 2 + (player.morale ?? 0) + rotation;
+    const captain = player.captainOf === ctx.clubId ? 1 : 0;
+    const selection = rel + ROLE_BONUS[currentRole(player)] + (prog.form - 6.8) * 2 + (player.morale ?? 0) + captain + rotation;
     const startP = player.position === 'TW' ? sigmoid((selection + 1) / 1.2) : sigmoid((selection + 1.5) / 2.2);
     if (chance(startP)) {
       status = 'start';
@@ -154,7 +156,8 @@ function playerMatch(
   let assists = 0;
   let rating: number | null = null;
   if (minutes > 0) {
-    const pGoal = Math.min(0.8, GOAL_SHARE[player.position] * Math.exp(rel * 0.04) * share);
+    const penalties = player.penaltyTakerOf === ctx.clubId ? 1.15 : 1;
+    const pGoal = Math.min(0.8, GOAL_SHARE[player.position] * penalties * Math.exp(rel * 0.04) * share);
     const pAssist = Math.min(0.6, ASSIST_SHARE[player.position] * Math.exp(rel * 0.04) * share);
     for (let g = 0; g < gf; g++) {
       if (chance(pGoal)) goals++;
@@ -203,6 +206,8 @@ const CUP_AT = [0.05, 0.3, 0.48, 0.62, 0.78, 0.99];
 const EURO_PHASE_AT = [0.1, 0.17, 0.24, 0.3, 0.36, 0.42, 0.52, 0.58];
 const EURO_KO_AT: [number, number][] = [[0.64, 0.67], [0.72, 0.75], [0.8, 0.83], [0.88, 0.91], [1.0, 1.0]];
 
+const cupName = (ctx: SeasonContext) => getLeague(clubLeagueId(ctx.career, ctx.clubId)).cup;
+
 function scheduleCup(ctx: SeasonContext, leagueGoals: number): Scheduled[] {
   const cup = ctx.prog.cup;
   const country = getLeague(clubLeagueId(ctx.career, ctx.clubId)).country;
@@ -216,6 +221,16 @@ function scheduleCup(ctx: SeasonContext, leagueGoals: number): Scheduled[] {
       const lo = Math.floor((sorted.length * i) / (CUP_ROUNDS.length + 2));
       const opponent = pick(sorted.slice(lo).filter((c) => !cup.used.includes(c.id)));
       cup.used.push(opponent.id);
+      if (name === 'Finale') {
+        // Das Finale wird live erlebt.
+        ctx.prog.pendingFinals = [...(ctx.prog.pendingFinals ?? []), {
+          kind: 'cup', title: `${cupName(ctx)}-Finale`, opponentId: opponent.id, opponentName: opponent.name,
+          opponentStrength: ctx.prog.strength[opponent.id] ?? opponent.strength,
+        }];
+        cup.alive = false;
+        cup.reached = 'Finale';
+        return;
+      }
       const line = playerMatch(ctx, 'Pokal', opponent.id, chance(0.5), leagueGoals, i < 3 ? 3 : 0);
       let won = line.goalsFor > line.goalsAgainst;
       if (line.goalsFor === line.goalsAgainst) won = chance(0.5);
@@ -268,6 +283,16 @@ function scheduleEurope(ctx: SeasonContext, euro: EuroState): Scheduled[] {
         euro.used.push(opponent.id);
         euro.opponentId = opponent.id;
         euro.agg = [0, 0];
+        if (isFinal) {
+          // Das Endspiel wird live erlebt.
+          ctx.prog.pendingFinals = [...(ctx.prog.pendingFinals ?? []), {
+            kind: 'euro', title: `${euro.competition}-Finale`, opponentId: opponent.id, opponentName: opponent.name,
+            opponentStrength: ctx.prog.strength[opponent.id] ?? opponent.strength,
+          }];
+          euro.stage = 'out';
+          euro.reached = 'Finale';
+          return;
+        }
       }
       const line = playerMatch(ctx, euro.competition, euro.opponentId!, isFinal ? chance(0.5) : legNo === 1, 2.8);
       euro.agg[0] += line.goalsFor;
@@ -357,6 +382,11 @@ export function playHalf(career: Career, prog: SeasonProgress, half: 1 | 2): voi
   const clubId = currentClubId(player);
   const leagueId = clubLeagueId(career, clubId);
   const ctx: SeasonContext = { career, player, clubId, half, prog };
+  if (player.carryInjuryWeeks) {
+    prog.injuredFor += Math.round(player.carryInjuryWeeks * 1.3);
+    prog.injuryWeeks += player.carryInjuryWeeks;
+    player.carryInjuryWeeks = 0;
+  }
   const inHalf = (at: number) => (half === 1 ? at < 0.5 : at >= 0.5);
 
   for (const l of LEAGUES) {
@@ -422,6 +452,56 @@ export interface SeasonOutcome {
   tables: Record<string, TableRow[]>;
 }
 
+// Grobe Stärke der Nationalteams für Turnierfinals.
+const NATION_STRENGTH: Record<string, number> = {
+  Spanien: 86, Frankreich: 86, England: 85, Argentinien: 85, Brasilien: 85, Deutschland: 84, Portugal: 84,
+  Niederlande: 83, Italien: 82, Belgien: 81, Kroatien: 81, Kolumbien: 80, Norwegen: 79, Türkei: 79,
+  Schweiz: 79, Japan: 79, Österreich: 78, Schweden: 78, Südkorea: 77, Polen: 77, USA: 77,
+};
+export const nationStrength = (nation: string) => NATION_STRENGTH[nation] ?? 76;
+
+/**
+ * Länderspiele der Saison. Erreicht die Nation bei einem Turnier das Finale,
+ * wird es als Live-Finale vorgemerkt statt ausgewürfelt.
+ */
+export function computeNational(career: Career, prog: SeasonProgress): NationalSeason {
+  const player = career.player;
+  const nation = getNation(player.nation);
+  let callUp = nation.callUp;
+  const notes: string[] = [];
+  const rival = career.rival;
+  // Ein stärkerer Rivale gleicher Nation und Position blockiert den Platz in der Nationalelf.
+  if (rival && !rival.retired && rival.nation === player.nation && rival.position === player.position && rival.ovr > player.ovr) {
+    callUp += 2;
+    if (player.ovr >= nation.callUp - 1) notes.push(`${rival.name} ist in der Nationalelf auf deiner Position gesetzt.`);
+  }
+  let caps = 0;
+  let goals = 0;
+  let tournament: NationalSeason['tournament'] = null;
+  if (player.ovr >= callUp - 3 && prog.injuryWeeks < 20) {
+    const p = sigmoid((player.ovr - callUp + 1) / 1.5);
+    for (let i = 0; i < 5; i++) if (chance(p)) caps += randInt(1, 2);
+    const name = tournamentName(player.nation, career.year + 1);
+    if (name && player.ovr >= callUp && caps > 0) {
+      caps += randInt(3, 6);
+      const odds = (TITLE_ODDS[player.nation] ?? 0.01) + (player.ovr >= 88 ? 0.02 : 0);
+      const reachedFinal = chance(Math.min(0.6, odds * 2.2 + 0.02));
+      tournament = { name, reachedFinal, won: false };
+      if (reachedFinal) {
+        const rivals = Object.keys(NATION_STRENGTH).filter((n) => n !== player.nation);
+        const opponent = weightedPick(rivals, (n) => NATION_STRENGTH[n] - 74);
+        prog.pendingFinals = [
+          ...(prog.pendingFinals ?? []),
+          { kind: 'national', title: `Finale der ${name}`, opponentName: opponent, opponentStrength: NATION_STRENGTH[opponent] },
+        ];
+      } else notes.push(`Mit ${player.nation} bei der ${name} dabei.`);
+    }
+    const rate = GOAL_SHARE[player.position] * 1.2 * Math.exp((player.ovr - callUp) * 0.05);
+    for (let i = 0; i < caps; i++) goals += poisson(rate);
+  }
+  return { caps, goals, tournament, notes };
+}
+
 /** Saison abschließen: Tabellen, Titel, Auszeichnungen und Nationalmannschaft. */
 export function finishSeason(career: Career, prog: SeasonProgress): SeasonOutcome {
   const player = career.player;
@@ -465,25 +545,12 @@ export function finishSeason(career: Career, prog: SeasonProgress): SeasonOutcom
     awards.push('Ballon d’Or');
   }
 
-  // Nationalmannschaft
-  const nation = getNation(player.nation);
-  let caps = 0;
-  let intGoals = 0;
-  if (player.ovr >= nation.callUp - 3 && prog.injuryWeeks < 20) {
-    const p = sigmoid((player.ovr - nation.callUp + 1) / 1.5);
-    const windows = 5;
-    for (let i = 0; i < windows; i++) if (chance(p)) caps += randInt(1, 2);
-    const summer = career.year + 1;
-    const tournament = tournamentName(player.nation, summer);
-    if (tournament && player.ovr >= nation.callUp && caps > 0) {
-      caps += randInt(3, 7);
-      const odds = (TITLE_ODDS[player.nation] ?? 0.01) + (player.ovr >= 88 ? 0.02 : 0);
-      if (chance(odds)) allTrophies.push(tournament);
-      else notes.push(`Mit ${player.nation} bei der ${tournament} dabei.`);
-    }
-    const rate = (GOAL_SHARE[player.position] * 1.2) * Math.exp((player.ovr - nation.callUp) * 0.05);
-    for (let i = 0; i < caps; i++) intGoals += poisson(rate);
-  }
+  // Nationalmannschaft (inkl. eventuell live gespieltem Turnierfinale)
+  const national = prog.national ?? computeNational(career, prog);
+  const caps = national.caps;
+  const intGoals = national.goals;
+  notes.push(...national.notes);
+  if (national.tournament?.won) allTrophies.push(national.tournament.name);
 
   const record: SeasonRecord = {
     season: seasonLabel(career.year),

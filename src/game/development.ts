@@ -47,28 +47,29 @@ export function performanceIndex(s: DevStats): number {
   return clamp(perf, -2, 2);
 }
 
-// Erwartete Saisonnote je Position: a + b · (Gesamtwertung − Teamstärke), per Simulation ermittelt.
-const EXPECTED: Record<Position, { a: number; b: number; sd: number }> = {
-  ST: { a: 6.87, b: 0.073, sd: 0.27 },
-  FL: { a: 6.83, b: 0.067, sd: 0.27 },
-  ZOM: { a: 6.82, b: 0.064, sd: 0.24 },
-  ZM: { a: 6.69, b: 0.051, sd: 0.2 },
-  ZDM: { a: 6.68, b: 0.047, sd: 0.19 },
-  AV: { a: 6.71, b: 0.047, sd: 0.21 },
-  IV: { a: 6.44, b: 0.042, sd: 0.23 },
-  TW: { a: 6.37, b: 0.037, sd: 0.22 },
+// Erwartete Saisonnote je Position: a + b · (Gesamtwertung − Teamstärke) + c · (Teamstärke − 75), per Simulation ermittelt.
+const EXPECTED: Record<Position, { a: number; b: number; c: number; sd: number }> = {
+  ST: { a: 6.85, b: 0.066, c: 0.013, sd: 0.22 },
+  FL: { a: 6.84, b: 0.06, c: 0.016, sd: 0.22 },
+  ZOM: { a: 6.83, b: 0.058, c: 0.012, sd: 0.19 },
+  ZM: { a: 6.7, b: 0.046, c: 0.01, sd: 0.16 },
+  ZDM: { a: 6.7, b: 0.045, c: 0.008, sd: 0.15 },
+  AV: { a: 6.72, b: 0.05, c: 0.011, sd: 0.17 },
+  IV: { a: 6.5, b: 0.043, c: 0.014, sd: 0.19 },
+  TW: { a: 6.45, b: 0.034, c: 0.013, sd: 0.18 },
 };
 
 /**
  * Leistung im Vergleich zur Erwartung (−2 … +2): Ein Star in einem schwachen Team bekommt
  * automatisch Topnoten – über sich hinaus wächst nur, wer besser spielt als für seine Stärke erwartet.
  */
-export function relativePerformance(s: DevStats, position: Position, rel: number): number {
+export function relativePerformance(s: DevStats, position: Position, rel: number, teamStrength = 75): number {
   if (s.avgRating === null || s.minutes < 270) return 0;
   const e = EXPECTED[position];
   // Kürzere Zeiträume streuen stärker – deshalb die Abweichung entsprechend dämpfen.
   const reliability = Math.min(1, s.minutes / 2000);
-  const z = ((s.avgRating - (e.a + e.b * clamp(rel, -10, 16))) / e.sd) * reliability;
+  const expected = e.a + e.b * clamp(rel, -10, 16) + e.c * (teamStrength - 75);
+  const z = ((s.avgRating - expected) / e.sd) * reliability;
   return clamp(z, -2, 2);
 }
 
@@ -96,7 +97,9 @@ export function developPlayer(
   const share = shareOf(stats);
   const perf = performanceIndex(stats);
   const rel = p.ovr - teamStrength;
-  const relPerf = relativePerformance(stats, p.position, rel);
+  const relPerf = relativePerformance(stats, p.position, rel, teamStrength);
+  // Je besser ein Spieler schon ist, desto schwerer fällt jeder weitere Punkt.
+  const eliteBrake = clamp((95 - p.ovr) / 15, 0, 1);
   const reasons: string[] = [];
 
   const ptFactor = 0.35 + 0.95 * Math.min(1, share / 0.75);
@@ -109,9 +112,9 @@ export function developPlayer(
   let potential = p.potential;
   if (potentialStats) {
     const seasonShare = shareOf(potentialStats);
-    const seasonRel = relativePerformance(potentialStats, p.position, rel);
-    if (p.age <= 24 && seasonShare >= 0.5 && seasonRel >= 1) {
-      potential = Math.min(99, potential + randInt(1, 2));
+    const seasonRel = relativePerformance(potentialStats, p.position, rel, teamStrength);
+    if (p.age <= 24 && seasonShare >= 0.5 && seasonRel >= 1 && p.ovr < 92) {
+      potential = Math.min(99, potential + (p.ovr >= 85 ? 1 : randInt(1, 2)));
       reasons.push('Besser gespielt als erwartet – das Potenzial ist gestiegen.');
     } else if (p.age <= 23 && seasonShare < 0.25) {
       const down = randInt(0, 2);
@@ -125,7 +128,7 @@ export function developPlayer(
     const gap = Math.max(0, potential - p.ovr);
     let growth = gap * growthRate(age) * ptFactor * perfFactor * trainingFactor;
     // Über sich hinauswachsen: nur wer klar über den Erwartungen spielt (bis 27).
-    if (age <= 27 && share >= 0.4 && relPerf >= 0.8) growth += 0.5 * relPerf;
+    if (age <= 27 && share >= 0.4 && relPerf >= 0.8) growth += 0.5 * relPerf * eliteBrake;
     // Zufall schwankt nur das Wachstum – ein Minus gibt es vor 30 nur aus echten Gründen.
     growth = Math.max(0, growth + normal(0, 0.5));
     let setback = 0;
@@ -145,6 +148,8 @@ export function developPlayer(
     change = -Math.max(0, base * mitigation * penalty + normal(0, 0.4));
   }
   change *= weight;
+  // Obergrenze pro Halbserie: Weltklassespieler machen keine Riesensprünge mehr.
+  change = Math.min(change, p.ovr >= 85 ? 1.5 : 4);
   // Starke Halbserie mit Spielzeit: kein Rückschritt (bis 29).
   if (strongHalf && age < 30) change = Math.max(0, change);
 

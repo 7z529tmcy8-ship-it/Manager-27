@@ -60,6 +60,16 @@ export interface PlayerState {
   internationalGoals: number;
   /** Vertrauen des Trainers (−3 … +3): beeinflusst die Einsatzchancen, klingt pro Halbserie ab. */
   morale?: number;
+  /** Verein, bei dem der Spieler Kapitän ist. */
+  captainOf?: string | null;
+  /** Vereine, bei denen der Spieler Legendenstatus hat. */
+  legendOf?: string[];
+  /** Führungsqualität (z. B. durch Mentoring) – macht die Kapitänsbinde wahrscheinlicher. */
+  leadership?: number;
+  /** Verein, bei dem der Spieler Elfmeterschütze ist. */
+  penaltyTakerOf?: string | null;
+  /** Verletzungswochen, die zum Start der nächsten Halbserie anfallen (z. B. nach einer Entscheidung). */
+  carryInjuryWeeks?: number;
 }
 
 export interface GameEvent {
@@ -188,6 +198,10 @@ export interface SeasonProgress {
   injuryWeeksWinter?: number;
   /** Veränderung der Gesamtwertung durch Ereignisse zur Winterpause. */
   winterEventDelta?: number;
+  /** Finals, die live gespielt werden (Pokal, Europapokal, Turnier). */
+  pendingFinals?: PendingFinal[];
+  national?: NationalSeason;
+  devReasons?: string[];
   events?: GameEvent[];
   cup: CupState;
   euro: EuroState | null;
@@ -219,7 +233,15 @@ export interface Career {
   history: SeasonRecord[];
   /** Offene Angebote im Transferfenster nach der Saison. */
   offers: Offer[];
-  phase: 'season' | 'winter' | 'window' | 'retired';
+  phase: 'season' | 'winter' | 'final' | 'window' | 'retired';
+  /** Laufendes Live-Finale. */
+  liveFinal?: FinalState | null;
+  /** Offene Entscheidung, die vor dem Weiterspielen beantwortet werden muss. */
+  decision?: PendingDecision | null;
+  /** Ergebnis der zuletzt getroffenen Entscheidung. */
+  decisionResult?: DecisionResult | null;
+  rival?: RivalState | null;
+  news?: NewsItem[];
   /** Laufende Saison zwischen Hin- und Rückrunde. */
   progress?: SeasonProgress | null;
   /** Wie viele Angebotsrunden in diesem Fenster noch angefragt werden können. */
@@ -250,4 +272,109 @@ export interface Application {
   clubId: string;
   accepted: boolean;
   message: string;
+}
+
+export interface PendingFinal {
+  kind: 'cup' | 'euro' | 'national';
+  title: string;
+  opponentId?: string;
+  opponentName: string;
+  opponentStrength: number;
+}
+
+export interface NationalSeason {
+  caps: number;
+  goals: number;
+  tournament: { name: string; reachedFinal: boolean; won: boolean } | null;
+  notes: string[];
+}
+
+export type FinalDecisionKind = 'attack' | 'defend' | 'keeper' | 'penalty' | 'penaltySave';
+
+export interface FinalScene {
+  minute: number;
+  side: 'own' | 'opp';
+  decision: boolean;
+}
+
+export interface FinalLogLine {
+  minute: number;
+  text: string;
+  tone: 'goal' | 'against' | 'info' | 'good' | 'bad';
+}
+
+export interface FinalState {
+  final: PendingFinal;
+  isKeeper: boolean;
+  ownName: string;
+  ownStrength: number;
+  goalsPerGame: number;
+  playerRole: 'start' | 'sub' | 'bench';
+  subMinute: number;
+  minute: number;
+  score: [number, number];
+  scenes: FinalScene[];
+  next: number;
+  log: FinalLogLine[];
+  pending: { kind: FinalDecisionKind; minute: number; text: string; options: { id: string; label: string; hint: string }[] } | null;
+  playerGoals: number;
+  playerAssists: number;
+  ratingAdj: number;
+  shootout: { own: number; opp: number; round: number; playerKicked: boolean } | null;
+  done: boolean;
+  won: boolean;
+}
+
+export interface DecisionOption {
+  id: string;
+  label: string;
+  hint: string;
+}
+
+export interface PendingDecision {
+  id: string;
+  title: string;
+  text: string;
+  options: DecisionOption[];
+  /** Zusatzdaten, z. B. die vorgeschlagene neue Position. */
+  data?: Record<string, string>;
+}
+
+export interface DecisionResult {
+  title: string;
+  text: string;
+  tone: 'good' | 'bad' | 'neutral';
+}
+
+export interface RivalSeason {
+  season: string;
+  age: number;
+  clubId: string;
+  ovrStart: number;
+  ovrEnd: number;
+  apps: number;
+  goals: number;
+  assists: number;
+  avgRating: number;
+  /** Wer hat das Saison-Duell gewonnen? */
+  duel: 'player' | 'rival' | 'draw';
+}
+
+export interface RivalState {
+  name: string;
+  nation: string;
+  position: Position;
+  age: number;
+  ovr: number;
+  potential: number;
+  clubId: string;
+  retired: boolean;
+  history: RivalSeason[];
+}
+
+export interface NewsItem {
+  season: string;
+  half: 1 | 2;
+  tag: 'Du' | 'Transfer' | 'Liga' | 'Rivale' | 'Titel' | 'Verein';
+  text: string;
 }

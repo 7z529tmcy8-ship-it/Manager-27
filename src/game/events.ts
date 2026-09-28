@@ -66,7 +66,7 @@ const EVENTS: EventDef[] = [
     },
   },
   {
-    when: (c) => c.career.player.age <= 22 && c.share >= 0.4 && c.relPerf >= 0.8,
+    when: (c) => c.career.player.age <= 22 && c.career.player.ovr < 84 && c.share >= 0.4 && c.relPerf >= 0.8,
     chance: 0.35,
     apply: (c) => {
       changeOvr(c, 2);
@@ -252,7 +252,7 @@ export function rollEvents(
     last.season === seasonLabel(career.year) &&
     getLeague(clubLeagueId(career, last.fromClubId)).country !== getLeague(clubLeagueId(career, last.toClubId)).country;
 
-  const relPerf = relativePerformance(stats, p.position, p.ovr - teamStrength);
+  const relPerf = relativePerformance(stats, p.position, p.ovr - teamStrength, teamStrength);
   const ctx: EventContext = {
     career, half, stats, share, perf: performanceIndex(stats), relPerf, injuryWeeks, teamStrength, newCountry,
   };

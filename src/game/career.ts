@@ -2,10 +2,14 @@ import { getClub, getLeague, initialClubLeague } from '../data/leagues';
 import { developPlayer, performanceIndex } from './development';
 import { rollEvents } from './events';
 import { APPLICATIONS_PER_WINDOW, APPLICATION_AGE, answerApplication, generateOffers, type OfferMode } from './offers';
-import { clubLeagueId, clubStrength, createProfile, currentClubId, playerValue, roleFor, seasonLabel, wageFor } from './player';
+import { ROLE_BONUS, clubLeagueId, clubStrength, createProfile, currentClubId, currentRole, playerValue, roleFor, seasonLabel, wageFor } from './player';
 import { uid } from './random';
-import { applyLeagueChanges, finishSeason, halfStats, initialEuropeSlots, playHalf, startSeason } from './season';
-import type { Career, Offer, Position, TransferEntry } from './types';
+import { applyLeagueChanges, computeNational, finishSeason, halfStats, initialEuropeSlots, nationStrength, playHalf, startSeason } from './season';
+import { maybeDecision } from './decisions';
+import { advanceFinal, autoFinal, finalRating, startFinal } from './final';
+import { addNews, summerNews, winterNews } from './news';
+import { createRival, simulateRivalSeason } from './rival';
+import type { Career, MatchLine, Offer, Position, SeasonRecord, TransferEntry } from './types';
 
 export const START_YEAR = 2025;
 export const MAX_AGE = 41;
@@ -55,13 +59,18 @@ export function createCareer(np: NewPlayer): Career {
     europeSlots: initialEuropeSlots(),
     clubLeague: initialClubLeague(),
     transfers: [],
+    rival: createRival(np, club.id),
+    news: [],
   };
 }
 
 /** Spielt die Hinrunde und öffnet das Wintertransferfenster. */
-export function playFirstHalf(prev: Career): Career {
+export function playFirstHalf(prev: Career, quick = false): Career {
   const career: Career = structuredClone(prev);
   const p = career.player;
+  // Ältere Spielstände bekommen ihren Rivalen nachträglich.
+  if (career.rival === undefined) career.rival = createRival(p, currentClubId(p));
+  career.decisionResult = null;
   const prog = startSeason(career);
   playHalf(career, prog, 1);
 
@@ -83,6 +92,9 @@ export function playFirstHalf(prev: Career): Career {
   career.offers = p.loan ? [] : generateOffers(career, { clubId, onLoan: false, ...stats }, 'normal', true);
   career.requestsLeft = p.loan ? 0 : 1;
   career.applications = [];
+  winterNews(career, stats, career.offers);
+  const share = stats.possibleMinutes ? stats.minutes / stats.possibleMinutes : 0;
+  career.decision = quick ? null : maybeDecision(career, 'winter', share);
   career.updatedAt = Date.now();
   return career;
 }
@@ -106,6 +118,7 @@ export function acceptWinterOffer(prev: Career, offer: Offer): Career {
     p.loan = null;
   }
   prog.winterMove = { fromClubId, toClubId: offer.clubId, type: offer.type };
+  p.captainOf = null;
   // Pokal und Europapokal laufen mit dem alten Verein weiter – der Spieler ist dort nicht mehr dabei.
   prog.cup.eligible = false;
   if (prog.euro) prog.euro.eligible = false;
@@ -117,7 +130,10 @@ export function acceptWinterOffer(prev: Career, offer: Offer): Career {
 
 /** Ganze Saison am Stück: Hinrunde, im Winter bleiben, Rückrunde. */
 export function playSeason(prev: Career): Career {
-  return stayInWinter(playFirstHalf(prev));
+  let career = stayInWinter(playFirstHalf(prev, true));
+  // Finals im Schnelldurchlauf automatisch ausspielen.
+  while (career.phase === 'final') career = finishFinal(autoPlayFinal(career));
+  return career;
 }
 
 /** Rückrunde spielen, Saison abschließen und das Sommer-Transferfenster öffnen. */
@@ -145,13 +161,29 @@ function finishSecondHalf(career: Career): Career {
   }
   const injuryWeeks = prog.injuryWeeks - (prog.injuryWeeksWinter ?? 0);
   prog.events = [...(prog.events ?? []), ...rollEvents(career, 2, second, injuryWeeks, strength)];
+  prog.devReasons = dev.reasons;
+  prog.national = computeNational(career, prog);
 
+  if (prog.pendingFinals?.length) {
+    career.phase = 'final';
+    career.liveFinal = startNextFinal(career);
+    career.updatedAt = Date.now();
+    return career;
+  }
+  return completeSeason(career);
+}
+
+/** Saison abschließen (nach allen Finals): Tabellen, Titel, Rivale, Schlagzeilen, Transferfenster. */
+function completeSeason(career: Career): Career {
+  const p = career.player;
+  const prog = career.progress!;
+  const seasonStats = halfStats(prog.matches);
   const { record, tables } = finishSeason(career, prog);
   p.caps += record.caps;
   p.internationalGoals += record.internationalGoals;
   record.ovrWinter = prog.ovrWinter;
   record.events = prog.events ?? [];
-  record.devReasons = dev.reasons;
+  record.devReasons = prog.devReasons ?? [];
   career.progress = null;
 
   const leagueBefore = clubLeagueId(career, p.contract.clubId);
@@ -173,6 +205,7 @@ function finishSecondHalf(career: Career): Career {
   record.marketValue = playerValue(p);
 
   career.history.push(record);
+  const extraNews = [...captainAndLegend(career, record), ...simulateRivalSeason(career, record)];
   career.year += 1;
   career.updatedAt = Date.now();
 
@@ -185,13 +218,137 @@ function finishSecondHalf(career: Career): Career {
   career.requestsLeft = 1;
   career.applications = [];
   career.phase = 'window';
+  summerNews(career, record, seasonStats, tables, extraNews);
+  const share = seasonStats.possibleMinutes ? seasonStats.minutes / seasonStats.possibleMinutes : 0;
+  career.decision = maybeDecision(career, 'summer', share);
   return career;
+}
+
+/** Kapitänsbinde nach mehreren Jahren im Verein, Legendenstatus nach vielen Jahren oder Titeln. */
+function captainAndLegend(career: Career, record: SeasonRecord): string[] {
+  const p = career.player;
+  const clubId = p.contract.clubId;
+  const club = getClub(clubId).name;
+  const news: string[] = [];
+  const atClub = career.history.filter((h) => h.clubId === clubId && !h.onLoan);
+  let consecutive = 0;
+  for (let i = career.history.length - 1; i >= 0; i--) {
+    const h = career.history[i];
+    if (h.clubId !== clubId || h.onLoan) break;
+    consecutive++;
+  }
+  const important = ['Schlüsselspieler', 'Stammspieler'].includes(roleFor(p.ovr, clubStrength(career, clubId), p.age));
+  const needed = Math.max(1, 3 - (p.leadership ?? 0));
+  if (p.captainOf !== clubId && consecutive >= needed && p.age >= 23 && important && record.apps >= 15) {
+    p.captainOf = clubId;
+    record.events = [...(record.events ?? []), {
+      title: 'Kapitän!', text: `Du trägst ab sofort die Binde bei ${club}.`, tone: 'good', half: 2, effect: 'mehr Einsatzchancen',
+    }];
+    news.push(`${p.name} ist neuer Kapitän von ${club}!`);
+  }
+  const titlesAtClub = atClub.reduce((a, h) => a + h.trophies.length, 0);
+  const legends = p.legendOf ?? [];
+  if (!legends.includes(clubId) && (atClub.length >= 8 || (atClub.length >= 5 && titlesAtClub >= 3))) {
+    p.legendOf = [...legends, clubId];
+    record.awards.push(`Vereinslegende ${club}`);
+    news.push(`${p.name} ist eine Legende bei ${club}!`);
+  }
+  return news;
+}
+
+function startNextFinal(career: Career) {
+  const p = career.player;
+  const prog = career.progress!;
+  const final = prog.pendingFinals![0];
+  const clubId = currentClubId(p);
+  const national = final.kind === 'national';
+  const ownStrength = national ? nationStrength(p.nation) : prog.strength[clubId] ?? clubStrength(career, clubId);
+  const selection = national
+    ? p.ovr - (ownStrength - 2)
+    : p.ovr - ownStrength + ROLE_BONUS[currentRole(p)] + (p.morale ?? 0) + (p.captainOf === clubId ? 1 : 0);
+  return startFinal({
+    final,
+    ownName: national ? p.nation : getClub(clubId).name,
+    ownStrength,
+    goalsPerGame: national ? 2.5 : getLeague(clubLeagueId(career, clubId)).goalsPerGame,
+    playerName: p.name,
+    position: p.position,
+    ovr: p.ovr,
+    selection,
+  });
+}
+
+/** Nächster Schritt im Live-Finale (optional mit Entscheidung). */
+export function playFinalStep(prev: Career, choice?: string): Career {
+  const career: Career = structuredClone(prev);
+  if (!career.liveFinal) return prev;
+  career.liveFinal = advanceFinal(career.liveFinal, choice, career.player.name, career.player.ovr);
+  return career;
+}
+
+export function autoPlayFinal(prev: Career): Career {
+  const career: Career = structuredClone(prev);
+  if (!career.liveFinal) return prev;
+  career.liveFinal = autoFinal(career.liveFinal, career.player.name, career.player.ovr);
+  return career;
+}
+
+/** Finale abschließen: Ergebnis übernehmen, nächstes Finale starten oder die Saison beenden. */
+export function finishFinal(prev: Career): Career {
+  const career: Career = structuredClone(prev);
+  const state = career.liveFinal;
+  const prog = career.progress;
+  if (!state?.done || !prog) return prev;
+  const p = career.player;
+  const f = state.final;
+  const played = state.playerRole !== 'bench';
+  const minutes = state.playerRole === 'start' ? 90 : state.playerRole === 'sub' ? 90 - state.subMinute : 0;
+
+  if (f.kind === 'national') {
+    const nat = prog.national!;
+    nat.caps += played ? 1 : 0;
+    nat.goals += state.playerGoals;
+    nat.tournament = { ...nat.tournament!, won: state.won };
+    nat.notes.push(state.won ? '' : `Finale der ${nat.tournament.name} verloren.`);
+    nat.notes = nat.notes.filter(Boolean);
+  } else {
+    const competition = f.kind === 'cup' ? 'Pokal' : prog.euro!.competition;
+    const line: MatchLine = {
+      competition, opponent: f.opponentId!, home: false, goalsFor: state.score[0], goalsAgainst: state.score[1],
+      status: state.playerRole === 'bench' ? 'bench' : state.playerRole, minutes,
+      goals: state.playerGoals, assists: state.playerAssists, rating: played ? finalRating(state) : null,
+      clubId: currentClubId(p), half: 2,
+    };
+    prog.matches.push(line);
+    if (f.kind === 'cup') {
+      prog.cup.won = state.won;
+      prog.cup.reached = state.won ? 'Sieger' : 'Finale';
+    } else {
+      prog.euro!.won = state.won;
+      prog.euro!.reached = state.won ? 'Sieger' : 'Finale';
+    }
+  }
+  if (state.won && played && (state.playerGoals > 0 || (finalRating(state) ?? 0) >= 8)) {
+    p.morale = Math.min(3, (p.morale ?? 0) + 1);
+    addNews(career, 2, 'Titel', `Finalheld ${p.name}! ${f.title}: ${state.score[0]}:${state.score[1]}.`);
+  }
+
+  prog.pendingFinals = prog.pendingFinals!.slice(1);
+  if (prog.pendingFinals.length) {
+    career.liveFinal = startNextFinal(career);
+    return career;
+  }
+  career.liveFinal = null;
+  return completeSeason(career);
 }
 
 export function acceptOffer(prev: Career, offer: Offer): Career {
   const career: Career = structuredClone(prev);
   const p = career.player;
-  if (offer.type !== 'Verlängerung') recordTransfer(career, 'Sommer', p.contract.clubId, offer);
+  if (offer.type !== 'Verlängerung') {
+    recordTransfer(career, 'Sommer', p.contract.clubId, offer);
+    p.captainOf = null;
+  }
   if (offer.type === 'Leihe') {
     p.loan = { clubId: offer.clubId, parentClubId: p.contract.clubId, role: offer.role };
   } else {
@@ -232,6 +389,9 @@ export function retire(prev: Career): Career {
   const career: Career = structuredClone(prev);
   career.phase = 'retired';
   career.retiredReason = `Karriereende mit ${career.player.age} Jahren.`;
+  for (const clubId of career.player.legendOf ?? []) {
+    career.retiredReason += ` ${getClub(clubId).name} vergibt deine Rückennummer nicht mehr.`;
+  }
   career.offers = [];
   career.updatedAt = Date.now();
   return career;

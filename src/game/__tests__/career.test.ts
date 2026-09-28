@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { canPlayIn, initialClubLeague, slugify } from '../../data/leagues';
-import { acceptOffer, acceptWinterOffer, applicationsLeft, applyToClub, createCareer, totalTransferFees, playFirstHalf, playSeason, requestOffers, stayAtClub, stayInWinter } from '../career';
+import { acceptOffer, acceptWinterOffer, autoPlayFinal, finishFinal, applicationsLeft, applyToClub, createCareer, totalTransferFees, playFirstHalf, playSeason, requestOffers, stayAtClub, stayInWinter } from '../career';
 import type { Career } from '../types';
 
 function runCareer(career: Career, seasons: number, choose: (c: Career) => Career = stayOrFirst): Career {
@@ -81,7 +81,9 @@ describe('Saison-Simulation', () => {
     expect(winter.phase).toBe('winter');
     expect(winter.progress!.rows.bl1.reduce((a, r) => a + r.played, 0)).toBe(18 * 17);
     const reloaded = JSON.parse(JSON.stringify(winter));
-    const done = stayInWinter(reloaded);
+    let done = stayInWinter(reloaded);
+    // Erreicht der Verein ein Finale, wird es erst gespielt.
+    while (done.phase === 'final') done = finishFinal(autoPlayFinal(done));
     expect(done.phase).toBe('window');
     expect(done.progress).toBeNull();
     expect(done.history[0].table.reduce((a, r) => a + r.played, 0)).toBe(18 * 34);

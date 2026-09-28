@@ -19,6 +19,8 @@ export interface CareerSummary {
   clubs: string[];
   /** Summe aller gezahlten Ablösen. */
   transferFees: number;
+  /** Vereine, bei denen der Spieler Legende ist. */
+  legends: number;
   /** Legendenpunkte: grobe Gesamtbewertung einer Karriere für die Rangliste. */
   score: number;
 }
@@ -42,7 +44,8 @@ export function summarizeCareer(career: Career): CareerSummary {
   }
   const score = Math.round(
     titles * 10 + awards * 12 + ballonDor * 40 + Math.max(0, peak - 70) * 4 +
-      apps * 0.15 + goals * 0.4 + assists * 0.25 + career.player.caps * 0.3,
+      apps * 0.15 + goals * 0.4 + assists * 0.25 + career.player.caps * 0.3 +
+      (career.player.legendOf ?? []).length * 25,
   );
   return {
     career,
@@ -60,6 +63,7 @@ export function summarizeCareer(career: Career): CareerSummary {
     topValue: h.length ? Math.max(...h.map((s) => s.marketValue)) : 0,
     clubs,
     transferFees: totalTransferFees(career),
+    legends: (career.player.legendOf ?? []).length,
     score,
   };
 }

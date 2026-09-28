@@ -158,6 +158,7 @@ function Comparison({ items }: { items: CareerSummary[] }) {
     { label: 'Länderspiele', value: (s) => s.caps },
     { label: 'Höchster Marktwert', value: (s) => s.topValue, format: formatMoney },
     { label: 'Ablösesummen gesamt', value: (s) => s.transferFees, format: formatMoney },
+    { label: 'Vereinslegende', value: (s) => s.legends },
   ];
 
   return (

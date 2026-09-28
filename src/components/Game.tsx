@@ -4,7 +4,11 @@ import { playFirstHalf, playSeason, totalTransferFees } from '../game/career';
 import { clubLeagueId, currentClubId, formatMoney, seasonLabel } from '../game/player';
 import { sortTable } from '../game/season';
 import type { Career } from '../game/types';
+import DecisionPanel from './DecisionPanel';
 import HalfReport from './HalfReport';
+import LiveFinal from './LiveFinal';
+import NewsFeed from './NewsFeed';
+import { RivalCard, RivalComparison } from './RivalPanel';
 import History from './History';
 import LeagueTable from './LeagueTable';
 import PlayerCard from './PlayerCard';
@@ -54,20 +58,23 @@ export default function Game({ career, onChange, onExit }: Props) {
 
           {tab === 'overview' && (
             <>
-              {career.phase === 'season' && (
+              {career.phase === 'final' && career.liveFinal && <LiveFinal career={career} onChange={onChange} />}
+              <DecisionPanel career={career} onChange={onChange} />
+              {career.phase === 'season' && !career.decision && (
                 <div className="panel action">
                   <div>
                     <h2>Saison {seasonLabel(career.year)}</h2>
                     <p>
                       {p.loan ? `Leihe bei ${getClub(p.loan.clubId).name}` : getClub(clubId).name} · Rolle:{' '}
                       <strong>{p.loan ? p.loan.role : p.contract.role}</strong>
+                      {p.captainOf === clubId && <span className="pill small">Kapitän</span>}
                     </p>
                   </div>
                   <div className="action-buttons">
                     <button className="btn primary big" onClick={() => onChange(playFirstHalf(career))}>
                       Hinrunde simulieren ▶
                     </button>
-                    <button className="btn" onClick={() => onChange(playSeason(career))} title="Ohne Stopp im Wintertransferfenster">
+                    <button className="btn" onClick={() => onChange(playSeason(career))} title="Ohne Stopp im Winter, Finals werden automatisch gespielt">
                       Ganze Saison ▶▶
                     </button>
                   </div>
@@ -87,20 +94,27 @@ export default function Game({ career, onChange, onExit }: Props) {
                   <button className="btn" onClick={() => setTab('career')}>Karriere ansehen</button>
                 </div>
               )}
-              {career.phase === 'winter' ? null : last ? (
+              {career.phase === 'winter' || career.phase === 'final' ? null : last ? (
                 <SeasonReport season={last} />
               ) : (
                 <div className="panel empty">
                   <p>Noch keine Saison gespielt. Starte die erste Saison – Einsätze, Tore, Noten und die Entwicklung deines Spielers werden komplett simuliert.</p>
                 </div>
               )}
-              {/* Erst der Rückblick, darunter die Angebote. */}
-              {(career.phase === 'window' || career.phase === 'winter') && (
+              {/* Erst der Rückblick, darunter die Angebote. Offene Entscheidungen gehen vor. */}
+              {(career.phase === 'window' || career.phase === 'winter') && !career.decision && (
                 <TransferWindow career={career} onChange={onChange} />
               )}
+              {career.phase !== 'final' && <RivalCard career={career} />}
+              {career.phase !== 'final' && <NewsFeed news={career.news ?? []} />}
             </>
           )}
-          {tab === 'career' && <History career={career} />}
+          {tab === 'career' && (
+            <>
+              <History career={career} />
+              <RivalComparison career={career} />
+            </>
+          )}
           {tab === 'table' && career.progress && (
             <LeagueTable
               title={`Tabelle zur Winterpause · ${league.name}`}
