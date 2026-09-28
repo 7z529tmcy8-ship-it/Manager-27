@@ -133,7 +133,7 @@ function playerMatch(
     prog.injuredFor--;
     status = 'injured';
   } else {
-    const selection = rel + ROLE_BONUS[currentRole(player)] + (prog.form - 6.8) * 2 + rotation;
+    const selection = rel + ROLE_BONUS[currentRole(player)] + (prog.form - 6.8) * 2 + (player.morale ?? 0) + rotation;
     const startP = player.position === 'TW' ? sigmoid((selection + 1) / 1.2) : sigmoid((selection + 1.5) / 2.2);
     if (chance(startP)) {
       status = 'start';

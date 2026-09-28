@@ -2,6 +2,7 @@ import { getClub, getLeague } from '../data/leagues';
 import { clubLeagueId, currentClubId } from '../game/player';
 import { halfStats, sortTable } from '../game/season';
 import type { Career } from '../game/types';
+import EventList from './EventList';
 
 /** Zwischenbilanz zur Winterpause. */
 export default function HalfReport({ career }: { career: Career }) {
@@ -31,6 +32,7 @@ export default function HalfReport({ career }: { career: Career }) {
         </div>
         <div className="tile"><span className="tile-label">Tabellenplatz</span><span className="tile-value">{position}.</span><span className="tile-sub">{getLeague(leagueId).name}</span></div>
       </div>
+      <EventList events={prog.events ?? []} title="Ereignisse der Hinrunde" />
       {prog.notes.length > 0 && (
         <ul className="notes">
           {prog.notes.map((n, i) => <li key={i}>{n}</li>)}

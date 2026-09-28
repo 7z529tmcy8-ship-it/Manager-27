@@ -137,4 +137,14 @@ describe('Saison-Simulation', () => {
     expect(c.transfers![0]).toMatchObject({ window: 'Sommer', fromClubId: slugify('SC Freiburg'), toClubId: offer.clubId, fee: offer.fee });
     expect(totalTransferFees(c)).toBe(offer.fee);
   });
+
+  it('Starke Saison mit viel Spielzeit führt bis 29 nie zu einem Minus (ohne negatives Ereignis)', () => {
+    for (let i = 0; i < 40; i++) {
+      const c = playSeason(createCareer({ name: 'S', nation: 'Deutschland', position: 'ST', age: 22 + (i % 8), ovr: 80, potential: 80, clubId: slugify('VfB Stuttgart') }));
+      const s = c.history[0];
+      const strong = s.avgRating !== null && s.avgRating >= 7.2 && s.minutes / s.possibleMinutes >= 0.5;
+      const badEvent = (s.events ?? []).some((e) => e.tone === 'bad');
+      if (strong && !badEvent) expect(s.ovrEnd).toBeGreaterThanOrEqual(s.ovrStart);
+    }
+  });
 });

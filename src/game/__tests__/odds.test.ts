@@ -4,7 +4,7 @@ import { createCareer, playSeason } from '../career';
 
 const env = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {};
 
-it.skipIf(!env.CALIBRATE)('Titelquoten', () => {
+it.skipIf(!env.CALIBRATE)('Titelquoten', { timeout: 120000 }, () => {
   for (const [club, pos] of [['FC Bayern München', 'ST'], ['Manchester City', 'ST'], ['SC Freiburg', 'ST']] as const) {
     let cl = 0, league = 0, goals = 0;
     const n = 200;

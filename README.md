@@ -17,12 +17,16 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
 - **Hinrunde & Rückrunde mit Wintertransferfenster:** Nach der Hinrunde gibt es eine Zwischenbilanz und
   Winter-Angebote (Leihe bis Saisonende, Transfer). Wer wechselt, spielt die Rückrunde beim neuen Verein –
   Pokal und Europapokal laufen dann ohne ihn weiter. „Ganze Saison“ überspringt die Winterpause
-- **Realistische Entwicklung:**
+- **Realistische Entwicklung** (nach Hin- und Rückrunde, mit Erklärung im Saisonrückblick):
   - junge Spieler wachsen Richtung (verborgenem) Potenzial – je jünger, desto schneller
-  - Spielzeit und Leistung (Ø-Note) beschleunigen die Entwicklung; wer auf der Bank sitzt, stagniert
-    und kann sogar Potenzial verlieren
-  - Training bei Top-Vereinen hilft etwas mehr
-  - ab ca. 29 Jahren setzt der Abbau ein (Torhüter später), das Tempo sinkt zuerst
+  - Spielzeit und Leistung (Note, Torbeteiligungen) beschleunigen die Entwicklung; wer auf der Bank sitzt,
+    stagniert und kann sogar Potenzial verlieren
+  - über das Potenzial hinaus wächst nur, wer besser spielt als für seine Stärke erwartet
+  - eine starke Saison mit viel Spielzeit führt bis 31 nie zu einem Minus (außer durch Ereignisse)
+  - ab 30 setzt der Abbau ein (Torhüter später); starke Leistungen und Spielpraxis bremsen ihn deutlich
+- **Ereignisse:** Durchbruch, Mentor, Spätzünder, Extraschichten, Trainerwechsel, Zoff mit dem Trainer,
+  Formkrise, Eingewöhnungsprobleme, schwere Verletzungen … – sie verändern Gesamtwertung, Potenzial oder
+  das Trainervertrauen (und damit die Einsatzzeit)
 - **Transferfenster nach jeder Saison:** Transfers, Leihen, Vertragsverlängerungen, ablösefreie Wechsel,
   „Auf Transferliste setzen“, „Um Leihe bitten“, Karriereende
 - **Karriere-Übersicht:** Stationen, Verlauf der Gesamtwertung, Trophäenschrank, Auszeichnungen
@@ -54,7 +58,8 @@ Einmalig in GitHub unter **Settings → Pages → Source: „GitHub Actions“**
 | `src/data/leagues.ts` | Ligen und Vereine inkl. Teamstärke |
 | `src/data/players.ts` | Echte Spieler als Startvorlage, Nationen, Positionen |
 | `src/game/season.ts` | Saison-Simulation (Poisson-Modell für Tore, Einsätze, Noten, Pokal, Europapokal) |
-| `src/game/development.ts` | Entwicklung nach der Saison (Alter, Spielzeit, Leistung, Potenzial) |
+| `src/game/development.ts` | Entwicklung (Alter, Spielzeit, Leistung absolut und im Vergleich zur Erwartung, Potenzial) |
+| `src/game/events.ts` | Zufällige Ereignisse und Trainervertrauen |
 | `src/game/offers.ts` | Angebote im Transferfenster |
 | `src/game/career.ts` | Ablauf: Hinrunde → Winterfenster → Rückrunde → Sommerfenster → nächste Saison |
 | `src/game/legacy.ts` | Hall of Fame: Karriere-Bilanz, Legendenpunkte, Rekorde |

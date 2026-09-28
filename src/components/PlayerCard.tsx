@@ -7,6 +7,7 @@ import {
   playerValue,
   potentialRange,
 } from '../game/player';
+import { moraleLabel } from '../game/events';
 import type { Career } from '../game/types';
 
 export default function PlayerCard({ career }: { career: Career }) {
@@ -47,6 +48,7 @@ export default function PlayerCard({ career }: { career: Career }) {
           <dd>{getClub(p.contract.clubId).name}{p.contract.yearsLeft > 0 ? ` bis ${contractEnd}` : ' – ausgelaufen'}</dd>
         </div>
         {p.loan && <div><dt>Leihe</dt><dd>{getClub(p.loan.clubId).name}</dd></div>}
+        <div><dt>Trainervertrauen</dt><dd>{moraleLabel(p.morale)}</dd></div>
         <div><dt>Länderspiele</dt><dd>{p.caps} ({p.internationalGoals} Tore)</dd></div>
       </dl>
     </div>

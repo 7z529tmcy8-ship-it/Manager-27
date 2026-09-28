@@ -247,3 +247,18 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .9rem; font-var
 .apply .row { margin-top: 10px; align-items: center; }
 .apply .btn:disabled { opacity: .5; cursor: default; }
 .stats tfoot td { border-bottom: 0; border-top: 2px solid var(--border); }
+
+/* Ereignisse & Entwicklung */
+.events { margin-top: 16px; }
+.events h3, .dev-box h3 { font-size: 1rem; margin-bottom: 8px; }
+.event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.event { background: var(--surface-2); border-radius: 10px; padding: 12px; border-left: 4px solid var(--up); display: flex; flex-direction: column; gap: 6px; }
+.event.bad { border-left-color: var(--down); }
+.event header { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.event header span { color: var(--up); font-size: .8rem; }
+.event.bad header span { color: var(--down); }
+.event header small { color: var(--muted); margin-left: auto; }
+.event p { margin: 0; color: var(--text-2); font-size: .88rem; }
+.event-effect { font-size: .8rem; font-weight: 700; }
+.dev-box { margin-top: 16px; background: var(--surface-2); border-radius: 10px; padding: 12px 14px; }
+.dev-box ul { margin: 0; padding-left: 18px; color: var(--text-2); }

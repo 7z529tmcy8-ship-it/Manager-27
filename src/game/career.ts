@@ -1,5 +1,6 @@
 import { getClub, getLeague, initialClubLeague } from '../data/leagues';
-import { developPlayer } from './development';
+import { developPlayer, performanceIndex } from './development';
+import { rollEvents } from './events';
 import { APPLICATIONS_PER_WINDOW, APPLICATION_AGE, answerApplication, generateOffers, type OfferMode } from './offers';
 import { clubLeagueId, clubStrength, createProfile, currentClubId, playerValue, roleFor, seasonLabel, wageFor } from './player';
 import { uid } from './random';
@@ -66,10 +67,15 @@ export function playFirstHalf(prev: Career): Career {
 
   const clubId = currentClubId(p);
   const stats = halfStats(prog.matches);
-  const dev = developPlayer(p, stats, clubStrength(career, clubId), { weight: 0.5 });
+  const strength = clubStrength(career, clubId);
+  const dev = developPlayer(p, stats, strength, { weight: 0.5 });
   p.ovr = dev.ovr;
   p.potential = dev.potential;
-  prog.ovrWinter = dev.ovr;
+  prog.injuryWeeksWinter = prog.injuryWeeks;
+  const beforeEvents = p.ovr;
+  prog.events = rollEvents(career, 1, stats, prog.injuryWeeks, strength);
+  prog.winterEventDelta = p.ovr - beforeEvents;
+  prog.ovrWinter = p.ovr;
 
   career.progress = prog;
   career.phase = 'winter';
@@ -122,18 +128,30 @@ function finishSecondHalf(career: Career): Career {
 
   const clubId = currentClubId(p);
   const second = halfStats(prog.matches.filter((m) => m.half === 2));
-  const dev = developPlayer(p, second, clubStrength(career, clubId), {
+  const strength = clubStrength(career, clubId);
+  const dev = developPlayer(p, second, strength, {
     weight: 0.5,
     potentialStats: halfStats(prog.matches),
   });
   p.ovr = dev.ovr;
   p.potential = dev.potential;
+  // Eine insgesamt starke Saison mit viel Spielzeit endet (bis 31) nie mit einem Minus –
+  // es sei denn, Ereignisse wie eine schwere Verletzung sind der Grund.
+  const season = halfStats(prog.matches);
+  const seasonShare = season.possibleMinutes ? season.minutes / season.possibleMinutes : 0;
+  if (performanceIndex(season) >= 0.7 && seasonShare >= 0.5 && p.age - (p.position === 'TW' ? 2 : 0) <= 31) {
+    p.ovr = Math.max(p.ovr, prog.ovrStart + (prog.winterEventDelta ?? 0));
+    p.potential = Math.max(p.potential, p.ovr);
+  }
+  const injuryWeeks = prog.injuryWeeks - (prog.injuryWeeksWinter ?? 0);
+  prog.events = [...(prog.events ?? []), ...rollEvents(career, 2, second, injuryWeeks, strength)];
 
   const { record, tables } = finishSeason(career, prog);
   p.caps += record.caps;
   p.internationalGoals += record.internationalGoals;
   record.ovrWinter = prog.ovrWinter;
-  record.notes.unshift(...dev.reasons);
+  record.events = prog.events ?? [];
+  record.devReasons = dev.reasons;
   career.progress = null;
 
   const leagueBefore = clubLeagueId(career, p.contract.clubId);

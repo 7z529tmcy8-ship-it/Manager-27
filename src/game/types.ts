@@ -58,6 +58,17 @@ export interface PlayerState {
   loan: Loan | null;
   caps: number;
   internationalGoals: number;
+  /** Vertrauen des Trainers (−3 … +3): beeinflusst die Einsatzchancen, klingt pro Halbserie ab. */
+  morale?: number;
+}
+
+export interface GameEvent {
+  title: string;
+  text: string;
+  tone: 'good' | 'bad';
+  half: 1 | 2;
+  /** Kurze Wirkung, z. B. "+2 Gesamtwertung". */
+  effect: string;
 }
 
 export interface MatchLine {
@@ -129,6 +140,9 @@ export interface SeasonRecord {
   winterMove?: WinterMove | null;
   /** Gesamtwertung zur Winterpause. */
   ovrWinter?: number;
+  events?: GameEvent[];
+  /** Erklärung der Entwicklung (Leistung, Spielzeit, Alter …). */
+  devReasons?: string[];
 }
 
 export interface WinterMove {
@@ -170,6 +184,11 @@ export interface SeasonProgress {
   startClubId: string;
   ovrStart: number;
   ovrWinter?: number;
+  /** Verletzungswochen bis zur Winterpause (für Ereignisse der Rückrunde). */
+  injuryWeeksWinter?: number;
+  /** Veränderung der Gesamtwertung durch Ereignisse zur Winterpause. */
+  winterEventDelta?: number;
+  events?: GameEvent[];
   cup: CupState;
   euro: EuroState | null;
   winterMove: WinterMove | null;

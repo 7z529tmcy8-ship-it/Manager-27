@@ -1,6 +1,7 @@
 import { getClub, getLeague } from '../data/leagues';
 import { formatMoney } from '../game/player';
 import type { SeasonRecord } from '../game/types';
+import EventList from './EventList';
 
 export default function SeasonReport({ season }: { season: SeasonRecord }) {
   const delta = season.ovrEnd - season.ovrStart;
@@ -75,6 +76,23 @@ export default function SeasonReport({ season }: { season: SeasonRecord }) {
           {season.awards.map((a) => <span key={a} className="trophy award">⭐ {a}</span>)}
         </div>
       )}
+
+      {season.devReasons && season.devReasons.length > 0 && (
+        <section className="dev-box">
+          <h3>
+            Entwicklung: {season.ovrStart} → {season.ovrEnd}{' '}
+            <span className={delta > 0 ? 'up' : delta < 0 ? 'down' : 'muted'}>({delta > 0 ? '+' : ''}{delta})</span>
+          </h3>
+          <ul>
+            {season.devReasons.map((r, i) => <li key={i}>{r}</li>)}
+            {(season.events ?? []).some((e) => e.effect.includes('Gesamtwertung')) && (
+              <li>Dazu kommen die Ereignisse unten.</li>
+            )}
+          </ul>
+        </section>
+      )}
+
+      <EventList events={season.events ?? []} />
 
       {season.notes.length > 0 && (
         <ul className="notes">

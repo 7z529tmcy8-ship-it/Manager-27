@@ -5,7 +5,7 @@ import { createCareer, playSeason, stayAtClub, acceptOffer } from '../career';
 // Gibt ein paar Beispielkarrieren aus (nur zur Kalibrierung, keine Assertions).
 const env = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {};
 
-it.skipIf(!env.CALIBRATE)('Beispielkarrieren', () => {
+it.skipIf(!env.CALIBRATE)('Beispielkarrieren', { timeout: 120000 }, () => {
   const cases = [
     { name: 'Talent Freiburg', position: 'ST' as const, age: 17, ovr: 66, potential: 86, club: 'SC Freiburg' },
     { name: 'Talent Bayern', position: 'FL' as const, age: 17, ovr: 70, potential: 88, club: 'FC Bayern München' },
@@ -18,6 +18,7 @@ it.skipIf(!env.CALIBRATE)('Beispielkarrieren', () => {
       c = playSeason(c);
       if (c.phase !== 'window') break;
       const better = c.offers.find((o) => o.type !== 'Leihe');
+      if (c.player.contract.yearsLeft <= 0 && !c.offers.length) break;
       c = c.player.contract.yearsLeft > 0 ? stayAtClub(c) : acceptOffer(c, better ?? c.offers[0]);
     }
     console.log(`\n== ${k.name}`);
