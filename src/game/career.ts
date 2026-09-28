@@ -1,6 +1,6 @@
 import { getClub, getLeague, initialClubLeague } from '../data/leagues';
 import { developPlayer } from './development';
-import { generateOffers, type OfferMode } from './offers';
+import { APPLICATIONS_PER_WINDOW, APPLICATION_AGE, answerApplication, generateOffers, type OfferMode } from './offers';
 import { clubLeagueId, clubStrength, createProfile, currentClubId, playerValue, roleFor, wageFor } from './player';
 import { uid } from './random';
 import { applyLeagueChanges, finishSeason, halfStats, initialEuropeSlots, playHalf, startSeason } from './season';
@@ -75,6 +75,7 @@ export function playFirstHalf(prev: Career): Career {
   // Verliehene Spieler bleiben bis Saisonende beim Leihverein.
   career.offers = p.loan ? [] : generateOffers(career, { clubId, onLoan: false, ...stats }, 'normal', true);
   career.requestsLeft = p.loan ? 0 : 1;
+  career.applications = [];
   career.updatedAt = Date.now();
   return career;
 }
@@ -162,6 +163,7 @@ function finishSecondHalf(career: Career): Career {
   }
   career.offers = generateOffers(career, record);
   career.requestsLeft = 1;
+  career.applications = [];
   career.phase = 'window';
   return career;
 }
@@ -214,8 +216,28 @@ export function retire(prev: Career): Career {
   return career;
 }
 
+export function applicationsLeft(career: Career): number {
+  const p = career.player;
+  if (p.age < APPLICATION_AGE || (career.phase === 'winter' && p.loan)) return 0;
+  return APPLICATIONS_PER_WINDOW - (career.applications?.length ?? 0);
+}
+
+/** Der Spieler bewirbt sich selbst bei einem Verein (ab 30 Jahren, begrenzt pro Fenster). */
+export function applyToClub(prev: Career, clubId: string): Career {
+  if (applicationsLeft(prev) <= 0) return prev;
+  const career: Career = structuredClone(prev);
+  const answer = answerApplication(career, clubId);
+  career.applications = [...(career.applications ?? []), { clubId, accepted: answer.accepted, message: answer.message }];
+  if (answer.offer) {
+    career.offers = [answer.offer, ...career.offers.filter((o) => !(o.clubId === clubId && o.type !== 'Leihe'))];
+  }
+  career.updatedAt = Date.now();
+  return career;
+}
+
 function startNextSeason(career: Career): Career {
   career.offers = [];
+  career.applications = [];
   career.phase = 'season';
   career.updatedAt = Date.now();
   return career;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { slugify } from '../../data/leagues';
-import { acceptOffer, acceptWinterOffer, createCareer, playFirstHalf, playSeason, requestOffers, stayAtClub, stayInWinter } from '../career';
+import { acceptOffer, acceptWinterOffer, applicationsLeft, applyToClub, createCareer, playFirstHalf, playSeason, requestOffers, stayAtClub, stayInWinter } from '../career';
 import type { Career } from '../types';
 
 function runCareer(career: Career, seasons: number, choose: (c: Career) => Career = stayOrFirst): Career {
@@ -98,5 +98,22 @@ describe('Saison-Simulation', () => {
     // Nach Saisonende kehrt der Spieler zurück.
     expect(done.player.loan).toBeNull();
     expect(done.player.contract.clubId).toBe(slugify('FC Bayern München'));
+  });
+
+  it('Bewerbungen ab 30: Zweitligisten sagen fast immer zu, Limit pro Fenster', () => {
+    const young = playSeason(talent());
+    expect(applicationsLeft(young)).toBe(0);
+
+    let accepted = 0;
+    for (let i = 0; i < 20; i++) {
+      let c = playSeason(createCareer({ name: 'Oldie', nation: 'Deutschland', position: 'ST', age: 32, ovr: 80, potential: 80, clubId: slugify('VfB Stuttgart') }));
+      expect(applicationsLeft(c)).toBe(3);
+      c = applyToClub(c, slugify('FC Schalke 04'));
+      if (c.offers.some((o) => o.clubId === slugify('FC Schalke 04'))) accepted++;
+      c = applyToClub(applyToClub(c, slugify('Hertha BSC')), slugify('Hannover 96'));
+      expect(applicationsLeft(c)).toBe(0);
+      expect(applyToClub(c, slugify('VfL Bochum'))).toBe(c);
+    }
+    expect(accepted).toBeGreaterThanOrEqual(12);
   });
 });

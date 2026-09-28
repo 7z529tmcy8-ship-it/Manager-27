@@ -242,3 +242,7 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .9rem; font-var
 .chart { max-width: 820px; }
 .stats.compare td:first-child { white-space: normal; min-width: 110px; }
 .stats.compare td, .stats.compare th { padding: 7px 6px; }
+.apply { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+.apply h3 { font-size: 1rem; }
+.apply .row { margin-top: 10px; align-items: center; }
+.apply .btn:disabled { opacity: .5; cursor: default; }

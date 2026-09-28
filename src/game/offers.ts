@@ -134,11 +134,40 @@ export function generateOffers(
   return offers;
 }
 
+/** Ab diesem Alter kann sich der Spieler selbst bei Vereinen bewerben. */
+export const APPLICATION_AGE = 30;
+export const APPLICATIONS_PER_WINDOW = 3;
+
+/**
+ * Antwort eines Vereins auf eine Bewerbung des Spielers.
+ * Schwächere Vereine sagen fast immer zu, deutlich stärkere Vereine selten.
+ */
+export function answerApplication(career: Career, clubId: string): { accepted: boolean; offer: Offer | null; message: string } {
+  const p = career.player;
+  const club = getClub(clubId);
+  const s = clubStrength(career, clubId);
+  const d = s - p.ovr;
+  let p0 = d <= -3 ? 0.95 : d <= 2 ? 0.7 : d <= 5 ? 0.3 : 0.05;
+  if (p.age >= 35) p0 -= 0.2;
+  if (!chance(clamp(p0, 0.02, 0.98))) {
+    const reason = d > 2 ? 'sieht dich sportlich nicht mehr auf dem nötigen Niveau' : 'plant für diese Position anders';
+    return { accepted: false, offer: null, message: `${club.name} hat abgesagt – der Verein ${reason}.` };
+  }
+  const freeAgent = p.contract.yearsLeft <= 0;
+  const offer = transferOffer(career, clubId, s, freeAgent, `${club.name} hat auf deine Bewerbung reagiert und will dich verpflichten.`);
+  // Ältere Spieler, die sich selbst anbieten, sind günstig zu haben.
+  offer.fee = freeAgent ? 0 : Math.round((offer.fee * 0.4) / 1e5) * 1e5;
+  offer.message = offer.fee > 0
+    ? `${club.name} hat auf deine Bewerbung reagiert und will dich verpflichten. Ablöse: ${formatMoney(offer.fee)}.`
+    : `${club.name} hat auf deine Bewerbung reagiert und will dich verpflichten.`;
+  return { accepted: true, offer, message: `${club.name} hat zugesagt – das Angebot steht oben in der Liste.` };
+}
+
 function transferOffer(career: Career, clubId: string, s: number, freeAgent: boolean, message: string): Offer {
   const p = career.player;
   // Vereine locken gern mit etwas mehr Einsatzzeit, als sie am Ende geben.
   const role = roleFor(p.ovr + (chance(0.3) ? 2 : 0), s, p.age);
-    // Kurze Restlaufzeit drückt die Ablöse.
+  // Kurze Restlaufzeit drückt die Ablöse.
   const contractFactor = p.contract.yearsLeft === 1 ? 0.7 : 1;
   const fee = freeAgent ? 0 : Math.round((playerValue(p) * contractFactor * rand(0.9, 1.4)) / 1e5) * 1e5;
   return {

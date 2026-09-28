@@ -73,9 +73,6 @@ export default function Game({ career, onChange, onExit }: Props) {
                   </div>
                 </div>
               )}
-              {(career.phase === 'window' || career.phase === 'winter') && (
-                <TransferWindow career={career} onChange={onChange} />
-              )}
               {career.phase === 'winter' && career.progress && <HalfReport career={career} />}
               {career.phase === 'retired' && (
                 <div className="panel action">
@@ -92,6 +89,10 @@ export default function Game({ career, onChange, onExit }: Props) {
                 <div className="panel empty">
                   <p>Noch keine Saison gespielt. Starte die erste Saison – Einsätze, Tore, Noten und die Entwicklung deines Spielers werden komplett simuliert.</p>
                 </div>
+              )}
+              {/* Erst der Rückblick, darunter die Angebote. */}
+              {(career.phase === 'window' || career.phase === 'winter') && (
+                <TransferWindow career={career} onChange={onChange} />
               )}
             </>
           )}

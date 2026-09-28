@@ -212,4 +212,12 @@ export interface Career {
   /** Aktuelle Ligazugehörigkeit (ändert sich durch Auf- und Abstieg). */
   clubLeague: Record<string, string>;
   retiredReason?: string;
+  /** Eigene Bewerbungen im aktuellen Transferfenster (ab 30 Jahren). */
+  applications?: Application[];
+}
+
+export interface Application {
+  clubId: string;
+  accepted: boolean;
+  message: string;
 }
