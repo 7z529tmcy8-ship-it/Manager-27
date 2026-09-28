@@ -1,0 +1,152 @@
+import { useMemo, useState } from 'react';
+import { CLUBS, LEAGUES, getClub } from '../data/leagues';
+import { NATIONS, POSITIONS, REAL_PLAYERS, type RealPlayerTemplate } from '../data/players';
+import { createCareer } from '../game/career';
+import { pick, randInt } from '../game/random';
+import type { Career, Position } from '../game/types';
+
+interface Props {
+  onCancel: () => void;
+  onCreate: (career: Career) => void;
+}
+
+const TALENTS = [
+  { id: 'solid', label: 'Solide', hint: 'Potenzial ca. 72–78', ovr: [60, 64], pot: [72, 78] },
+  { id: 'talent', label: 'Talent', hint: 'Potenzial ca. 78–84', ovr: [62, 66], pot: [78, 84] },
+  { id: 'top', label: 'Top-Talent', hint: 'Potenzial ca. 84–89', ovr: [64, 68], pot: [84, 89] },
+  { id: 'wonder', label: 'Wunderkind', hint: 'Potenzial ca. 89–94', ovr: [66, 70], pot: [89, 94] },
+] as const;
+
+export default function CreateCareer({ onCancel, onCreate }: Props) {
+  const [tab, setTab] = useState<'own' | 'real'>('own');
+
+  return (
+    <main className="create">
+      <div className="topbar">
+        <button className="btn ghost" onClick={onCancel}>← Zurück</button>
+        <h1>Neue Karriere</h1>
+      </div>
+      <div className="tabs">
+        <button className={tab === 'own' ? 'active' : ''} onClick={() => setTab('own')}>Eigener Spieler</button>
+        <button className={tab === 'real' ? 'active' : ''} onClick={() => setTab('real')}>Echter Spieler</button>
+      </div>
+      {tab === 'own' ? <OwnPlayer onCreate={onCreate} /> : <RealPlayer onCreate={onCreate} />}
+    </main>
+  );
+}
+
+function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
+  const [name, setName] = useState('');
+  const [nation, setNation] = useState('Deutschland');
+  const [position, setPosition] = useState<Position>('ST');
+  const [age, setAge] = useState(17);
+  const [talent, setTalent] = useState<(typeof TALENTS)[number]['id']>('talent');
+  const [leagueId, setLeagueId] = useState('bl1');
+  const [clubId, setClubId] = useState('');
+
+  const clubs = useMemo(
+    () => CLUBS.filter((c) => c.leagueId === leagueId).sort((a, b) => a.name.localeCompare(b.name, 'de')),
+    [leagueId],
+  );
+
+  const start = () => {
+    const t = TALENTS.find((x) => x.id === talent)!;
+    const ovr = randInt(t.ovr[0], t.ovr[1]) + (age - 17);
+    const potential = randInt(t.pot[0], t.pot[1]);
+    // Zufälliger Verein: einer, bei dem der Spieler realistische Chancen auf Einsätze hat.
+    const club = clubId
+      ? getClub(clubId)
+      : pick(CLUBS.filter((c) => c.strength >= ovr + 2 && c.strength <= ovr + 9));
+    onCreate(
+      createCareer({ name: name.trim() || 'Namenloser Held', nation, position, age, ovr, potential, clubId: club.id }),
+    );
+  };
+
+  return (
+    <section className="panel form">
+      <label>
+        Name
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="z. B. Max Mustermann" maxLength={40} />
+      </label>
+      <div className="row">
+        <label>
+          Nation
+          <select value={nation} onChange={(e) => setNation(e.target.value)}>
+            {NATIONS.map((n) => <option key={n.name}>{n.name}</option>)}
+          </select>
+        </label>
+        <label>
+          Position
+          <select value={position} onChange={(e) => setPosition(e.target.value as Position)}>
+            {POSITIONS.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+          </select>
+        </label>
+        <label>
+          Alter
+          <select value={age} onChange={(e) => setAge(Number(e.target.value))}>
+            {[16, 17, 18, 19, 20].map((a) => <option key={a} value={a}>{a} Jahre</option>)}
+          </select>
+        </label>
+      </div>
+
+      <fieldset>
+        <legend>Talent</legend>
+        <div className="choice-grid">
+          {TALENTS.map((t) => (
+            <button key={t.id} className={`choice ${talent === t.id ? 'active' : ''}`} onClick={() => setTalent(t.id)}>
+              <strong>{t.label}</strong>
+              <small>{t.hint}</small>
+            </button>
+          ))}
+        </div>
+        <p className="hint">Das genaue Potenzial bleibt verborgen – und kann durch gute oder schlechte Saisons steigen oder sinken.</p>
+      </fieldset>
+
+      <div className="row">
+        <label>
+          Liga
+          <select value={leagueId} onChange={(e) => { setLeagueId(e.target.value); setClubId(''); }}>
+            {LEAGUES.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+          </select>
+        </label>
+        <label>
+          Startverein
+          <select value={clubId} onChange={(e) => setClubId(e.target.value)}>
+            <option value="">Zufällig (passender Verein)</option>
+            {clubs.map((c) => <option key={c.id} value={c.id}>{c.name} ({c.strength})</option>)}
+          </select>
+        </label>
+      </div>
+
+      <button className="btn primary big" onClick={start}>Karriere starten</button>
+    </section>
+  );
+}
+
+function RealPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
+  const [query, setQuery] = useState('');
+  const list = REAL_PLAYERS.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()));
+
+  const start = (p: RealPlayerTemplate) => onCreate(createCareer({ ...p }));
+
+  return (
+    <section className="panel">
+      <input className="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Spieler suchen…" />
+      <p className="hint">Werte sind eigene Schätzungen zum Saisonstart 2025/26 – keine offiziellen EA-Ratings.</p>
+      <ul className="real-list">
+        {list.map((p) => (
+          <li key={p.name}>
+            <button onClick={() => start(p)}>
+              <span className="save-ovr">{p.ovr}</span>
+              <span className="grow">
+                <strong>{p.name}</strong>
+                <small>{p.position} · {p.age} Jahre · {getClub(p.clubId).name} · {p.nation}</small>
+              </span>
+              <span className="pill">Starten →</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
