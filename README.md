@@ -73,7 +73,7 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
 - **Trainingsschwerpunkt:** vor jeder Halbserie ein Attribut trainieren (+1 pro Halbserie, max. +10); Schlüssel-
   attribute der Position helfen zusätzlich der Gesamtwertung bzw. bremsen den Abbau; „Regeneration“ senkt das
   Verletzungsrisiko
-- **Erfolge:** 29 Karriereziele (100 Tore, Triple, Weltmeister, Ballon d’Or, Von ganz unten …) mit Fortschritt,
+- **Erfolge:** 31 Karriereziele (100 Tore, Triple, Weltmeister, Ballon d’Or, Von ganz unten …) mit Fortschritt,
   über alle Karrieren
 - **Hall of Fame:** Rangliste aller Karrieren nach Legendenpunkten (sortierbar), Rekorde über alle Karrieren
   und Vergleich von bis zu drei Karrieren inklusive Entwicklungskurven
