@@ -72,6 +72,8 @@ export interface PlayerState {
   penaltyTakerOf?: string | null;
   /** Verletzungswochen, die zum Start der nächsten Halbserie anfallen (z. B. nach einer Entscheidung). */
   carryInjuryWeeks?: number;
+  /** Spieler ist nicht verfügbar (z. B. entführt) und steht in keinem Spiel im Kader. */
+  absent?: boolean;
   /** Charaktereigenschaften (z. B. Heißsporn, Showman). */
   traits?: TraitId[];
   /** Trainingsschwerpunkt: Index des Attributs, 'balanced' oder 'rest'. */

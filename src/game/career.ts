@@ -70,6 +70,77 @@ export function createCareer(np: NewPlayer): Career {
     news: [],
   };
   career.seasonGoals = createSeasonGoals(career);
+  return isKidnapName(np.name) ? kidnap(career) : career;
+}
+
+/** Easter Egg: Wer „Laurens Götting“ heißt, wird zum Karrierestart von der Mafia entführt. */
+export function isKidnapName(name: string): boolean {
+  const n = name.trim().toLowerCase().replace(/\s+/g, ' ').replace(/ö/g, 'oe');
+  return n === 'laurens goetting' || n === 'laurens gotting';
+}
+
+const KIDNAP_SEASONS = 3;
+
+/** Drei Saisons laufen ohne den Spieler weiter – danach ist er frei, vereinslos und bei Wertung 50. */
+function kidnap(career: Career): Career {
+  const p = career.player;
+  const club = getClub(p.contract.clubId).name;
+  p.absent = true;
+  addNews(career, 1, 'Du', `EILMELDUNG: ${p.name} nach dem Training von der Mafia entführt! ${club} ist fassungslos.`);
+
+  for (let i = 0; i < KIDNAP_SEASONS; i++) {
+    const prog = startSeason(career);
+    // Keine Finals und keine Länderspiele in Gefangenschaft
+    prog.cup.eligible = false;
+    if (prog.euro) prog.euro.eligible = false;
+    playHalf(career, prog, 1);
+    playHalf(career, prog, 2);
+    prog.national = { caps: 0, goals: 0, tournament: null, notes: [] };
+    const { record, tables } = finishSeason(career, prog);
+    record.trophies = [];
+    record.awards = [];
+    record.cupReached = 'entführt';
+    if (record.europe) record.europe = { ...record.europe, reached: 'entführt' };
+    record.events = i === 0
+      ? [{
+        title: 'Von der Mafia entführt!', half: 1, tone: 'bad', effect: 'keine Spiele, Wertung sinkt',
+        text: 'Nach dem Training zerren dich maskierte Männer in einen schwarzen Van. Von dir fehlt jede Spur.',
+      }]
+      : [];
+    record.devReasons = ['In Gefangenschaft – kein Training, kein Fußball.'];
+    record.notes = [`${KIDNAP_SEASONS - i > 1 ? 'Weiterhin' : 'Immer noch'} in den Fängen der Mafia – keine Spiele.`];
+    applyLeagueChanges(career, tables);
+    const rivalNews = simulateRivalSeason(career, record);
+    career.history.push(record);
+    for (const t of rivalNews) addNews(career, 2, 'Rivale', t);
+    addNews(career, 2, 'Du', i < KIDNAP_SEASONS - 1
+      ? `Noch immer keine Spur von ${p.name}. Die Fans hängen Banner auf: „Wir warten auf dich!“`
+      : `WUNDER! ${p.name} ist nach drei Jahren wieder frei!`);
+    p.age += 1;
+    p.contract.yearsLeft -= 1;
+    career.year += 1;
+    // Die Wertung sinkt jedes Jahr – am Ende steht sie bei 50.
+    p.ovr = Math.round(p.ovr - ((p.ovr - 50) * (i + 1)) / KIDNAP_SEASONS);
+    record.ovrEnd = p.ovr;
+    record.marketValue = playerValue(p);
+  }
+
+  p.absent = false;
+  p.ovr = 50;
+  p.potential = Math.max(55, p.potential - 5);
+  p.morale = 0;
+  p.captainOf = null;
+  p.contract.yearsLeft = 0;
+  // Der alte Verein hat längst geplant – nur neue Vereine melden sich.
+  career.offers = generateOffers(career, career.history[career.history.length - 1]).filter((o) => o.type !== 'Verlängerung');
+  career.requestsLeft = 1;
+  career.applications = [];
+  career.phase = 'window';
+  career.decisionResult = {
+    title: '🚨 Nach drei Jahren frei!',
+    text: 'Die Mafia hat dich laufen lassen. Dein Vertrag ist ausgelaufen, deine Wertung auf 50 gefallen – Zeit für das größte Comeback der Fußballgeschichte.',
+    tone: 'bad',
+  };
   return career;
 }
 

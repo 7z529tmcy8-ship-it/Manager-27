@@ -132,7 +132,9 @@ function playerMatch(
   let status: MatchLine['status'] = 'bench';
   let minutes = 0;
 
-  if (prog.injuredFor > 0) {
+  if (player.absent) {
+    status = 'injured';
+  } else if (prog.injuredFor > 0) {
     prog.injuredFor--;
     status = 'injured';
   } else {
