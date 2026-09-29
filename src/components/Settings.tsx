@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { DIFFICULTIES, PRESS_FREQUENCIES, setCareerSettings, settingsOf } from '../game/difficulty';
 import type { Career, Difficulty, PressFrequency } from '../game/types';
+import { UNLOCK_KEY } from './PasswordGate';
 import { updateSettings, useSettings, type AppSettings } from '../settings';
 
 interface Props {
@@ -54,7 +55,7 @@ export default function Settings({ career, onChange, onClose }: Props) {
   const lock = () => {
     if (!confirm('Seite auf diesem Gerät wieder mit Passwort sperren?')) return;
     try {
-      localStorage.removeItem('fc-manager-unlocked');
+      sessionStorage.removeItem(UNLOCK_KEY);
     } catch {
       // egal – dann bleibt sie eben offen
     }

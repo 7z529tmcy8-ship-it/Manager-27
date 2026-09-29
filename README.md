@@ -72,9 +72,10 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
   Mit dem Jackpot kannst du deinen Verein kaufen und bist Spieler und Präsident zugleich: du stellst dich selbst auf,
   verlängerst deinen Vertrag selbst und gibst im Präsidentenbüro Geld aus (Stars kaufen, Trainer feuern,
   Stadion vergolden, Statue von dir)
-- **Passwort-Sperre:** Die Seite fragt beim ersten Öffnen nach einem Passwort (`123`, in
-  `src/components/PasswordGate.tsx` änderbar). Das ist nur eine Sperre im Browser – wer den Quellcode liest,
-  sieht das Passwort. Für ein privates Spiel reicht das, echte Geheimnisse gehören nicht in die Seite
+- **Passwort-Sperre:** Beim Öffnen fragt die Seite nach dem Passwort (`123`). Entsperrt bleibt sie, solange der Tab
+  offen ist. Der Geheimcode `Larp` (Groß-/Kleinschreibung egal) öffnet stattdessen eine eigene, vom Spiel
+  unabhängige Seite (`src/components/SecretPage.tsx`). Beides steht in `src/components/PasswordGate.tsx`. Das ist
+  nur eine Sperre im Browser – wer den Quellcode liest, sieht Passwort und Code
 - **Live-Finals:** Pokal-, Europapokal- und Turnierfinals (WM/EM/Copa) laufen als Live-Ticker. In deinen Szenen
   entscheidest du selbst (abziehen, querlegen, dribbeln / grätschen, stellen / rauslaufen, Elfmeter-Ecke) – das
   beeinflusst Ergebnis, Tore und Note. „Ganze Saison“ spielt Finals automatisch
