@@ -78,14 +78,14 @@ export default function Terminal({ onExit }: { onExit: () => void }) {
         <h1>{{ overview: 'Märkte', compare: 'Vergleich', rank: 'Ranking', trade: 'Trading' }[tab]}</h1>
         <p className="mk-date">{new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         <div className="mk-seg" role="tablist">
-          {([['overview', 'Übersicht'], ['compare', 'Vergleich'], ['rank', 'Ranking'], ['trade', 'Trading']] as [Tab, string][]).map(([id, label]) => (
+          {([['overview', 'Übersicht'], ['compare', 'Vergleich'], ['rank', 'Ranking'], ['trade', '🎮 Trading']] as [Tab, string][]).map(([id, label]) => (
             <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} onClick={() => setTab(id)}>{label}</button>
           ))}
         </div>
       </div>
 
       <main className={`mk-main ${tab === 'overview' && wide ? 'split' : ''}`}>
-        {showList && <Overview series={series} selected={detail} onOpen={openEtf} />}
+        {showList && <Overview series={series} selected={detail} onOpen={openEtf} onPlay={() => setTab('trade')} />}
         {showDetail && <Detail series={series} ticker={detail!} />}
         {tab === 'compare' && <Compare series={series} selected={compare} onChange={setCompare} />}
         {tab === 'rank' && <Ranking series={series} onOpen={openEtf} />}
@@ -105,7 +105,7 @@ function ChangePill({ v, d = 2, big }: { v: number; d?: number; big?: boolean })
 }
 
 // ---------- Übersicht ----------
-function Overview({ series, selected, onOpen }: { series: Record<string, Point[]>; selected: string | null; onOpen: (t: string) => void }) {
+function Overview({ series, selected, onOpen, onPlay }: { series: Record<string, Point[]>; selected: string | null; onOpen: (t: string) => void; onPlay: () => void }) {
   const [q, setQ] = useState('');
   const list = ETFS.filter((e) => `${e.ticker} ${e.name} ${e.index}`.toLowerCase().includes(q.toLowerCase()));
   const movers = [...ETFS].map((e) => ({ e, d: periodReturn(series[e.ticker], '1T') })).sort((a, b) => b.d - a.d);
@@ -113,6 +113,14 @@ function Overview({ series, selected, onOpen }: { series: Record<string, Point[]
   const worst = movers[movers.length - 1];
   return (
     <section className="mk-list">
+      <button className="mk-card mk-play" onClick={onPlay}>
+        <span className="mk-play-icon" aria-hidden="true">🎮</span>
+        <span className="grow">
+          <strong>Day-Trading spielen</strong>
+          <small>Ein Börsentag im Zeitraffer – kaufen, shorten, Gewinne mitnehmen. 10.000 € Spielgeld.</small>
+        </span>
+        <span className="mk-play-go">Los ›</span>
+      </button>
       <div className="mk-movers">
         <button className="mk-card mover" onClick={() => onOpen(best.e.ticker)}>
           <span className="mk-label">Top heute</span>

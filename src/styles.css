@@ -1152,3 +1152,11 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
   .tg-dock-info { display: flex; justify-content: space-between; align-items: center; min-height: 26px; margin-bottom: 6px; font-size: .9rem; }
   .tg-dock .tg-buttons button { padding: 9px 8px; }
 }
+.mk-play {
+  width: 100%; display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 12px;
+  background: linear-gradient(135deg, #0071e3, #5e5ce6); color: #fff !important;
+}
+.mk-play strong { display: block; font-size: 1.05rem; }
+.mk-play small { display: block; opacity: .9; font-size: .82rem; margin-top: 2px; line-height: 1.35; }
+.mk-play-icon { font-size: 1.8rem; }
+.mk-play-go { font-weight: 700; white-space: nowrap; }
