@@ -2,10 +2,12 @@ import { getClub, getLeague, initialClubLeague } from '../data/leagues';
 import { developPlayer, performanceIndex } from './development';
 import { rollEvents } from './events';
 import { APPLICATIONS_PER_WINDOW, APPLICATION_AGE, answerApplication, generateOffers, type OfferMode } from './offers';
-import { ROLE_BONUS, clubLeagueId, clubStrength, createProfile, currentClubId, currentRole, playerValue, roleFor, seasonLabel, wageFor } from './player';
+import { ROLE_BONUS, clubLeagueId, clubStrength, createProfile, currentClubId, currentRole, formatMoney, playerValue, roleFor, seasonLabel, wageFor } from './player';
 import { chance, uid } from './random';
 import { ownerSeasonEnd, ownsClub } from './owner';
-import { PRESS_CHANCE, pressConference } from './press';
+import { pressConference } from './press';
+import { postInbox } from './inbox';
+import { PRESS_FREQUENCIES, adjustGrowth, settingsOf } from './difficulty';
 import {
   STAGES,
   STAGES_PER_HALF,
@@ -87,6 +89,12 @@ export function createCareer(np: NewPlayer): Career {
     secondChance: np.secondChance || undefined,
   };
   career.seasonGoals = createSeasonGoals(career);
+  postInbox(career, {
+    kind: 'welcome',
+    title: `Willkommen bei ${club.name}!`,
+    text: 'Hier im Postfach landen Angebote, Ereignisse, Presse-Ergebnisse und Erfolge. Viel Erfolg!',
+  });
+  goalsInbox(career);
   if (isKidnapName(np.name)) return kidnap(career);
   ensureProgress(career);
   return career;
@@ -257,7 +265,7 @@ export function playNextStage(prev: Career): Career {
   if (prog.stage === STAGES) return finishSecondHalf(career);
   career.phase = 'season';
   // Zwischen den Etappen lädt manchmal die Presse ein.
-  if (!career.player.absent && chance(PRESS_CHANCE)) career.decision = pressConference(career);
+  if (!career.player.absent && chance(PRESS_FREQUENCIES[settingsOf(career).press].chance)) career.decision = pressConference(career);
   career.updatedAt = Date.now();
   return career;
 }
@@ -289,7 +297,7 @@ function winterTransition(career: Career, quick: boolean): Career {
   const strength = clubStrength(career, clubId);
   const ovrBefore = p.ovr;
   const dev = developPlayer(p, stats, strength, { weight: 0.5 });
-  p.ovr = dev.ovr;
+  p.ovr = adjustGrowth(career, ovrBefore, dev.ovr, dev.potential);
   p.potential = dev.potential;
   const trainingNote = applyTraining(p, ovrBefore);
   if (trainingNote) prog.notes.push(trainingNote);
@@ -305,6 +313,17 @@ function winterTransition(career: Career, quick: boolean): Career {
   career.requestsLeft = p.loan ? 0 : 1;
   career.applications = [];
   winterNews(career, stats, career.offers);
+  const season = seasonLabel(career.year);
+  for (const e of prog.events ?? []) postInbox(career, { kind: 'event', season, title: e.title, text: `${e.text} (${e.effect})` });
+  if (career.offers.length) {
+    postInbox(career, {
+      kind: 'offer',
+      season,
+      title: `Winterfenster: ${career.offers.length === 1 ? '1 Angebot' : `${career.offers.length} Angebote`}`,
+      text: 'Wechselst du jetzt, spielst du die Rückrunde beim neuen Verein.',
+      action: 'transfers',
+    });
+  }
   const share = stats.possibleMinutes ? stats.minutes / stats.possibleMinutes : 0;
   career.decision = quick ? null : maybeDecision(career, 'winter', share);
   career.updatedAt = Date.now();
@@ -377,7 +396,7 @@ function finishSecondHalf(career: Career): Career {
     weight: 0.5,
     potentialStats: halfStats(prog.matches),
   });
-  p.ovr = dev.ovr;
+  p.ovr = adjustGrowth(career, ovrBefore, dev.ovr, dev.potential);
   p.potential = dev.potential;
   const trainingNote = applyTraining(p, ovrBefore);
   if (trainingNote) dev.reasons.push(trainingNote);
@@ -442,22 +461,68 @@ function completeSeason(career: Career): Career {
   const extraNews = [...captainAndLegend(career, record), ...simulateRivalSeason(career, record)];
   record.achievements = checkAchievements(career, record.season);
   extraNews.push(...record.achievements.map((a) => `Erfolg freigeschaltet: ${a}`));
+  seasonInbox(career, record);
   career.year += 1;
   career.updatedAt = Date.now();
 
   if (p.age >= MAX_AGE) {
     career.phase = 'retired';
     career.retiredReason = `Mit ${p.age} Jahren ist Schluss – Karriereende.`;
+    postInbox(career, { kind: 'retire', title: 'Karriereende', text: career.retiredReason, action: 'career', season: record.season });
     return career;
   }
   career.offers = generateOffers(career, record);
   career.requestsLeft = 1;
   career.applications = [];
   career.phase = 'window';
+  windowInbox(career, record.season);
   summerNews(career, record, seasonStats, tables, extraNews);
   const share = seasonStats.possibleMinutes ? seasonStats.minutes / seasonStats.possibleMinutes : 0;
   career.decision = maybeDecision(career, 'summer', share);
   return career;
+}
+
+/** Postfach nach der Saison: Bilanz, Ereignisse der Rückrunde, Erfolge. */
+function seasonInbox(career: Career, record: SeasonRecord) {
+  const delta = record.ovrEnd - record.ovrStart;
+  const titles = [...record.trophies, ...record.awards];
+  postInbox(career, {
+    kind: 'season',
+    season: record.season,
+    title: `Saisonbilanz ${record.season}`,
+    text:
+      `${record.apps} Spiele, ${record.goals} Tore, ${record.assists} Vorlagen · Platz ${record.leaguePosition} · ` +
+      `Wertung ${record.ovrStart} → ${record.ovrEnd} (${delta > 0 ? '+' : ''}${delta})` +
+      (titles.length ? ` · ${titles.join(', ')}` : ''),
+    action: 'career',
+  });
+  for (const e of (record.events ?? []).filter((x) => x.half === 2)) {
+    postInbox(career, { kind: 'event', season: record.season, title: e.title, text: `${e.text} (${e.effect})` });
+  }
+  for (const a of record.achievements ?? []) {
+    postInbox(career, { kind: 'achievement', season: record.season, title: `Erfolg freigeschaltet: ${a}`, text: 'Alle Erfolge findest du im Trophäenhaus auf der Stadtkarte.' });
+  }
+}
+
+/** Postfach zum Transferfenster: Angebote und Vertragslage. */
+function windowInbox(career: Career, season: string) {
+  const p = career.player;
+  const n = career.offers.length;
+  if (n > 0) {
+    const best = [...career.offers].sort((a, b) => getClub(b.clubId).strength - getClub(a.clubId).strength)[0];
+    postInbox(career, {
+      kind: 'offer',
+      season,
+      title: n === 1 ? '1 Angebot liegt vor' : `${n} Angebote liegen vor`,
+      text: `Interessantestes: ${getClub(best.clubId).name} (${best.type}).`,
+      action: 'transfers',
+    });
+  }
+  if (p.contract.yearsLeft <= 0) {
+    postInbox(career, { kind: 'contract', season, title: 'Vertrag ausgelaufen', text: 'Du bist ablösefrei und musst dir einen neuen Verein suchen.', action: 'transfers' });
+  } else if (p.contract.yearsLeft === 1 && career.owner?.clubId !== p.contract.clubId) {
+    postInbox(career, { kind: 'contract', season, title: 'Letztes Vertragsjahr', text: `Dein Vertrag bei ${getClub(p.contract.clubId).name} läuft nach der nächsten Saison aus.`, action: 'transfers' });
+  }
 }
 
 /** Saisonziele: alle erreicht → mehr Vertrauen und Gehaltsbonus, keins erreicht → Vertrauen sinkt. */
@@ -626,6 +691,8 @@ export function acceptOffer(prev: Career, offer: Offer): Career {
   if (offer.type !== 'Verlängerung') {
     recordTransfer(career, 'Sommer', p.contract.clubId, offer);
     p.captainOf = null;
+  } else {
+    postInbox(career, { kind: 'contract', title: 'Vertrag verlängert', text: `Neuer Vertrag bei ${getClub(offer.clubId).name}: ${offer.years} Jahre, ${formatMoney(offer.wage)} pro Woche.` });
   }
   if (offer.type === 'Leihe') {
     p.loan = { clubId: offer.clubId, parentClubId: p.contract.clubId, role: offer.role };
@@ -687,6 +754,11 @@ function recordTransfer(career: Career, window: TransferEntry['window'], fromClu
     ...(career.transfers ?? []),
     { season: seasonLabel(career.year), window, type: offer.type, fromClubId, toClubId: offer.clubId, fee: offer.fee },
   ];
+  postInbox(career, {
+    kind: 'transfer',
+    title: offer.type === 'Leihe' ? `Leihe zu ${getClub(offer.clubId).name}` : `Wechsel perfekt: ${getClub(offer.clubId).name}`,
+    text: `${getClub(fromClubId).name} → ${getClub(offer.clubId).name}${offer.fee > 0 ? ` für ${formatMoney(offer.fee)}` : ''} (${window}).`,
+  });
 }
 
 /** Summe aller gezahlten Ablösen für den Spieler (Leihen und ablösefreie Wechsel zählen 0). */
@@ -713,14 +785,91 @@ export function applyToClub(prev: Career, clubId: string): Career {
   return career;
 }
 
+function goalsInbox(career: Career) {
+  const goals = career.seasonGoals ?? [];
+  if (!goals.length) return;
+  postInbox(career, {
+    kind: 'goals',
+    title: `Saisonziele ${seasonLabel(career.year)}`,
+    text: `Der Trainer erwartet: ${goals.map((g) => g.label).join(' · ')}.`,
+    action: 'season',
+  });
+}
+
 function startNextSeason(career: Career): Career {
   career.offers = [];
   career.applications = [];
   career.phase = 'season';
   career.seasonGoals = createSeasonGoals(career);
+  goalsInbox(career);
   // Die neue Saison wird gleich angelegt, damit Spielplan und Gegner schon sichtbar sind.
   career.progress = null;
   ensureProgress(career);
   career.updatedAt = Date.now();
   return career;
+}
+
+export type HolidayTarget = number | 'contract';
+
+/** Ein Angebot, bei dem der Urlaubsmodus anhält: deutlich stärkerer Verein als der aktuelle. */
+export function topOffer(career: Career): Offer | null {
+  const own = clubStrength(career, career.player.contract.clubId);
+  const best = career.offers
+    .filter((o) => o.type !== 'Verlängerung' && o.type !== 'Leihe')
+    .sort((a, b) => clubStrength(career, b.clubId) - clubStrength(career, a.clubId))[0];
+  return best && clubStrength(career, best.clubId) >= own + 3 ? best : null;
+}
+
+/**
+ * Urlaubsmodus: mehrere Saisons am Stück simulieren. Man bleibt jeweils beim Verein, Entscheidungen und
+ * Pressekonferenzen werden übersprungen. Angehalten wird bei Vertragsende, Top-Angebot, Karriereende oder
+ * wenn die gewünschte Zahl an Saisons gespielt ist.
+ */
+export function holiday(prev: Career, target: HolidayTarget): Career {
+  let c: Career = structuredClone(prev);
+  const maxSeasons = target === 'contract' ? 25 : target;
+  let played = 0;
+  let reason = '';
+  // Sicherung gegen Endlosschleifen (z. B. unerwartete Phase).
+  for (let guard = 0; guard < 60; guard++) {
+    if (c.phase === 'retired') {
+      reason = 'Die Karriere ist zu Ende.';
+      break;
+    }
+    if (c.phase === 'window') {
+      if (played >= maxSeasons) {
+        reason = `${played} ${played === 1 ? 'Saison' : 'Saisons'} gespielt.`;
+        break;
+      }
+      if (!canStay(c)) {
+        reason = 'Dein Vertrag ist ausgelaufen – such dir einen neuen Verein.';
+        break;
+      }
+      const top = played > 0 ? topOffer(c) : null;
+      if (top) {
+        reason = `Top-Angebot von ${getClub(top.clubId).name} – das solltest du dir ansehen.`;
+        break;
+      }
+      c.decision = null;
+      c = stayAtClub(c);
+    }
+    c.decision = null;
+    c = playSeason(c);
+    played++;
+  }
+  if (played > 0) {
+    // Auch die letzte Entscheidung nach dem Urlaub wird übersprungen – sonst verdeckt sie die Zusammenfassung.
+    c.decision = null;
+    const last = c.history[c.history.length - 1];
+    c.decisionResult = { title: '🏖️ Zurück aus dem Urlaub', text: reason, tone: 'neutral' };
+    postInbox(c, {
+      kind: 'holiday',
+      season: last?.season,
+      title: `Urlaubsmodus: ${played} ${played === 1 ? 'Saison' : 'Saisons'} simuliert`,
+      text: `${reason} Gesamtwertung jetzt ${c.player.ovr}.`,
+      action: 'career',
+    });
+  }
+  c.updatedAt = Date.now();
+  return c;
 }

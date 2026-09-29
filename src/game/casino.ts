@@ -1,3 +1,4 @@
+import { postInbox } from './inbox';
 import { addNews } from './news';
 import { cashOf, formatMoney } from './player';
 import { clamp } from './random';
@@ -81,6 +82,7 @@ export function spin(prev: Career, bet: number): Career {
   const p = career.player;
   if (reels.every((r) => r === 'seven')) {
     stats.jackpots += 1;
+    postInbox(career, { kind: 'casino', title: 'JACKPOT 777!', text: `Du hast ${formatMoney(win)} am Automaten gewonnen.` });
     addNews(career, 2, 'Du', `JACKPOT! ${p.name} knackt im Glückspalast die 777 und gewinnt ${formatMoney(win)}.`);
   } else if (stake === cash && win === 0 && stake >= p.contract.wage) {
     addNews(career, 2, 'Du', `All-in und alles weg: ${p.name} verzockt ${formatMoney(stake)} am Automaten.`);

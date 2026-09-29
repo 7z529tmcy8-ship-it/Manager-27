@@ -3,6 +3,8 @@ import { getClub } from '../data/leagues';
 import { currentClubId, seasonLabel } from '../game/player';
 import { deleteCareer, listCareers } from '../game/storage';
 import type { Career } from '../game/types';
+import { useSettings } from '../settings';
+import Settings from './Settings';
 
 interface Props {
   onNew: () => void;
@@ -43,7 +45,10 @@ const FOCUS_SCALE = 1.2;
 export default function Home({ onNew, onFame, onAchievements, onLoad, onCasino }: Props) {
   const [saves, setSaves] = useState(listCareers);
   const [selected, setSelected] = useState<PlaceId | null>(null);
-  const place = PLACES.find((p) => p.id === selected) ?? null;
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const app = useSettings();
+  const places = PLACES.filter((p) => app.casino || p.id !== 'casino');
+  const place = places.find((p) => p.id === selected) ?? null;
   const latest = [...saves].sort((a, b) => b.updatedAt - a.updatedAt)[0];
 
   useEffect(() => {
@@ -69,7 +74,7 @@ export default function Home({ onNew, onFame, onAchievements, onLoad, onCasino }
         <svg viewBox="0 0 800 700" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Karte der Fußballstadt">
           <g className="map-world" style={{ transform: focus }}>
             <MapBase />
-            {PLACES.map((p) => (
+            {places.map((p) => (
               <Pin key={p.id} place={p} active={selected === p.id} dimmed={!!selected && selected !== p.id} onSelect={() => setSelected(p.id)} />
             ))}
           </g>
@@ -78,7 +83,9 @@ export default function Home({ onNew, onFame, onAchievements, onLoad, onCasino }
           <span className="map-chip-dot" aria-hidden="true" />
           FC Karriere-Simulator
         </div>
+        <button className="map-settings" onClick={(e) => { e.stopPropagation(); setSettingsOpen(true); }} aria-label="Einstellungen">⚙️</button>
       </div>
+      {settingsOpen && <Settings onClose={() => setSettingsOpen(false)} />}
 
       <section className="sheet" aria-live="polite">
         <div className="sheet-grabber" aria-hidden="true" />
@@ -87,7 +94,7 @@ export default function Home({ onNew, onFame, onAchievements, onLoad, onCasino }
             <h1 className="sheet-title">Wohin?</h1>
             <p className="sheet-sub">Tippe auf einen Ort in der Stadt.</p>
             <div className="fav-row">
-              {PLACES.slice(0, 5).map((p) => (
+              {places.slice(0, 5).map((p) => (
                 <button key={p.id} className="fav" onClick={() => setSelected(p.id)}>
                   <span className="fav-icon" style={{ background: p.color }}>{p.icon}</span>
                   <span className="fav-label">{p.short}</span>

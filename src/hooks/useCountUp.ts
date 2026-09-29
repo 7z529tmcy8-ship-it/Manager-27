@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-
-const reducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+import { motionReduced as reducedMotion } from '../settings';
 
 /** Zählt eine Zahl sanft vom vorherigen (oder Start-)Wert zum Zielwert hoch. */
 export function useCountUp(target: number, { from, duration = 900, decimals = 0 }: { from?: number; duration?: number; decimals?: number } = {}) {

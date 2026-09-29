@@ -3,6 +3,7 @@ import { POSITIONS } from '../data/players';
 import { generateOffers } from './offers';
 import { resolveLotto } from './owner';
 import { resolvePress } from './press';
+import { postInbox } from './inbox';
 import { createProfile, currentClubId, seasonLabel } from './player';
 import { chance, clamp, pick, randInt } from './random';
 import { hasTrait, type TraitId } from './traits';
@@ -368,6 +369,10 @@ export function resolveDecision(prev: Career, optionId: string): Career {
     career.decisionResult = def ? def.resolve(career, optionId, d) : null;
   }
   career.decision = null;
+  if (career.decisionResult) {
+    const kind = d.id === 'press' ? 'press' : d.id === 'lotto' ? 'lotto' : 'decision';
+    postInbox(career, { kind, title: `${d.title}: ${career.decisionResult.title}`, text: career.decisionResult.text });
+  }
   career.updatedAt = Date.now();
   return career;
 }

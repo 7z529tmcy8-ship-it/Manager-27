@@ -17,6 +17,11 @@ import { clubLeagueId, currentClubId, formatMoney, seasonLabel } from '../game/p
 import { STAGES, sortTable } from '../game/season';
 import type { Career } from '../game/types';
 import Casino from './Casino';
+import HolidayPanel from './HolidayPanel';
+import Inbox from './Inbox';
+import Settings from './Settings';
+import { unreadCount } from '../game/inbox';
+import { useSettings } from '../settings';
 import DecisionPanel from './DecisionPanel';
 import { SeasonGoals, TrainingPicker } from './GoalsAndTraining';
 import HalfReport from './HalfReport';
@@ -45,6 +50,10 @@ type Tab = 'season' | 'transfers' | 'news' | 'career' | 'table';
 export default function Game({ career, onChange, onExit, openCasino }: Props) {
   const [tab, setTab] = useState<Tab>('season');
   const [casino, setCasino] = useState(!!openCasino);
+  const [inbox, setInbox] = useState(false);
+  const [settings, setSettings] = useState(false);
+  const app = useSettings();
+  const unread = unreadCount(career);
   const topRef = useRef<HTMLDivElement>(null);
   const p = career.player;
   const last = career.history[career.history.length - 1];
@@ -84,15 +93,20 @@ export default function Game({ career, onChange, onExit, openCasino }: Props) {
       <nav className="topnav">
         <button className="nav-back" onClick={onExit} aria-label="Zurück zum Menü">‹ Menü</button>
         <span className="nav-title">{p.name}</span>
-        <span className="nav-meta">
-          {career.phase === 'retired' ? 'Karriere beendet' : `${seasonLabel(career.year)}`}
-          <button className="nav-casino" onClick={() => setCasino(true)} aria-label="Glückspalast öffnen" title="Glückspalast">🎰</button>
+        <span className="nav-actions">
+          <button className="nav-icon" onClick={() => setInbox(true)} aria-label={`Postfach${unread ? `, ${unread} ungelesen` : ''}`} title="Postfach">
+            ✉️{unread > 0 && <span className="nav-badge">{unread > 99 ? '99+' : unread}</span>}
+          </button>
+          {app.casino && (
+            <button className="nav-icon" onClick={() => setCasino(true)} aria-label="Glückspalast öffnen" title="Glückspalast">🎰</button>
+          )}
+          <button className="nav-icon" onClick={() => setSettings(true)} aria-label="Einstellungen" title="Einstellungen">⚙️</button>
         </span>
       </nav>
 
       <header className="game-head">
         <p className="eyebrow">
-          {career.phase === 'retired' ? 'Karriere beendet' : `${getClub(clubId).name} · ${league.name}`}
+          {career.phase === 'retired' ? 'Karriere beendet' : `${getClub(clubId).name} · ${league.name} · ${seasonLabel(career.year)}`}
         </p>
         <h1>{p.name}</h1>
       </header>
@@ -124,6 +138,7 @@ export default function Game({ career, onChange, onExit, openCasino }: Props) {
               {career.phase === 'final' && career.liveFinal && <LiveFinal career={career} onChange={onChange} />}
               <DecisionPanel career={career} onChange={onChange} />
               <OwnerPanel career={career} onChange={onChange} />
+              <HolidayPanel career={career} onChange={onChange} />
               {career.phase === 'season' && !career.decision && (
                 <>
                   {stage === 0 && (
@@ -224,7 +239,9 @@ export default function Game({ career, onChange, onExit, openCasino }: Props) {
         </section>
       </div>
 
-      {casino && <Casino career={career} onChange={onChange} onClose={() => setCasino(false)} />}
+      {inbox && <Inbox career={career} onChange={onChange} onClose={() => setInbox(false)} onOpen={(t) => go(t === 'transfers' && !windowOpen ? 'season' : t)} />}
+      {settings && <Settings career={career} onChange={onChange} onClose={() => setSettings(false)} />}
+      {casino && app.casino && <Casino career={career} onChange={onChange} onClose={() => setCasino(false)} />}
       {showStory && last && !casino && (
         <SeasonStory career={career} season={last} onClose={() => onChange(markStorySeen(career, last.season))} />
       )}

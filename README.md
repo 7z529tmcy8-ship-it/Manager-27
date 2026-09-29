@@ -53,6 +53,14 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
 - **Zweite Chance:** 12 gescheiterte Talente (Freddy Adu, Bojan Krkić, Pato, Wilshere, Kerlon, Macheda, Ravel Morrison,
   Anderson, Hachim Mastour, Giovani dos Santos, Kakuta, Marko Marin) starten noch einmal jung – schaffst du Wertung 85?
   Neuer Charakterzug „Verletzungsanfällig“ (deutlich höheres Verletzungsrisiko)
+- **Postfach:** ✉️ oben im Spiel – alle persönlichen Nachrichten an einem Ort (Saisonbilanz, Angebote, Vertragslage,
+  Wechsel, Ereignisse, Ergebnisse von Entscheidungen und Pressekonferenzen, Erfolge) mit Ungelesen-Zähler und
+  Sprung an die passende Stelle
+- **Urlaubsmodus:** 3 Saisons, 5 Saisons oder bis Vertragsende am Stück simulieren. Du bleibst beim Verein,
+  Entscheidungen und Presse werden übersprungen; angehalten wird bei Vertragsende, Top-Angebot oder Karriereende
+- **Einstellungen:** ⚙️ im Spiel und auf der Karte. Pro Karriere: Schwierigkeit (Leicht/Normal/Schwer – wirkt auf
+  Einsätze, Verletzungen und Entwicklung) und Häufigkeit der Pressekonferenzen. Pro Gerät: Design (Automatisch/Hell/
+  Dunkel), Animationen an/aus, Casino ein-/ausblenden, Passwort-Sperre wieder aktivieren
 - **Glückspalast (Casino):** Das Gehalt landet jetzt auf einem Konto (Spielgeld). Im Casino – über 🎰 oben im Spiel
   oder auf der Stadtkarte – gibt es einen einarmigen Banditen mit drei echten, nacheinander stoppenden Walzen und
   Hebel. Einsatz von 1 Tsd. € bis All-in, Auszahlungsquote gut 90 % (auf Dauer gewinnt die Bank). 777 = ×50 und

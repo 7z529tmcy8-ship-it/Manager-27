@@ -39,7 +39,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     color-scheme: dark;
     --bg: #000000;
     --surface: #161617;
@@ -64,6 +64,31 @@
     --el: #d95926;
     --conf: #199e70;
   }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --surface: #161617;
+  --surface-2: #1d1d1f;
+  --surface-3: #2c2c2e;
+  --hairline: rgba(255, 255, 255, 0.12);
+  --text: #f5f5f7;
+  --text-2: #d2d2d7;
+  --muted: #86868b;
+  --accent: #0071e3;
+  --accent-hover: #147ce5;
+  --link: #2997ff;
+  --up: #30d158;
+  --down: #ff453a;
+  --gold: #e3b341;
+  --glass: rgba(22, 22, 23, 0.8);
+  --shadow: none;
+  --series-1: #2997ff;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --cl: #2997ff;
+  --el: #d95926;
+  --conf: #199e70;
 }
 
 * { box-sizing: border-box; }
@@ -584,7 +609,7 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
   --sheet: rgba(255, 255, 255, 0.92);
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --map-land: #1e2023;
     --map-park: #1f3526;
     --map-water: #173049;
@@ -602,6 +627,24 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
     --map-park-label: #6fb56a;
     --sheet: rgba(28, 28, 30, 0.92);
   }
+}
+:root[data-theme="dark"] {
+  --map-land: #1e2023;
+  --map-park: #1f3526;
+  --map-water: #173049;
+  --map-block: #2a2c30;
+  --map-road: #3b3e44;
+  --map-road-edge: #26282c;
+  --map-main: #5c4f2b;
+  --map-main-edge: #3f3620;
+  --map-landmark: #3a352e;
+  --map-pitch: #2f6b35;
+  --map-stadium: #3a3c41;
+  --map-stand: #4a4c52;
+  --map-label: #9a9aa2;
+  --map-water-label: #6fa3d6;
+  --map-park-label: #6fb56a;
+  --sheet: rgba(28, 28, 30, 0.92);
 }
 
 .maphome { position: fixed; inset: 0; display: flex; flex-direction: column; background: var(--map-land); }
@@ -782,4 +825,75 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .paytable li { display: flex; justify-content: space-between; }
 .casino-stats, .casino-note { color: #a1a1a6; font-size: .8rem; margin-top: 10px; }
 
-.nav-casino { border: 0; background: var(--surface-3); border-radius: 999px; padding: 4px 10px; font-size: 1rem; cursor: pointer; margin-left: 8px; }
+
+
+/* Einstellung „Animationen aus“ (zusätzlich zur Systemeinstellung) */
+.reduce-motion *, .reduce-motion *::before, .reduce-motion *::after {
+  animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important;
+}
+.reduce-motion .confetti { display: none; }
+
+/* ---------- Leiste oben: Postfach, Casino, Einstellungen ---------- */
+.nav-actions { display: flex; gap: 6px; align-items: center; }
+.nav-icon {
+  position: relative; border: 0; background: var(--surface-3); border-radius: 999px;
+  width: 36px; height: 32px; font-size: .95rem; cursor: pointer; display: grid; place-items: center; padding: 0;
+}
+.nav-badge {
+  position: absolute; top: -5px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+  background: var(--down); color: #fff; font-size: .68rem; font-weight: 700; line-height: 18px; text-align: center;
+}
+
+/* ---------- Vollbild-Ebenen (Postfach, Einstellungen) ---------- */
+.overlay { position: fixed; inset: 0; z-index: 55; overflow-y: auto; background: var(--bg); animation: story-in .25s ease; }
+.overlay-inner { max-width: 680px; margin: 0 auto; padding: max(12px, env(safe-area-inset-top)) 16px 48px; }
+.overlay-head { display: flex; justify-content: space-between; align-items: center; min-height: 44px; }
+.overlay-title { font-size: clamp(2rem, 8vw, 2.6rem); margin: 8px 0 4px; }
+
+.inbox-group { margin-top: 22px; }
+.inbox-season { font-size: .85rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 8px; }
+.inbox-list { list-style: none; margin: 0; padding: 0; background: var(--surface); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.inbox-list li + li .inbox-item { border-top: 1px solid var(--hairline); }
+.inbox-item {
+  width: 100%; display: flex; gap: 12px; align-items: flex-start; text-align: left; padding: 14px 16px;
+  background: var(--surface); border: 0; color: var(--text); cursor: pointer; font: inherit;
+}
+.inbox-item:hover { background: var(--surface-2); }
+.inbox-item strong { display: block; font-size: .98rem; }
+.inbox-item small { display: block; color: var(--text-2); font-size: .86rem; margin-top: 2px; line-height: 1.4; }
+.inbox-item.read strong { font-weight: 500; }
+.inbox-item.read small { color: var(--muted); }
+.inbox-item.pinned { margin-top: 18px; border-radius: var(--radius); box-shadow: inset 0 0 0 2px var(--accent), var(--shadow); }
+.inbox-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; flex: 0 0 auto; font-size: 1.1rem; }
+.inbox-action { display: inline-block; margin-top: 6px; color: var(--link); font-size: .82rem; font-weight: 500; }
+.inbox-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); flex: 0 0 auto; margin-top: 6px; }
+
+/* ---------- Einstellungen ---------- */
+.setting { padding: 14px 0; border-top: 1px solid var(--hairline); }
+.panel h2 + .setting { border-top: 0; padding-top: 0; }
+.setting-label { display: block; font-weight: 600; margin-bottom: 8px; }
+.setting-row { display: flex; align-items: center; gap: 12px; }
+.setting-row .setting-label { margin-bottom: 0; }
+.setting-row .hint { margin: 2px 0 0; }
+.setting-seg { margin-bottom: 0; display: flex; width: 100%; }
+.setting-seg button { flex: 1; justify-content: center; padding: 7px 8px; }
+.switch {
+  width: 51px; height: 31px; border-radius: 16px; border: 0; background: var(--surface-3); position: relative;
+  cursor: pointer; flex: 0 0 auto; transition: background .2s;
+}
+.switch span {
+  position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .25); transition: transform .2s;
+}
+.switch.on { background: var(--up); }
+.switch.on span { transform: translateX(20px); }
+
+.map-settings {
+  position: absolute; top: max(14px, env(safe-area-inset-top)); right: 16px; width: 40px; height: 40px; border-radius: 50%;
+  border: 0; background: var(--sheet); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .12); font-size: 1.05rem; cursor: pointer;
+}
+@media (min-width: 900px) { .map-settings { right: auto; left: 20px; } }
+
+.holiday h3 { margin: 4px 0 6px; }
+.holiday .chips { margin-top: 10px; }

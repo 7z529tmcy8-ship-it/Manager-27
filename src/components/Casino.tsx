@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { PAY2, PAY2_SEVEN, SYMBOLS, betOptions, randomSymbol, spin, symbolIcon } from '../game/casino';
 import { cashOf, formatMoney } from '../game/player';
 import type { Career } from '../game/types';
+import { motionReduced as reducedMotion } from '../settings';
 import { useCountUp } from '../hooks/useCountUp';
 import Confetti from './Confetti';
 
@@ -12,7 +13,6 @@ interface Props {
 }
 
 const ROW = 76;
-const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
 /** Glückspalast: ein Spielautomat mit drei echten, nacheinander stoppenden Walzen. Nur Spielgeld. */
 export default function Casino({ career, onChange, onClose }: Props) {

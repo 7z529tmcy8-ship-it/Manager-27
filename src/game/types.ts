@@ -320,6 +320,10 @@ export interface Career {
   lottoYear?: number;
   /** Lotto-Jackpot wurde schon geknackt (nur einmal pro Karriere). */
   lottoWon?: boolean;
+  /** Einstellungen dieser Karriere. */
+  settings?: CareerSettings;
+  /** Postfach mit persönlichen Nachrichten. */
+  inbox?: InboxItem[];
   /** Kontostand in € (Spielgeld aus dem Gehalt). */
   cash?: number;
   /** Statistik im Glückspalast. */
@@ -328,6 +332,27 @@ export interface Career {
   secondChance?: boolean;
   /** Anzahl gegebener Pressekonferenzen. */
   pressCount?: number;
+}
+
+export type Difficulty = 'easy' | 'normal' | 'hard';
+export type PressFrequency = 'off' | 'rare' | 'normal' | 'often';
+
+export interface CareerSettings {
+  difficulty?: Difficulty;
+  press?: PressFrequency;
+}
+
+export type InboxKind = 'welcome' | 'goals' | 'season' | 'offer' | 'contract' | 'transfer' | 'event' | 'decision' | 'press' | 'achievement' | 'lotto' | 'casino' | 'holiday' | 'retire';
+
+export interface InboxItem {
+  id: string;
+  season: string;
+  kind: InboxKind;
+  title: string;
+  text: string;
+  read: boolean;
+  /** Wohin „Öffnen“ führt. */
+  action?: 'season' | 'transfers' | 'career' | 'news';
 }
 
 export interface CasinoSpin {

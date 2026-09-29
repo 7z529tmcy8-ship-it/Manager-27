@@ -1,0 +1,62 @@
+import { useSyncExternalStore } from 'react';
+
+/** Geräte-Einstellungen (gelten für alle Karrieren in diesem Browser). */
+export interface AppSettings {
+  theme: 'auto' | 'light' | 'dark';
+  animations: boolean;
+  casino: boolean;
+}
+
+const KEY = 'fc-manager-settings';
+const DEFAULTS: AppSettings = { theme: 'auto', animations: true, casino: true };
+
+function load(): AppSettings {
+  try {
+    const raw = localStorage.getItem(KEY);
+    return raw ? { ...DEFAULTS, ...JSON.parse(raw) } : DEFAULTS;
+  } catch {
+    return DEFAULTS;
+  }
+}
+
+let current = load();
+const listeners = new Set<() => void>();
+
+/** Design und Animationen auf die Seite anwenden. */
+export function applySettings(s: AppSettings = current): void {
+  const root = document.documentElement;
+  if (s.theme === 'auto') delete root.dataset.theme;
+  else root.dataset.theme = s.theme;
+  root.classList.toggle('reduce-motion', !s.animations);
+}
+
+export function updateSettings(patch: Partial<AppSettings>): void {
+  current = { ...current, ...patch };
+  try {
+    localStorage.setItem(KEY, JSON.stringify(current));
+  } catch {
+    // Ohne Speicher gilt die Einstellung nur bis zum Neuladen.
+  }
+  applySettings(current);
+  listeners.forEach((l) => l());
+}
+
+export function getSettings(): AppSettings {
+  return current;
+}
+
+export function useSettings(): AppSettings {
+  return useSyncExternalStore(
+    (cb) => {
+      listeners.add(cb);
+      return () => listeners.delete(cb);
+    },
+    () => current,
+  );
+}
+
+/** Weniger Bewegung – per Systemeinstellung oder in den App-Einstellungen. */
+export function motionReduced(): boolean {
+  if (!current.animations) return true;
+  return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+}

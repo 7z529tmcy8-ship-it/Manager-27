@@ -10,6 +10,7 @@ import {
   playerValue,
   seasonLabel,
 } from './player';
+import { difficultyOf } from './difficulty';
 import { injuryFactor } from './training';
 import { hasTrait } from './traits';
 import { chance, clamp, normal, pick, poisson, rand, randInt, sigmoid, weightedPick } from './random';
@@ -147,7 +148,7 @@ function playerMatch(
     // Der Präsident stellt sich selbst auf.
     const president = ownsCurrentClub(ctx) ? 4 : 0;
     const load = LOADS[prog.load ?? 'normal'];
-    const selection = rel + ROLE_BONUS[currentRole(player)] + (prog.form - 6.8) * 2 + (player.morale ?? 0) + captain + president + rotation + load.selection;
+    const selection = rel + ROLE_BONUS[currentRole(player)] + (prog.form - 6.8) * 2 + (player.morale ?? 0) + captain + president + rotation + load.selection + difficultyOf(ctx.career).selection;
     const startP = player.position === 'TW' ? sigmoid((selection + 1) / 1.2) : sigmoid((selection + 1.5) / 2.2);
     if (chance(startP)) {
       status = 'start';
@@ -193,7 +194,7 @@ function playerMatch(
     rating = Math.round(clamp(r, 3, 10) * 10) / 10;
     prog.form = prog.form * 0.8 + rating * 0.2;
 
-    const injuryRisk = (0.012 + Math.max(0, player.age - 30) * 0.002) * injuryFactor(player) * LOADS[prog.load ?? 'normal'].injury;
+    const injuryRisk = (0.012 + Math.max(0, player.age - 30) * 0.002) * injuryFactor(player) * LOADS[prog.load ?? 'normal'].injury * difficultyOf(ctx.career).injury;
     if (chance(injuryRisk * share)) {
       const weeks = injuryWeeks();
       prog.injuredFor = Math.round(weeks * 1.3);

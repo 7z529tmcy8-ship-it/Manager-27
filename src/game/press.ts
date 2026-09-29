@@ -5,9 +5,6 @@ import { chance, clamp, pick } from './random';
 import { sortTable } from './season';
 import type { Career, DecisionResult, PendingDecision, StageSummary } from './types';
 
-/** Wahrscheinlichkeit einer Pressekonferenz nach einer Etappe. */
-export const PRESS_CHANCE = 0.45;
-
 interface PressContext {
   career: Career;
   last: StageSummary | undefined;
