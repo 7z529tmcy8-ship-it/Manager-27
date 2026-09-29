@@ -19,9 +19,9 @@ export default function Achievements({ onBack }: { onBack: () => void }) {
   return (
     <main className="achievements">
       <div className="topbar">
-        <button className="btn ghost" onClick={onBack}>← Zurück</button>
+        <button className="nav-back" onClick={onBack}>‹ Zurück</button>
         <div className="topbar-title">
-          <h1>🎯 Erfolge</h1>
+          <h1>Erfolge</h1>
           <small>{done} von {ACHIEVEMENTS.length} freigeschaltet – über alle Karrieren</small>
         </div>
       </div>

@@ -50,7 +50,7 @@ export default function TransferWindow({ career, onChange }: Props) {
 
   return (
     <div className={`panel window ${winter ? 'winter' : ''}`}>
-      <h2>{winter ? `❄️ Wintertransferfenster Januar ${career.year + 1}` : `Transferfenster Sommer ${career.year}`}</h2>
+      <h2>{winter ? `Wintertransferfenster Januar ${career.year + 1}` : `Transferfenster Sommer ${career.year}`}</h2>
       <p className="hint">{intro}</p>
 
       {career.offers.length === 0 && !(winter && p.loan) && <div className="empty">Keine Angebote eingegangen.</div>}
@@ -77,7 +77,7 @@ export default function TransferWindow({ career, onChange }: Props) {
                 {o.fee > 0 && <div><dt>Ablöse</dt><dd>{formatMoney(o.fee)}</dd></div>}
               </dl>
               <button className="btn primary" onClick={() => accept(o)}>
-                {winter ? 'Annehmen & Rückrunde ▶' : 'Annehmen'}
+                {winter ? 'Annehmen & Rückrunde' : 'Annehmen'}
               </button>
             </article>
           );
@@ -89,7 +89,7 @@ export default function TransferWindow({ career, onChange }: Props) {
       <div className="window-actions">
         {stay && (
           <button className="btn primary" onClick={() => onChange(winter ? stayInWinter(career) : stayAtClub(career))}>
-            {winter ? `Bei ${club.name} bleiben & Rückrunde ▶` : `Bei ${club.name} bleiben`}
+            {winter ? `Bei ${club.name} bleiben & Rückrunde` : `Bei ${club.name} bleiben`}
           </button>
         )}
         {career.requestsLeft > 0 && (

@@ -13,13 +13,30 @@ export interface AgeSeries {
   points: AgePoint[];
 }
 
-const PAD = { top: 16, right: 16, bottom: 30, left: 36 };
+interface ChartProps {
+  series: AgeSeries[];
+  title: string;
+  /** Bezeichnung des Werts im Tooltip. */
+  valueLabel?: string;
+  format?: (v: number) => string;
+  /** Abstand der Achsenmarken; ohne Angabe automatisch. */
+  step?: number;
+  padLeft?: number;
+}
+
+/** „Schöne“ Schrittweite für Achsenmarken (1, 2, 5 × 10^n). */
+export function niceStep(raw: number): number {
+  const pow = 10 ** Math.floor(Math.log10(Math.max(raw, 1e-9)));
+  const n = raw / pow;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * pow;
+}
 
 /**
- * Gesamtwertung nach Alter – eine Linie pro Karriere.
+ * Werte nach Alter – eine Linie pro Karriere (Gesamtwertung, Marktwert …).
  * Farben folgen der Reihenfolge der Serien (series-1 … series-3), nie dem Rang.
  */
-export default function AgeChart({ series, title }: { series: AgeSeries[]; title: string }) {
+export default function AgeChart({ series, title, valueLabel = 'Gesamtwertung', format = String, step, padLeft = 36 }: ChartProps) {
+  const PAD = { top: 16, right: 16, bottom: 30, left: padLeft };
   const [hoverAge, setHoverAge] = useState<number | null>(null);
   // Echte Breite messen, damit Schrift und Punkte auf dem Handy nicht mitschrumpfen.
   const boxRef = useRef<HTMLDivElement>(null);
@@ -37,13 +54,16 @@ export default function AgeChart({ series, title }: { series: AgeSeries[]; title
 
   const minAge = Math.min(...all.map((p) => p.age));
   const maxAge = Math.max(...all.map((p) => p.age));
-  const min = Math.floor((Math.min(...all.map((p) => p.ovr)) - 2) / 5) * 5;
-  const max = Math.ceil((Math.max(...all.map((p) => p.ovr)) + 2) / 5) * 5;
+  const lo = Math.min(...all.map((p) => p.ovr));
+  const hi = Math.max(...all.map((p) => p.ovr));
+  const st = step ?? niceStep(Math.max(hi - lo, 1) / 4);
+  const min = Math.max(lo >= 0 ? 0 : -Infinity, Math.floor((lo - st * 0.3) / st) * st);
+  const max = Math.max(min + st, Math.ceil((hi + st * 0.3) / st) * st);
   const span = Math.max(1, maxAge - minAge);
   const x = (age: number) => PAD.left + ((age - minAge) * (W - PAD.left - PAD.right)) / span;
   const y = (v: number) => PAD.top + ((max - v) * (H - PAD.top - PAD.bottom)) / (max - min);
   const ticks: number[] = [];
-  for (let v = min; v <= max; v += 5) ticks.push(v);
+  for (let v = min; v <= max + 1e-9; v += st) ticks.push(v);
   const ages = Array.from({ length: maxAge - minAge + 1 }, (_, i) => minAge + i);
   const labelEvery = Math.ceil(ages.length / Math.max(4, Math.floor(W / 55)));
   const half = (W - PAD.left - PAD.right) / span / 2;
@@ -84,7 +104,7 @@ export default function AgeChart({ series, title }: { series: AgeSeries[]; title
           {ticks.map((t) => (
             <g key={t}>
               <line x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} className="grid" />
-              <text x={PAD.left - 8} y={y(t)} className="axis" textAnchor="end" dominantBaseline="middle">{t}</text>
+              <text x={PAD.left - 8} y={y(t)} className="axis" textAnchor="end" dominantBaseline="middle">{format(t)}</text>
             </g>
           ))}
           {ages.map((a, i) =>
@@ -123,7 +143,7 @@ export default function AgeChart({ series, title }: { series: AgeSeries[]; title
             {hovered.map(({ s, i, p }) => (
               <small key={s.id}>
                 {multi && <span className={`swatch s${i + 1}`} />}
-                {multi ? `${s.name}: ` : 'Gesamtwertung '}<strong>{p!.ovr}</strong>
+                {multi ? `${s.name}: ` : `${valueLabel} `}<strong>{format(p!.ovr)}</strong>
                 {!multi && p!.detail?.map((d) => <span key={d} className="block">{d}</span>)}
               </small>
             ))}

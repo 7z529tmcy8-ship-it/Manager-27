@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { getClub } from '../data/leagues';
 import {
   attributeLabels,
@@ -21,6 +22,8 @@ export default function PlayerCard({ career }: { career: Career }) {
   const tier = p.ovr >= 85 ? 'gold-rare' : p.ovr >= 75 ? 'gold' : p.ovr >= 65 ? 'silver' : 'bronze';
   const clubName = getClub(currentClubId(p)).name;
   const contractEnd = career.year + p.contract.yearsLeft;
+  // Auf dem Handy sind die Details eingeklappt, damit der Spielbereich schneller erreichbar ist.
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="card-wrap">
@@ -40,7 +43,7 @@ export default function PlayerCard({ career }: { career: Career }) {
         </div>
       </div>
 
-      <dl className="facts">
+      <dl className={`facts ${expanded ? '' : 'collapsed'}`}>
         <div><dt>Alter</dt><dd>{p.age} Jahre</dd></div>
         <div><dt>Nation</dt><dd>{p.nation}</dd></div>
         <div><dt>Potenzial</dt><dd>{lo === hi ? lo : `${lo}–${hi}`}</dd></div>
@@ -73,6 +76,9 @@ export default function PlayerCard({ career }: { career: Career }) {
         )}
         <div><dt>Länderspiele</dt><dd>{p.caps} ({p.internationalGoals} Tore)</dd></div>
       </dl>
+      <button className="btn link small facts-toggle" onClick={() => setExpanded((e) => !e)} aria-expanded={expanded}>
+        {expanded ? 'Weniger anzeigen' : 'Alle Details'}
+      </button>
     </div>
   );
 }

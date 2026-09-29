@@ -5,7 +5,7 @@ export default function NewsFeed({ news, limit = 8 }: { news: NewsItem[]; limit?
   if (!news.length) return null;
   return (
     <div className="panel news">
-      <h2>📰 Schlagzeilen</h2>
+      <h2>Schlagzeilen</h2>
       <ul>
         {news.slice(0, limit).map((n, i) => (
           <li key={i}>

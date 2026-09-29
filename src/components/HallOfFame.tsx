@@ -48,9 +48,9 @@ export default function HallOfFame({ onBack, onOpen }: Props) {
   return (
     <main className="fame">
       <div className="topbar">
-        <button className="btn ghost" onClick={onBack}>← Zurück</button>
+        <button className="nav-back" onClick={onBack}>‹ Zurück</button>
         <div className="topbar-title">
-          <h1>🏛️ Hall of Fame</h1>
+          <h1>Hall of Fame</h1>
           <small>Alle deine Karrieren im Vergleich</small>
         </div>
       </div>

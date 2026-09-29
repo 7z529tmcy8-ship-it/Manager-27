@@ -12,7 +12,7 @@ export function SeasonGoals({ goals, matches }: { goals: SeasonGoal[]; matches?:
   if (!goals.length) return null;
   return (
     <section className="goals">
-      <h3>🎯 Saisonziele des Trainers</h3>
+      <h3>Saisonziele des Trainers</h3>
       <ul>
         {goals.map((g) => {
           const v = matches ? goalValue(g.metric, matches) : null;
@@ -39,7 +39,7 @@ export function GoalResults({ results }: { results: GoalResult[] }) {
   if (!results.length) return null;
   return (
     <section className="goals">
-      <h3>🎯 Saisonziele</h3>
+      <h3>Saisonziele</h3>
       <ul>
         {results.map((r) => (
           <li key={r.metric} className={r.met ? 'up' : 'down'}>
@@ -60,7 +60,7 @@ export function TrainingPicker({ career, onChange }: { career: Career; onChange:
   const active = options.find((o) => o.id === current);
   return (
     <section className="training">
-      <h3>🏋️ Trainingsschwerpunkt</h3>
+      <h3>Trainingsschwerpunkt</h3>
       <div className="chips" role="radiogroup" aria-label="Trainingsschwerpunkt">
         {options.map((o) => (
           <button

@@ -25,7 +25,7 @@ export default function CreateCareer({ onCancel, onCreate }: Props) {
   return (
     <main className="create">
       <div className="topbar">
-        <button className="btn ghost" onClick={onCancel}>← Zurück</button>
+        <button className="nav-back" onClick={onCancel}>‹ Zurück</button>
         <h1>Neue Karriere</h1>
       </div>
       <div className="tabs">

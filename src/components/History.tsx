@@ -3,6 +3,7 @@ import { totalTransferFees } from '../game/career';
 import { formatMoney } from '../game/player';
 import type { Career } from '../game/types';
 import AgeChart, { careerPoints } from './AgeChart';
+import SeasonBars from './SeasonBars';
 import TransferHistory from './TransferHistory';
 
 export default function History({ career }: { career: Career }) {
@@ -55,6 +56,18 @@ export default function History({ career }: { career: Career }) {
               }),
             },
           ]}
+        />
+      </div>
+
+      <div className="panel">
+        <h2>Statistiken</h2>
+        <SeasonBars history={h} />
+        <AgeChart
+          title="Marktwert nach Alter"
+          valueLabel="Marktwert"
+          format={(v) => (v >= 1e6 ? `${Math.round(v / 1e6)} Mio.` : `${Math.round(v / 1e3)} Tsd.`)}
+          padLeft={58}
+          series={[{ id: 'value', name: career.player.name, points: h.map((s) => ({ age: s.age + 1, ovr: s.marketValue })) }]}
         />
       </div>
 

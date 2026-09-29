@@ -23,15 +23,17 @@ export default function Home({ onNew, onFame, onAchievements, onLoad }: Props) {
   return (
     <main className="home">
       <header className="hero">
-        <div className="hero-badge">⚽</div>
-        <h1>FC Karriere-Simulator</h1>
-        <p>Simuliere die komplette Laufbahn eines Spielers – Saison für Saison, mit Entwicklung, Transfers und Leihen.</p>
+        <p className="eyebrow">FC Karriere-Simulator</p>
+        <h1>Deine Karriere.<br />Saison für Saison.</h1>
+        <p className="hero-sub">
+          Vom Talent zur Legende – mit echter Entwicklung, Transfers, Leihen, Live-Finals und Entscheidungen, die zählen.
+        </p>
         <div className="hero-actions">
           <button className="btn primary big" onClick={onNew}>Neue Karriere starten</button>
           {saves.some((c) => c.history.length > 0) && (
-            <button className="btn big" onClick={onFame}>🏛️ Hall of Fame</button>
+            <button className="btn link big" onClick={onFame}>Hall of Fame ›</button>
           )}
-          {saves.length > 0 && <button className="btn big" onClick={onAchievements}>🎯 Erfolge</button>}
+          {saves.length > 0 && <button className="btn link big" onClick={onAchievements}>Erfolge ›</button>}
         </div>
       </header>
 
@@ -46,7 +48,7 @@ export default function Home({ onNew, onFame, onAchievements, onLoad }: Props) {
                   <span>
                     <strong>{c.player.name}</strong>
                     <small>
-                      {c.phase === 'winter' ? '❄️ Winterpause · ' : ''}
+                      {c.phase === 'winter' ? 'Winterpause · ' : ''}
                       {c.phase === 'retired'
                         ? `Karriere beendet · ${c.history.length} Saisons`
                         : `${getClub(currentClubId(c.player)).name} · Saison ${seasonLabel(c.year)} · ${c.player.age} Jahre`}

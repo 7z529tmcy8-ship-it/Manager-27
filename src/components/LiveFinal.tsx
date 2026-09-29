@@ -30,7 +30,8 @@ export default function LiveFinal({ career, onChange }: Props) {
 
   return (
     <div className="panel final">
-      <h2>🏟️ {state.final.title}</h2>
+      <p className="eyebrow">Live</p>
+      <h2>{state.final.title}</h2>
       <div className="scoreboard" aria-live="polite">
         <span className="team">{state.ownName}</span>
         <span className="score">
@@ -69,12 +70,12 @@ export default function LiveFinal({ career, onChange }: Props) {
             {state.playerGoals > 0 && ` · ${state.playerGoals} ${state.playerGoals === 1 ? 'Tor' : 'Tore'}`}
             {state.playerAssists > 0 && ` · ${state.playerAssists} ${state.playerAssists === 1 ? 'Vorlage' : 'Vorlagen'}`}
           </p>
-          <button className="btn primary big" onClick={() => onChange(finishFinal(career))}>Weiter ▶</button>
+          <button className="btn primary big" onClick={() => onChange(finishFinal(career))}>Weiter</button>
         </div>
       ) : (
         !state.pending && (
           <div className="window-actions">
-            <button className="btn" onClick={() => setRunning((r) => !r)}>{running ? '⏸ Pause' : '▶ Weiterlaufen lassen'}</button>
+            <button className="btn" onClick={() => setRunning((r) => !r)}>{running ? 'Pause' : 'Weiterlaufen lassen'}</button>
             {!running && <button className="btn" onClick={() => onChange(playFinalStep(career))}>Nächste Szene</button>}
             <button className="btn ghost" onClick={() => onChange(autoPlayFinal(career))}>Zu Ende simulieren</button>
           </div>

@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
 import { LEGENDS } from '../../data/legends';
+import { slugify } from '../../data/leagues';
 import { createCareer, playSeason, stayAtClub } from '../career';
 import { resolveDecision } from '../decisions';
 
@@ -7,8 +8,9 @@ it('Balotelli: Charakter-Ereignisse und Rote Karten tauchen auf', () => {
   const balo = LEGENDS.find((l) => l.name === 'Mario Balotelli')!;
   const titles = new Set<string>();
   let redCards = 0;
-  for (let run = 0; run < 6; run++) {
-    let c = createCareer({ ...balo });
+  for (let run = 0; run < 8; run++) {
+    // Bei einem Verein, wo er spielt – Rote Karten gibt es nur auf dem Platz.
+    let c = createCareer({ ...balo, clubId: slugify('Hellas Verona') });
     for (let i = 0; i < 5; i++) {
       c = playSeason(c);
       const s = c.history[c.history.length - 1];
