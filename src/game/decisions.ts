@@ -1,6 +1,8 @@
 import { getClub } from '../data/leagues';
 import { POSITIONS } from '../data/players';
 import { generateOffers } from './offers';
+import { resolveLotto } from './owner';
+import { resolvePress } from './press';
 import { createProfile, currentClubId, seasonLabel } from './player';
 import { chance, clamp, pick, randInt } from './random';
 import { hasTrait, type TraitId } from './traits';
@@ -359,8 +361,12 @@ export function resolveDecision(prev: Career, optionId: string): Career {
   const career: Career = structuredClone(prev);
   const d = career.decision;
   if (!d) return prev;
-  const def = DECISIONS.find((x) => x.id === d.id);
-  career.decisionResult = def ? def.resolve(career, optionId, d) : null;
+  if (d.id === 'press') career.decisionResult = resolvePress(career, optionId, d);
+  else if (d.id === 'lotto') career.decisionResult = resolveLotto(career, optionId, d);
+  else {
+    const def = DECISIONS.find((x) => x.id === d.id);
+    career.decisionResult = def ? def.resolve(career, optionId, d) : null;
+  }
   career.decision = null;
   career.updatedAt = Date.now();
   return career;

@@ -9,6 +9,7 @@ import {
   requestOffers,
   retire,
   stayAtClub,
+  stayRole,
   stayInWinter,
 } from '../game/career';
 import { clubLeagueId, clubStrength, currentClubId, formatMoney, roleFor } from '../game/player';
@@ -34,7 +35,8 @@ export default function TransferWindow({ career, onChange }: Props) {
   const stay = winter || canStay(career);
   const clubId = winter ? currentClubId(p) : p.contract.clubId;
   const club = getClub(clubId);
-  const stayRole = roleFor(p.ovr, clubStrength(career, clubId), p.age);
+  const role = winter ? roleFor(p.ovr, clubStrength(career, clubId), p.age) : stayRole(career);
+  const president = career.owner?.clubId === p.contract.clubId;
 
   const accept = (o: Offer) => onChange(winter ? acceptWinterOffer(career, o) : acceptOffer(career, o));
   const confirmRetire = () => {
@@ -45,7 +47,8 @@ export default function TransferWindow({ career, onChange }: Props) {
   if (winter && p.loan) intro = `Du bist an ${club.name} verliehen und bleibst dort bis Saisonende.`;
   else if (winter) intro = `Winterpause – wechselst du jetzt, spielst du die Rückrunde beim neuen Verein. Pokal und Europapokal laufen dann ohne dich weiter.`;
   else if (stay) {
-    intro = `Du stehst noch ${p.contract.yearsLeft} ${p.contract.yearsLeft === 1 ? 'Jahr' : 'Jahre'} bei ${club.name} unter Vertrag. Voraussichtliche Rolle beim Bleiben: ${stayRole}.`;
+    intro = `Du stehst noch ${p.contract.yearsLeft} ${p.contract.yearsLeft === 1 ? 'Jahr' : 'Jahre'} bei ${club.name} unter Vertrag. Voraussichtliche Rolle beim Bleiben: ${role}.`;
+    if (president) intro = `Dir gehört ${club.name}. Du bleibst, so lange du willst – als Schlüsselspieler, versteht sich.`;
   } else intro = 'Dein Vertrag ist ausgelaufen. Du musst einen neuen Verein finden – oder die Karriere beenden.';
 
   return (

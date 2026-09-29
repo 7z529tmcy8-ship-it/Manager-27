@@ -3,7 +3,9 @@ import { developPlayer, performanceIndex } from './development';
 import { rollEvents } from './events';
 import { APPLICATIONS_PER_WINDOW, APPLICATION_AGE, answerApplication, generateOffers, type OfferMode } from './offers';
 import { ROLE_BONUS, clubLeagueId, clubStrength, createProfile, currentClubId, currentRole, playerValue, roleFor, seasonLabel, wageFor } from './player';
-import { uid } from './random';
+import { chance, uid } from './random';
+import { ownerSeasonEnd, ownsClub } from './owner';
+import { PRESS_CHANCE, pressConference } from './press';
 import {
   STAGES,
   STAGES_PER_HALF,
@@ -25,7 +27,7 @@ import { hasTrait, type TraitId } from './traits';
 import { advanceFinal, autoFinal, finalRating, startFinal } from './final';
 import { addNews, summerNews, winterNews } from './news';
 import { createRival, simulateRivalSeason } from './rival';
-import type { Career, DecisionResult, GameEvent, MatchLine, Offer, Position, SeasonRecord, StageLoad, TrainingFocus, TransferEntry } from './types';
+import type { Career, DecisionResult, GameEvent, MatchLine, Offer, Position, Role, SeasonRecord, StageLoad, TrainingFocus, TransferEntry } from './types';
 
 export const START_YEAR = 2025;
 export const MAX_AGE = 41;
@@ -251,6 +253,8 @@ export function playNextStage(prev: Career): Career {
   if (prog.stage === STAGES_PER_HALF) return winterTransition(career, false);
   if (prog.stage === STAGES) return finishSecondHalf(career);
   career.phase = 'season';
+  // Zwischen den Etappen lädt manchmal die Presse ein.
+  if (!career.player.absent && chance(PRESS_CHANCE)) career.decision = pressConference(career);
   career.updatedAt = Date.now();
   return career;
 }
@@ -427,6 +431,7 @@ function completeSeason(career: Career): Career {
     record.notes.push(`Leihe bei ${getClub(p.loan.clubId).name} beendet – Rückkehr zu ${getClub(p.loan.parentClubId).name}.`);
     p.loan = null;
   }
+  ownerSeasonEnd(career, record.notes);
   if (p.contract.yearsLeft <= 0) record.notes.push('Dein Vertrag ist ausgelaufen – du bist ablösefrei.');
   record.marketValue = playerValue(p);
 
@@ -632,10 +637,17 @@ export function canStay(career: Career): boolean {
   return career.player.contract.yearsLeft > 0;
 }
 
+/** Rolle beim Bleiben – der Präsident ist immer Schlüsselspieler. */
+export function stayRole(career: Career): Role {
+  const p = career.player;
+  if (ownsClub(career, p.contract.clubId)) return 'Schlüsselspieler';
+  return roleFor(p.ovr, clubStrength(career, p.contract.clubId), p.age);
+}
+
 export function stayAtClub(prev: Career): Career {
   const career: Career = structuredClone(prev);
   const p = career.player;
-  p.contract.role = roleFor(p.ovr, clubStrength(career, p.contract.clubId), p.age);
+  p.contract.role = stayRole(career);
   return startNextSeason(career);
 }
 

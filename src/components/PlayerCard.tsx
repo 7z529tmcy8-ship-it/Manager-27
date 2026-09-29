@@ -69,6 +69,7 @@ export default function PlayerCard({ career }: { career: Career }) {
           <dt>Vertrag</dt>
           <dd>{getClub(p.contract.clubId).name}{p.contract.yearsLeft > 0 ? ` bis ${contractEnd}` : ' – ausgelaufen'}</dd>
         </div>
+        {career.owner && <div><dt>Präsident</dt><dd>🎰 {getClub(career.owner.clubId).name} · Budget {formatMoney(career.owner.budget)}</dd></div>}
         {p.loan && <div><dt>Leihe</dt><dd>{getClub(p.loan.clubId).name}</dd></div>}
         {(p.traits ?? []).length > 0 && (
           <div>

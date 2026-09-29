@@ -119,6 +119,8 @@ function injuryWeeks(): number {
  * Ein Spiel der eigenen Mannschaft inklusive Einsatz, Toren, Vorlagen und Note des Spielers.
  * `rotation` gibt Ergänzungsspielern z. B. im Pokal bessere Einsatzchancen.
  */
+const ownsCurrentClub = (ctx: SeasonContext) => ctx.career.owner?.clubId === ctx.clubId;
+
 function playerMatch(
   ctx: SeasonContext,
   competition: Competition,
@@ -141,8 +143,10 @@ function playerMatch(
     status = 'injured';
   } else {
     const captain = player.captainOf === ctx.clubId ? 1 : 0;
+    // Der Präsident stellt sich selbst auf.
+    const president = ownsCurrentClub(ctx) ? 4 : 0;
     const load = LOADS[prog.load ?? 'normal'];
-    const selection = rel + ROLE_BONUS[currentRole(player)] + (prog.form - 6.8) * 2 + (player.morale ?? 0) + captain + rotation + load.selection;
+    const selection = rel + ROLE_BONUS[currentRole(player)] + (prog.form - 6.8) * 2 + (player.morale ?? 0) + captain + president + rotation + load.selection;
     const startP = player.position === 'TW' ? sigmoid((selection + 1) / 1.2) : sigmoid((selection + 1.5) / 2.2);
     if (chance(startP)) {
       status = 'start';

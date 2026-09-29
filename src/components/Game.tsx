@@ -23,6 +23,7 @@ import History from './History';
 import LeagueTable from './LeagueTable';
 import LiveFinal from './LiveFinal';
 import NewsFeed from './NewsFeed';
+import OwnerPanel from './OwnerPanel';
 import PlayerCard from './PlayerCard';
 import { RivalCard, RivalComparison } from './RivalPanel';
 import SeasonReport from './SeasonReport';
@@ -117,6 +118,7 @@ export default function Game({ career, onChange, onExit }: Props) {
             <>
               {career.phase === 'final' && career.liveFinal && <LiveFinal career={career} onChange={onChange} />}
               <DecisionPanel career={career} onChange={onChange} />
+              <OwnerPanel career={career} onChange={onChange} />
               {career.phase === 'season' && !career.decision && (
                 <>
                   {stage === 0 && (
@@ -235,7 +237,7 @@ function ActionBar({ career, onChange, go, tab }: { career: Career; onChange: (c
   let secondary: { text: string; run: () => void } | null = null;
 
   if (career.decision) {
-    label = 'Eine Entscheidung wartet auf dich.';
+    label = career.decision.id === 'press' ? 'Die Presse wartet auf dich.' : 'Eine Entscheidung wartet auf dich.';
     primary = { text: 'Zur Entscheidung', run: () => go('season') };
   } else if (career.phase === 'final') {
     label = career.liveFinal?.done ? 'Abpfiff.' : 'Das Finale läuft.';

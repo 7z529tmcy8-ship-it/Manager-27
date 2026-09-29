@@ -47,6 +47,16 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
   Spott; die Entwicklung auf dem Platz leidet etwas. Jederzeit beendbar
 - **Rücktritt vom Rücktritt:** nach dem Karriereende einmal zurückkommen (bis 38): zwei Jahre Pause, −15 Wertung,
   dann vereinslos ins Transferfenster
+- **Pressekonferenzen:** zwischen den Etappen lädt oft die Presse ein – Torflaute, Lauf, Bank, Tabellenplatz,
+  Rivale, Schiri oder völlig absurde Fragen („Gehört Ananas auf Pizza?“). Die Antworten wirken auf
+  Trainervertrauen und Form, manchmal gibt es Sperren und Schlagzeilen
+- **Lotto & eigener Verein:** im Sommer ein Lottoschein am Kiosk (absichtlich unrealistische 5 % Gewinnchance).
+  Mit dem Jackpot kannst du deinen Verein kaufen und bist Spieler und Präsident zugleich: du stellst dich selbst auf,
+  verlängerst deinen Vertrag selbst und gibst im Präsidentenbüro Geld aus (Stars kaufen, Trainer feuern,
+  Stadion vergolden, Statue von dir)
+- **Passwort-Sperre:** Die Seite fragt beim ersten Öffnen nach einem Passwort (`123`, in
+  `src/components/PasswordGate.tsx` änderbar). Das ist nur eine Sperre im Browser – wer den Quellcode liest,
+  sieht das Passwort. Für ein privates Spiel reicht das, echte Geheimnisse gehören nicht in die Seite
 - **Live-Finals:** Pokal-, Europapokal- und Turnierfinals (WM/EM/Copa) laufen als Live-Ticker. In deinen Szenen
   entscheidest du selbst (abziehen, querlegen, dribbeln / grätschen, stellen / rauslaufen, Elfmeter-Ecke) – das
   beeinflusst Ergebnis, Tore und Note. „Ganze Saison“ spielt Finals automatisch
@@ -63,7 +73,7 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
 - **Trainingsschwerpunkt:** vor jeder Halbserie ein Attribut trainieren (+1 pro Halbserie, max. +10); Schlüssel-
   attribute der Position helfen zusätzlich der Gesamtwertung bzw. bremsen den Abbau; „Regeneration“ senkt das
   Verletzungsrisiko
-- **Erfolge:** 27 Karriereziele (100 Tore, Triple, Weltmeister, Ballon d’Or, Von ganz unten …) mit Fortschritt,
+- **Erfolge:** 29 Karriereziele (100 Tore, Triple, Weltmeister, Ballon d’Or, Von ganz unten …) mit Fortschritt,
   über alle Karrieren
 - **Hall of Fame:** Rangliste aller Karrieren nach Legendenpunkten (sortierbar), Rekorde über alle Karrieren
   und Vergleich von bis zu drei Karrieren inklusive Entwicklungskurven

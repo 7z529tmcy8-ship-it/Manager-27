@@ -13,7 +13,7 @@ export default function DecisionPanel({ career, onChange }: Props) {
   if (d) {
     return (
       <div className="panel decision">
-        <span className="pill">Entscheidung</span>
+        <span className="pill">{d.id === 'press' ? 'Presse' : d.id === 'lotto' ? 'Lotto' : 'Entscheidung'}</span>
         <h2>{d.title}</h2>
         <p>{d.text}</p>
         <div className="decision-options">

@@ -314,6 +314,23 @@ export interface Career {
   applications?: Application[];
   /** Alle Vereinswechsel inkl. Leihen (für Transferhistorie und Gesamt-Ablöse). */
   transfers?: TransferEntry[];
+  /** Dem Spieler gehört ein Verein (nach dem Lottogewinn). */
+  owner?: Ownership | null;
+  /** Jahr, in dem zuletzt ein Lottoschein gekauft wurde (einer pro Sommer). */
+  lottoYear?: number;
+  /** Lotto-Jackpot wurde schon geknackt (nur einmal pro Karriere). */
+  lottoWon?: boolean;
+  /** Anzahl gegebener Pressekonferenzen. */
+  pressCount?: number;
+}
+
+export interface Ownership {
+  clubId: string;
+  since: string;
+  /** Übriges Geld aus dem Lottogewinn in €. */
+  budget: number;
+  /** Zusätzliche Vereinsstärke durch Investitionen. */
+  boost: number;
 }
 
 export interface TransferEntry {
