@@ -9,9 +9,10 @@ interface Props {
   onFame: () => void;
   onAchievements: () => void;
   onLoad: (career: Career) => void;
+  onCasino: (career: Career) => void;
 }
 
-type PlaceId = 'stadium' | 'academy' | 'museum' | 'trophies' | 'lockers' | 'kiosk' | 'warehouse';
+type PlaceId = 'stadium' | 'academy' | 'museum' | 'trophies' | 'lockers' | 'kiosk' | 'warehouse' | 'casino';
 
 interface Place {
   id: PlaceId;
@@ -32,13 +33,14 @@ const PLACES: Place[] = [
   { id: 'museum', name: 'Fußballmuseum', short: 'Museum', kind: 'Museum · Hall of Fame', icon: '🏛️', x: 575, y: 205, color: 'var(--pin-brown)' },
   { id: 'trophies', name: 'Trophäenhaus', short: 'Erfolge', kind: 'Sehenswürdigkeit · Erfolge', icon: '🏆', x: 590, y: 420, color: 'var(--pin-orange)' },
   { id: 'lockers', name: 'Spielerwohnheim', short: 'Zuhause', kind: 'Wohnen · Gespeicherte Karrieren', icon: '🏠', x: 230, y: 430, color: 'var(--pin-blue)' },
+  { id: 'casino', name: 'Glückspalast', short: 'Casino', kind: 'Casino · Spielautomat', icon: '🎰', x: 430, y: 140, color: 'var(--pin-pink)' },
   { id: 'kiosk', name: 'Kiosk am Fluss', short: 'Kiosk', kind: 'Kiosk · Lotto & Stadionwurst', icon: '🥨', x: 455, y: 505, color: 'var(--pin-purple)' },
   { id: 'warehouse', name: 'Lagerhalle 13', short: 'Halle 13', kind: 'Industrie · Besser nicht fragen', icon: '🕶️', x: 345, y: 420, color: 'var(--pin-gray)' },
 ];
 
 const FOCUS_SCALE = 1.2;
 
-export default function Home({ onNew, onFame, onAchievements, onLoad }: Props) {
+export default function Home({ onNew, onFame, onAchievements, onLoad, onCasino }: Props) {
   const [saves, setSaves] = useState(listCareers);
   const [selected, setSelected] = useState<PlaceId | null>(null);
   const place = PLACES.find((p) => p.id === selected) ?? null;
@@ -119,6 +121,7 @@ export default function Home({ onNew, onFame, onAchievements, onLoad }: Props) {
               onFame={onFame}
               onAchievements={onAchievements}
               onLoad={onLoad}
+              onCasino={onCasino}
               onRemove={remove}
             />
           </div>
@@ -134,7 +137,7 @@ export default function Home({ onNew, onFame, onAchievements, onLoad }: Props) {
 }
 
 function PlaceBody({
-  id, saves, latest, onNew, onFame, onAchievements, onLoad, onRemove,
+  id, saves, latest, onNew, onFame, onAchievements, onLoad, onCasino, onRemove,
 }: {
   id: PlaceId;
   saves: Career[];
@@ -143,6 +146,7 @@ function PlaceBody({
   onFame: () => void;
   onAchievements: () => void;
   onLoad: (c: Career) => void;
+  onCasino: (c: Career) => void;
   onRemove: (c: Career) => void;
 }) {
   const hasHistory = saves.some((c) => c.history.length > 0);
@@ -208,6 +212,17 @@ function PlaceBody({
         </ul>
       ) : (
         <p className="place-text">Alle Zimmer frei. Noch wohnt hier niemand.</p>
+      );
+    case 'casino':
+      return latest ? (
+        <>
+          <p className="place-text">Neonlicht, klingelnde Automaten, kein Fenster, keine Uhr. Gesetzt wird mit dem Gehalt deines Spielers.</p>
+          <div className="place-actions">
+            <button className="btn primary big" onClick={() => onCasino(latest)}>Mit {latest.player.name} reingehen</button>
+          </div>
+        </>
+      ) : (
+        <p className="place-text">Der Türsteher will einen Spielerausweis sehen. Starte erst eine Karriere – ohne Gehalt kein Einsatz.</p>
       );
     case 'kiosk':
       return (
@@ -321,6 +336,8 @@ function MapBase() {
       {[[195, 400], [230, 400], [265, 400], [195, 440], [265, 440]].map(([x, y]) => (
         <rect key={`${x}-${y}`} x={x - 14} y={y - 12} width="28" height="24" rx="4" className="m-house" />
       ))}
+      {/* Casino */}
+      <rect x="380" y="118" width="100" height="46" rx="8" className="m-casino" />
       {/* Lagerhalle */}
       <rect x="305" y="405" width="84" height="46" rx="3" className="m-warehouse" />
     </g>
@@ -355,7 +372,7 @@ const ROADS = [
 
 const BLOCKS: [number, number, number, number][] = [
   [-60, -60, 140, 140], [120, -60, 200, 140], [360, -60, 140, 140], [540, -60, 140, 55], [720, -60, 160, 140],
-  [360, 120, 140, 50], [720, 120, 160, 220], [540, 250, 140, 90],
+  [720, 120, 160, 220], [540, 250, 140, 90],
   [-60, 120, 140, 220], [-60, 380, 140, 70], [540, 380, 140, 90],
   [720, 380, 160, 80], [130, 470, 140, 30], [-60, 490, 140, 60],
 ];

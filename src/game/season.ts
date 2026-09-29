@@ -6,6 +6,7 @@ import {
   clubStrength,
   currentClubId,
   currentRole,
+  payWages,
   playerValue,
   seasonLabel,
 } from './player';
@@ -433,6 +434,8 @@ export function playStage(career: Career, prog: SeasonProgress, stage: number): 
   const leagueId = clubLeagueId(career, clubId);
   const half: 1 | 2 = stage < STAGES_PER_HALF ? 1 : 2;
   const ctx: SeasonContext = { career, player, clubId, half, prog, stage };
+  // Pro Etappe gibt es gut 8 Wochengehälter aufs Konto.
+  payWages(career, 52 / STAGES);
   // Sperren und Verletzungen aus Entscheidungen greifen zum Start einer Halbserie.
   if (stage % STAGES_PER_HALF === 0) {
     if (player.carryBanMatches) {

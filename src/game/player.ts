@@ -130,3 +130,14 @@ export function cardTier(ovr: number): CardTier {
 }
 
 export const TIER_NAMES: Record<CardTier, string> = { bronze: 'Bronze', silver: 'Silber', gold: 'Gold', 'gold-rare': 'Elite' };
+
+/** Kontostand (Spielgeld); ältere Spielstände starten mit vier Wochengehältern. */
+export function cashOf(career: Career): number {
+  return career.cash ?? career.player.contract.wage * 4;
+}
+
+/** Gehalt für einige Wochen aufs Konto – wer entführt ist, bekommt nichts. */
+export function payWages(career: Career, weeks: number): void {
+  if (career.player.absent) return;
+  career.cash = cashOf(career) + Math.round(career.player.contract.wage * weeks);
+}

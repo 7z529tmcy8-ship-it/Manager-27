@@ -53,6 +53,10 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
 - **Zweite Chance:** 12 gescheiterte Talente (Freddy Adu, Bojan Krkić, Pato, Wilshere, Kerlon, Macheda, Ravel Morrison,
   Anderson, Hachim Mastour, Giovani dos Santos, Kakuta, Marko Marin) starten noch einmal jung – schaffst du Wertung 85?
   Neuer Charakterzug „Verletzungsanfällig“ (deutlich höheres Verletzungsrisiko)
+- **Glückspalast (Casino):** Das Gehalt landet jetzt auf einem Konto (Spielgeld). Im Casino – über 🎰 oben im Spiel
+  oder auf der Stadtkarte – gibt es einen einarmigen Banditen mit drei echten, nacheinander stoppenden Walzen und
+  Hebel. Einsatz von 1 Tsd. € bis All-in, Auszahlungsquote gut 90 % (auf Dauer gewinnt die Bank). 777 = ×50 und
+  Schlagzeile; wer zu oft zockt, wird von Paparazzi erwischt (Trainervertrauen −1)
 - **Pressekonferenzen:** zwischen den Etappen lädt oft die Presse ein – Torflaute, Lauf, Bank, Tabellenplatz,
   Rivale, Schiri oder völlig absurde Fragen („Gehört Ananas auf Pizza?“). Die Antworten wirken auf
   Trainervertrauen und Form, manchmal gibt es Sperren und Schlagzeilen
@@ -79,7 +83,7 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
 - **Trainingsschwerpunkt:** vor jeder Halbserie ein Attribut trainieren (+1 pro Halbserie, max. +10); Schlüssel-
   attribute der Position helfen zusätzlich der Gesamtwertung bzw. bremsen den Abbau; „Regeneration“ senkt das
   Verletzungsrisiko
-- **Erfolge:** 32 Karriereziele (100 Tore, Triple, Weltmeister, Ballon d’Or, Von ganz unten …) mit Fortschritt,
+- **Erfolge:** 33 Karriereziele (100 Tore, Triple, Weltmeister, Ballon d’Or, Von ganz unten …) mit Fortschritt,
   über alle Karrieren
 - **Hall of Fame:** Rangliste aller Karrieren nach Legendenpunkten (sortierbar), Rekorde über alle Karrieren
   und Vergleich von bis zu drei Karrieren inklusive Entwicklungskurven

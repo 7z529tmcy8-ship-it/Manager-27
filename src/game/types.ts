@@ -320,10 +320,32 @@ export interface Career {
   lottoYear?: number;
   /** Lotto-Jackpot wurde schon geknackt (nur einmal pro Karriere). */
   lottoWon?: boolean;
+  /** Kontostand in € (Spielgeld aus dem Gehalt). */
+  cash?: number;
+  /** Statistik im Glückspalast. */
+  casino?: CasinoStats;
   /** Gescheitertes Talent, das eine zweite Chance bekommt. */
   secondChance?: boolean;
   /** Anzahl gegebener Pressekonferenzen. */
   pressCount?: number;
+}
+
+export interface CasinoSpin {
+  reels: string[];
+  bet: number;
+  win: number;
+  factor: number;
+  /** Nach dieser Drehung gab es ein Paparazzi-Foto. */
+  paparazzi?: boolean;
+}
+
+export interface CasinoStats {
+  spins: number;
+  wagered: number;
+  won: number;
+  biggestWin: number;
+  jackpots: number;
+  last?: CasinoSpin;
 }
 
 export interface Ownership {

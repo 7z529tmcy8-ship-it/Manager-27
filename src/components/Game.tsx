@@ -16,6 +16,7 @@ import { SIDE_PROJECTS } from '../game/decisions';
 import { clubLeagueId, currentClubId, formatMoney, seasonLabel } from '../game/player';
 import { STAGES, sortTable } from '../game/season';
 import type { Career } from '../game/types';
+import Casino from './Casino';
 import DecisionPanel from './DecisionPanel';
 import { SeasonGoals, TrainingPicker } from './GoalsAndTraining';
 import HalfReport from './HalfReport';
@@ -35,12 +36,15 @@ interface Props {
   career: Career;
   onChange: (career: Career) => void;
   onExit: () => void;
+  /** Direkt im Glückspalast starten (z. B. von der Stadtkarte aus). */
+  openCasino?: boolean;
 }
 
 type Tab = 'season' | 'transfers' | 'news' | 'career' | 'table';
 
-export default function Game({ career, onChange, onExit }: Props) {
+export default function Game({ career, onChange, onExit, openCasino }: Props) {
   const [tab, setTab] = useState<Tab>('season');
+  const [casino, setCasino] = useState(!!openCasino);
   const topRef = useRef<HTMLDivElement>(null);
   const p = career.player;
   const last = career.history[career.history.length - 1];
@@ -82,6 +86,7 @@ export default function Game({ career, onChange, onExit }: Props) {
         <span className="nav-title">{p.name}</span>
         <span className="nav-meta">
           {career.phase === 'retired' ? 'Karriere beendet' : `${seasonLabel(career.year)}`}
+          <button className="nav-casino" onClick={() => setCasino(true)} aria-label="Glückspalast öffnen" title="Glückspalast">🎰</button>
         </span>
       </nav>
 
@@ -219,7 +224,8 @@ export default function Game({ career, onChange, onExit }: Props) {
         </section>
       </div>
 
-      {showStory && last && (
+      {casino && <Casino career={career} onChange={onChange} onClose={() => setCasino(false)} />}
+      {showStory && last && !casino && (
         <SeasonStory career={career} season={last} onClose={() => onChange(markStorySeen(career, last.season))} />
       )}
       <ActionBar career={career} onChange={onChange} go={go} tab={tab} />

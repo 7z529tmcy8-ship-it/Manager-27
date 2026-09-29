@@ -8,8 +8,7 @@ import {
   currentClubId,
   formatMoney,
   playerValue,
-  potentialRange,
-} from '../game/player';
+  potentialRange, cashOf } from '../game/player';
 import { moraleLabel } from '../game/events';
 import { focusLabel } from '../game/training';
 import { getTrait } from '../game/traits';
@@ -64,6 +63,7 @@ export default function PlayerCard({ career }: { career: Career }) {
         <div><dt>Nation</dt><dd>{p.nation}</dd></div>
         <div><dt>Potenzial</dt><dd>{lo === hi ? lo : `${lo}–${hi}`}</dd></div>
         <div><dt>Marktwert</dt><dd>{formatMoney(playerValue(p))}</dd></div>
+        <div><dt>Konto</dt><dd>{formatMoney(cashOf(career))}</dd></div>
         <div><dt>Gehalt</dt><dd>{formatMoney(p.contract.wage)} / Woche</dd></div>
         <div>
           <dt>Vertrag</dt>

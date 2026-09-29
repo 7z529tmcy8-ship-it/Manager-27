@@ -7,7 +7,7 @@ import Home from './components/Home';
 import { saveCareer } from './game/storage';
 import type { Career } from './game/types';
 
-type Screen = { name: 'home' } | { name: 'create' } | { name: 'fame' } | { name: 'achievements' } | { name: 'game'; career: Career };
+type Screen = { name: 'home' } | { name: 'create' } | { name: 'fame' } | { name: 'achievements' } | { name: 'game'; career: Career; casino?: boolean };
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
@@ -29,6 +29,7 @@ export default function App() {
           onFame={() => setScreen({ name: 'fame' })}
           onAchievements={() => setScreen({ name: 'achievements' })}
           onLoad={(career) => setScreen({ name: 'game', career })}
+          onCasino={(career) => setScreen({ name: 'game', career, casino: true })}
         />
       )}
       {screen.name === 'achievements' && <Achievements onBack={() => setScreen({ name: 'home' })} />}
@@ -37,7 +38,7 @@ export default function App() {
       )}
       {screen.name === 'create' && <CreateCareer onCancel={() => setScreen({ name: 'home' })} onCreate={update} />}
       {screen.name === 'game' && (
-        <Game career={screen.career} onChange={update} onExit={() => setScreen({ name: 'home' })} />
+        <Game career={screen.career} openCasino={screen.casino} onChange={update} onExit={() => setScreen({ name: 'home' })} />
       )}
     </div>
   );
