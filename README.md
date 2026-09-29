@@ -76,7 +76,10 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
   offen ist. Der Geheimcode `Larp` (Groß-/Kleinschreibung egal) öffnet stattdessen eine eigene, vom Spiel
   unabhängige Seite: eine **Markt-App** (`src/terminal/`) im hellen, ruhigen Stil einer Trading-App – Übersicht mit
   Top/Flop des Tages, Suche und Mini-Charts, Detailansicht mit Chart (Zeiträume, Ø 50/200 Tage), Rendite, gleitenden
-  Durchschnitten, Risiko und Stammdaten, Vergleich (indexiert auf 100, „laufen zu x % gleich“) und Ranking. Die
+  Durchschnitten, Risiko und Stammdaten, Vergleich (indexiert auf 100, „laufen zu x % gleich“) und Ranking. Dazu ein **Day-Trading-Spiel**: ein Börsentag
+  (09:00–17:30) im Zeitraffer (≈ 2 Min., Tempo 1×/2×/5×), Live-Kerzenchart, Geld-/Briefkurs, 1 € Gebühr, Long & Short,
+  Stop-Loss/Take-Profit, Hebel 1×/2×/5×, Spiel-News, Zwangsschließung zum Börsenschluss, Tagesbilanz und Statistik
+  über alle Tage (10.000 € Spielgeld, im Browser gespeichert). Tasten: K kaufen · V verkaufen · X schließen · Leertaste Pause. Die
   Stammdaten (ISIN, TER, Fondsgröße) wurden im September 2026 recherchiert; die **Kurse sind simuliert**. Beides steht in `src/components/PasswordGate.tsx`. Das ist
   nur eine Sperre im Browser – wer den Quellcode liest, sieht Passwort und Code
 - **Live-Finals:** Pokal-, Europapokal- und Turnierfinals (WM/EM/Copa) laufen als Live-Ticker. In deinen Szenen

@@ -932,7 +932,7 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .mk-head { max-width: 1200px; margin: 0 auto; padding: 4px 16px 12px; }
 .mk-head h1 { font-size: clamp(2rem, 7vw, 2.6rem); margin: 0; letter-spacing: -0.03em; }
 .mk-date { color: var(--m-muted); margin: 2px 0 14px; font-weight: 500; }
-.mk-seg { display: flex; background: var(--m-seg); border-radius: 10px; padding: 2px; max-width: 420px; }
+.mk-seg { display: flex; background: var(--m-seg); border-radius: 10px; padding: 2px; max-width: 520px; }
 .mk-seg button { flex: 1; border: 0; background: none; padding: 7px 10px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: .9rem; }
 .mk-seg button.on { background: var(--m-card); box-shadow: 0 1px 4px rgba(0, 0, 0, .12); font-weight: 600; }
 
@@ -1067,3 +1067,88 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .mk .ttip-row b { margin-left: auto; padding-left: 12px; font-variant-numeric: tabular-nums; }
 .mk-rank-detail small { white-space: nowrap; }
 @media (max-width: 600px) { .mk-rank-detail > div { grid-template-columns: 138px minmax(40px, 1fr) 28px; } }
+
+/* ---------- Day-Trading-Spiel ---------- */
+.tg-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.tg-clock { text-align: right; min-width: 110px; }
+.tg-clock strong { font-size: 1.6rem; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.tg-progress { display: block; height: 4px; border-radius: 2px; background: var(--m-seg); margin-top: 4px; overflow: hidden; }
+.tg-progress span { display: block; height: 100%; background: var(--m-accent); }
+.tg-live { transition: color .2s; }
+.tg-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 980px) { .tg-grid { grid-template-columns: minmax(0, 1fr) 360px; align-items: start; } }
+.tg-side { display: grid; gap: 12px; }
+.tg-speed { display: flex; gap: 6px; margin-bottom: 8px; }
+.tg-speed button, .tg-lev button, .tg-chips button {
+  border: 1px solid var(--m-line); background: var(--m-card); border-radius: 999px; padding: 4px 11px; cursor: pointer; font-size: .82rem; font-weight: 600;
+}
+.tg-speed button.on, .tg-lev button.on, .tg-chips button.on { background: var(--m-text); color: var(--m-card); border-color: transparent; }
+.tg-lev { display: inline-flex; gap: 4px; }
+.tg-lev button:disabled { opacity: .45; cursor: default; }
+.tg-chips { margin-bottom: 10px; }
+.tg-chips > div { display: flex; gap: 6px; flex-wrap: wrap; }
+.tg-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+.tg-buttons button {
+  border: 0; border-radius: 14px; padding: 12px 8px; color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.tg-buttons button small { font-weight: 500; font-size: .75rem; opacity: .9; }
+.tg-buttons button:disabled { opacity: .4; cursor: default; }
+.tg-buttons button:active { transform: scale(.98); }
+.tg-buy { background: #1a7f37; }
+.tg-sell { background: #c9252c; }
+.tg-close { width: 100%; margin-top: 10px; }
+.tg-up { color: var(--m-up); }
+.tg-down { color: var(--m-down); }
+.tg-news { margin-top: 8px; padding: 8px 10px; border-radius: 10px; font-size: .85rem; background: var(--m-seg); }
+.tg-news.up { background: var(--m-up-bg); }
+.tg-news.down { background: var(--m-down-bg); }
+.tg-news small { color: var(--m-muted); }
+.tg-log { margin-top: 12px; }
+.tg-log .mk-kv span:first-child { font-variant-numeric: tabular-nums; font-size: .88rem; }
+
+.mk .tg-candles .cup line { stroke: var(--m-up); stroke-width: 1; }
+.mk .tg-candles .cup rect { fill: var(--m-up); }
+.mk .tg-candles .cdown line { stroke: var(--m-down); stroke-width: 1; }
+.mk .tg-candles .cdown rect { fill: var(--m-down); }
+.mk .tg-now line { stroke: var(--m-accent); stroke-width: 1; opacity: .7; }
+.mk .tg-now rect { fill: var(--m-accent); }
+.mk .tg-now text { fill: #fff; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.mk .tg-level line { stroke-width: 1; }
+.mk .tg-level text { font-size: 10px; font-weight: 600; }
+.mk .tg-level.entry line { stroke: var(--m-muted); } .mk .tg-level.entry text { fill: var(--m-muted); }
+.mk .tg-level.sl line { stroke: var(--m-down); } .mk .tg-level.sl text { fill: var(--m-down); }
+.mk .tg-level.tp line { stroke: var(--m-up); } .mk .tg-level.tp text { fill: var(--m-up); }
+
+.tg-setup { max-width: 640px; margin: 0 auto; }
+.tg-setup h3 { margin: 18px 0 10px; }
+.tg-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 8px; }
+@media (min-width: 560px) { .tg-stats { grid-template-columns: repeat(4, 1fr); } }
+.tg-stats strong { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.tg-assets { background: var(--m-bg); }
+.tg-vol { font-size: .8rem; letter-spacing: -2px; }
+.tg-start { width: 100%; margin-top: 16px; }
+.tg-reset { display: block; margin: 10px auto 0; font-size: .9rem; }
+.tg-overlay {
+  position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 16px;
+  background: rgba(0, 0, 0, .35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: story-in .25s ease;
+}
+.tg-dayend { width: 100%; max-width: 420px; }
+.tg-result { font-size: 2.2rem; font-weight: 700; margin: 4px 0 12px; font-variant-numeric: tabular-nums; }
+.tg-result small { font-size: 1rem; font-weight: 600; }
+@media (max-width: 480px) { .mk-seg button { padding: 7px 4px; font-size: .84rem; } }
+.mk .tg-level text { paint-order: stroke; stroke: var(--m-card); stroke-width: 3px; }
+.tg-dock { display: none; }
+@media (max-width: 979px) {
+  .tg { padding-bottom: 120px; }
+  .tg-order .tg-buttons { display: none; }
+  .tg-dock {
+    display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+    padding: 8px 16px calc(10px + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--m-bg) 85%, transparent);
+    backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-top: 1px solid var(--m-line);
+  }
+  .tg-dock-info { display: flex; justify-content: space-between; align-items: center; min-height: 26px; margin-bottom: 6px; font-size: .9rem; }
+  .tg-dock .tg-buttons button { padding: 9px 8px; }
+}

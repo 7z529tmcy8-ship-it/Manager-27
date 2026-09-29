@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ETFS, allSeries, getEtf, type Point } from './data';
 import { LineChart, Sparkline, fmt, pct, type Line } from './charts';
+import TradingGame from './TradingGame';
 import {
   RISK_FREE,
   cagr,
@@ -16,7 +17,7 @@ import {
   type Range,
 } from './metrics';
 
-type Tab = 'overview' | 'compare' | 'rank';
+type Tab = 'overview' | 'compare' | 'rank' | 'trade';
 const DETAIL_RANGES: Range[] = ['1M', '3M', '6M', 'YTD', '1J', '5J', 'MAX'];
 const MAX_COMPARE = 4;
 
@@ -45,13 +46,13 @@ export default function Terminal({ onExit }: { onExit: () => void }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
+      if (e.key !== 'Escape' || tab === 'trade') return;
       if (selected && !wide) setSelected(null);
       else onExit();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, wide, onExit]);
+  }, [selected, wide, onExit, tab]);
 
   const openEtf = (t: string) => {
     setSelected(t);
@@ -74,10 +75,10 @@ export default function Terminal({ onExit }: { onExit: () => void }) {
       </header>
 
       <div className="mk-head">
-        <h1>{tab === 'overview' ? 'Märkte' : tab === 'compare' ? 'Vergleich' : 'Ranking'}</h1>
+        <h1>{{ overview: 'Märkte', compare: 'Vergleich', rank: 'Ranking', trade: 'Trading' }[tab]}</h1>
         <p className="mk-date">{new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         <div className="mk-seg" role="tablist">
-          {([['overview', 'Übersicht'], ['compare', 'Vergleich'], ['rank', 'Ranking']] as [Tab, string][]).map(([id, label]) => (
+          {([['overview', 'Übersicht'], ['compare', 'Vergleich'], ['rank', 'Ranking'], ['trade', 'Trading']] as [Tab, string][]).map(([id, label]) => (
             <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} onClick={() => setTab(id)}>{label}</button>
           ))}
         </div>
@@ -88,6 +89,7 @@ export default function Terminal({ onExit }: { onExit: () => void }) {
         {showDetail && <Detail series={series} ticker={detail!} />}
         {tab === 'compare' && <Compare series={series} selected={compare} onChange={setCompare} />}
         {tab === 'rank' && <Ranking series={series} onOpen={openEtf} />}
+        {tab === 'trade' && <TradingGame />}
       </main>
 
       <footer className="mk-foot">
