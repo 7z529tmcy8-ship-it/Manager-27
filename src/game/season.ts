@@ -9,6 +9,7 @@ import {
   playerValue,
   seasonLabel,
 } from './player';
+import { injuryFactor } from './training';
 import { chance, clamp, normal, pick, poisson, rand, randInt, sigmoid, weightedPick } from './random';
 import type {
   Career,
@@ -173,7 +174,7 @@ function playerMatch(
     rating = Math.round(clamp(r, 3, 10) * 10) / 10;
     prog.form = prog.form * 0.8 + rating * 0.2;
 
-    const injuryRisk = 0.012 + Math.max(0, player.age - 30) * 0.002;
+    const injuryRisk = (0.012 + Math.max(0, player.age - 30) * 0.002) * injuryFactor(player);
     if (chance(injuryRisk * share)) {
       const weeks = injuryWeeks();
       prog.injuredFor = Math.round(weeks * 1.3);

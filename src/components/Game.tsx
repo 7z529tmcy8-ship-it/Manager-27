@@ -5,6 +5,7 @@ import { clubLeagueId, currentClubId, formatMoney, seasonLabel } from '../game/p
 import { sortTable } from '../game/season';
 import type { Career } from '../game/types';
 import DecisionPanel from './DecisionPanel';
+import { SeasonGoals, TrainingPicker } from './GoalsAndTraining';
 import HalfReport from './HalfReport';
 import LiveFinal from './LiveFinal';
 import NewsFeed from './NewsFeed';
@@ -78,9 +79,23 @@ export default function Game({ career, onChange, onExit }: Props) {
                       Ganze Saison ▶▶
                     </button>
                   </div>
+                  <div className="action-extras">
+                    <SeasonGoals goals={career.seasonGoals ?? []} />
+                    <TrainingPicker career={career} onChange={onChange} />
+                  </div>
                 </div>
               )}
-              {career.phase === 'winter' && career.progress && <HalfReport career={career} />}
+              {career.phase === 'winter' && career.progress && (
+                <>
+                  <HalfReport career={career} />
+                  {!career.decision && (
+                    <div className="panel">
+                      <SeasonGoals goals={career.seasonGoals ?? []} matches={career.progress.matches} />
+                      <TrainingPicker career={career} onChange={onChange} />
+                    </div>
+                  )}
+                </>
+              )}
               {career.phase === 'retired' && (
                 <div className="panel action">
                   <div>

@@ -6,10 +6,13 @@ import { ROLE_BONUS, clubLeagueId, clubStrength, createProfile, currentClubId, c
 import { uid } from './random';
 import { applyLeagueChanges, computeNational, finishSeason, halfStats, initialEuropeSlots, nationStrength, playHalf, startSeason } from './season';
 import { maybeDecision } from './decisions';
+import { checkAchievements } from './achievements';
+import { createSeasonGoals, evaluateGoals } from './goals';
+import { applyTraining } from './training';
 import { advanceFinal, autoFinal, finalRating, startFinal } from './final';
 import { addNews, summerNews, winterNews } from './news';
 import { createRival, simulateRivalSeason } from './rival';
-import type { Career, MatchLine, Offer, Position, SeasonRecord, TransferEntry } from './types';
+import type { Career, MatchLine, Offer, Position, SeasonRecord, TrainingFocus, TransferEntry } from './types';
 
 export const START_YEAR = 2025;
 export const MAX_AGE = 41;
@@ -27,7 +30,7 @@ export interface NewPlayer {
 export function createCareer(np: NewPlayer): Career {
   const club = getClub(np.clubId);
   const now = Date.now();
-  return {
+  const career: Career = {
     id: uid(),
     createdAt: now,
     updatedAt: now,
@@ -62,6 +65,8 @@ export function createCareer(np: NewPlayer): Career {
     rival: createRival(np, club.id),
     news: [],
   };
+  career.seasonGoals = createSeasonGoals(career);
+  return career;
 }
 
 /** Spielt die Hinrunde und öffnet das Wintertransferfenster. */
@@ -70,6 +75,7 @@ export function playFirstHalf(prev: Career, quick = false): Career {
   const p = career.player;
   // Ältere Spielstände bekommen ihren Rivalen nachträglich.
   if (career.rival === undefined) career.rival = createRival(p, currentClubId(p));
+  if (!career.seasonGoals) career.seasonGoals = createSeasonGoals(career);
   career.decisionResult = null;
   const prog = startSeason(career);
   playHalf(career, prog, 1);
@@ -77,9 +83,12 @@ export function playFirstHalf(prev: Career, quick = false): Career {
   const clubId = currentClubId(p);
   const stats = halfStats(prog.matches);
   const strength = clubStrength(career, clubId);
+  const ovrBefore = p.ovr;
   const dev = developPlayer(p, stats, strength, { weight: 0.5 });
   p.ovr = dev.ovr;
   p.potential = dev.potential;
+  const trainingNote = applyTraining(p, ovrBefore);
+  if (trainingNote) prog.notes.push(trainingNote);
   prog.injuryWeeksWinter = prog.injuryWeeks;
   const beforeEvents = p.ovr;
   prog.events = rollEvents(career, 1, stats, prog.injuryWeeks, strength);
@@ -145,12 +154,15 @@ function finishSecondHalf(career: Career): Career {
   const clubId = currentClubId(p);
   const second = halfStats(prog.matches.filter((m) => m.half === 2));
   const strength = clubStrength(career, clubId);
+  const ovrBefore = p.ovr;
   const dev = developPlayer(p, second, strength, {
     weight: 0.5,
     potentialStats: halfStats(prog.matches),
   });
   p.ovr = dev.ovr;
   p.potential = dev.potential;
+  const trainingNote = applyTraining(p, ovrBefore);
+  if (trainingNote) dev.reasons.push(trainingNote);
   // Eine insgesamt starke Saison mit viel Spielzeit endet (bis 31) nie mit einem Minus –
   // es sei denn, Ereignisse wie eine schwere Verletzung sind der Grund.
   const season = halfStats(prog.matches);
@@ -178,7 +190,10 @@ function completeSeason(career: Career): Career {
   const p = career.player;
   const prog = career.progress!;
   const seasonStats = halfStats(prog.matches);
+  const goalResults = evaluateGoals(career.seasonGoals ?? [], prog.matches);
   const { record, tables } = finishSeason(career, prog);
+  record.goalResults = goalResults;
+  applyGoalConsequences(career, record);
   p.caps += record.caps;
   p.internationalGoals += record.internationalGoals;
   record.ovrWinter = prog.ovrWinter;
@@ -206,6 +221,8 @@ function completeSeason(career: Career): Career {
 
   career.history.push(record);
   const extraNews = [...captainAndLegend(career, record), ...simulateRivalSeason(career, record)];
+  record.achievements = checkAchievements(career, record.season);
+  extraNews.push(...record.achievements.map((a) => `Erfolg freigeschaltet: ${a}`));
   career.year += 1;
   career.updatedAt = Date.now();
 
@@ -221,6 +238,32 @@ function completeSeason(career: Career): Career {
   summerNews(career, record, seasonStats, tables, extraNews);
   const share = seasonStats.possibleMinutes ? seasonStats.minutes / seasonStats.possibleMinutes : 0;
   career.decision = maybeDecision(career, 'summer', share);
+  return career;
+}
+
+/** Saisonziele: alle erreicht → mehr Vertrauen und Gehaltsbonus, keins erreicht → Vertrauen sinkt. */
+function applyGoalConsequences(career: Career, record: SeasonRecord) {
+  const results = record.goalResults ?? [];
+  if (!results.length) return;
+  const p = career.player;
+  const met = results.filter((r) => r.met).length;
+  if (met === results.length) {
+    p.morale = Math.min(3, (p.morale ?? 0) + 2);
+    p.contract.wage = Math.round((p.contract.wage * 1.1) / 500) * 500;
+    record.notes.push('Alle Saisonziele erreicht: Der Trainer vertraut dir mehr, dazu gibt es 10 % Gehaltsbonus.');
+  } else if (met === 0) {
+    p.morale = Math.max(-3, (p.morale ?? 0) - 2);
+    record.notes.push('Kein Saisonziel erreicht – der Trainer ist enttäuscht.');
+  } else {
+    record.notes.push('Saisonziele teilweise erreicht.');
+  }
+}
+
+/** Trainingsschwerpunkt für die nächste Halbserie wählen. */
+export function setTrainingFocus(prev: Career, focus: TrainingFocus): Career {
+  const career: Career = structuredClone(prev);
+  career.player.trainingFocus = focus;
+  career.updatedAt = Date.now();
   return career;
 }
 
@@ -432,6 +475,7 @@ function startNextSeason(career: Career): Career {
   career.offers = [];
   career.applications = [];
   career.phase = 'season';
+  career.seasonGoals = createSeasonGoals(career);
   career.updatedAt = Date.now();
   return career;
 }

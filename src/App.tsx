@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import CreateCareer from './components/CreateCareer';
 import Game from './components/Game';
+import Achievements from './components/Achievements';
 import HallOfFame from './components/HallOfFame';
 import Home from './components/Home';
 import { saveCareer } from './game/storage';
 import type { Career } from './game/types';
 
-type Screen = { name: 'home' } | { name: 'create' } | { name: 'fame' } | { name: 'game'; career: Career };
+type Screen = { name: 'home' } | { name: 'create' } | { name: 'fame' } | { name: 'achievements' } | { name: 'game'; career: Career };
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
@@ -26,9 +27,11 @@ export default function App() {
         <Home
           onNew={() => setScreen({ name: 'create' })}
           onFame={() => setScreen({ name: 'fame' })}
+          onAchievements={() => setScreen({ name: 'achievements' })}
           onLoad={(career) => setScreen({ name: 'game', career })}
         />
       )}
+      {screen.name === 'achievements' && <Achievements onBack={() => setScreen({ name: 'home' })} />}
       {screen.name === 'fame' && (
         <HallOfFame onBack={() => setScreen({ name: 'home' })} onOpen={(career) => setScreen({ name: 'game', career })} />
       )}

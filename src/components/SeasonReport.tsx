@@ -2,6 +2,7 @@ import { getClub, getLeague } from '../data/leagues';
 import { formatMoney } from '../game/player';
 import type { SeasonRecord } from '../game/types';
 import EventList from './EventList';
+import { GoalResults } from './GoalsAndTraining';
 
 export default function SeasonReport({ season }: { season: SeasonRecord }) {
   const delta = season.ovrEnd - season.ovrStart;
@@ -70,6 +71,12 @@ export default function SeasonReport({ season }: { season: SeasonRecord }) {
         {season.injuryWeeks > 0 && <li>Verletzt: <strong>{season.injuryWeeks} Wochen</strong></li>}
       </ul>
 
+      {(season.achievements ?? []).length > 0 && (
+        <div className="trophies">
+          {season.achievements!.map((a) => <span key={a} className="trophy achievement-badge">Erfolg: {a}</span>)}
+        </div>
+      )}
+
       {(season.trophies.length > 0 || season.awards.length > 0) && (
         <div className="trophies">
           {season.trophies.map((t) => <span key={t} className="trophy">🏆 {t}</span>)}
@@ -91,6 +98,8 @@ export default function SeasonReport({ season }: { season: SeasonRecord }) {
           </ul>
         </section>
       )}
+
+      <GoalResults results={season.goalResults ?? []} />
 
       <EventList events={season.events ?? []} />
 

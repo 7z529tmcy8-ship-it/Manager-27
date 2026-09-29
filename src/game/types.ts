@@ -70,6 +70,25 @@ export interface PlayerState {
   penaltyTakerOf?: string | null;
   /** Verletzungswochen, die zum Start der nächsten Halbserie anfallen (z. B. nach einer Entscheidung). */
   carryInjuryWeeks?: number;
+  /** Trainingsschwerpunkt: Index des Attributs, 'balanced' oder 'rest'. */
+  trainingFocus?: TrainingFocus;
+  /** Durch Training gewonnene Attributpunkte (für die Obergrenze). */
+  trainingGains?: number[];
+}
+
+export type TrainingFocus = number | 'balanced' | 'rest';
+
+export type GoalMetric = 'goals' | 'assists' | 'ga' | 'apps' | 'rating' | 'cleanSheets';
+
+export interface SeasonGoal {
+  metric: GoalMetric;
+  target: number;
+  label: string;
+}
+
+export interface GoalResult extends SeasonGoal {
+  value: number;
+  met: boolean;
 }
 
 export interface GameEvent {
@@ -153,6 +172,10 @@ export interface SeasonRecord {
   events?: GameEvent[];
   /** Erklärung der Entwicklung (Leistung, Spielzeit, Alter …). */
   devReasons?: string[];
+  /** Saisonziele des Trainers und ob sie erreicht wurden. */
+  goalResults?: GoalResult[];
+  /** In dieser Saison freigeschaltete Erfolge (Namen). */
+  achievements?: string[];
 }
 
 export interface WinterMove {
@@ -242,6 +265,10 @@ export interface Career {
   decisionResult?: DecisionResult | null;
   rival?: RivalState | null;
   news?: NewsItem[];
+  /** Saisonziele des Trainers für die laufende Saison. */
+  seasonGoals?: SeasonGoal[];
+  /** Freigeschaltete Erfolge: ID → Saison. */
+  unlocked?: Record<string, string>;
   /** Laufende Saison zwischen Hin- und Rückrunde. */
   progress?: SeasonProgress | null;
   /** Wie viele Angebotsrunden in diesem Fenster noch angefragt werden können. */

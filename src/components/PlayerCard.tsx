@@ -8,6 +8,7 @@ import {
   potentialRange,
 } from '../game/player';
 import { moraleLabel } from '../game/events';
+import { focusLabel } from '../game/training';
 import type { Career } from '../game/types';
 
 export default function PlayerCard({ career }: { career: Career }) {
@@ -49,6 +50,7 @@ export default function PlayerCard({ career }: { career: Career }) {
         </div>
         {p.loan && <div><dt>Leihe</dt><dd>{getClub(p.loan.clubId).name}</dd></div>}
         <div><dt>Trainervertrauen</dt><dd>{moraleLabel(p.morale)}</dd></div>
+        <div><dt>Training</dt><dd>{focusLabel(p)}</dd></div>
         {p.captainOf && <div><dt>Kapitän</dt><dd>©️ {getClub(p.captainOf).name}</dd></div>}
         {p.penaltyTakerOf === currentClubId(p) && <div><dt>Elfmeterschütze</dt><dd>Ja</dd></div>}
         {(p.legendOf ?? []).length > 0 && (

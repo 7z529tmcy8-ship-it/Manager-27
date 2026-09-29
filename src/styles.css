@@ -307,3 +307,27 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .9rem; font-var
 .news .tag-titel { border-color: #b8912f; }
 .news .tag-rivale { border-color: var(--series-2); }
 .news .tag-transfer { border-color: var(--series-1); }
+
+/* Saisonziele, Training, Erfolge */
+.action-extras { flex-basis: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;
+  border-top: 1px solid var(--border); padding-top: 12px; }
+.goals h3, .training h3 { font-size: .95rem; margin-bottom: 8px; }
+.goals ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.goals li { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; }
+.goals li .bar { grid-column: 1 / -1; grid-row: 2; }
+.bar { display: block; height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; border: 1px solid var(--border); }
+.bar span { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+.panel .goals + .training { margin-top: 16px; }
+.report .goals { margin-top: 16px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--border); background: var(--surface-2); border-radius: 999px; padding: 5px 12px; font-size: .85rem; font-weight: 600; color: var(--text-2); }
+.chip.key { color: var(--text); }
+.chip.active { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.achievement-badge { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, var(--surface-2)); }
+.achievement-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.achievement { display: flex; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; opacity: .8; }
+.achievement.done { opacity: 1; border-color: var(--accent); }
+.achievement .ach-icon { font-size: 1.8rem; filter: grayscale(1); }
+.achievement.done .ach-icon { filter: none; }
+.achievement p { margin: 2px 0 8px; color: var(--text-2); font-size: .88rem; }
+.achievement small { display: block; margin-top: 4px; }

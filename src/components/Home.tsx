@@ -7,10 +7,11 @@ import type { Career } from '../game/types';
 interface Props {
   onNew: () => void;
   onFame: () => void;
+  onAchievements: () => void;
   onLoad: (career: Career) => void;
 }
 
-export default function Home({ onNew, onFame, onLoad }: Props) {
+export default function Home({ onNew, onFame, onAchievements, onLoad }: Props) {
   const [saves, setSaves] = useState(listCareers);
 
   const remove = (c: Career) => {
@@ -30,6 +31,7 @@ export default function Home({ onNew, onFame, onLoad }: Props) {
           {saves.some((c) => c.history.length > 0) && (
             <button className="btn big" onClick={onFame}>🏛️ Hall of Fame</button>
           )}
+          {saves.length > 0 && <button className="btn big" onClick={onAchievements}>🎯 Erfolge</button>}
         </div>
       </header>
 

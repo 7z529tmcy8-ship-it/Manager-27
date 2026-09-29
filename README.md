@@ -41,6 +41,14 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
 - **Kapitän & Vereinslegende:** nach einigen Jahren als Stammspieler Kapitänsbinde (mehr Einsätze), nach vielen
   Jahren oder Titeln Legendenstatus – beim Karriereende wird die Rückennummer nicht mehr vergeben
 - **Schlagzeilen:** Presse-Feed zu deinen Leistungen, Titeln, Transfers, dem Rivalen und den Ligen
+- **Saisonziele vom Trainer:** zwei Ziele je Saison (z. B. Tore, Vorlagen, Zu-null-Spiele, Einsätze, Ø-Note),
+  passend zu Rolle, Position und Teamstärke; Zwischenstand zur Winterpause. Alle erreicht → mehr Vertrauen und
+  10 % Gehaltsbonus, keins erreicht → der Trainer ist enttäuscht
+- **Trainingsschwerpunkt:** vor jeder Halbserie ein Attribut trainieren (+1 pro Halbserie, max. +10); Schlüssel-
+  attribute der Position helfen zusätzlich der Gesamtwertung bzw. bremsen den Abbau; „Regeneration“ senkt das
+  Verletzungsrisiko
+- **Erfolge:** 27 Karriereziele (100 Tore, Triple, Weltmeister, Ballon d’Or, Von ganz unten …) mit Fortschritt,
+  über alle Karrieren
 - **Hall of Fame:** Rangliste aller Karrieren nach Legendenpunkten (sortierbar), Rekorde über alle Karrieren
   und Vergleich von bis zu drei Karrieren inklusive Entwicklungskurven
 - Über 80 echte Spieler als Startvorlage (u. a. Hayate Matsuda, Kubo, Mitoma, Musiala, Wirtz, Yamal)
