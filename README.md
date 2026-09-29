@@ -74,7 +74,10 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
   Stadion vergolden, Statue von dir)
 - **Passwort-Sperre:** Beim Öffnen fragt die Seite nach dem Passwort (`123`). Entsperrt bleibt sie, solange der Tab
   offen ist. Der Geheimcode `Larp` (Groß-/Kleinschreibung egal) öffnet stattdessen eine eigene, vom Spiel
-  unabhängige Seite (`src/components/SecretPage.tsx`). Beides steht in `src/components/PasswordGate.tsx`. Das ist
+  unabhängige Seite: das **Larp-Terminal** (`src/terminal/`) – ein ETF-Überblick im Stil professioneller Finanzterminals
+  mit Kursband, Befehlszeile (z. B. `SXR8`, `EUNL IS3N COMP`, `HELP`), F1–F5-Ansichten (Markt, Chart mit gleitenden
+  Durchschnitten 20/50/100/200, Vergleich indexiert auf 100, regelbasierte Scorecard, Korrelationsmatrix). Die
+  Stammdaten (ISIN, TER, Fondsgröße) wurden im September 2026 recherchiert; die **Kurse sind simuliert**. Beides steht in `src/components/PasswordGate.tsx`. Das ist
   nur eine Sperre im Browser – wer den Quellcode liest, sieht Passwort und Code
 - **Live-Finals:** Pokal-, Europapokal- und Turnierfinals (WM/EM/Copa) laufen als Live-Ticker. In deinen Szenen
   entscheidest du selbst (abziehen, querlegen, dribbeln / grätschen, stellen / rauslaufen, Elfmeter-Ecke) – das
