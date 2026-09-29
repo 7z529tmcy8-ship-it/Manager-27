@@ -35,6 +35,12 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
   starten als „Was wäre wenn“-Karriere jung im heutigen Fußball. Acht Charaktereigenschaften (Unberechenbar,
   Heißsporn, Showman, Partylöwe, Diva, Anführer, Vollprofi, Eiskalt) verändern Noten, Rote Karten, Entwicklung,
   Finals und lösen eigene Ereignisse und Entscheidungen aus – auch für eigene Spieler wählbar
+- **Wettskandal:** ein zwielichtiges Angebot – ablehnen, melden (Held) oder das Geld nehmen. Wer annimmt, riskiert in
+  jeder Halbserie das Auffliegen: 25 Spiele Sperre, −2 Wertung, eventuell Rauswurf
+- **Doppelleben:** Rapalbum, Modemarke oder Streaming-Kanal starten – Hits bringen Vertrauen und Kultstatus, Flops
+  Spott; die Entwicklung auf dem Platz leidet etwas. Jederzeit beendbar
+- **Rücktritt vom Rücktritt:** nach dem Karriereende einmal zurückkommen (bis 38): zwei Jahre Pause, −15 Wertung,
+  dann vereinslos ins Transferfenster
 - **Live-Finals:** Pokal-, Europapokal- und Turnierfinals (WM/EM/Copa) laufen als Live-Ticker. In deinen Szenen
   entscheidest du selbst (abziehen, querlegen, dribbeln / grätschen, stellen / rauslaufen, Elfmeter-Ecke) – das
   beeinflusst Ergebnis, Tore und Note. „Ganze Saison“ spielt Finals automatisch

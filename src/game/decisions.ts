@@ -1,10 +1,10 @@
 import { getClub } from '../data/leagues';
 import { POSITIONS } from '../data/players';
 import { generateOffers } from './offers';
-import { createProfile, currentClubId } from './player';
+import { createProfile, currentClubId, seasonLabel } from './player';
 import { chance, clamp, pick, randInt } from './random';
 import { hasTrait, type TraitId } from './traits';
-import type { Career, DecisionResult, PendingDecision, Position } from './types';
+import type { Career, DecisionResult, PendingDecision, Position, SideProject } from './types';
 
 // Vorgeschlagene Positionswechsel (jung → offensiver, älter → defensiver)
 const POSITION_SWITCH: Partial<Record<Position, (age: number) => Position>> = {
@@ -38,7 +38,67 @@ const morale = (career: Career, delta: number) => {
   career.player.morale = clamp((career.player.morale ?? 0) + delta, -3, 3);
 };
 
+export const SIDE_PROJECTS: Record<SideProject['kind'], { icon: string; name: string }> = {
+  rap: { icon: '🎤', name: 'Rapalbum' },
+  fashion: { icon: '👕', name: 'Modemarke' },
+  stream: { icon: '🎮', name: 'Streaming-Kanal' },
+};
+
 const DECISIONS: DecisionDef[] = [
+  {
+    id: 'betting',
+    weight: 0.6,
+    when: (c) => c.career.player.age >= 19 && !c.career.player.bettingSecret,
+    build: () => ({
+      id: 'betting',
+      title: 'Ein zwielichtiges Angebot',
+      text: 'Nach dem Training wartet ein Mann im Parkhaus: „50.000 in bar – für eine Gelbe Karte vor der 30. Minute. Niemand wird es je erfahren.“',
+      options: [
+        { id: 'refuse', label: 'Ablehnen und gehen', hint: 'Saubere Weste' },
+        { id: 'report', label: 'Dem Verband melden', hint: 'Mutig – die Presse wird dich feiern' },
+        { id: 'accept', label: 'Das Geld nehmen', hint: 'Fliegt es auf, droht eine lange Sperre' },
+      ],
+    }),
+    resolve: (career, option) => {
+      if (option === 'report') {
+        morale(career, 2);
+        return { title: 'Wettmafia gestoppt!', text: 'Dank deiner Aussage fliegt ein ganzer Wettring auf. Du bist der Held der Liga.', tone: 'good' };
+      }
+      if (option === 'accept') {
+        career.player.bettingSecret = true;
+        return { title: 'Das Geld ist im Rucksack', text: 'Die Gelbe Karte kommt in der 23. Minute. Niemand hat etwas gemerkt … noch nicht.', tone: 'bad' };
+      }
+      morale(career, 1);
+      return { title: 'Integrität', text: 'Du drehst dich um und gehst. Gutes Gefühl.', tone: 'good' };
+    },
+  },
+  {
+    id: 'sideproject',
+    weight: 0.8,
+    when: (c) => c.career.player.age >= 18 && !c.career.player.sideProject,
+    build: () => ({
+      id: 'sideproject',
+      title: 'Ein Leben neben dem Fußball?',
+      text: 'Ein Musiklabel, eine Modefirma und eine Streaming-Plattform klopfen gleichzeitig an. Alle wollen mit dir etwas Eigenes starten.',
+      options: [
+        { id: 'rap', label: '🎤 Rapalbum aufnehmen', hint: 'Hit oder Blamage – dazwischen gibt es nichts' },
+        { id: 'fashion', label: '👕 Eigene Modemarke', hint: 'Stil-Ikone werden' },
+        { id: 'stream', label: '🎮 Streaming-Kanal', hint: 'Nächte vor der Kamera' },
+        { id: 'no', label: 'Nur Fußball', hint: 'Voller Fokus' },
+      ],
+    }),
+    resolve: (career, option) => {
+      if (option === 'no') return { title: 'Voller Fokus', text: 'Du konzentrierst dich ganz auf den Fußball.', tone: 'neutral' };
+      const kind = option as SideProject['kind'];
+      career.player.sideProject = { kind, since: seasonLabel(career.year), hits: 0, flops: 0 };
+      const sp = SIDE_PROJECTS[kind];
+      return {
+        title: `${sp.icon} ${sp.name} gestartet`,
+        text: 'Ab jetzt führst du ein Doppelleben. Die Entwicklung auf dem Platz leidet etwas – dafür wirst du berühmt. Oder berüchtigt.',
+        tone: 'neutral',
+      };
+    },
+  },
   {
     id: 'celebration',
     weight: 0.5,
@@ -270,6 +330,8 @@ const TRAIT_WEIGHT: Partial<Record<string, Partial<Record<TraitId, number>>>> = 
   interview: { diva: 3, showman: 1.5 },
   derby: { showman: 1.5, clutch: 1.5, hothead: 1.5 },
   celebration: { wildcard: 3, showman: 3 },
+  betting: { party: 2, wildcard: 2, diva: 1.5, professional: 0.3 },
+  sideproject: { showman: 3, wildcard: 2, party: 2, diva: 2, professional: 0.3 },
   mentor: { leader: 3, professional: 2 },
 };
 

@@ -73,6 +73,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     },
   },
   { id: 'fee100', icon: '💰', name: 'Rekordtransfer', description: 'Wechsle für mindestens 100 Mio. €.', progress: (c) => [Math.min(100, Math.max(0, ...(c.transfers ?? []).map((t) => t.fee / 1e6))), 100] },
+  { id: 'comeback', icon: '🍺', name: 'Rücktritt vom Rücktritt', description: 'Komm nach dem Karriereende zurück und spiele wieder.', progress: (c) => has(!!c.comebackUsed && c.history[c.history.length - 1]?.apps > 0) },
+  { id: 'charts', icon: '🎤', name: 'Doppelleben', description: 'Lande drei Hits mit deinem Nebenprojekt.', progress: (c) => [Math.min(3, c.player.sideProject?.hits ?? 0), 3] },
   { id: 'rival10', icon: '⚔️', name: 'Rivale bezwungen', description: 'Gewinne 10 Saison-Duelle gegen deinen Rivalen.', progress: (c) => [(c.rival?.history ?? []).filter((h) => h.duel === 'player').length, 10] },
 ];
 

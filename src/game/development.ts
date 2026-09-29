@@ -137,8 +137,9 @@ export function developPlayer(
     if (share < 0.2 && age >= 23) setback += 0.8;
     // Deutlich unter den Erwartungen gespielt.
     if (relPerf <= -1 && share >= 0.3) setback += 0.5;
-    // Partylöwen verschenken Entwicklung.
+    // Partylöwen und Spieler mit Nebenprojekt verschenken Entwicklung.
     if (hasTrait(p, 'party')) growth *= 0.9;
+    if (p.sideProject) growth *= 0.92;
     change = growth - setback;
   } else {
     const base = 0.8 + (age - 30) * 0.9;

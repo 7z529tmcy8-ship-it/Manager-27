@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { getClub, getLeague } from '../data/leagues';
-import { playFirstHalf, playSeason, totalTransferFees } from '../game/career';
+import { canComeback, comeback, endSideProject, playFirstHalf, playSeason, totalTransferFees } from '../game/career';
+import { SIDE_PROJECTS } from '../game/decisions';
 import { clubLeagueId, currentClubId, formatMoney, seasonLabel } from '../game/player';
 import { sortTable } from '../game/season';
 import type { Career } from '../game/types';
@@ -70,6 +71,13 @@ export default function Game({ career, onChange, onExit }: Props) {
                       <strong>{p.loan ? p.loan.role : p.contract.role}</strong>
                       {p.captainOf === clubId && <span className="pill small">Kapitän</span>}
                     </p>
+                    {p.sideProject && (
+                      <p className="side-project">
+                        {SIDE_PROJECTS[p.sideProject.kind].icon} Nebenprojekt: {SIDE_PROJECTS[p.sideProject.kind].name}
+                        {' '}({p.sideProject.hits} Hits, {p.sideProject.flops} Flops){' '}
+                        <button className="btn ghost small" onClick={() => onChange(endSideProject(career))}>Beenden</button>
+                      </p>
+                    )}
                   </div>
                   <div className="action-buttons">
                     <button className="btn primary big" onClick={() => onChange(playFirstHalf(career))}>
@@ -106,7 +114,14 @@ export default function Game({ career, onChange, onExit }: Props) {
                       {career.transfers ? ` · ${career.transfers.filter((t) => t.fee > 0).length} Wechsel mit Ablöse` : ''}
                     </p>
                   </div>
-                  <button className="btn" onClick={() => setTab('career')}>Karriere ansehen</button>
+                  <div className="action-buttons">
+                    {canComeback(career) && (
+                      <button className="btn primary" onClick={() => onChange(comeback(career))} title="Zwei Jahre Pause, dann mit −15 Wertung zurück">
+                        🍺 Rücktritt vom Rücktritt
+                      </button>
+                    )}
+                    <button className="btn" onClick={() => setTab('career')}>Karriere ansehen</button>
+                  </div>
                 </div>
               )}
               {career.phase === 'winter' || career.phase === 'final' ? null : last ? (

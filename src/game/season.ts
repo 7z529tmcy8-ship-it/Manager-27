@@ -394,6 +394,10 @@ export function playHalf(career: Career, prog: SeasonProgress, half: 1 | 2): voi
   const clubId = currentClubId(player);
   const leagueId = clubLeagueId(career, clubId);
   const ctx: SeasonContext = { career, player, clubId, half, prog };
+  if (player.carryBanMatches) {
+    prog.injuredFor += player.carryBanMatches;
+    player.carryBanMatches = 0;
+  }
   if (player.carryInjuryWeeks) {
     prog.injuredFor += Math.round(player.carryInjuryWeeks * 1.3);
     prog.injuryWeeks += player.carryInjuryWeeks;

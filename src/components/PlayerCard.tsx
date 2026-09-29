@@ -10,6 +10,7 @@ import {
 import { moraleLabel } from '../game/events';
 import { focusLabel } from '../game/training';
 import { getTrait } from '../game/traits';
+import { SIDE_PROJECTS } from '../game/decisions';
 import type { Career } from '../game/types';
 
 export default function PlayerCard({ career }: { career: Career }) {
@@ -62,6 +63,9 @@ export default function PlayerCard({ career }: { career: Career }) {
         )}
         <div><dt>Trainervertrauen</dt><dd>{moraleLabel(p.morale)}</dd></div>
         <div><dt>Training</dt><dd>{focusLabel(p)}</dd></div>
+        {p.sideProject && (
+          <div><dt>Nebenprojekt</dt><dd>{SIDE_PROJECTS[p.sideProject.kind].icon} {SIDE_PROJECTS[p.sideProject.kind].name}</dd></div>
+        )}
         {p.captainOf && <div><dt>Kapitän</dt><dd>©️ {getClub(p.captainOf).name}</dd></div>}
         {p.penaltyTakerOf === currentClubId(p) && <div><dt>Elfmeterschütze</dt><dd>Ja</dd></div>}
         {(p.legendOf ?? []).length > 0 && (

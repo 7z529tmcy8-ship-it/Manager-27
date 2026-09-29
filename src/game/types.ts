@@ -72,6 +72,12 @@ export interface PlayerState {
   penaltyTakerOf?: string | null;
   /** Verletzungswochen, die zum Start der nächsten Halbserie anfallen (z. B. nach einer Entscheidung). */
   carryInjuryWeeks?: number;
+  /** Hat heimlich Geld von Wettbetrügern angenommen – kann auffliegen. */
+  bettingSecret?: boolean;
+  /** Spiele Sperre, die zum Start der nächsten Halbserie anfallen. */
+  carryBanMatches?: number;
+  /** Nebenprojekt abseits des Platzes (Rapalbum, Modemarke, Streaming). */
+  sideProject?: SideProject | null;
   /** Spieler ist nicht verfügbar (z. B. entführt) und steht in keinem Spiel im Kader. */
   absent?: boolean;
   /** Charaktereigenschaften (z. B. Heißsporn, Showman). */
@@ -83,6 +89,13 @@ export interface PlayerState {
 }
 
 export type TrainingFocus = number | 'balanced' | 'rest';
+
+export interface SideProject {
+  kind: 'rap' | 'fashion' | 'stream';
+  since: string;
+  hits: number;
+  flops: number;
+}
 
 export type GoalMetric = 'goals' | 'assists' | 'ga' | 'apps' | 'rating' | 'cleanSheets';
 
@@ -273,6 +286,8 @@ export interface Career {
   news?: NewsItem[];
   /** Saisonziele des Trainers für die laufende Saison. */
   seasonGoals?: SeasonGoal[];
+  /** Rücktritt vom Rücktritt wurde bereits genutzt. */
+  comebackUsed?: boolean;
   /** Freigeschaltete Erfolge: ID → Saison. */
   unlocked?: Record<string, string>;
   /** Laufende Saison zwischen Hin- und Rückrunde. */

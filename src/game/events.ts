@@ -260,6 +260,11 @@ export function rollEvents(
   const events: GameEvent[] = [];
   // Verletzungsfolgen zuerst, danach zufällige Ereignisse in zufälliger Reihenfolge.
   const [injury, ...rest] = EVENTS;
+  // Wettskandal und Nebenprojekt sind Folgen früherer Entscheidungen und gehen vor.
+  for (const def of SPECIAL_EVENTS) {
+    if (events.length >= MAX_EVENTS_PER_HALF) break;
+    if (def.when(ctx) && chance(def.chance)) events.push({ ...def.apply(ctx), half });
+  }
   // Charakter-Ereignisse kommen zuerst an die Reihe – sie machen die Persönlichkeit spürbar.
   const traitEvents = shuffle(TRAIT_EVENTS.filter((d) => hasTrait(p, d.trait)));
   for (const def of [injury, ...traitEvents, ...shuffle(rest)]) {
@@ -270,6 +275,57 @@ export function rollEvents(
   if (hasTrait(p, 'leader')) p.morale = Math.max(-1, p.morale ?? 0);
   return events;
 }
+
+const SIDE_NAMES = { rap: '🎤 Rapalbum', fashion: '👕 Modemarke', stream: '🎮 Streaming-Kanal' } as const;
+
+const SPECIAL_EVENTS: EventDef[] = [
+  {
+    when: (c) => !!c.career.player.bettingSecret,
+    chance: 0.3,
+    apply: (c) => {
+      const p = c.career.player;
+      p.bettingSecret = false;
+      p.carryBanMatches = (p.carryBanMatches ?? 0) + 25;
+      changeOvr(c, -2);
+      changeMorale(c, -3);
+      p.captainOf = null;
+      const fired = chance(0.5);
+      if (fired) p.contract.yearsLeft = Math.min(p.contract.yearsLeft, 1);
+      return {
+        title: 'Wettskandal aufgeflogen!',
+        text: `Ermittler finden die Chatverläufe. 25 Spiele Sperre${fired ? ' – und der Verein will dich im Sommer loswerden' : ''}.`,
+        tone: 'bad',
+        effect: '25 Spiele Sperre, −2 Gesamtwertung',
+      };
+    },
+  },
+  {
+    when: (c) => !!c.career.player.sideProject,
+    chance: 0.6,
+    apply: (c) => {
+      const sp = c.career.player.sideProject!;
+      const bonus = hasTrait(c.career.player, 'showman') ? 0.1 : 0;
+      if (chance(0.55 + bonus)) {
+        sp.hits++;
+        changeMorale(c, 1);
+        const text = {
+          rap: `Deine Single steigt auf Platz ${randInt(1, 5)} der Charts ein – das halbe Stadion rappt mit.`,
+          fashion: 'Deine neue Kollektion ist in Minuten ausverkauft. Mitspieler tragen sie beim Warmmachen.',
+          stream: `${randInt(80, 400)}.000 Zuschauer schauen live zu, wie du FC spielst. Neuer Rekord!`,
+        }[sp.kind];
+        return { title: `${SIDE_NAMES[sp.kind]}: Ein Hit!`, text, tone: 'good', effect: 'mehr Vertrauen, Kultstatus' };
+      }
+      sp.flops++;
+      changeMorale(c, -1);
+      const text = {
+        rap: 'Die Kritiker zerreißen dein Album. Im Auswärtsstadion singen sie deine Zeilen – leider zum Spott.',
+        fashion: 'Die Kollektion floppt. Ein Foto von dir in Glitzerhose geht als Meme um die Welt.',
+        stream: 'Du streamst bis 4 Uhr morgens. Im Training am nächsten Tag schläfst du fast ein.',
+      }[sp.kind];
+      return { title: `${SIDE_NAMES[sp.kind]}: Flop`, text, tone: 'bad', effect: 'weniger Vertrauen' };
+    },
+  },
+];
 
 // Ereignisse, die nur Spielern mit einer bestimmten Eigenschaft passieren.
 const TRAIT_EVENTS: (EventDef & { trait: TraitId })[] = [

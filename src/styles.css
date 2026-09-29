@@ -344,3 +344,4 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .9rem; font-var
 .trait-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
 .legend-list .trait-row { justify-content: flex-start; }
 .pill.trait { text-transform: none; letter-spacing: 0; font-size: .75rem; }
+.side-project { margin-top: 6px !important; font-size: .9rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }

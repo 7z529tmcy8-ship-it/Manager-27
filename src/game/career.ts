@@ -13,7 +13,7 @@ import { hasTrait, type TraitId } from './traits';
 import { advanceFinal, autoFinal, finalRating, startFinal } from './final';
 import { addNews, summerNews, winterNews } from './news';
 import { createRival, simulateRivalSeason } from './rival';
-import type { Career, MatchLine, Offer, Position, SeasonRecord, TrainingFocus, TransferEntry } from './types';
+import type { Career, DecisionResult, GameEvent, MatchLine, Offer, Position, SeasonRecord, TrainingFocus, TransferEntry } from './types';
 
 export const START_YEAR = 2025;
 export const MAX_AGE = 41;
@@ -79,18 +79,30 @@ export function isKidnapName(name: string): boolean {
   return n === 'laurens goetting' || n === 'laurens gotting';
 }
 
-const KIDNAP_SEASONS = 3;
+interface AbsenceOptions {
+  seasons: number;
+  /** Anzeige bei Pokal/Europapokal, z. B. „entführt“. */
+  label: string;
+  firstEvent: Omit<GameEvent, 'half'>;
+  devReason: string;
+  note: (i: number) => string;
+  news: (i: number) => string;
+  /** Gesamtwertung am Ende der Abwesenheit. */
+  ovrTarget: number;
+  potentialAfter: number;
+  banner: DecisionResult;
+}
 
-/** Drei Saisons laufen ohne den Spieler weiter – danach ist er frei, vereinslos und bei Wertung 50. */
-function kidnap(career: Career): Career {
+/**
+ * Saisons ohne den Spieler: Die Welt (Ligen, Auf-/Abstieg, Rivale) läuft weiter, er selbst steht in keinem Kader.
+ * Danach ist er vereinslos und bekommt Angebote.
+ */
+function skipSeasons(career: Career, o: AbsenceOptions): Career {
   const p = career.player;
-  const club = getClub(p.contract.clubId).name;
   p.absent = true;
-  addNews(career, 1, 'Du', `EILMELDUNG: ${p.name} nach dem Training von der Mafia entführt! ${club} ist fassungslos.`);
-
-  for (let i = 0; i < KIDNAP_SEASONS; i++) {
+  const ovrStart = p.ovr;
+  for (let i = 0; i < o.seasons; i++) {
     const prog = startSeason(career);
-    // Keine Finals und keine Länderspiele in Gefangenschaft
     prog.cup.eligible = false;
     if (prog.euro) prog.euro.eligible = false;
     playHalf(career, prog, 1);
@@ -99,49 +111,102 @@ function kidnap(career: Career): Career {
     const { record, tables } = finishSeason(career, prog);
     record.trophies = [];
     record.awards = [];
-    record.cupReached = 'entführt';
-    if (record.europe) record.europe = { ...record.europe, reached: 'entführt' };
-    record.events = i === 0
-      ? [{
-        title: 'Von der Mafia entführt!', half: 1, tone: 'bad', effect: 'keine Spiele, Wertung sinkt',
-        text: 'Nach dem Training zerren dich maskierte Männer in einen schwarzen Van. Von dir fehlt jede Spur.',
-      }]
-      : [];
-    record.devReasons = ['In Gefangenschaft – kein Training, kein Fußball.'];
-    record.notes = [`${KIDNAP_SEASONS - i > 1 ? 'Weiterhin' : 'Immer noch'} in den Fängen der Mafia – keine Spiele.`];
+    record.cupReached = o.label;
+    if (record.europe) record.europe = { ...record.europe, reached: o.label };
+    record.events = i === 0 ? [{ ...o.firstEvent, half: 1 }] : [];
+    record.devReasons = [o.devReason];
+    record.notes = [o.note(i)];
     applyLeagueChanges(career, tables);
     const rivalNews = simulateRivalSeason(career, record);
     career.history.push(record);
     for (const t of rivalNews) addNews(career, 2, 'Rivale', t);
-    addNews(career, 2, 'Du', i < KIDNAP_SEASONS - 1
-      ? `Noch immer keine Spur von ${p.name}. Die Fans hängen Banner auf: „Wir warten auf dich!“`
-      : `WUNDER! ${p.name} ist nach drei Jahren wieder frei!`);
+    addNews(career, 2, 'Du', o.news(i));
     p.age += 1;
     p.contract.yearsLeft -= 1;
     career.year += 1;
-    // Die Wertung sinkt jedes Jahr – am Ende steht sie bei 50.
-    p.ovr = Math.round(p.ovr - ((p.ovr - 50) * (i + 1)) / KIDNAP_SEASONS);
+    // Die Wertung sinkt Jahr für Jahr bis zum Zielwert.
+    p.ovr = Math.round(ovrStart - ((ovrStart - o.ovrTarget) * (i + 1)) / o.seasons);
     record.ovrEnd = p.ovr;
     record.marketValue = playerValue(p);
   }
 
   p.absent = false;
-  p.ovr = 50;
-  p.potential = Math.max(55, p.potential - 5);
+  p.ovr = o.ovrTarget;
+  p.potential = Math.max(o.ovrTarget, o.potentialAfter);
   p.morale = 0;
   p.captainOf = null;
+  p.penaltyTakerOf = null;
   p.contract.yearsLeft = 0;
   // Der alte Verein hat längst geplant – nur neue Vereine melden sich.
-  career.offers = generateOffers(career, career.history[career.history.length - 1]).filter((o) => o.type !== 'Verlängerung');
+  career.offers = generateOffers(career, career.history[career.history.length - 1]).filter((x) => x.type !== 'Verlängerung');
   career.requestsLeft = 1;
   career.applications = [];
   career.phase = 'window';
-  career.decisionResult = {
-    title: '🚨 Nach drei Jahren frei!',
-    text: 'Die Mafia hat dich laufen lassen. Dein Vertrag ist ausgelaufen, deine Wertung auf 50 gefallen – Zeit für das größte Comeback der Fußballgeschichte.',
-    tone: 'bad',
-  };
+  career.decisionResult = o.banner;
+  career.updatedAt = Date.now();
   return career;
+}
+
+function kidnap(career: Career): Career {
+  const p = career.player;
+  addNews(career, 1, 'Du', `EILMELDUNG: ${p.name} nach dem Training von der Mafia entführt! ${getClub(p.contract.clubId).name} ist fassungslos.`);
+  return skipSeasons(career, {
+    seasons: 3,
+    label: 'entführt',
+    firstEvent: {
+      title: 'Von der Mafia entführt!', tone: 'bad', effect: 'keine Spiele, Wertung sinkt',
+      text: 'Nach dem Training zerren dich maskierte Männer in einen schwarzen Van. Von dir fehlt jede Spur.',
+    },
+    devReason: 'In Gefangenschaft – kein Training, kein Fußball.',
+    note: (i) => `${i < 2 ? 'Weiterhin' : 'Immer noch'} in den Fängen der Mafia – keine Spiele.`,
+    news: (i) => (i < 2
+      ? `Noch immer keine Spur von ${p.name}. Die Fans hängen Banner auf: „Wir warten auf dich!“`
+      : `WUNDER! ${p.name} ist nach drei Jahren wieder frei!`),
+    ovrTarget: 50,
+    potentialAfter: Math.max(55, p.potential - 5),
+    banner: {
+      title: '🚨 Nach drei Jahren frei!',
+      text: 'Die Mafia hat dich laufen lassen. Dein Vertrag ist ausgelaufen, deine Wertung auf 50 gefallen – Zeit für das größte Comeback der Fußballgeschichte.',
+      tone: 'bad',
+    },
+  });
+}
+
+/** Comeback nur einmal pro Karriere und nicht zu alt. */
+export const COMEBACK_MAX_AGE = 38;
+export function canComeback(career: Career): boolean {
+  return career.phase === 'retired' && !career.comebackUsed && career.player.age <= COMEBACK_MAX_AGE && career.history.length > 0;
+}
+
+/** Rücktritt vom Rücktritt: zwei Jahre Pause, dann mit Bierbauch und −15 Wertung zurück. */
+export function comeback(prev: Career): Career {
+  if (!canComeback(prev)) return prev;
+  const career: Career = structuredClone(prev);
+  const p = career.player;
+  career.comebackUsed = true;
+  career.retiredReason = undefined;
+  const target = Math.max(45, p.ovr - 15);
+  addNews(career, 2, 'Du', `${p.name} genießt den Ruhestand – Grillpartys, Golf und sehr viel Pasta.`);
+  return skipSeasons(career, {
+    seasons: 2,
+    label: 'im Ruhestand',
+    firstEvent: {
+      title: 'Ruhestand', tone: 'bad', effect: 'keine Spiele, Wertung sinkt',
+      text: 'Du genießt das Leben: Urlaub, Grillabende, kein Training. Der Bauch wächst.',
+    },
+    devReason: 'Im Ruhestand – kein Training.',
+    note: () => 'Im Ruhestand – keine Spiele.',
+    news: (i) => (i === 0
+      ? `Gerüchte: ${p.name} wurde beim Joggen gesichtet!`
+      : `RÜCKTRITT VOM RÜCKTRITT! ${p.name} (${p.age + 1}) will es noch einmal wissen.`),
+    ovrTarget: target,
+    potentialAfter: target,
+    banner: {
+      title: '🍺 Rücktritt vom Rücktritt!',
+      text: `Mit Bierbauch, aber voller Motivation: Du bist zurück. Deine Wertung ist auf ${target} gefallen – zeig allen, dass du es noch kannst!`,
+      tone: 'good',
+    },
+  });
 }
 
 /** Spielt die Hinrunde und öffnet das Wintertransferfenster. */
@@ -332,6 +397,14 @@ function applyGoalConsequences(career: Career, record: SeasonRecord) {
   } else {
     record.notes.push('Saisonziele teilweise erreicht.');
   }
+}
+
+/** Nebenprojekt beenden – ab sofort wieder voller Fokus auf den Fußball. */
+export function endSideProject(prev: Career): Career {
+  const career: Career = structuredClone(prev);
+  career.player.sideProject = null;
+  career.updatedAt = Date.now();
+  return career;
 }
 
 /** Trainingsschwerpunkt für die nächste Halbserie wählen. */
