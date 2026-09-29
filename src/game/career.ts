@@ -4,7 +4,19 @@ import { rollEvents } from './events';
 import { APPLICATIONS_PER_WINDOW, APPLICATION_AGE, answerApplication, generateOffers, type OfferMode } from './offers';
 import { ROLE_BONUS, clubLeagueId, clubStrength, createProfile, currentClubId, currentRole, playerValue, roleFor, seasonLabel, wageFor } from './player';
 import { uid } from './random';
-import { applyLeagueChanges, computeNational, finishSeason, halfStats, initialEuropeSlots, nationStrength, playHalf, startSeason } from './season';
+import {
+  STAGES,
+  STAGES_PER_HALF,
+  applyLeagueChanges,
+  computeNational,
+  finishSeason,
+  halfStats,
+  initialEuropeSlots,
+  nationStrength,
+  playHalf,
+  playStage,
+  startSeason,
+} from './season';
 import { maybeDecision } from './decisions';
 import { checkAchievements } from './achievements';
 import { createSeasonGoals, evaluateGoals } from './goals';
@@ -13,7 +25,7 @@ import { hasTrait, type TraitId } from './traits';
 import { advanceFinal, autoFinal, finalRating, startFinal } from './final';
 import { addNews, summerNews, winterNews } from './news';
 import { createRival, simulateRivalSeason } from './rival';
-import type { Career, DecisionResult, GameEvent, MatchLine, Offer, Position, SeasonRecord, TrainingFocus, TransferEntry } from './types';
+import type { Career, DecisionResult, GameEvent, MatchLine, Offer, Position, SeasonRecord, StageLoad, TrainingFocus, TransferEntry } from './types';
 
 export const START_YEAR = 2025;
 export const MAX_AGE = 41;
@@ -70,7 +82,9 @@ export function createCareer(np: NewPlayer): Career {
     news: [],
   };
   career.seasonGoals = createSeasonGoals(career);
-  return isKidnapName(np.name) ? kidnap(career) : career;
+  if (isKidnapName(np.name)) return kidnap(career);
+  ensureProgress(career);
+  return career;
 }
 
 /** Easter Egg: Wer „Laurens Götting“ heißt, wird zum Karrierestart von der Mafia entführt. */
@@ -209,17 +223,60 @@ export function comeback(prev: Career): Career {
   });
 }
 
-/** Spielt die Hinrunde und öffnet das Wintertransferfenster. */
-export function playFirstHalf(prev: Career, quick = false): Career {
-  const career: Career = structuredClone(prev);
+/** Neue Saison vorbereiten (Rivale/Ziele für ältere Spielstände, Tagesform, leere Tabellen). */
+function ensureProgress(career: Career) {
+  if (career.progress) {
+    career.progress.stage ??= career.phase === 'winter' ? STAGES_PER_HALF : 0;
+    return career.progress;
+  }
   const p = career.player;
   // Ältere Spielstände bekommen ihren Rivalen nachträglich.
   if (career.rival === undefined) career.rival = createRival(p, currentClubId(p));
   if (!career.seasonGoals) career.seasonGoals = createSeasonGoals(career);
-  career.decisionResult = null;
   const prog = startSeason(career);
-  playHalf(career, prog, 1);
+  prog.stage = 0;
+  prog.load = 'normal';
+  career.progress = prog;
+  return prog;
+}
 
+/** Eine Etappe (ca. 6 Spieltage) spielen. Nach Etappe 3 kommt die Winterpause, nach Etappe 6 das Saisonende. */
+export function playNextStage(prev: Career): Career {
+  const career: Career = structuredClone(prev);
+  const prog = ensureProgress(career);
+  career.decisionResult = null;
+  const stage = prog.stage ?? 0;
+  if (stage >= STAGES) return finishSecondHalf(career);
+  playStage(career, prog, stage);
+  if (prog.stage === STAGES_PER_HALF) return winterTransition(career, false);
+  if (prog.stage === STAGES) return finishSecondHalf(career);
+  career.phase = 'season';
+  career.updatedAt = Date.now();
+  return career;
+}
+
+/** Belastung für die nächste Etappe wählen. */
+export function setStageLoad(prev: Career, load: StageLoad): Career {
+  const career: Career = structuredClone(prev);
+  const prog = ensureProgress(career);
+  prog.load = load;
+  career.updatedAt = Date.now();
+  return career;
+}
+
+/** Spielt die (restliche) Hinrunde und öffnet das Wintertransferfenster. */
+export function playFirstHalf(prev: Career, quick = false): Career {
+  const career: Career = structuredClone(prev);
+  const prog = ensureProgress(career);
+  career.decisionResult = null;
+  while ((prog.stage ?? 0) < STAGES_PER_HALF) playStage(career, prog, prog.stage ?? 0);
+  return winterTransition(career, quick);
+}
+
+/** Winterpause: Entwicklung der Hinrunde, Ereignisse, Winter-Angebote, Schlagzeilen. */
+function winterTransition(career: Career, quick: boolean): Career {
+  const p = career.player;
+  const prog = career.progress!;
   const clubId = currentClubId(p);
   const stats = halfStats(prog.matches);
   const strength = clubStrength(career, clubId);
@@ -235,7 +292,6 @@ export function playFirstHalf(prev: Career, quick = false): Career {
   prog.winterEventDelta = p.ovr - beforeEvents;
   prog.ovrWinter = p.ovr;
 
-  career.progress = prog;
   career.phase = 'winter';
   // Verliehene Spieler bleiben bis Saisonende beim Leihverein.
   career.offers = p.loan ? [] : generateOffers(career, { clubId, onLoan: false, ...stats }, 'normal', true);
@@ -248,13 +304,25 @@ export function playFirstHalf(prev: Career, quick = false): Career {
   return career;
 }
 
-/** Winterpause ohne Wechsel: Rückrunde beim aktuellen Verein spielen. */
-export function stayInWinter(prev: Career): Career {
-  return finishSecondHalf(structuredClone(prev));
+/** Nach der Winterpause: weiter mit Etappe 4 – oder im Schnelldurchlauf direkt bis Saisonende. */
+function continueAfterWinter(career: Career, quick: boolean): Career {
+  const prog = career.progress!;
+  prog.stage = Math.max(prog.stage ?? STAGES_PER_HALF, STAGES_PER_HALF);
+  career.offers = [];
+  career.applications = [];
+  if (quick) return finishSecondHalf(career);
+  career.phase = 'season';
+  career.updatedAt = Date.now();
+  return career;
 }
 
-/** Wechsel im Winter annehmen und direkt die Rückrunde spielen. */
-export function acceptWinterOffer(prev: Career, offer: Offer): Career {
+/** Winterpause ohne Wechsel. */
+export function stayInWinter(prev: Career, quick = false): Career {
+  return continueAfterWinter(structuredClone(prev), quick);
+}
+
+/** Wechsel im Winter annehmen; die Rückrunde spielt der Spieler beim neuen Verein. */
+export function acceptWinterOffer(prev: Career, offer: Offer, quick = false): Career {
   const career: Career = structuredClone(prev);
   const p = career.player;
   const prog = career.progress!;
@@ -274,18 +342,21 @@ export function acceptWinterOffer(prev: Career, offer: Offer): Career {
   prog.notes.push(
     `Winterwechsel (${offer.type}): ${getClub(fromClubId).name} → ${getClub(offer.clubId).name}.`,
   );
-  return finishSecondHalf(career);
+  return continueAfterWinter(career, quick);
 }
 
-/** Ganze Saison am Stück: Hinrunde, im Winter bleiben, Rückrunde. */
+/** „Ganze Saison“: spielt den Rest der Saison am Stück – egal, in welcher Etappe man gerade ist. */
 export function playSeason(prev: Career): Career {
-  let career = stayInWinter(playFirstHalf(prev, true));
+  let career: Career = structuredClone(prev);
+  if (career.phase === 'season' && (career.progress?.stage ?? 0) < STAGES_PER_HALF) career = playFirstHalf(career, true);
+  if (career.phase === 'winter') career = stayInWinter(career, true);
+  else if (career.phase === 'season') career = finishSecondHalf(career);
   // Finals im Schnelldurchlauf automatisch ausspielen.
   while (career.phase === 'final') career = finishFinal(autoPlayFinal(career));
   return career;
 }
 
-/** Rückrunde spielen, Saison abschließen und das Sommer-Transferfenster öffnen. */
+/** Rückrunde (restliche Etappen) spielen, Saison abschließen und das Sommer-Transferfenster öffnen. */
 function finishSecondHalf(career: Career): Career {
   const p = career.player;
   const prog = career.progress!;
@@ -397,6 +468,11 @@ function applyGoalConsequences(career: Career, record: SeasonRecord) {
   } else {
     record.notes.push('Saisonziele teilweise erreicht.');
   }
+}
+
+/** Saison-Story als gesehen markieren. */
+export function markStorySeen(prev: Career, season: string): Career {
+  return { ...prev, storySeen: season };
 }
 
 /** Nebenprojekt beenden – ab sofort wieder voller Fokus auf den Fußball. */
@@ -627,6 +703,9 @@ function startNextSeason(career: Career): Career {
   career.applications = [];
   career.phase = 'season';
   career.seasonGoals = createSeasonGoals(career);
+  // Die neue Saison wird gleich angelegt, damit Spielplan und Gegner schon sichtbar sind.
+  career.progress = null;
+  ensureProgress(career);
   career.updatedAt = Date.now();
   return career;
 }

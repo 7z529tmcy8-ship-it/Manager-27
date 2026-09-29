@@ -5,7 +5,8 @@ import {
   canStay,
   comeback,
   endSideProject,
-  playFirstHalf,
+  markStorySeen,
+  playNextStage,
   playSeason,
   stayAtClub,
   stayInWinter,
@@ -13,7 +14,7 @@ import {
 } from '../game/career';
 import { SIDE_PROJECTS } from '../game/decisions';
 import { clubLeagueId, currentClubId, formatMoney, seasonLabel } from '../game/player';
-import { sortTable } from '../game/season';
+import { STAGES, sortTable } from '../game/season';
 import type { Career } from '../game/types';
 import DecisionPanel from './DecisionPanel';
 import { SeasonGoals, TrainingPicker } from './GoalsAndTraining';
@@ -25,6 +26,8 @@ import NewsFeed from './NewsFeed';
 import PlayerCard from './PlayerCard';
 import { RivalCard, RivalComparison } from './RivalPanel';
 import SeasonReport from './SeasonReport';
+import SeasonStory from './SeasonStory';
+import StagePanel from './StagePanel';
 import TransferWindow from './TransferWindow';
 
 interface Props {
@@ -44,9 +47,16 @@ export default function Game({ career, onChange, onExit }: Props) {
   const league = getLeague(clubLeagueId(career, clubId));
   const windowOpen = career.phase === 'window' || career.phase === 'winter';
   const offerCount = windowOpen ? career.offers.length : 0;
+  const stage = career.progress?.stage ?? 0;
+  // Nach jeder neuen Saison einmal die Story zeigen (nicht nach Entführung/Ruhestand).
+  const showStory =
+    !!last &&
+    (career.phase === 'window' || career.phase === 'retired') &&
+    career.storySeen !== last.season &&
+    last.apps > 0;
 
   // Nach jedem Phasenwechsel zurück zur Saisonansicht – dort steht, was passiert ist.
-  const phaseKey = `${career.phase}-${career.year}`;
+  const phaseKey = `${career.phase}-${career.year}-${career.progress?.stage ?? 0}`;
   useEffect(() => {
     setTab('season');
   }, [phaseKey]);
@@ -61,7 +71,7 @@ export default function Game({ career, onChange, onExit }: Props) {
     { id: 'transfers', label: 'Transfers', disabled: !windowOpen, badge: offerCount || undefined },
     { id: 'news', label: 'News' },
     { id: 'career', label: 'Karriere', disabled: !last },
-    { id: 'table', label: 'Tabelle', disabled: !last && !career.progress },
+    { id: 'table', label: 'Tabelle', disabled: !last && stage === 0 },
   ];
 
   return (
@@ -108,27 +118,32 @@ export default function Game({ career, onChange, onExit }: Props) {
               {career.phase === 'final' && career.liveFinal && <LiveFinal career={career} onChange={onChange} />}
               <DecisionPanel career={career} onChange={onChange} />
               {career.phase === 'season' && !career.decision && (
-                <div className="panel action">
-                  <div>
-                    <p className="eyebrow">Nächste Saison</p>
-                    <h2>Saison {seasonLabel(career.year)}</h2>
-                    <p className="muted">
-                      {p.loan ? `Leihe bei ${getClub(p.loan.clubId).name}` : getClub(clubId).name} · Rolle:{' '}
-                      <strong>{p.loan ? p.loan.role : p.contract.role}</strong>
-                      {p.captainOf === clubId && <span className="pill small">Kapitän</span>}
-                    </p>
-                    {p.sideProject && (
-                      <p className="side-project">
-                        Nebenprojekt: {SIDE_PROJECTS[p.sideProject.kind].name} ({p.sideProject.hits} Hits, {p.sideProject.flops} Flops)
-                        <button className="btn link small" onClick={() => onChange(endSideProject(career))}>Beenden</button>
-                      </p>
-                    )}
-                  </div>
-                  <div className="action-extras">
-                    <SeasonGoals goals={career.seasonGoals ?? []} />
+                <>
+                  {stage === 0 && (
+                    <div className="panel action">
+                      <div>
+                        <p className="eyebrow">Neue Saison</p>
+                        <h2>Saison {seasonLabel(career.year)}</h2>
+                        <p className="muted">
+                          {p.loan ? `Leihe bei ${getClub(p.loan.clubId).name}` : getClub(clubId).name} · Rolle:{' '}
+                          <strong>{p.loan ? p.loan.role : p.contract.role}</strong>
+                          {p.captainOf === clubId && <span className="pill small">Kapitän</span>}
+                        </p>
+                        {p.sideProject && (
+                          <p className="side-project">
+                            Nebenprojekt: {SIDE_PROJECTS[p.sideProject.kind].name} ({p.sideProject.hits} Hits, {p.sideProject.flops} Flops)
+                            <button className="btn link small" onClick={() => onChange(endSideProject(career))}>Beenden</button>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <StagePanel career={career} onChange={onChange} />
+                  <div className="panel">
+                    <SeasonGoals goals={career.seasonGoals ?? []} matches={stage > 0 ? career.progress?.matches : undefined} />
                     <TrainingPicker career={career} onChange={onChange} />
                   </div>
-                </div>
+                </>
               )}
               {career.phase === 'winter' && career.progress && (
                 <>
@@ -154,7 +169,7 @@ export default function Game({ career, onChange, onExit }: Props) {
                   </div>
                 </div>
               )}
-              {career.phase === 'winter' || career.phase === 'final' ? null : last ? (
+              {career.phase === 'winter' || career.phase === 'final' || (career.phase === 'season' && stage > 0) ? null : last ? (
                 <SeasonReport season={last} />
               ) : (
                 <div className="panel empty">
@@ -183,15 +198,15 @@ export default function Game({ career, onChange, onExit }: Props) {
             </>
           )}
 
-          {tab === 'table' && career.progress && (
+          {tab === 'table' && career.progress && stage > 0 && (
             <LeagueTable
-              title={`Tabelle zur Winterpause · ${league.name}`}
+              title={`${career.phase === 'winter' ? 'Tabelle zur Winterpause' : 'Aktuelle Tabelle'} · ${league.name}`}
               table={sortTable(career.progress.rows[league.id])}
               leagueId={league.id}
               clubId={clubId}
             />
           )}
-          {tab === 'table' && !career.progress && last && (
+          {tab === 'table' && (!career.progress || stage === 0) && last && (
             <LeagueTable
               title={`Abschlusstabelle ${getLeague(last.leagueId).name} ${last.season}`}
               table={last.table}
@@ -202,6 +217,9 @@ export default function Game({ career, onChange, onExit }: Props) {
         </section>
       </div>
 
+      {showStory && last && (
+        <SeasonStory career={career} season={last} onClose={() => onChange(markStorySeen(career, last.season))} />
+      )}
       <ActionBar career={career} onChange={onChange} go={go} tab={tab} />
     </main>
   );
@@ -223,12 +241,13 @@ function ActionBar({ career, onChange, go, tab }: { career: Career; onChange: (c
     label = career.liveFinal?.done ? 'Abpfiff.' : 'Das Finale läuft.';
     if (tab !== 'season') primary = { text: 'Zum Finale', run: () => go('season') };
   } else if (career.phase === 'season') {
-    label = `Saison ${seasonLabel(career.year)} · ${getClub(currentClubId(p)).name}`;
-    primary = { text: 'Hinrunde spielen', run: () => onChange(playFirstHalf(career)) };
+    const stage = career.progress?.stage ?? 0;
+    label = `Saison ${seasonLabel(career.year)} · Etappe ${stage + 1} von ${STAGES}`;
+    primary = { text: `Etappe ${stage + 1} spielen`, run: () => onChange(playNextStage(career)) };
     secondary = { text: 'Ganze Saison', run: () => onChange(playSeason(career)) };
   } else if (career.phase === 'winter') {
     label = p.loan ? 'Winterpause – du bleibst beim Leihverein.' : `Winterpause · ${offersText(career.offers.length)}`;
-    primary = { text: 'Rückrunde spielen', run: () => onChange(stayInWinter(career)) };
+    primary = { text: 'Rückrunde starten', run: () => onChange(stayInWinter(career)) };
     if (!p.loan && tab !== 'transfers') secondary = { text: 'Angebote', run: () => go('transfers') };
   } else if (career.phase === 'window') {
     label = `Transferfenster · ${offersText(career.offers.length)}`;

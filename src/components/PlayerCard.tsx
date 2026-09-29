@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useCountUp } from '../hooks/useCountUp';
 import { getClub } from '../data/leagues';
 import {
   attributeLabels,
   attributes,
+  cardTier,
   currentClubId,
   formatMoney,
   playerValue,
@@ -19,7 +21,21 @@ export default function PlayerCard({ career }: { career: Career }) {
   const attrs = attributes(p);
   const labels = attributeLabels(p.position);
   const [lo, hi] = potentialRange(p);
-  const tier = p.ovr >= 85 ? 'gold-rare' : p.ovr >= 75 ? 'gold' : p.ovr >= 65 ? 'silver' : 'bronze';
+  const tier = cardTier(p.ovr);
+  // Wertung zählt bei Änderungen hoch; beim Aufstieg in eine bessere Karte gibt es eine kurze Animation.
+  const shownOvr = useCountUp(p.ovr);
+  const prevTier = useRef(tier);
+  const [upgraded, setUpgraded] = useState(false);
+  useEffect(() => {
+    const order = ['bronze', 'silver', 'gold', 'gold-rare'];
+    if (order.indexOf(tier) > order.indexOf(prevTier.current)) {
+      setUpgraded(true);
+      const t = setTimeout(() => setUpgraded(false), 1800);
+      prevTier.current = tier;
+      return () => clearTimeout(t);
+    }
+    prevTier.current = tier;
+  }, [tier]);
   const clubName = getClub(currentClubId(p)).name;
   const contractEnd = career.year + p.contract.yearsLeft;
   // Auf dem Handy sind die Details eingeklappt, damit der Spielbereich schneller erreichbar ist.
@@ -27,9 +43,9 @@ export default function PlayerCard({ career }: { career: Career }) {
 
   return (
     <div className="card-wrap">
-      <div className={`fc-card ${tier}`}>
+      <div className={`fc-card ${tier} ${upgraded ? 'upgraded' : ''}`}>
         <div className="fc-top">
-          <div className="fc-ovr">{p.ovr}</div>
+          <div className="fc-ovr">{shownOvr}</div>
           <div className="fc-pos">{p.position}</div>
         </div>
         <div className="fc-name">{p.name}</div>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { slugify } from '../../data/leagues';
-import { createCareer, finishFinal, playFinalStep, playFirstHalf, playSeason, stayAtClub, stayInWinter } from '../career';
+import { acceptOffer, createCareer, finishFinal, playFinalStep, playFirstHalf, playSeason, stayAtClub, stayInWinter } from '../career';
 import { resolveDecision } from '../decisions';
 import type { Career } from '../types';
 
@@ -11,7 +11,7 @@ describe('Live-Finals, Entscheidungen, Rivale, Kapitän, Schlagzeilen', () => {
   it('ein Live-Finale lässt sich mit Entscheidungen zu Ende spielen', () => {
     let found = false;
     for (let i = 0; i < 40 && !found; i++) {
-      let c: Career = stayInWinter(playFirstHalf(bayern(), true));
+      let c: Career = stayInWinter(playFirstHalf(bayern(), true), true);
       if (c.phase !== 'final') continue;
       found = true;
       // Zwischenstand muss speicherbar sein.
@@ -47,7 +47,7 @@ describe('Live-Finals, Entscheidungen, Rivale, Kapitän, Schlagzeilen', () => {
     for (let i = 0; i < 5; i++) {
       c = playSeason(c);
       if (c.decision) c = resolveDecision(c, c.decision.options[0].id);
-      if (c.phase === 'window') c = c.player.contract.yearsLeft > 0 ? stayAtClub(c) : c;
+      if (c.phase === 'window') c = c.player.contract.yearsLeft > 0 ? stayAtClub(c) : acceptOffer(c, c.offers[0]);
     }
     expect(c.rival!.history.length).toBeGreaterThanOrEqual(3);
     expect((c.news ?? []).length).toBeGreaterThan(5);

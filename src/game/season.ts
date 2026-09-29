@@ -24,6 +24,7 @@ import type {
   Position,
   SeasonProgress,
   SeasonRecord,
+  StageLoad,
   TableRow,
 } from './types';
 
@@ -52,6 +53,7 @@ interface SeasonContext {
   clubId: string;
   half: 1 | 2;
   prog: SeasonProgress;
+  stage: number;
 }
 
 function goalsExpected(att: number, def: number, home: boolean, leagueGoals: number): number {
@@ -139,7 +141,8 @@ function playerMatch(
     status = 'injured';
   } else {
     const captain = player.captainOf === ctx.clubId ? 1 : 0;
-    const selection = rel + ROLE_BONUS[currentRole(player)] + (prog.form - 6.8) * 2 + (player.morale ?? 0) + captain + rotation;
+    const load = LOADS[prog.load ?? 'normal'];
+    const selection = rel + ROLE_BONUS[currentRole(player)] + (prog.form - 6.8) * 2 + (player.morale ?? 0) + captain + rotation + load.selection;
     const startP = player.position === 'TW' ? sigmoid((selection + 1) / 1.2) : sigmoid((selection + 1.5) / 2.2);
     if (chance(startP)) {
       status = 'start';
@@ -185,7 +188,7 @@ function playerMatch(
     rating = Math.round(clamp(r, 3, 10) * 10) / 10;
     prog.form = prog.form * 0.8 + rating * 0.2;
 
-    const injuryRisk = (0.012 + Math.max(0, player.age - 30) * 0.002) * injuryFactor(player);
+    const injuryRisk = (0.012 + Math.max(0, player.age - 30) * 0.002) * injuryFactor(player) * LOADS[prog.load ?? 'normal'].injury;
     if (chance(injuryRisk * share)) {
       const weeks = injuryWeeks();
       prog.injuredFor = Math.round(weeks * 1.3);
@@ -196,7 +199,7 @@ function playerMatch(
 
   const line: MatchLine = {
     competition, opponent: opponentId, home, goalsFor: gf, goalsAgainst: ga, status, minutes, goals, assists, rating,
-    clubId: ctx.clubId, half: ctx.half,
+    clubId: ctx.clubId, half: ctx.half, stage: ctx.stage,
   };
   prog.matches.push(line);
   return line;
@@ -385,44 +388,88 @@ export function startSeason(career: Career): SeasonProgress {
   };
 }
 
+export const STAGES = 6;
+export const STAGES_PER_HALF = 3;
+
+/** Wirkung der gewählten Belastung pro Etappe. */
+export const LOADS: Record<StageLoad, { selection: number; injury: number; form: number }> = {
+  full: { selection: 1, injury: 1.6, form: 0 },
+  normal: { selection: 0, injury: 1, form: 0 },
+  rest: { selection: -2, injury: 0.4, form: 0 },
+  extra: { selection: 0.3, injury: 1.3, form: 0.25 },
+};
+
+/** Spieltage einer Etappe in einer Liga (Index-Bereich der Runden). */
+export function stageRounds(totalRounds: number, stage: number): [number, number] {
+  const mid = Math.floor(totalRounds / 2);
+  const half = stage < STAGES_PER_HALF ? 0 : 1;
+  const [from, to] = half === 0 ? [0, mid] : [mid, totalRounds];
+  const k = stage % STAGES_PER_HALF;
+  return [from + Math.floor(((to - from) * k) / STAGES_PER_HALF), from + Math.floor(((to - from) * (k + 1)) / STAGES_PER_HALF)];
+}
+
+/** Deterministischer Spielplan einer Liga (gleiche Reihenfolge in jeder Etappe). */
+export function leagueRounds(prog: SeasonProgress, leagueId: string): [string, string][][] {
+  return roundRobin(prog.rows[leagueId].map((r) => r.clubId).sort());
+}
+
+/** Spielt eine Halbserie (1 = Hinrunde, 2 = Rückrunde) komplett. */
+export function playHalf(career: Career, prog: SeasonProgress, half: 1 | 2): void {
+  const first = half === 1 ? 0 : STAGES_PER_HALF;
+  for (let st = Math.max(first, prog.stage ?? first); st < first + STAGES_PER_HALF; st++) playStage(career, prog, st);
+}
+
 /**
- * Spielt eine Halbserie (1 = Hinrunde, 2 = Rückrunde) in allen Ligen.
+ * Spielt eine Etappe (ca. 6 Spieltage) in allen Ligen plus fällige Pokal-/Europapokalspiele.
  * Nur die Spiele des aktuellen Vereins des Spielers werden mit seinen Einsätzen simuliert.
  */
-export function playHalf(career: Career, prog: SeasonProgress, half: 1 | 2): void {
+export function playStage(career: Career, prog: SeasonProgress, stage: number): void {
   const player = career.player;
   const clubId = currentClubId(player);
   const leagueId = clubLeagueId(career, clubId);
-  const ctx: SeasonContext = { career, player, clubId, half, prog };
-  if (player.carryBanMatches) {
-    prog.injuredFor += player.carryBanMatches;
-    player.carryBanMatches = 0;
+  const half: 1 | 2 = stage < STAGES_PER_HALF ? 1 : 2;
+  const ctx: SeasonContext = { career, player, clubId, half, prog, stage };
+  // Sperren und Verletzungen aus Entscheidungen greifen zum Start einer Halbserie.
+  if (stage % STAGES_PER_HALF === 0) {
+    if (player.carryBanMatches) {
+      prog.injuredFor += player.carryBanMatches;
+      player.carryBanMatches = 0;
+    }
+    if (player.carryInjuryWeeks) {
+      prog.injuredFor += Math.round(player.carryInjuryWeeks * 1.3);
+      prog.injuryWeeks += player.carryInjuryWeeks;
+      player.carryInjuryWeeks = 0;
+    }
   }
-  if (player.carryInjuryWeeks) {
-    prog.injuredFor += Math.round(player.carryInjuryWeeks * 1.3);
-    prog.injuryWeeks += player.carryInjuryWeeks;
-    player.carryInjuryWeeks = 0;
-  }
+  prog.form = Math.min(8, prog.form + LOADS[prog.load ?? 'normal'].form);
   const inHalf = (at: number) => (half === 1 ? at < 0.5 : at >= 0.5);
 
   for (const l of LEAGUES) {
     const rowList = prog.rows[l.id];
     const rows = new Map(rowList.map((r) => [r.clubId, r]));
-    // Spielplan ist deterministisch (gleiche Reihenfolge der Vereine) und damit in beiden Halbserien gleich.
-    const rounds = roundRobin(rowList.map((r) => r.clubId).sort());
-    const mid = Math.floor(rounds.length / 2);
-    const [from, to] = half === 1 ? [0, mid] : [mid, rounds.length];
+    const rounds = leagueRounds(prog, l.id);
+    const R = rounds.length;
+    const [from, to] = stageRounds(R, stage);
+    const [halfFrom, halfTo] = [stageRounds(R, half === 1 ? 0 : 3)[0], stageRounds(R, half === 1 ? 2 : 5)[1]];
 
     const extras: Scheduled[] = [];
     if (l.id === leagueId) {
       extras.push(...scheduleCup(ctx, l.goalsPerGame));
       if (prog.euro) extras.push(...scheduleEurope(ctx, prog.euro));
     }
-    const due = extras.filter((e) => inHalf(e.at)).sort((a, b) => a.at - b.at);
+    // Ein Zusatzspiel findet vor der Runde statt, deren Zeitpunkt es erreicht – und gehört zu deren Etappe.
+    const roundOf = (at: number) => Math.min(halfTo, Math.max(halfFrom, Math.ceil(at * R)));
+    const due = extras
+      .filter((e) => inHalf(e.at))
+      .filter((e) => {
+        const r = roundOf(e.at);
+        return r === halfTo ? to === halfTo : r >= from && r < to;
+      })
+      .sort((a, b) => a.at - b.at);
 
     let next = 0;
     for (let r = from; r < to; r++) {
-      while (next < due.length && due[next].at <= r / rounds.length) due[next++].play();
+      while (next < due.length && due[next].at <= r / R) due[next++].play();
       for (const [h, a] of rounds[r]) {
         let gh: number;
         let ga: number;
@@ -437,6 +484,30 @@ export function playHalf(career: Career, prog: SeasonProgress, half: 1 | 2): voi
     }
     while (next < due.length) due[next++].play();
   }
+
+  // Etappen-Bilanz für die Anzeige
+  const own = sortTable(prog.rows[leagueId]);
+  const mine = prog.matches.filter((m) => m.stage === stage);
+  const st = halfStats(mine);
+  prog.stageLog = [...(prog.stageLog ?? []), {
+    stage, leagueId, apps: st.apps, goals: st.goals, assists: st.assists, avgRating: st.avgRating,
+    position: own.findIndex((r) => r.clubId === clubId) + 1, points: own.find((r) => r.clubId === clubId)?.points ?? 0,
+  }];
+  prog.stage = stage + 1;
+}
+
+/** Nächste Ligaspiele des Vereins in der kommenden Etappe. */
+export function upcomingFixtures(career: Career, prog: SeasonProgress, stage: number): { opponentId: string; home: boolean }[] {
+  const clubId = currentClubId(career.player);
+  const leagueId = clubLeagueId(career, clubId);
+  const rounds = leagueRounds(prog, leagueId);
+  const [from, to] = stageRounds(rounds.length, stage);
+  const out: { opponentId: string; home: boolean }[] = [];
+  for (let r = from; r < to; r++) {
+    const m = rounds[r].find(([h, a]) => h === clubId || a === clubId);
+    if (m) out.push({ opponentId: m[0] === clubId ? m[1] : m[0], home: m[0] === clubId });
+  }
+  return out;
 }
 
 export interface HalfStats {

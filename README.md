@@ -14,6 +14,12 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
   tauscht sie genau einen Platz mit der 3. Liga
 - **Saison-Simulation:** Alle Ligen werden komplett durchgespielt, dazu nationaler Pokal und
   Champions/Europa/Conference League. Für den Spieler: Einsätze, Minuten, Tore, Vorlagen, Noten, Verletzungen
+- **Saison in 6 Etappen:** je ca. 6 Spieltage – danach Etappen-Bilanz, Tabellenbewegung, Formkurve (Noten der
+  letzten Spiele) und die nächsten Gegner (Topspiel/Pflichtsieg). Vor jeder Etappe die Belastung wählen: Normal,
+  Voll angreifen (mehr Einsätze, mehr Verletzungsrisiko), Extra-Schichten (bessere Form) oder Schonen.
+  „Ganze Saison“ spielt jederzeit den Rest am Stück
+- **Saison-Story:** nach jeder Saison ein Rückblick zum Durchtippen – Zahlen zählen hoch, Karten-Upgrade
+  (Bronze → Silber → Gold → Elite), Konfetti bei Titeln, Geschichte der Saison und Rivalen-Duell
 - **Hinrunde & Rückrunde mit Wintertransferfenster:** Nach der Hinrunde gibt es eine Zwischenbilanz und
   Winter-Angebote (Leihe bis Saisonende, Transfer). Wer wechselt, spielt die Rückrunde beim neuen Verein –
   Pokal und Europapokal laufen dann ohne ihn weiter. „Ganze Saison“ überspringt die Winterpause

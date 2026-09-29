@@ -134,6 +134,8 @@ export interface MatchLine {
   /** Verein, für den der Spieler in diesem Spiel im Kader stand. */
   clubId: string;
   half: 1 | 2;
+  /** Etappe der Saison (0–5). */
+  stage?: number;
 }
 
 export interface TableRow {
@@ -245,6 +247,11 @@ export interface SeasonProgress {
   national?: NationalSeason;
   devReasons?: string[];
   events?: GameEvent[];
+  /** Nächste zu spielende Etappe (0–6). */
+  stage?: number;
+  /** Gewählte Belastung für die nächste Etappe. */
+  load?: StageLoad;
+  stageLog?: StageSummary[];
   cup: CupState;
   euro: EuroState | null;
   winterMove: WinterMove | null;
@@ -286,6 +293,8 @@ export interface Career {
   news?: NewsItem[];
   /** Saisonziele des Trainers für die laufende Saison. */
   seasonGoals?: SeasonGoal[];
+  /** Saison, deren Story schon angesehen wurde. */
+  storySeen?: string;
   /** Rücktritt vom Rücktritt wurde bereits genutzt. */
   comebackUsed?: boolean;
   /** Freigeschaltete Erfolge: ID → Saison. */
@@ -429,4 +438,17 @@ export interface NewsItem {
   half: 1 | 2;
   tag: 'Du' | 'Transfer' | 'Liga' | 'Rivale' | 'Titel' | 'Verein';
   text: string;
+}
+
+export type StageLoad = 'full' | 'normal' | 'rest' | 'extra';
+
+export interface StageSummary {
+  stage: number;
+  leagueId: string;
+  apps: number;
+  goals: number;
+  assists: number;
+  avgRating: number | null;
+  position: number;
+  points: number;
 }

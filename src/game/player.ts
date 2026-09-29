@@ -121,3 +121,11 @@ export function clubStrength(career: Career, clubId: string): number {
 export function clubLeagueId(career: Career, clubId: string): string {
   return career.clubLeague[clubId] ?? getClub(clubId).leagueId;
 }
+
+export type CardTier = 'bronze' | 'silver' | 'gold' | 'gold-rare';
+
+export function cardTier(ovr: number): CardTier {
+  return ovr >= 85 ? 'gold-rare' : ovr >= 75 ? 'gold' : ovr >= 65 ? 'silver' : 'bronze';
+}
+
+export const TIER_NAMES: Record<CardTier, string> = { bronze: 'Bronze', silver: 'Silber', gold: 'Gold', 'gold-rare': 'Elite' };

@@ -81,7 +81,7 @@ describe('Saison-Simulation', () => {
     expect(winter.phase).toBe('winter');
     expect(winter.progress!.rows.bl1.reduce((a, r) => a + r.played, 0)).toBe(18 * 17);
     const reloaded = JSON.parse(JSON.stringify(winter));
-    let done = stayInWinter(reloaded);
+    let done = stayInWinter(reloaded, true);
     // Erreicht der Verein ein Finale, wird es erst gespielt.
     while (done.phase === 'final') done = finishFinal(autoPlayFinal(done));
     expect(done.phase).toBe('window');
@@ -95,7 +95,8 @@ describe('Saison-Simulation', () => {
     c = requestOffers(c, 'loan');
     const loan = c.offers.find((o) => o.type === 'Leihe')!;
     expect(loan).toBeDefined();
-    const done = acceptWinterOffer(c, loan);
+    let done = acceptWinterOffer(c, loan, true);
+    while (done.phase === 'final') done = finishFinal(autoPlayFinal(done));
     const s = done.history[0];
     expect(s.winterMove?.toClubId).toBe(loan.clubId);
     expect(s.clubId).toBe(loan.clubId);
