@@ -14,6 +14,9 @@ export interface FinalSetup {
   ovr: number;
   /** Auswahlwert wie in der Saisonsimulation (Stärke, Form, Vertrauen). */
   selection: number;
+  /** Bonus auf eigene Aktionen (Eiskalt/Showman). */
+  clutch?: number;
+  hothead?: boolean;
 }
 
 /** Plant ein Finale: Chancen beider Teams über 90 Minuten, einige davon mit Entscheidung des Spielers. */
@@ -64,6 +67,8 @@ export function startFinal(setup: FinalSetup): FinalState {
   return {
     final,
     isKeeper: position === 'TW',
+    clutch: setup.clutch ?? 0,
+    hothead: setup.hothead ?? false,
     ownName: setup.ownName,
     ownStrength,
     goalsPerGame,
@@ -185,8 +190,10 @@ function nextMinute(state: FinalState): number {
   return state.next < state.scenes.length ? state.scenes[state.next].minute : 90;
 }
 
-function resolveDecision(state: FinalState, choice: string, q: number, name: string) {
+function resolveDecision(state: FinalState, choice: string, q0: number, name: string) {
   const p = state.pending!;
+  // Eiskalte Spieler und Showmen wachsen in Finals über sich hinaus (entspricht ~6 Wertungspunkten).
+  const q = q0 + (state.clutch ?? 0) * 75;
   const m = p.minute;
   switch (p.kind) {
     case 'attack':
@@ -217,7 +224,7 @@ function resolveDecision(state: FinalState, choice: string, q: number, name: str
     case 'defend': {
       const r = Math.random();
       if (choice === 'tackle') {
-        if (r < 0.6 + q * 0.01) {
+        if (r < 0.6 + q * 0.01 - (state.hothead ? 0.1 : 0)) {
           state.ratingAdj += 0.35;
           state.log.push({ minute: m, text: `${m}'. Perfekte Grätsche von ${name}!`, tone: 'good' });
         } else if (r < 0.85) {

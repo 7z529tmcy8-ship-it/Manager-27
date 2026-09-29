@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { CLUBS, LEAGUES, getClub } from '../data/leagues';
 import { NATIONS, POSITIONS, REAL_PLAYERS, type RealPlayerTemplate } from '../data/players';
+import { LEGENDS, type LegendTemplate } from '../data/legends';
 import { createCareer } from '../game/career';
+import { MAX_TRAITS, TRAITS, getTrait, type TraitId } from '../game/traits';
 import { pick, randInt } from '../game/random';
 import type { Career, Position } from '../game/types';
 
@@ -18,7 +20,7 @@ const TALENTS = [
 ] as const;
 
 export default function CreateCareer({ onCancel, onCreate }: Props) {
-  const [tab, setTab] = useState<'own' | 'real'>('own');
+  const [tab, setTab] = useState<'own' | 'real' | 'legends'>('own');
 
   return (
     <main className="create">
@@ -29,8 +31,11 @@ export default function CreateCareer({ onCancel, onCreate }: Props) {
       <div className="tabs">
         <button className={tab === 'own' ? 'active' : ''} onClick={() => setTab('own')}>Eigener Spieler</button>
         <button className={tab === 'real' ? 'active' : ''} onClick={() => setTab('real')}>Echter Spieler</button>
+        <button className={tab === 'legends' ? 'active' : ''} onClick={() => setTab('legends')}>⭐ Legenden</button>
       </div>
-      {tab === 'own' ? <OwnPlayer onCreate={onCreate} /> : <RealPlayer onCreate={onCreate} />}
+      {tab === 'own' && <OwnPlayer onCreate={onCreate} />}
+      {tab === 'real' && <RealPlayer onCreate={onCreate} />}
+      {tab === 'legends' && <LegendPicker onCreate={onCreate} />}
     </main>
   );
 }
@@ -43,6 +48,7 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
   const [talent, setTalent] = useState<(typeof TALENTS)[number]['id']>('talent');
   const [leagueId, setLeagueId] = useState('bl1');
   const [clubId, setClubId] = useState('');
+  const [traits, setTraits] = useState<TraitId[]>([]);
 
   const clubs = useMemo(
     () => CLUBS.filter((c) => c.leagueId === leagueId).sort((a, b) => a.name.localeCompare(b.name, 'de')),
@@ -58,7 +64,7 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
       ? getClub(clubId)
       : pick(CLUBS.filter((c) => c.strength >= ovr + 2 && c.strength <= ovr + 9));
     onCreate(
-      createCareer({ name: name.trim() || 'Namenloser Held', nation, position, age, ovr, potential, clubId: club.id }),
+      createCareer({ name: name.trim() || 'Namenloser Held', nation, position, age, ovr, potential, clubId: club.id, traits }),
     );
   };
 
@@ -88,6 +94,12 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
           </select>
         </label>
       </div>
+
+      <fieldset>
+        <legend>Charakter (optional, bis zu {MAX_TRAITS})</legend>
+        <TraitChips selected={traits} onToggle={(id) =>
+          setTraits((t) => (t.includes(id) ? t.filter((x) => x !== id) : t.length < MAX_TRAITS ? [...t, id] : t))} />
+      </fieldset>
 
       <fieldset>
         <legend>Talent</legend>
@@ -155,6 +167,65 @@ function RealPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
               <span className="grow">
                 <strong>{p.name}</strong>
                 <small>{p.position} · {p.age} Jahre · {getClub(p.clubId).name} · {p.nation}</small>
+              </span>
+              <span className="pill">Starten →</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function TraitChips({ selected, onToggle }: { selected: TraitId[]; onToggle: (id: TraitId) => void }) {
+  return (
+    <>
+      <div className="chips">
+        {TRAITS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            className={`chip ${selected.includes(t.id) ? 'active' : ''}`}
+            aria-pressed={selected.includes(t.id)}
+            onClick={() => onToggle(t.id)}
+            title={t.description}
+          >
+            {t.icon} {t.name}
+          </button>
+        ))}
+      </div>
+      <p className="hint">
+        {selected.length
+          ? selected.map((id) => `${getTrait(id).name}: ${getTrait(id).description}`).join(' · ')
+          : 'Ohne Charakter spielt dein Spieler ganz normal. Mit Charakter wird die Karriere wilder.'}
+      </p>
+    </>
+  );
+}
+
+/** Kultfiguren als „Was wäre wenn“-Karriere im heutigen Fußball. */
+function LegendPicker({ onCreate }: { onCreate: (c: Career) => void }) {
+  const start = (l: LegendTemplate) => onCreate(createCareer({ ...l }));
+  return (
+    <section className="panel">
+      <p className="hint">
+        „Was wäre wenn?“ – Kultfiguren starten als junge Spieler im heutigen Fußball, mit ihrem ganz eigenen Charakter.
+        Werte und Startvereine sind frei erfunden, die Ereignisse augenzwinkernd.
+      </p>
+      <ul className="legend-list">
+        {LEGENDS.map((l) => (
+          <li key={l.name}>
+            <button onClick={() => start(l)}>
+              <span className="save-ovr legend-ovr">{l.ovr}</span>
+              <span className="grow">
+                <strong>{l.name}</strong>
+                <small>{l.position} · {l.age} Jahre · {getClub(l.clubId).name} · Potenzial ~{l.potential}</small>
+                <span className="legend-bio">{l.bio}</span>
+                <span className="trait-row">
+                  {l.traits.map((t) => (
+                    <span key={t} className="pill trait" title={getTrait(t).description}>{getTrait(t).icon} {getTrait(t).name}</span>
+                  ))}
+                </span>
               </span>
               <span className="pill">Starten →</span>
             </button>

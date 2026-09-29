@@ -2,6 +2,7 @@ import { getClub, getLeague } from '../data/leagues';
 import { performanceIndex, relativePerformance, type DevStats } from './development';
 import { clubLeagueId, currentClubId, seasonLabel } from './player';
 import { chance, clamp, pick, randInt, shuffle } from './random';
+import { hasTrait, type TraitId } from './traits';
 import type { Career, GameEvent } from './types';
 
 interface EventContext {
@@ -259,12 +260,136 @@ export function rollEvents(
   const events: GameEvent[] = [];
   // Verletzungsfolgen zuerst, danach zufällige Ereignisse in zufälliger Reihenfolge.
   const [injury, ...rest] = EVENTS;
-  for (const def of [injury, ...shuffle(rest)]) {
+  // Charakter-Ereignisse kommen zuerst an die Reihe – sie machen die Persönlichkeit spürbar.
+  const traitEvents = shuffle(TRAIT_EVENTS.filter((d) => hasTrait(p, d.trait)));
+  for (const def of [injury, ...traitEvents, ...shuffle(rest)]) {
     if (events.length >= MAX_EVENTS_PER_HALF) break;
     if (def.when(ctx) && chance(def.chance)) events.push({ ...def.apply(ctx), half });
   }
+  // Anführer lassen sich nie ganz hängen.
+  if (hasTrait(p, 'leader')) p.morale = Math.max(-1, p.morale ?? 0);
   return events;
 }
+
+// Ereignisse, die nur Spielern mit einer bestimmten Eigenschaft passieren.
+const TRAIT_EVENTS: (EventDef & { trait: TraitId })[] = [
+  {
+    trait: 'wildcard', when: () => true, chance: 0.18,
+    apply: (c) => {
+      changeMorale(c, -1);
+      return {
+        title: 'Feuerwerk im Badezimmer',
+        text: 'Mit Freunden wird zu Hause Feuerwerk gezündet – die Feuerwehr rückt an. Am Wochenende triffst du trotzdem.',
+        tone: 'bad', effect: 'weniger Vertrauen, aber Kultstatus',
+      };
+    },
+  },
+  {
+    trait: 'wildcard', when: (c) => (c.stats.goals ?? 0) >= 3, chance: 0.25,
+    apply: (c) => {
+      changeMorale(c, 1);
+      return {
+        title: '„Warum immer ich?“',
+        text: 'Nach deinem Tor ziehst du das Trikot hoch – die Botschaft darunter geht um die Welt.',
+        tone: 'good', effect: 'mehr Vertrauen, weltweite Schlagzeilen',
+      };
+    },
+  },
+  {
+    trait: 'wildcard', when: () => true, chance: 0.12,
+    apply: () => ({
+      title: 'Leibchen-Chaos',
+      text: 'Du bekommst das Trainingsleibchen einfach nicht über den Kopf. Das Video wird millionenfach geklickt.',
+      tone: 'good', effect: 'viraler Hit',
+    }),
+  },
+  {
+    trait: 'wildcard', when: () => true, chance: 0.08,
+    apply: (c) => {
+      changeMorale(c, 1);
+      return {
+        title: 'Spendabel',
+        text: 'Spontan verteilst du in der Stadt Geld an Bedürftige – die Fans lieben dich dafür.',
+        tone: 'good', effect: 'mehr Vertrauen',
+      };
+    },
+  },
+  {
+    trait: 'hothead', when: () => true, chance: 0.15,
+    apply: (c) => {
+      changeMorale(c, -2);
+      return {
+        title: 'Ausraster im Training',
+        text: 'Ein harter Zweikampf, ein Wort gibt das andere – der Trainer schickt dich vom Platz.',
+        tone: 'bad', effect: 'deutlich weniger Einsatzchancen',
+      };
+    },
+  },
+  {
+    trait: 'showman', when: (c) => c.stats.apps >= 5, chance: 0.2,
+    apply: (c) => {
+      changeMorale(c, 1);
+      return {
+        title: 'Tor des Monats',
+        text: 'Fallrückzieher aus 16 Metern – das Stadion steht Kopf.',
+        tone: 'good', effect: 'mehr Vertrauen',
+      };
+    },
+  },
+  {
+    trait: 'party', when: () => true, chance: 0.2,
+    apply: (c) => {
+      changeOvr(c, -1);
+      changeMorale(c, -1);
+      return {
+        title: 'Partykönig',
+        text: 'Drei Nächte hintereinander im Club – im Training sieht man es dir an.',
+        tone: 'bad', effect: '−1 Gesamtwertung, weniger Vertrauen',
+      };
+    },
+  },
+  {
+    trait: 'diva', when: (c) => c.share < 0.45, chance: 0.6,
+    apply: (c) => {
+      changeMorale(c, -1);
+      return {
+        title: 'Schmollen auf der Bank',
+        text: 'Du verweigerst das Aufwärmen und lässt über deinen Berater Wechselgedanken streuen.',
+        tone: 'bad', effect: 'weniger Vertrauen',
+      };
+    },
+  },
+  {
+    trait: 'diva', when: (c) => c.perf >= 0.7, chance: 0.2,
+    apply: () => ({
+      title: '„Ich bin der Beste der Welt“',
+      text: 'Im Interview erklärst du dich zum besten Spieler des Planeten. Die Presse liebt es.',
+      tone: 'good', effect: 'Schlagzeilen',
+    }),
+  },
+  {
+    trait: 'leader', when: (c) => c.stats.apps >= 5, chance: 0.15,
+    apply: (c) => {
+      changeMorale(c, 2);
+      return {
+        title: 'Kabinenansprache',
+        text: 'Nach einer Niederlagenserie ergreifst du das Wort – danach läuft es wieder.',
+        tone: 'good', effect: 'mehr Vertrauen',
+      };
+    },
+  },
+  {
+    trait: 'professional', when: (c) => c.career.player.age >= 29, chance: 0.15,
+    apply: (c) => {
+      changeOvr(c, 1);
+      return {
+        title: 'Vorbildprofi',
+        text: 'Ernährung, Schlaf, Extraschichten – dein Körper dankt es dir.',
+        tone: 'good', effect: '+1 Gesamtwertung',
+      };
+    },
+  },
+];
 
 export function moraleLabel(morale: number | undefined): string {
   const m = morale ?? 0;

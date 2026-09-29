@@ -9,6 +9,7 @@ import { maybeDecision } from './decisions';
 import { checkAchievements } from './achievements';
 import { createSeasonGoals, evaluateGoals } from './goals';
 import { applyTraining } from './training';
+import { hasTrait, type TraitId } from './traits';
 import { advanceFinal, autoFinal, finalRating, startFinal } from './final';
 import { addNews, summerNews, winterNews } from './news';
 import { createRival, simulateRivalSeason } from './rival';
@@ -25,6 +26,7 @@ export interface NewPlayer {
   ovr: number;
   potential: number;
   clubId: string;
+  traits?: TraitId[];
 }
 
 export function createCareer(np: NewPlayer): Career {
@@ -53,6 +55,8 @@ export function createCareer(np: NewPlayer): Career {
       loan: null,
       caps: 0,
       internationalGoals: 0,
+      traits: np.traits ?? [],
+      leadership: np.traits?.includes('leader') ? 1 : 0,
     },
     history: [],
     offers: [],
@@ -309,7 +313,10 @@ function startNextFinal(career: Career) {
   const selection = national
     ? p.ovr - (ownStrength - 2)
     : p.ovr - ownStrength + ROLE_BONUS[currentRole(p)] + (p.morale ?? 0) + (p.captainOf === clubId ? 1 : 0);
+  const clutch = (hasTrait(p, 'clutch') ? 0.08 : 0) + (hasTrait(p, 'showman') ? 0.04 : 0);
   return startFinal({
+    clutch,
+    hothead: hasTrait(p, 'hothead'),
     final,
     ownName: national ? p.nation : getClub(clubId).name,
     ownStrength,

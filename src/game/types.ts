@@ -1,3 +1,5 @@
+import type { TraitId } from './traits';
+
 export type Position = 'TW' | 'IV' | 'AV' | 'ZDM' | 'ZM' | 'ZOM' | 'FL' | 'ST';
 
 export type Role = 'Schlüsselspieler' | 'Stammspieler' | 'Rotation' | 'Ergänzung' | 'Perspektivspieler';
@@ -70,6 +72,8 @@ export interface PlayerState {
   penaltyTakerOf?: string | null;
   /** Verletzungswochen, die zum Start der nächsten Halbserie anfallen (z. B. nach einer Entscheidung). */
   carryInjuryWeeks?: number;
+  /** Charaktereigenschaften (z. B. Heißsporn, Showman). */
+  traits?: TraitId[];
   /** Trainingsschwerpunkt: Index des Attributs, 'balanced' oder 'rest'. */
   trainingFocus?: TrainingFocus;
   /** Durch Training gewonnene Attributpunkte (für die Obergrenze). */
@@ -333,6 +337,10 @@ export interface FinalLogLine {
 export interface FinalState {
   final: PendingFinal;
   isKeeper: boolean;
+  /** Bonus auf eigene Aktionen in Finals (Eiskalt/Showman). */
+  clutch?: number;
+  /** Heißsporn: höheres Foulrisiko. */
+  hothead?: boolean;
   ownName: string;
   ownStrength: number;
   goalsPerGame: number;

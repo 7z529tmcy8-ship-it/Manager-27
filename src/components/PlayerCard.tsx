@@ -9,6 +9,7 @@ import {
 } from '../game/player';
 import { moraleLabel } from '../game/events';
 import { focusLabel } from '../game/training';
+import { getTrait } from '../game/traits';
 import type { Career } from '../game/types';
 
 export default function PlayerCard({ career }: { career: Career }) {
@@ -49,6 +50,16 @@ export default function PlayerCard({ career }: { career: Career }) {
           <dd>{getClub(p.contract.clubId).name}{p.contract.yearsLeft > 0 ? ` bis ${contractEnd}` : ' – ausgelaufen'}</dd>
         </div>
         {p.loan && <div><dt>Leihe</dt><dd>{getClub(p.loan.clubId).name}</dd></div>}
+        {(p.traits ?? []).length > 0 && (
+          <div>
+            <dt>Charakter</dt>
+            <dd className="trait-row">
+              {p.traits!.map((t) => (
+                <span key={t} className="pill trait" title={getTrait(t).description}>{getTrait(t).icon} {getTrait(t).name}</span>
+              ))}
+            </dd>
+          </div>
+        )}
         <div><dt>Trainervertrauen</dt><dd>{moraleLabel(p.morale)}</dd></div>
         <div><dt>Training</dt><dd>{focusLabel(p)}</dd></div>
         {p.captainOf && <div><dt>Kapitän</dt><dd>©️ {getClub(p.captainOf).name}</dd></div>}

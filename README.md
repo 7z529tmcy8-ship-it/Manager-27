@@ -31,6 +31,10 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
   „Auf Transferliste setzen“, „Um Leihe bitten“, Karriereende
 - **Karriere-Übersicht:** Stationen, Verlauf der Gesamtwertung, Trophäenschrank, Auszeichnungen
   (Torschützenkönig, Golden Boy, Ballon d’Or …), Länderspiele inkl. WM/EM
+- **Legenden & Charakter:** 14 Kultfiguren (Balotelli, Zlatan, Ronaldinho, Cantona, Gascoigne, Kahn, Effenberg …)
+  starten als „Was wäre wenn“-Karriere jung im heutigen Fußball. Acht Charaktereigenschaften (Unberechenbar,
+  Heißsporn, Showman, Partylöwe, Diva, Anführer, Vollprofi, Eiskalt) verändern Noten, Rote Karten, Entwicklung,
+  Finals und lösen eigene Ereignisse und Entscheidungen aus – auch für eigene Spieler wählbar
 - **Live-Finals:** Pokal-, Europapokal- und Turnierfinals (WM/EM/Copa) laufen als Live-Ticker. In deinen Szenen
   entscheidest du selbst (abziehen, querlegen, dribbeln / grätschen, stellen / rauslaufen, Elfmeter-Ecke) – das
   beeinflusst Ergebnis, Tore und Note. „Ganze Saison“ spielt Finals automatisch

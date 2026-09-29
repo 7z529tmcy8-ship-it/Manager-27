@@ -1,4 +1,5 @@
 import { chance, clamp, normal, randInt } from './random';
+import { hasTrait } from './traits';
 import type { PlayerState, Position } from './types';
 
 /** Wie schnell sich die Lücke zum Potenzial pro Saison schließt – abhängig vom Alter. */
@@ -136,6 +137,8 @@ export function developPlayer(
     if (share < 0.2 && age >= 23) setback += 0.8;
     // Deutlich unter den Erwartungen gespielt.
     if (relPerf <= -1 && share >= 0.3) setback += 0.5;
+    // Partylöwen verschenken Entwicklung.
+    if (hasTrait(p, 'party')) growth *= 0.9;
     change = growth - setback;
   } else {
     const base = 0.8 + (age - 30) * 0.9;
@@ -145,7 +148,8 @@ export function developPlayer(
       1 - 0.15 * Math.max(0, perf) - 0.15 * Math.max(0, relPerf) - 0.1 * Math.min(1, share / 0.75),
     );
     const penalty = perf < 0 ? 1 + 0.15 * -perf : 1;
-    change = -Math.max(0, base * mitigation * penalty + normal(0, 0.4));
+    const lifestyle = hasTrait(p, 'professional') ? 0.85 : hasTrait(p, 'party') ? 1.15 : 1;
+    change = -Math.max(0, base * mitigation * penalty * lifestyle + normal(0, 0.4));
   }
   change *= weight;
   // Obergrenze pro Halbserie: Weltklassespieler machen keine Riesensprünge mehr.

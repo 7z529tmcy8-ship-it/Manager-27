@@ -331,3 +331,16 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .9rem; font-var
 .achievement.done .ach-icon { filter: none; }
 .achievement p { margin: 2px 0 8px; color: var(--text-2); font-size: .88rem; }
 .achievement small { display: block; margin-top: 4px; }
+
+/* Charakter & Legenden */
+.legend-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.legend-list button { width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+.legend-list button:hover { border-color: #d9b45a; }
+.legend-list small, .legend-bio { display: block; }
+.legend-list small { color: var(--muted); }
+.legend-bio { color: var(--text-2); font-size: .88rem; margin: 4px 0 6px; font-style: italic; }
+.legend-ovr { background: linear-gradient(160deg, #1f2a38, #0b0f14); color: #f1d98a; border: 1px solid #d9b45a; }
+.trait-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.legend-list .trait-row { justify-content: flex-start; }
+.pill.trait { text-transform: none; letter-spacing: 0; font-size: .75rem; }

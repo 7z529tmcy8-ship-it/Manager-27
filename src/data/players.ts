@@ -138,6 +138,8 @@ export const NATIONS: Nation[] = [
   { name: 'Ägypten', callUp: 74 },
   { name: 'Elfenbeinküste', callUp: 75 },
   { name: 'Guinea', callUp: 72 },
+  { name: 'Dänemark', callUp: 76 },
+  { name: 'Irland', callUp: 73 },
 ];
 
 export function getNation(name: string): Nation {

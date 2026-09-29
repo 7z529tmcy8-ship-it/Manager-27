@@ -3,6 +3,7 @@ import { POSITIONS } from '../data/players';
 import { generateOffers } from './offers';
 import { createProfile, currentClubId } from './player';
 import { chance, clamp, pick, randInt } from './random';
+import { hasTrait, type TraitId } from './traits';
 import type { Career, DecisionResult, PendingDecision, Position } from './types';
 
 // Vorgeschlagene Positionswechsel (jung → offensiver, älter → defensiver)
@@ -38,6 +39,37 @@ const morale = (career: Career, delta: number) => {
 };
 
 const DECISIONS: DecisionDef[] = [
+  {
+    id: 'celebration',
+    weight: 0.5,
+    when: (c) => ['ST', 'FL', 'ZOM', 'ZM'].includes(c.career.player.position) && c.share >= 0.3,
+    build: () => ({
+      id: 'celebration',
+      title: 'Der große Torjubel',
+      text: 'Derby, 89. Minute, du triffst zum Sieg. 80.000 Menschen schauen nur auf dich. Wie jubelst du?',
+      options: [
+        { id: 'shirt', label: 'Trikot hoch – Botschaft zeigen', hint: 'Kult bei den Fans – oder Gelb und Ärger' },
+        { id: 'pose', label: 'Regungslos posieren', hint: 'Cool. Sehr cool.' },
+        { id: 'team', label: 'Ab zur Bank, mit allen feiern', hint: 'Teamplayer' },
+      ],
+    }),
+    resolve: (career, option) => {
+      if (option === 'shirt') {
+        if (chance(0.5)) {
+          morale(career, 2);
+          return { title: 'Ikonischer Jubel', text: 'Das Foto geht um die Welt – die Fans drucken es auf Schals.', tone: 'good' };
+        }
+        morale(career, -1);
+        return { title: 'Gelbe Karte', text: 'Der Schiedsrichter findet es weniger lustig – und dein Trainer auch nicht.', tone: 'bad' };
+      }
+      if (option === 'pose') {
+        morale(career, 1);
+        return { title: 'Why so serious?', text: 'Du stehst da wie eine Statue. Das Netz liebt es.', tone: 'good' };
+      }
+      morale(career, 1);
+      return { title: 'Teamgeist', text: 'Die ganze Bank feiert mit dir – der Trainer ist begeistert.', tone: 'good' };
+    },
+  },
   {
     id: 'position',
     weight: 2,
@@ -232,15 +264,32 @@ const DECISIONS: DecisionDef[] = [
   },
 ];
 
+// Bestimmte Charaktere geraten öfter in bestimmte Situationen.
+const TRAIT_WEIGHT: Partial<Record<string, Partial<Record<TraitId, number>>>> = {
+  party: { party: 4, wildcard: 2 },
+  interview: { diva: 3, showman: 1.5 },
+  derby: { showman: 1.5, clutch: 1.5, hothead: 1.5 },
+  celebration: { wildcard: 3, showman: 3 },
+  mentor: { leader: 3, professional: 2 },
+};
+
+function weightFor(def: DecisionDef, career: Career): number {
+  const boosts = TRAIT_WEIGHT[def.id] ?? {};
+  return (career.player.traits ?? []).reduce((w, t) => w * (boosts[t] ?? 1), def.weight);
+}
+
 /** Würfelt aus, ob nach einer Halbserie eine Entscheidung ansteht (höchstens eine). */
 export function maybeDecision(career: Career, moment: 'winter' | 'summer', share: number, probability = 0.55): PendingDecision | null {
-  if (!chance(probability)) return null;
+  // Unberechenbare Typen erleben mehr.
+  const p = hasTrait(career.player, 'wildcard') ? Math.max(probability, 0.75) : probability;
+  if (!chance(p)) return null;
   const ctx: DecisionContext = { career, moment, share };
   const options = DECISIONS.filter((d) => d.when(ctx));
   if (!options.length) return null;
-  const total = options.reduce((a, d) => a + d.weight, 0);
+  const weights = options.map((d) => weightFor(d, career));
+  const total = weights.reduce((a, w) => a + w, 0);
   let r = Math.random() * total;
-  const def = options.find((d) => (r -= d.weight) <= 0) ?? pick(options);
+  const def = options.find((_, i) => (r -= weights[i]) <= 0) ?? pick(options);
   return def.build(ctx);
 }
 

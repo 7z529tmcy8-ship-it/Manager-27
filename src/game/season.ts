@@ -10,6 +10,7 @@ import {
   seasonLabel,
 } from './player';
 import { injuryFactor } from './training';
+import { hasTrait } from './traits';
 import { chance, clamp, normal, pick, poisson, rand, randInt, sigmoid, weightedPick } from './random';
 import type {
   Career,
@@ -157,7 +158,7 @@ function playerMatch(
   let assists = 0;
   let rating: number | null = null;
   if (minutes > 0) {
-    const penalties = player.penaltyTakerOf === ctx.clubId ? 1.15 : 1;
+    const penalties = (player.penaltyTakerOf === ctx.clubId ? 1.15 : 1) * (hasTrait(player, 'showman') ? 1.05 : 1);
     const pGoal = Math.min(0.8, GOAL_SHARE[player.position] * penalties * Math.exp(rel * 0.04) * share);
     const pAssist = Math.min(0.6, ASSIST_SHARE[player.position] * Math.exp(rel * 0.04) * share);
     for (let g = 0; g < gf; g++) {
@@ -169,7 +170,15 @@ function playerMatch(
       if (ga === 0 && minutes >= 60) r += 0.5;
       if (player.position === 'TW' || player.position === 'IV') r -= ga * 0.15;
     }
-    r += normal(0, 0.45);
+    // Unberechenbare Spieler schwanken stärker.
+    r += normal(0, hasTrait(player, 'wildcard') ? 0.7 : 0.45);
+    // Heißsporn: gelegentlich Rot und Sperre.
+    if (hasTrait(player, 'hothead') && chance(0.02)) {
+      r -= 1.2;
+      const ban = randInt(1, 3);
+      prog.injuredFor += ban;
+      prog.notes.push(`Rote Karte gegen ${getClub(opponentId).name} – ${ban} ${ban === 1 ? 'Spiel' : 'Spiele'} Sperre.`);
+    }
     if (minutes < 30) r = 6.5 + (r - 6.5) * 0.6;
     rating = Math.round(clamp(r, 3, 10) * 10) / 10;
     prog.form = prog.form * 0.8 + rating * 0.2;
