@@ -77,6 +77,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'charts', icon: '🎤', name: 'Doppelleben', description: 'Lande drei Hits mit deinem Nebenprojekt.', progress: (c) => [Math.min(3, c.player.sideProject?.hits ?? 0), 3] },
   { id: 'president', icon: '🎰', name: 'Präsident & Spieler', description: 'Gewinne im Lotto und kaufe deinen eigenen Verein.', progress: (c) => has(!!c.owner) },
   { id: 'press10', icon: '🎙️', name: 'Sprücheklopfer', description: 'Gib 10 Pressekonferenzen.', progress: (c) => [c.pressCount ?? 0, 10] },
+  { id: 'second_chance', icon: '💔', name: 'Zweite Chance', description: 'Bringe ein gescheitertes Talent auf eine Gesamtwertung von 85.', progress: (c) => [c.secondChance ? Math.min(peak(c), 85) : 0, 85] },
   { id: 'rival10', icon: '⚔️', name: 'Rivale bezwungen', description: 'Gewinne 10 Saison-Duelle gegen deinen Rivalen.', progress: (c) => [(c.rival?.history ?? []).filter((h) => h.duel === 'player').length, 10] },
 ];
 

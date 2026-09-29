@@ -71,3 +71,15 @@ it('Pressekonferenz: jede Antwort funktioniert und zählt mit', () => {
     }
   }
 });
+
+it('Gescheiterte Talente: zweite Chance, verletzungsanfällige Spieler fallen öfter aus', async () => {
+  const { FAILED_TALENTS } = await import('../../data/legends');
+  const { injuryFactor } = await import('../training');
+  const pato = FAILED_TALENTS.find((l) => l.name === 'Alexandre Pato')!;
+  const c = createCareer({ ...pato, secondChance: true });
+  expect(c.secondChance).toBe(true);
+  expect(c.player.traits).toContain('fragile');
+  expect(injuryFactor(c.player)).toBeGreaterThan(1.5);
+  const done = playSeason(c);
+  expect(done.history).toHaveLength(1);
+});

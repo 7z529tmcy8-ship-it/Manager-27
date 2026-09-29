@@ -47,6 +47,12 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
   Spott; die Entwicklung auf dem Platz leidet etwas. Jederzeit beendbar
 - **Rücktritt vom Rücktritt:** nach dem Karriereende einmal zurückkommen (bis 38): zwei Jahre Pause, −15 Wertung,
   dann vereinslos ins Transferfenster
+- **Startmenü als Stadtkarte:** eine selbst gezeichnete Karte im Stil einer Karten-App mit Stadion (Weiterspielen),
+  Nachwuchsakademie (neue Karriere), Fußballmuseum (Hall of Fame), Trophäenhaus (Erfolge), Spielerwohnheim
+  (Spielstände) – plus Kiosk und eine verdächtige Lagerhalle. Antippen zoomt hin und öffnet die Ortskarte unten
+- **Zweite Chance:** 12 gescheiterte Talente (Freddy Adu, Bojan Krkić, Pato, Wilshere, Kerlon, Macheda, Ravel Morrison,
+  Anderson, Hachim Mastour, Giovani dos Santos, Kakuta, Marko Marin) starten noch einmal jung – schaffst du Wertung 85?
+  Neuer Charakterzug „Verletzungsanfällig“ (deutlich höheres Verletzungsrisiko)
 - **Pressekonferenzen:** zwischen den Etappen lädt oft die Presse ein – Torflaute, Lauf, Bank, Tabellenplatz,
   Rivale, Schiri oder völlig absurde Fragen („Gehört Ananas auf Pizza?“). Die Antworten wirken auf
   Trainervertrauen und Form, manchmal gibt es Sperren und Schlagzeilen
@@ -73,7 +79,7 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
 - **Trainingsschwerpunkt:** vor jeder Halbserie ein Attribut trainieren (+1 pro Halbserie, max. +10); Schlüssel-
   attribute der Position helfen zusätzlich der Gesamtwertung bzw. bremsen den Abbau; „Regeneration“ senkt das
   Verletzungsrisiko
-- **Erfolge:** 31 Karriereziele (100 Tore, Triple, Weltmeister, Ballon d’Or, Von ganz unten …) mit Fortschritt,
+- **Erfolge:** 32 Karriereziele (100 Tore, Triple, Weltmeister, Ballon d’Or, Von ganz unten …) mit Fortschritt,
   über alle Karrieren
 - **Hall of Fame:** Rangliste aller Karrieren nach Legendenpunkten (sortierbar), Rekorde über alle Karrieren
   und Vergleich von bis zu drei Karrieren inklusive Entwicklungskurven

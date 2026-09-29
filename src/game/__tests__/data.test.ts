@@ -8,10 +8,10 @@ it('alle echten Spieler gehören zu existierenden Vereinen', () => {
 });
 
 it('alle Legenden haben gültige Vereine und Eigenschaften', async () => {
-  const { LEGENDS } = await import('../../data/legends');
+  const { LEGENDS, FAILED_TALENTS } = await import('../../data/legends');
   const { TRAITS } = await import('../traits');
   const ids = new Set(TRAITS.map((t) => t.id));
-  for (const l of LEGENDS) {
+  for (const l of [...LEGENDS, ...FAILED_TALENTS]) {
     expect(() => getClub(l.clubId), l.name).not.toThrow();
     for (const t of l.traits) expect(ids.has(t), `${l.name}: ${t}`).toBe(true);
   }

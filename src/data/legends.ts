@@ -51,3 +51,36 @@ const RAW: [string, string, Position, number, number, number, string, TraitId[],
 export const LEGENDS: LegendTemplate[] = RAW.map(([name, nation, position, age, ovr, potential, club, traits, bio]) => ({
   name, nation, position, age, ovr, potential, clubId: slugify(club), traits, bio,
 }));
+
+// Gescheiterte Talente: als Wunderkinder gefeiert, der große Durchbruch blieb aus – oft wegen Verletzungen,
+// Pech oder falscher Wechsel. Hier bekommen sie eine zweite Chance. Werte sind eigene Schätzungen.
+const FAILED_RAW: typeof RAW = [
+  ['Freddy Adu', 'USA', 'ZOM', 17, 69, 90, 'Benfica Lissabon', ['diva', 'wildcard'],
+    'Mit 14 Profi in den USA und als „nächster Pelé“ gefeiert – danach eine Reise durch unzählige Vereine.'],
+  ['Bojan Krkić', 'Spanien', 'ST', 17, 72, 90, 'FC Barcelona', ['wildcard'],
+    'Knackte als Teenager bei Barça Rekorde – der ganz große Durchbruch blieb aus.'],
+  ['Alexandre Pato', 'Brasilien', 'ST', 18, 75, 92, 'AC Mailand', ['fragile', 'showman'],
+    'Mit 18 Torjäger in Mailand. Dann kamen die Muskelverletzungen – immer und immer wieder.'],
+  ['Jack Wilshere', 'England', 'ZM', 19, 74, 90, 'Arsenal FC', ['fragile', 'leader'],
+    'Englands großes Mittelfeldtalent, das Verletzungen ein ums andere Mal stoppten.'],
+  ['Kerlon', 'Brasilien', 'ST', 19, 68, 86, 'Inter Mailand', ['showman', 'fragile'],
+    'Erfinder des „Seehund-Dribblings“: Ball auf der Stirn, Gegner ratlos. Die Knie spielten nicht mit.'],
+  ['Federico Macheda', 'Italien', 'ST', 17, 67, 86, 'Manchester United', ['clutch'],
+    'Traumtor beim Debüt 2009 gegen Aston Villa – danach wurde es still um ihn.'],
+  ['Ravel Morrison', 'England', 'ZM', 18, 69, 89, 'Manchester United', ['wildcard', 'diva'],
+    'Galt in Manchester als eines der größten Talente seiner Generation. Der Durchbruch kam nie.'],
+  ['Anderson', 'Brasilien', 'ZM', 19, 73, 88, 'Manchester United', ['wildcard'],
+    'Golden Boy 2008 – später eher für schwankende Form als für Titel bekannt.'],
+  ['Hachim Mastour', 'Marokko', 'ZOM', 16, 62, 88, 'AC Mailand', ['showman', 'diva'],
+    'Mit 15 ein Freestyle-Star im Netz, Millionen Klicks. Auf dem Platz blieb der Durchbruch aus.'],
+  ['Giovani dos Santos', 'Mexiko', 'FL', 18, 71, 88, 'FC Barcelona', ['showman'],
+    'Barças Wunderkind aus Mexiko – in Europa wurde er nie der erhoffte Star.'],
+  ['Gaël Kakuta', 'Frankreich', 'FL', 18, 68, 87, 'Chelsea FC', ['wildcard'],
+    'Um seinen Wechsel zu Chelsea gab es sogar Streit vor der FIFA – danach folgte Leihe auf Leihe.'],
+  ['Marko Marin', 'Deutschland', 'FL', 19, 72, 87, 'Borussia Mönchengladbach', ['showman'],
+    'Als „deutscher Messi“ gefeiert, bei Chelsea kaum gespielt – danach quer durch Europa.'],
+];
+
+export const FAILED_TALENTS: LegendTemplate[] = FAILED_RAW.map(([name, nation, position, age, ovr, potential, club, traits, bio]) => ({
+  name, nation, position, age, ovr, potential, clubId: slugify(club), traits, bio,
+}));

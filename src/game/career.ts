@@ -41,6 +41,8 @@ export interface NewPlayer {
   potential: number;
   clubId: string;
   traits?: TraitId[];
+  /** Gescheitertes Talent mit zweiter Chance. */
+  secondChance?: boolean;
 }
 
 export function createCareer(np: NewPlayer): Career {
@@ -82,6 +84,7 @@ export function createCareer(np: NewPlayer): Career {
     transfers: [],
     rival: createRival(np, club.id),
     news: [],
+    secondChance: np.secondChance || undefined,
   };
   career.seasonGoals = createSeasonGoals(career);
   if (isKidnapName(np.name)) return kidnap(career);

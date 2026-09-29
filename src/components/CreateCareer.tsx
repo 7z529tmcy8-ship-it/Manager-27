@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { CLUBS, LEAGUES, getClub } from '../data/leagues';
 import { NATIONS, POSITIONS, REAL_PLAYERS, type RealPlayerTemplate } from '../data/players';
-import { LEGENDS, type LegendTemplate } from '../data/legends';
+import { FAILED_TALENTS, LEGENDS, type LegendTemplate } from '../data/legends';
 import { createCareer } from '../game/career';
 import { MAX_TRAITS, TRAITS, getTrait, type TraitId } from '../game/traits';
 import { pick, randInt } from '../game/random';
@@ -20,7 +20,7 @@ const TALENTS = [
 ] as const;
 
 export default function CreateCareer({ onCancel, onCreate }: Props) {
-  const [tab, setTab] = useState<'own' | 'real' | 'legends'>('own');
+  const [tab, setTab] = useState<'own' | 'real' | 'legends' | 'failed'>('own');
 
   return (
     <main className="create">
@@ -32,10 +32,12 @@ export default function CreateCareer({ onCancel, onCreate }: Props) {
         <button className={tab === 'own' ? 'active' : ''} onClick={() => setTab('own')}>Eigener Spieler</button>
         <button className={tab === 'real' ? 'active' : ''} onClick={() => setTab('real')}>Echter Spieler</button>
         <button className={tab === 'legends' ? 'active' : ''} onClick={() => setTab('legends')}>⭐ Legenden</button>
+        <button className={tab === 'failed' ? 'active' : ''} onClick={() => setTab('failed')}>💔 Zweite Chance</button>
       </div>
       {tab === 'own' && <OwnPlayer onCreate={onCreate} />}
       {tab === 'real' && <RealPlayer onCreate={onCreate} />}
-      {tab === 'legends' && <LegendPicker onCreate={onCreate} />}
+      {tab === 'legends' && <LegendPicker onCreate={onCreate} list={LEGENDS} intro={LEGEND_INTRO} />}
+      {tab === 'failed' && <LegendPicker onCreate={onCreate} list={FAILED_TALENTS} intro={FAILED_INTRO} secondChance />}
     </main>
   );
 }
@@ -203,17 +205,19 @@ function TraitChips({ selected, onToggle }: { selected: TraitId[]; onToggle: (id
   );
 }
 
-/** Kultfiguren als „Was wäre wenn“-Karriere im heutigen Fußball. */
-function LegendPicker({ onCreate }: { onCreate: (c: Career) => void }) {
-  const start = (l: LegendTemplate) => onCreate(createCareer({ ...l }));
+const LEGEND_INTRO =
+  '„Was wäre wenn?“ – Kultfiguren starten als junge Spieler im heutigen Fußball, mit ihrem ganz eigenen Charakter. Werte und Startvereine sind frei erfunden, die Ereignisse augenzwinkernd.';
+const FAILED_INTRO =
+  'Als Wunderkinder gefeiert, am Ende nie ganz oben angekommen. Hier startest du noch einmal mit ihrem Talent – schaffst du, was ihnen verwehrt blieb? Ziel: Gesamtwertung 85. Werte sind eigene Schätzungen.';
+
+/** Kultfiguren bzw. gescheiterte Talente als „Was wäre wenn“-Karriere im heutigen Fußball. */
+function LegendPicker({ onCreate, list, intro, secondChance }: { onCreate: (c: Career) => void; list: LegendTemplate[]; intro: string; secondChance?: boolean }) {
+  const start = (l: LegendTemplate) => onCreate(createCareer({ ...l, secondChance }));
   return (
     <section className="panel">
-      <p className="hint">
-        „Was wäre wenn?“ – Kultfiguren starten als junge Spieler im heutigen Fußball, mit ihrem ganz eigenen Charakter.
-        Werte und Startvereine sind frei erfunden, die Ereignisse augenzwinkernd.
-      </p>
+      <p className="hint">{intro}</p>
       <ul className="legend-list">
-        {LEGENDS.map((l) => (
+        {list.map((l) => (
           <li key={l.name}>
             <button onClick={() => start(l)}>
               <span className="save-ovr legend-ovr">{l.ovr}</span>

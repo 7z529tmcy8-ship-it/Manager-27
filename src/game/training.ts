@@ -42,7 +42,7 @@ export function focusLabel(p: PlayerState): string {
 }
 
 export function injuryFactor(p: PlayerState): number {
-  return p.trainingFocus === 'rest' ? 0.6 : 1;
+  return (p.trainingFocus === 'rest' ? 0.6 : 1) * ((p.traits ?? []).includes('fragile') ? 1.8 : 1);
 }
 
 /**

@@ -320,6 +320,8 @@ export interface Career {
   lottoYear?: number;
   /** Lotto-Jackpot wurde schon geknackt (nur einmal pro Karriere). */
   lottoWon?: boolean;
+  /** Gescheitertes Talent, das eine zweite Chance bekommt. */
+  secondChance?: boolean;
   /** Anzahl gegebener Pressekonferenzen. */
   pressCount?: number;
 }
