@@ -36,10 +36,12 @@ interface ChartProps {
   format?: (v: number) => string;
   /** Optionale Referenzlinie (z. B. 100 beim Vergleich). */
   baseline?: number;
+  /** Fläche unter der ersten Linie (dezent, wie in Börsen-Apps). */
+  area?: boolean;
 }
 
 /** Linienchart mit Fadenkreuz-Tooltip, dezentem Raster, Legende und Endbeschriftung. */
-export function LineChart({ times, lines, height = 280, format = (v) => fmt(v), baseline }: ChartProps) {
+export function LineChart({ times, lines, height = 280, format = (v) => fmt(v), baseline, area }: ChartProps) {
   const [wrapRef, width] = useWidth<HTMLDivElement>();
   const [hover, setHover] = useState<number | null>(null);
   const pad = { l: 8, r: 64, t: 12, b: 24 };
@@ -104,6 +106,12 @@ export function LineChart({ times, lines, height = 280, format = (v) => fmt(v), 
           </text>
         ))}
         {baseline !== undefined && <line x1={pad.l} x2={pad.l + w} y1={y(baseline)} y2={y(baseline)} className="tbase" />}
+        {area && lines[0] && (
+          <path
+            d={`${path(lines[0].values)}L${x(n - 1).toFixed(1)},${pad.t + h}L${x(0).toFixed(1)},${pad.t + h}Z`}
+            className={`tarea s${lines[0].slot}`}
+          />
+        )}
         {lines.map((l) => (
           <path key={l.id} d={path(l.values)} className={`tline s${l.slot}`} />
         ))}
