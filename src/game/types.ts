@@ -328,6 +328,10 @@ export interface Career {
   cash?: number;
   /** Statistik im Glückspalast. */
   casino?: CasinoStats;
+  /** Verdiente Sonderkarten (Team der Saison usw.). */
+  specialCards?: SpecialCard[];
+  /** Saison, in der der Trainingsboost aus einem Pack schon benutzt wurde. */
+  boostSeason?: string;
   /** Gescheitertes Talent, das eine zweite Chance bekommt. */
   secondChance?: boolean;
   /** Anzahl gegebener Pressekonferenzen. */
@@ -371,6 +375,18 @@ export interface CasinoStats {
   biggestWin: number;
   jackpots: number;
   last?: CasinoSpin;
+}
+
+export type SpecialType = 'tots' | 'potm' | 'record' | 'champion';
+
+export interface SpecialCard {
+  type: SpecialType;
+  season: string;
+  name: string;
+  position: Position;
+  nation: string;
+  clubId: string;
+  ovr: number;
 }
 
 export interface Ownership {

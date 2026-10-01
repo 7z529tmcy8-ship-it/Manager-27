@@ -7,6 +7,7 @@ import { chance, uid } from './random';
 import { ownerSeasonEnd, ownsClub } from './owner';
 import { pressConference } from './press';
 import { postInbox } from './inbox';
+import { SPECIALS, makeSpecials, specialsFor } from './specials';
 import { PRESS_FREQUENCIES, adjustGrowth, settingsOf } from './difficulty';
 import {
   STAGES,
@@ -434,6 +435,14 @@ function completeSeason(career: Career): Career {
   p.caps += record.caps;
   p.internationalGoals += record.internationalGoals;
   record.ovrWinter = prog.ovrWinter;
+  const specials = makeSpecials(career, record, specialsFor(record, prog.stageLog ?? []));
+  if (specials.length) {
+    career.specialCards = [...(career.specialCards ?? []), ...specials];
+    for (const sc of specials) {
+      postInbox(career, { kind: 'achievement', season: record.season, title: `Sonderkarte: ${SPECIALS[sc.type].name}!`, text: `Deine ${sc.ovr}er-Karte liegt jetzt in deiner Sammlung.` });
+    }
+    addNews(career, 2, 'Du', `${p.name} erhält eine Sonderkarte: ${specials.map((x) => SPECIALS[x.type].name).join(' & ')}.`);
+  }
   record.events = prog.events ?? [];
   record.devReasons = prog.devReasons ?? [];
   career.progress = null;

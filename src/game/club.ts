@@ -1,0 +1,247 @@
+import { FAILED_TALENTS, LEGENDS } from '../data/legends';
+import { REAL_PLAYERS } from '../data/players';
+import { getClub, slugify } from '../data/leagues';
+import { cardTier } from './player';
+import type { Career, Position, SeasonRecord, SpecialCard, SpecialType } from './types';
+
+// „Club“ über alle Karrieren hinweg: Coins, gesammelte Karten, Items. Angelehnt an Karten-Sammelmodi,
+// aber mit eigenen Namen und Designs. Coins verdient man nur im Karrieremodus – kein echtes Geld.
+
+export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | SpecialType;
+
+export interface CollectCard {
+  id: string;
+  name: string;
+  position: Position;
+  nation: string;
+  club: string;
+  ovr: number;
+  variant: CardVariant;
+  label?: string;
+}
+
+export type ItemKind = 'fitness' | 'training';
+export const ITEMS: Record<ItemKind, { name: string; icon: string; text: string }> = {
+  fitness: { name: 'Fitness-Kit', icon: '🩹', text: 'Heilt eine laufende Verletzung sofort.' },
+  training: { name: 'Trainingsboost', icon: '⚡', text: '+1 Gesamtwertung (bis zum Potenzial, einmal pro Saison).' },
+};
+
+export interface ClubState {
+  coins: number;
+  /** Karten-ID → Anzahl. */
+  cards: Record<string, number>;
+  /** Eigene Sonderkarten (aus den Karrieren). */
+  specials: CollectCard[];
+  items: Record<ItemKind, number>;
+  /** Karriere-ID → Anzahl bereits ausgezahlter Saisons. */
+  credited: Record<string, number>;
+  packsOpened: number;
+  /** Willkommens-Pack schon geöffnet? */
+  welcomeClaimed: boolean;
+}
+
+export const START_COINS = 3000;
+export const freshClub = (): ClubState => ({
+  coins: START_COINS,
+  cards: {},
+  specials: [],
+  items: { fitness: 1, training: 0 },
+  credited: {},
+  packsOpened: 0,
+  welcomeClaimed: false,
+});
+
+// ---------- Kartenpool ----------
+const cardId = (name: string) => slugify(name);
+
+export const CARD_POOL: CollectCard[] = [
+  ...REAL_PLAYERS.map((p) => ({
+    id: cardId(p.name), name: p.name, position: p.position, nation: p.nation, club: getClub(p.clubId).name, ovr: p.ovr,
+    variant: cardTier(p.ovr) === 'bronze' ? ('silver' as const) : (cardTier(p.ovr) as CardVariant),
+  })),
+  ...LEGENDS.map((l) => ({ id: cardId(l.name), name: l.name, position: l.position, nation: l.nation, club: 'Ikone', ovr: l.potential, variant: 'icon' as const, label: 'Ikone' })),
+  ...FAILED_TALENTS.map((l) => ({ id: cardId(l.name), name: l.name, position: l.position, nation: l.nation, club: 'Zweite Chance', ovr: l.potential, variant: 'talent' as const, label: 'Was wäre wenn' })),
+];
+export const getCard = (id: string) => CARD_POOL.find((c) => c.id === id);
+
+/** Schnellverkaufswert einer Karte in Coins. */
+export function sellValue(c: CollectCard): number {
+  if (c.variant === 'icon') return 4000;
+  if (c.variant === 'talent') return 800;
+  if (c.variant === 'gold-rare') return 900 + (c.ovr - 85) * 150;
+  if (c.variant === 'gold') return 250;
+  return 80;
+}
+
+/** Seltenheit für Sortierung und „bester Zug“. */
+export function rarity(c: CollectCard): number {
+  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, icon: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
+  return base * 100 + c.ovr;
+}
+
+// ---------- Packs ----------
+export interface PackDef {
+  id: string;
+  name: string;
+  price: number;
+  size: number;
+  text: string;
+  /** Welche Karten in Frage kommen und mit welchem Gewicht. */
+  weight: (c: CollectCard) => number;
+  /** Garantie für die erste Karte. */
+  guarantee?: (c: CollectCard) => boolean;
+  itemChance: number;
+}
+
+const lowWeight = (c: CollectCard) => (c.variant === 'icon' ? 0.02 : c.variant === 'talent' ? 0.15 : Math.exp(-(c.ovr - 70) / 5));
+export const PACKS: PackDef[] = [
+  { id: 'standard', name: 'Standard-Pack', price: 1500, size: 3, text: '3 Karten, meist Silber und Gold, dazu mit Glück ein Item.', weight: lowWeight, itemChance: 0.5 },
+  {
+    id: 'gold', name: 'Gold-Pack', price: 4000, size: 3, text: '3 Karten ab 75, Chance auf Elite.',
+    weight: (c) => (c.variant === 'icon' ? 0.05 : c.ovr >= 75 ? Math.exp(-(c.ovr - 78) / 6) : 0), itemChance: 0.35,
+  },
+  {
+    id: 'premium', name: 'Premium-Pack', price: 10000, size: 4, text: '4 Karten ab 78, eine davon garantiert Elite (85+).',
+    weight: (c) => (c.variant === 'icon' ? 0.1 : c.ovr >= 78 ? 1 : 0), guarantee: (c) => c.ovr >= 85 && c.variant !== 'icon', itemChance: 0.25,
+  },
+  {
+    id: 'icon', name: 'Ikonen-Pack', price: 25000, size: 2, text: '1 garantierte Ikone plus eine Karte ab 80.',
+    weight: (c) => (c.ovr >= 80 && c.variant !== 'icon' ? 1 : 0), guarantee: (c) => c.variant === 'icon', itemChance: 0,
+  },
+];
+
+export interface PackResult {
+  cards: { card: CollectCard; duplicate: boolean }[];
+  items: ItemKind[];
+}
+
+function weightedPick<T>(list: T[], w: (x: T) => number, rand: () => number): T {
+  const total = list.reduce((a, x) => a + w(x), 0);
+  let r = rand() * total;
+  for (const x of list) if ((r -= w(x)) <= 0) return x;
+  return list[list.length - 1];
+}
+
+/** Pack kaufen und öffnen. Gibt null zurück, wenn die Coins nicht reichen. */
+export function openPack(club: ClubState, packId: string, rand = Math.random, free = false): { club: ClubState; result: PackResult } | null {
+  const pack = PACKS.find((p) => p.id === packId);
+  if (!pack || (!free && club.coins < pack.price)) return null;
+  const chosen: CollectCard[] = [];
+  for (let i = 0; i < pack.size; i++) {
+    const pool = CARD_POOL.filter((c) => !chosen.includes(c) && (i === 0 && pack.guarantee ? pack.guarantee(c) : pack.weight(c) > 0));
+    chosen.push(weightedPick(pool, i === 0 && pack.guarantee ? () => 1 : pack.weight, rand));
+  }
+  const cards = { ...club.cards };
+  const result: PackResult = { cards: [], items: [] };
+  for (const c of chosen.sort((a, b) => rarity(b) - rarity(a))) {
+    result.cards.push({ card: c, duplicate: (cards[c.id] ?? 0) > 0 });
+    cards[c.id] = (cards[c.id] ?? 0) + 1;
+  }
+  const items = { ...club.items };
+  if (rand() < pack.itemChance) {
+    const kind: ItemKind = rand() < 0.5 ? 'fitness' : 'training';
+    items[kind] += 1;
+    result.items.push(kind);
+  }
+  return {
+    club: { ...club, coins: club.coins - (free ? 0 : pack.price), cards, items, packsOpened: club.packsOpened + 1 },
+    result,
+  };
+}
+
+/** Alle doppelten Karten schnell verkaufen (eine bleibt jeweils). */
+export function sellDuplicates(club: ClubState): { club: ClubState; coins: number; count: number } {
+  let coins = 0;
+  let count = 0;
+  const cards: Record<string, number> = {};
+  for (const [id, n] of Object.entries(club.cards)) {
+    const c = getCard(id);
+    if (!c) continue;
+    if (n > 1) {
+      coins += (n - 1) * sellValue(c);
+      count += n - 1;
+    }
+    cards[id] = Math.min(n, 1);
+  }
+  return { club: { ...club, cards, coins: club.coins + coins }, coins, count };
+}
+
+// ---------- Coins aus der Karriere ----------
+/** Coins für eine Saison: Einsätze, Tore, Vorlagen, Titel, Auszeichnungen, Erfolge und Sonderkarten. */
+export function seasonCoins(r: SeasonRecord, specials: number): number {
+  return (
+    300 + r.apps * 10 + r.goals * 30 + r.assists * 20 + r.trophies.length * 600 + r.awards.length * 800 +
+    (r.achievements?.length ?? 0) * 250 + specials * 750
+  );
+}
+
+/** Noch nicht ausgezahlte Saisons einer Karriere gutschreiben und ihre Sonderkarten in die Sammlung legen. */
+export function creditCareer(club: ClubState, career: Career): { club: ClubState; gained: number; seasons: number } {
+  const done = club.credited[career.id] ?? 0;
+  const fresh = career.history.slice(done);
+  if (!fresh.length) return { club, gained: 0, seasons: 0 };
+  let gained = 0;
+  const specials = [...club.specials];
+  for (const r of fresh) {
+    const mine = (career.specialCards ?? []).filter((s) => s.season === r.season);
+    gained += seasonCoins(r, mine.length);
+    specials.push(...mine.map((s) => specialToCard(career.id, s)));
+  }
+  return {
+    club: { ...club, coins: club.coins + gained, specials, credited: { ...club.credited, [career.id]: career.history.length } },
+    gained,
+    seasons: fresh.length,
+  };
+}
+
+export function specialToCard(careerId: string, s: SpecialCard): CollectCard {
+  return {
+    id: `own-${careerId}-${s.season}-${s.type}`,
+    name: s.name,
+    position: s.position,
+    nation: s.nation,
+    club: getClub(s.clubId).name,
+    ovr: s.ovr,
+    variant: s.type,
+    label: `Saison ${s.season}`,
+  };
+}
+
+// ---------- Items im Karrieremodus ----------
+export function canUseItem(career: Career, kind: ItemKind): boolean {
+  if (career.phase === 'retired' || career.phase === 'final') return false;
+  const p = career.player;
+  if (kind === 'fitness') return (career.progress?.injuredFor ?? 0) > 0 || (p.carryInjuryWeeks ?? 0) > 0;
+  const season = career.history.length ? career.year : career.startYear;
+  return p.ovr < p.potential && career.boostSeason !== String(season);
+}
+
+export function applyItem(prev: Career, kind: ItemKind): Career {
+  if (!canUseItem(prev, kind)) return prev;
+  const career: Career = structuredClone(prev);
+  if (kind === 'fitness') {
+    if (career.progress) career.progress.injuredFor = 0;
+    career.player.carryInjuryWeeks = 0;
+  } else {
+    career.player.ovr += 1;
+    career.boostSeason = String(career.history.length ? career.year : career.startYear);
+  }
+  career.updatedAt = Date.now();
+  return career;
+}
+
+/** Die aktuelle Karte des eigenen Spielers – als Sonderkarte, wenn er sich in der letzten Saison eine verdient hat. */
+export function careerCard(career: Career, special: SpecialCard | null): CollectCard {
+  const p = career.player;
+  if (special) return specialToCard(career.id, special);
+  const tier = cardTier(p.ovr);
+  return {
+    id: `cur-${career.id}`,
+    name: p.name,
+    position: p.position,
+    nation: p.nation,
+    club: getClub(p.loan ? p.loan.clubId : p.contract.clubId).name,
+    ovr: p.ovr,
+    variant: tier === 'bronze' ? 'silver' : tier,
+  };
+}

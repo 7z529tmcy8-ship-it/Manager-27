@@ -1,44 +1,86 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CreateCareer from './components/CreateCareer';
 import Game from './components/Game';
 import Achievements from './components/Achievements';
+import CityMap from './components/CityMap';
+import Collection from './components/Collection';
 import HallOfFame from './components/HallOfFame';
-import Home from './components/Home';
+import Hub from './components/Hub';
+import Store from './components/Store';
+import { creditCareer } from './game/club';
 import { saveCareer } from './game/storage';
 import type { Career } from './game/types';
+import { getClubState, setClubState } from './clubStore';
 
-type Screen = { name: 'home' } | { name: 'create' } | { name: 'fame' } | { name: 'achievements' } | { name: 'game'; career: Career; casino?: boolean };
+type Screen =
+  | { name: 'home' }
+  | { name: 'city' }
+  | { name: 'store' }
+  | { name: 'collection' }
+  | { name: 'create' }
+  | { name: 'fame' }
+  | { name: 'achievements' }
+  | { name: 'game'; career: Career; casino?: boolean };
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
   const [saveFailed, setSaveFailed] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3500);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   const update = (career: Career) => {
     setSaveFailed(!saveCareer(career));
+    // Neue Saisons bringen Coins für den Club.
+    const res = creditCareer(getClubState(), career);
+    if (res.gained > 0) {
+      setClubState(res.club);
+      setToast(`+${res.gained.toLocaleString('de-DE')} Coins für ${res.seasons === 1 ? 'die Saison' : `${res.seasons} Saisons`}`);
+    }
     setScreen({ name: 'game', career });
   };
+  const home = () => setScreen({ name: 'home' });
+  const load = (career: Career) => setScreen({ name: 'game', career });
 
   return (
     <div className="app">
       {saveFailed && (
         <div className="banner warn">Speichern im Browser nicht möglich (z. B. privater Modus) – der Fortschritt geht beim Schließen verloren.</div>
       )}
+      {toast && <div className="coin-toast" role="status">🪙 {toast}</div>}
       {screen.name === 'home' && (
-        <Home
+        <Hub
+          onNew={() => setScreen({ name: 'create' })}
+          onLoad={load}
+          onCasino={(career) => setScreen({ name: 'game', career, casino: true })}
+          onStore={() => setScreen({ name: 'store' })}
+          onCollection={() => setScreen({ name: 'collection' })}
+          onCity={() => setScreen({ name: 'city' })}
+          onFame={() => setScreen({ name: 'fame' })}
+          onAchievements={() => setScreen({ name: 'achievements' })}
+        />
+      )}
+      {screen.name === 'city' && (
+        <CityMap
+          onBack={home}
           onNew={() => setScreen({ name: 'create' })}
           onFame={() => setScreen({ name: 'fame' })}
           onAchievements={() => setScreen({ name: 'achievements' })}
-          onLoad={(career) => setScreen({ name: 'game', career })}
+          onLoad={load}
           onCasino={(career) => setScreen({ name: 'game', career, casino: true })}
         />
       )}
-      {screen.name === 'achievements' && <Achievements onBack={() => setScreen({ name: 'home' })} />}
-      {screen.name === 'fame' && (
-        <HallOfFame onBack={() => setScreen({ name: 'home' })} onOpen={(career) => setScreen({ name: 'game', career })} />
-      )}
-      {screen.name === 'create' && <CreateCareer onCancel={() => setScreen({ name: 'home' })} onCreate={update} />}
+      {screen.name === 'store' && <Store onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
+      {screen.name === 'collection' && <Collection onBack={home} onStore={() => setScreen({ name: 'store' })} />}
+      {screen.name === 'achievements' && <Achievements onBack={home} />}
+      {screen.name === 'fame' && <HallOfFame onBack={home} onOpen={load} />}
+      {screen.name === 'create' && <CreateCareer onCancel={home} onCreate={update} />}
       {screen.name === 'game' && (
-        <Game career={screen.career} openCasino={screen.casino} onChange={update} onExit={() => setScreen({ name: 'home' })} />
+        <Game career={screen.career} openCasino={screen.casino} onChange={update} onExit={home} />
       )}
     </div>
   );

@@ -47,6 +47,19 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
   Spott; die Entwicklung auf dem Platz leidet etwas. Jederzeit beendbar
 - **Rücktritt vom Rücktritt:** nach dem Karriereende einmal zurückkommen (bis 38): zwei Jahre Pause, −15 Wertung,
   dann vereinslos ins Transferfenster
+- **Arena-Design & Hub:** dunkles, leuchtendes Design (Standard, in den Einstellungen umschaltbar) und ein Hauptmenü
+  aus großen Kacheln im Stil von Sammelkarten-Spielen: deine aktuelle Spielerkarte im Mittelpunkt, Coins oben,
+  Kacheln für Karriere, Store, Sammlung, Stadtkarte, Spielstände, Erfolge, Hall of Fame und Casino. Eigene Designs –
+  keine Logos, Namen oder Kartendesigns von EA
+- **Coins:** nach jeder Saison für Spiele, Tore, Vorlagen, Titel, Auszeichnungen, Erfolge und Sonderkarten; gelten
+  für alle Karrieren (Club). Startguthaben 3.000 Coins
+- **Store & Packs:** Standard-, Gold-, Premium- und Ikonen-Pack (plus ein Gratis-Willkommens-Pack). Animiertes Öffnen,
+  bei seltenen Karten mit „Walkout“ (Nation → Position → Verein, Lichtstrahlen, Konfetti). In Packs: echte Spieler,
+  Legenden als Ikonen, gescheiterte Talente als „Was wäre wenn“-Karten und Items (Fitness-Kit, Trainingsboost),
+  die man im Karrieremodus einsetzt
+- **Sammlung:** alle gezogenen Karten mit Filtern, Doppelte schnell verkaufen
+- **Sonderkarten:** nach starken Saisons bekommt dein Spieler eine Sonderkarte (Team der Saison, Spieler des Monats,
+  Rekordjäger, Titelheld) – mit eigenem Design auf der Spielerkarte und in der Sammlung
 - **Startmenü als Stadtkarte:** eine selbst gezeichnete Karte im Stil einer Karten-App mit Stadion (Weiterspielen),
   Nachwuchsakademie (neue Karriere), Fußballmuseum (Hall of Fame), Trophäenhaus (Erfolge), Spielerwohnheim
   (Spielstände) – plus Kiosk und eine verdächtige Lagerhalle. Antippen zoomt hin und öffnet die Ortskarte unten

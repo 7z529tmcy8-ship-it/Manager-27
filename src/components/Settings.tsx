@@ -95,7 +95,7 @@ export default function Settings({ career, onChange, onClose }: Props) {
           <Choice<AppSettings['theme']>
             label="Design"
             value={app.theme}
-            options={[['auto', 'Automatisch'], ['light', 'Hell'], ['dark', 'Dunkel']]}
+            options={[['arena', 'Arena'], ['auto', 'Auto'], ['light', 'Hell'], ['dark', 'Dunkel']]}
             onPick={(theme) => set({ theme })}
           />
           <Toggle label="Animationen" checked={app.animations} onToggle={() => set({ animations: !app.animations })} hint="Walzen, Konfetti, Hochzählen und Karten-Zoom." />

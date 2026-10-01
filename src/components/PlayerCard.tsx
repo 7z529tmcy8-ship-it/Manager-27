@@ -7,13 +7,16 @@ import {
   cardTier,
   currentClubId,
   formatMoney,
+  cashOf,
   playerValue,
-  potentialRange, cashOf } from '../game/player';
+  potentialRange,
+} from '../game/player';
 import { moraleLabel } from '../game/events';
 import { focusLabel } from '../game/training';
 import { getTrait } from '../game/traits';
 import { SIDE_PROJECTS } from '../game/decisions';
 import type { Career } from '../game/types';
+import { SPECIALS, activeSpecial } from '../game/specials';
 
 export default function PlayerCard({ career }: { career: Career }) {
   const p = career.player;
@@ -21,6 +24,8 @@ export default function PlayerCard({ career }: { career: Career }) {
   const labels = attributeLabels(p.position);
   const [lo, hi] = potentialRange(p);
   const tier = cardTier(p.ovr);
+  // Sonderkarte der letzten Saison (Team der Saison usw.) als Kartendesign.
+  const special = activeSpecial(career);
   // Wertung zählt bei Änderungen hoch; beim Aufstieg in eine bessere Karte gibt es eine kurze Animation.
   const shownOvr = useCountUp(p.ovr);
   const prevTier = useRef(tier);
@@ -42,7 +47,8 @@ export default function PlayerCard({ career }: { career: Career }) {
 
   return (
     <div className="card-wrap">
-      <div className={`fc-card ${tier} ${upgraded ? 'upgraded' : ''}`}>
+      <div className={`fc-card ${tier} ${special ? `sp-${special.type}` : ''} ${upgraded ? 'upgraded' : ''}`}>
+        {special && <div className="fc-special">{SPECIALS[special.type].name} {special.season}</div>}
         <div className="fc-top">
           <div className="fc-ovr">{shownOvr}</div>
           <div className="fc-pos">{p.position}</div>

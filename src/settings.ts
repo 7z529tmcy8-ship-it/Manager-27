@@ -2,13 +2,13 @@ import { useSyncExternalStore } from 'react';
 
 /** Geräte-Einstellungen (gelten für alle Karrieren in diesem Browser). */
 export interface AppSettings {
-  theme: 'auto' | 'light' | 'dark';
+  theme: 'arena' | 'auto' | 'light' | 'dark';
   animations: boolean;
   casino: boolean;
 }
 
 const KEY = 'fc-manager-settings';
-const DEFAULTS: AppSettings = { theme: 'auto', animations: true, casino: true };
+const DEFAULTS: AppSettings = { theme: 'arena', animations: true, casino: true };
 
 function load(): AppSettings {
   try {

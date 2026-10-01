@@ -12,6 +12,7 @@ interface Props {
   onAchievements: () => void;
   onLoad: (career: Career) => void;
   onCasino: (career: Career) => void;
+  onBack?: () => void;
 }
 
 type PlaceId = 'stadium' | 'academy' | 'museum' | 'trophies' | 'lockers' | 'kiosk' | 'warehouse' | 'casino';
@@ -42,7 +43,7 @@ const PLACES: Place[] = [
 
 const FOCUS_SCALE = 1.2;
 
-export default function Home({ onNew, onFame, onAchievements, onLoad, onCasino }: Props) {
+export default function CityMap({ onNew, onFame, onAchievements, onLoad, onCasino, onBack }: Props) {
   const [saves, setSaves] = useState(listCareers);
   const [selected, setSelected] = useState<PlaceId | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -79,10 +80,14 @@ export default function Home({ onNew, onFame, onAchievements, onLoad, onCasino }
             ))}
           </g>
         </svg>
-        <div className="map-chip">
-          <span className="map-chip-dot" aria-hidden="true" />
-          FC Karriere-Simulator
-        </div>
+        {onBack ? (
+          <button className="map-chip map-back" onClick={(e) => { e.stopPropagation(); onBack(); }}>‹ Hauptmenü</button>
+        ) : (
+          <div className="map-chip">
+            <span className="map-chip-dot" aria-hidden="true" />
+            FC Karriere-Simulator
+          </div>
+        )}
         <button className="map-settings" onClick={(e) => { e.stopPropagation(); setSettingsOpen(true); }} aria-label="Einstellungen">⚙️</button>
       </div>
       {settingsOpen && <Settings onClose={() => setSettingsOpen(false)} />}

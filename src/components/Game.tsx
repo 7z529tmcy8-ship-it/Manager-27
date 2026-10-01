@@ -18,6 +18,7 @@ import { STAGES, sortTable } from '../game/season';
 import type { Career } from '../game/types';
 import Casino from './Casino';
 import HolidayPanel from './HolidayPanel';
+import ItemsPanel from './ItemsPanel';
 import Inbox from './Inbox';
 import Settings from './Settings';
 import { unreadCount } from '../game/inbox';
@@ -161,6 +162,7 @@ export default function Game({ career, onChange, onExit, openCasino }: Props) {
                     </div>
                   )}
                   <StagePanel career={career} onChange={onChange} />
+                  <ItemsPanel career={career} onChange={onChange} />
                   <div className="panel">
                     <SeasonGoals goals={career.seasonGoals ?? []} matches={stage > 0 ? career.progress?.matches : undefined} />
                     <TrainingPicker career={career} onChange={onChange} />
