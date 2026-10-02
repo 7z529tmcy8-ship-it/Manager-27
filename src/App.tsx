@@ -6,6 +6,7 @@ import Collection from './components/Collection';
 import HallOfFame from './components/HallOfFame';
 import Hub from './components/Hub';
 import Store from './components/Store';
+import Team from './components/Team';
 import { creditCareer } from './game/club';
 import { saveCareer } from './game/storage';
 import type { Career } from './game/types';
@@ -15,6 +16,7 @@ type Screen =
   | { name: 'home' }
   | { name: 'store' }
   | { name: 'collection' }
+  | { name: 'team' }
   | { name: 'create' }
   | { name: 'fame' }
   | { name: 'achievements' }
@@ -56,12 +58,14 @@ export default function App() {
           onLoad={load}
           onStore={() => setScreen({ name: 'store' })}
           onCollection={() => setScreen({ name: 'collection' })}
+          onTeam={() => setScreen({ name: 'team' })}
           onFame={() => setScreen({ name: 'fame' })}
           onAchievements={() => setScreen({ name: 'achievements' })}
         />
       )}
       {screen.name === 'store' && <Store onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
       {screen.name === 'collection' && <Collection onBack={home} onStore={() => setScreen({ name: 'store' })} />}
+      {screen.name === 'team' && <Team onBack={home} onStore={() => setScreen({ name: 'store' })} />}
       {screen.name === 'achievements' && <Achievements onBack={home} />}
       {screen.name === 'fame' && <HallOfFame onBack={home} onOpen={load} />}
       {screen.name === 'create' && <CreateCareer onCancel={home} onCreate={update} />}

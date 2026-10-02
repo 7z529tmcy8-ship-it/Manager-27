@@ -67,7 +67,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
 type Phase = 'pack' | 'walkout' | 'reveal' | 'all';
 
 /** Pack-Öffnung: Pack wackelt, bei seltenen Karten ein „Walkout“ (Nation → Position → Verein), dann die Karte. */
-function PackOpening({ name, result, onClose, onCollection }: { name: string; result: PackResult; onClose: () => void; onCollection: () => void }) {
+export function PackOpening({ name, result, onClose, onCollection }: { name: string; result: PackResult; onClose: () => void; onCollection: () => void }) {
   const best = result.cards[0].card;
   const special = rarity(best) >= 200; // Elite, Ikone, Talent
   const [phase, setPhase] = useState<Phase>('pack');

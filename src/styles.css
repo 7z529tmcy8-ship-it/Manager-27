@@ -918,40 +918,73 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 
 /* ---------- Sammelkarten (eigenes Design) ---------- */
 .ucard {
-  --a: #d9dde3; --b: #8c949e; --ink: #14161a; --edge: rgba(255, 255, 255, .55);
-  position: relative; width: 150px; aspect-ratio: 5 / 7; padding: 14px 12px 12px; color: var(--ink);
-  background: linear-gradient(155deg, var(--a) 0%, var(--b) 100%);
-  clip-path: polygon(14% 0, 86% 0, 100% 9%, 100% 88%, 50% 100%, 0 88%, 0 9%);
+  --a: #d9dde3; --b: #8c949e; --ink: #14161a; --edge: rgba(255, 255, 255, .55); --glow: rgba(255, 255, 255, 0);
+  position: relative; width: 160px; aspect-ratio: 5 / 7.2; padding: 12px 11px 10px; color: var(--ink);
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, .35), transparent 60%),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, .05) 0 6px, transparent 6px 12px),
+    linear-gradient(160deg, var(--a) 0%, var(--b) 100%);
+  clip-path: polygon(12% 0, 88% 0, 100% 7%, 100% 90%, 50% 100%, 0 90%, 0 7%);
   display: flex; flex-direction: column; align-items: center; text-align: center; overflow: hidden;
-  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .35));
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .35)) drop-shadow(0 0 12px var(--glow));
+  border: 0; font: inherit; flex-shrink: 0;
 }
 .ucard::before { /* Innenkante */
-  content: ''; position: absolute; inset: 6px; border: 1px solid var(--edge);
-  clip-path: polygon(14% 0, 86% 0, 100% 9%, 100% 88%, 50% 100%, 0 88%, 0 9%); pointer-events: none;
+  content: ''; position: absolute; inset: 5px; border: 1px solid var(--edge);
+  clip-path: polygon(12% 0, 88% 0, 100% 7%, 100% 90%, 50% 100%, 0 90%, 0 7%); pointer-events: none;
 }
-.ucard.sm { width: 104px; padding: 10px 8px 8px; }
-.ucard.lg { width: 220px; padding: 22px 16px 16px; }
-.ucard-top { align-self: flex-start; display: flex; flex-direction: column; align-items: center; line-height: 1; gap: 3px; }
-.ucard-ovr { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.04em; }
-.ucard.sm .ucard-ovr { font-size: 1.5rem; }
-.ucard.lg .ucard-ovr { font-size: 3.2rem; }
-.ucard-pos { font-weight: 700; font-size: .8rem; letter-spacing: .05em; }
-.ucard-nat { font-size: .65rem; font-weight: 700; opacity: .7; letter-spacing: .08em; }
-.ucard-badge { margin-top: auto; font-size: .58rem; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; opacity: .8; }
-.ucard-name { font-weight: 800; font-size: 1rem; text-transform: uppercase; letter-spacing: .02em; line-height: 1.1; margin-top: 4px; overflow-wrap: anywhere; }
-.ucard.sm .ucard-name { font-size: .78rem; }
-.ucard.lg .ucard-name { font-size: 1.35rem; }
-.ucard-club { font-size: .62rem; font-weight: 600; opacity: .75; margin: 3px 0 14%; }
-.ucard.sm .ucard-club { display: none; }
-.ucard-count { position: absolute; top: 10px; right: 14px; font-size: .7rem; font-weight: 800; background: rgba(0, 0, 0, .55); color: #fff; padding: 1px 6px; border-radius: 999px; }
+.ucard.clickable { cursor: pointer; transition: transform .15s; }
+.ucard.clickable:hover { transform: translateY(-3px) scale(1.02); }
+.ucard.xs { width: 64px; padding: 6px 4px 6px; }
+.ucard.sm { width: 104px; padding: 9px 7px 8px; }
+.ucard.lg { width: 230px; padding: 18px 16px 14px; }
+.ucard-top { position: absolute; top: 9%; left: 10%; display: flex; flex-direction: column; align-items: center; line-height: 1; gap: 2px; z-index: 1; }
+.ucard-ovr { font-size: 1.9rem; font-weight: 900; letter-spacing: -0.04em; }
+.ucard.sm .ucard-ovr { font-size: 1.35rem; }
+.ucard.xs .ucard-ovr { font-size: .95rem; }
+.ucard.lg .ucard-ovr { font-size: 2.9rem; }
+.ucard-pos { font-weight: 800; font-size: .72rem; letter-spacing: .05em; }
+.ucard.xs .ucard-pos { font-size: .5rem; }
+.ucard-flag { font-size: .95rem; line-height: 1; margin-top: 2px; }
+.ucard.xs .ucard-flag { font-size: .6rem; }
+.ucard-art {
+  margin: 6% 0 0 18%; width: 54%; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .45), rgba(255, 255, 255, .08) 60%, transparent 70%);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ink) 25%, transparent);
+}
+.ucard-art span { font-weight: 900; font-size: 1.6rem; letter-spacing: -0.02em; opacity: .85; }
+.ucard.lg .ucard-art span { font-size: 2.4rem; }
+.ucard-badge { margin-top: 4px; font-size: .52rem; font-weight: 800; text-transform: uppercase; letter-spacing: .14em; opacity: .75; }
+.ucard-name {
+  font-weight: 900; font-size: .9rem; text-transform: uppercase; letter-spacing: .01em; line-height: 1.05; margin-top: 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+}
+.ucard.sm .ucard-name { margin-top: auto; margin-bottom: 18%; font-size: .74rem; }
+.ucard.xs .ucard-name { margin-top: auto; margin-bottom: 14%; font-size: .5rem; }
+.ucard.lg .ucard-name { font-size: 1.2rem; }
+.ucard-attrs {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px 6px; margin-top: 5px; padding-top: 5px; width: 100%;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 25%, transparent); font-size: .55rem; font-weight: 700;
+}
+.ucard-attrs b { font-size: .72rem; font-weight: 900; }
+.ucard.lg .ucard-attrs { font-size: .7rem; gap: 3px 8px; }
+.ucard.lg .ucard-attrs b { font-size: .95rem; }
+.ucard-club { font-size: .55rem; font-weight: 700; opacity: .75; margin: 3px 0 9%; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ucard.lg .ucard-club { font-size: .7rem; }
+.ucard.sm .ucard-top { top: 8%; left: 9%; }
+.ucard.sm .ucard-name, .ucard.xs .ucard-name { position: relative; z-index: 1; }
+.ucard-count { position: absolute; top: 9%; right: 12%; font-size: .66rem; font-weight: 800; background: rgba(0, 0, 0, .6); color: #fff; padding: 1px 6px; border-radius: 999px; }
+.ucard-chem { position: absolute; bottom: 4%; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; }
+.ucard-chem i { width: 6px; height: 6px; border-radius: 50%; background: rgba(0, 0, 0, .35); }
+.ucard-chem i.on { background: #19e3c2; box-shadow: 0 0 4px #19e3c2; }
 .ucard.v-gold { --a: #ffe9a8; --b: #c9962e; --ink: #2a1c00; }
-.ucard.v-gold-rare { --a: #2b2b31; --b: #08080a; --ink: #ffd76a; --edge: rgba(255, 215, 106, .6); }
-.ucard.v-icon { --a: #fffaf0; --b: #d8c7a0; --ink: #3a2a10; --edge: rgba(196, 160, 90, .9); }
-.ucard.v-talent { --a: #3a3f4f; --b: #13151c; --ink: #a7c4ff; --edge: rgba(167, 196, 255, .5); }
-.ucard.v-tots { --a: #1a3a8f; --b: #050d2b; --ink: #ffd76a; --edge: rgba(255, 215, 106, .7); }
-.ucard.v-potm { --a: #8e2de2; --b: #2b0a4a; --ink: #fff; --edge: rgba(255, 255, 255, .5); }
-.ucard.v-record { --a: #e0283c; --b: #2a0508; --ink: #fff; --edge: rgba(255, 255, 255, .5); }
-.ucard.v-champion { --a: #0fb5a6; --b: #032b33; --ink: #fff; --edge: rgba(255, 255, 255, .55); }
+.ucard.v-gold-rare { --a: #34343c; --b: #060608; --ink: #ffd76a; --edge: rgba(255, 215, 106, .65); --glow: rgba(255, 215, 106, .35); }
+.ucard.v-icon { --a: #fffaf0; --b: #d8c7a0; --ink: #3a2a10; --edge: rgba(196, 160, 90, .9); --glow: rgba(255, 240, 200, .45); }
+.ucard.v-talent { --a: #3a3f4f; --b: #13151c; --ink: #a7c4ff; --edge: rgba(167, 196, 255, .5); --glow: rgba(120, 160, 255, .3); }
+.ucard.v-tots { --a: #1f46a8; --b: #040b26; --ink: #ffd76a; --edge: rgba(255, 215, 106, .7); --glow: rgba(80, 140, 255, .45); }
+.ucard.v-potm { --a: #9b3ff0; --b: #2b0a4a; --ink: #fff; --edge: rgba(255, 255, 255, .5); --glow: rgba(180, 90, 255, .45); }
+.ucard.v-record { --a: #e8303f; --b: #2a0508; --ink: #fff; --edge: rgba(255, 255, 255, .5); --glow: rgba(255, 70, 80, .4); }
+.ucard.v-champion { --a: #13c2b1; --b: #032b33; --ink: #fff; --edge: rgba(255, 255, 255, .55); --glow: rgba(25, 227, 194, .45); }
 .ucard.shine::after { /* Lichtreflex bei seltenen Karten */
   content: ''; position: absolute; inset: -40%; background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, .45) 50%, transparent 60%);
   animation: ucard-shine 2.6s ease-in-out infinite; pointer-events: none;
@@ -1235,3 +1268,66 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .cs-note.good { box-shadow: inset 3px 0 0 var(--up); }
 .cs-note.bad { box-shadow: inset 3px 0 0 var(--down); }
 .cs-window .btn.secondary.cs-go { margin-top: 12px; }
+
+/* ---------- Mein Team ---------- */
+.team-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 4px 0 14px; }
+.team-stats div { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 10px 12px; }
+.team-stats small { display: block; color: var(--muted); font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.team-stats strong { font-size: 1.4rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+.team-stats em { font-style: normal; font-size: .75rem; color: var(--muted); margin: 0 3px 0 1px; }
+.team-tabs { margin-bottom: 14px; }
+.team-actions { display: flex; gap: 8px; margin-bottom: 10px; }
+.pitch {
+  position: relative; width: 100%; max-width: 560px; margin: 0 auto 12px; aspect-ratio: 2 / 3; border-radius: 18px; overflow: hidden;
+  background: repeating-linear-gradient(180deg, #1f7a4a 0 10%, #1b6d42 10% 20%); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35);
+}
+.pitch-lines i { position: absolute; border: 2px solid rgba(255, 255, 255, .35); }
+.pitch-lines .circle { left: 50%; top: 50%; width: 26%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); }
+.pitch-lines .circle::before { content: ''; position: absolute; left: -200%; right: -200%; top: 50%; border-top: 2px solid rgba(255, 255, 255, .35); }
+.pitch-lines .box { left: 25%; width: 50%; height: 14%; }
+.pitch-lines .box.top { top: -2px; border-top: 0; }
+.pitch-lines .box.bottom { bottom: -2px; border-bottom: 0; }
+.pitch-slot { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.slot-empty {
+  width: 54px; height: 72px; border-radius: 10px; border: 2px dashed rgba(255, 255, 255, .6); background: rgba(0, 0, 0, .2);
+  color: #fff; font-size: 1.6rem; cursor: pointer;
+}
+.slot-label { font-size: .62rem; font-weight: 800; color: #fff; background: rgba(0, 0, 0, .45); padding: 0 6px; border-radius: 999px; }
+.slot-label.bad { background: var(--down); }
+@media (min-width: 520px) { .pitch .ucard.xs { width: 76px; } .slot-empty { width: 66px; height: 88px; } }
+.pick-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.pick-wrap.f-off { opacity: .5; }
+.pick-wrap.current .ucard { outline: 3px solid var(--accent); }
+.pick-fit { font-size: .7rem; color: var(--muted); }
+.duel-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.duel { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 10px 12px; }
+.duel.locked { opacity: .5; }
+.duel.beaten .duel-lvl { background: var(--up); color: #03131a; }
+.duel-lvl { width: 34px; height: 34px; border-radius: 10px; background: var(--surface-3); display: grid; place-items: center; font-weight: 900; }
+.duel-name small { display: block; color: var(--muted); font-size: .75rem; }
+.duel-reward { font-weight: 800; font-size: .85rem; white-space: nowrap; }
+.duel-live { width: 100%; max-width: 420px; text-align: center; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+.duel-live > small { color: #19e3c2; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.duel-score { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; width: 100%; }
+.duel-score strong { font-size: 3.2rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+.duel-score span { font-weight: 700; font-size: .9rem; }
+.duel-goals { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; min-height: 60px; }
+.duel-goals li.own { color: #3ddc84; font-weight: 700; }
+.duel-goals li.opp { color: #ff8a98; }
+.duel-result { font-size: 1.2rem; font-weight: 800; margin: 0; }
+.duel-result.win { color: #3ddc84; }
+.duel-result.loss { color: #ff8a98; }
+.task-list { display: grid; gap: 10px; }
+.task { display: flex; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 12px 14px; }
+.task strong { display: block; }
+.task small { display: block; color: var(--muted); font-size: .8rem; }
+.task .task-reward { color: var(--accent); font-weight: 600; }
+.detail-body { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+.detail-info { flex: 1 1 260px; }
+.detail-info h2 { margin-bottom: 8px; }
+.detail-info .mk-kv li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid var(--hairline); }
+.detail-info .mk-kv li:first-child { border-top: 0; }
+.detail-info .mk-kv li span:first-child { color: var(--muted); }
+.detail-info .mk-kv { list-style: none; padding: 0; margin: 0 0 14px; }
+.duel-name { text-align: left; min-width: 0; }
+.ucard.lg .ucard-name { white-space: normal; overflow: visible; }

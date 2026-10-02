@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CARD_POOL, getCard, rarity, sellDuplicates, sellValue, type CollectCard } from '../game/club';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import UtCard from './UtCard';
+import { cardById } from '../game/squad';
 
 type Filter = 'all' | 'elite' | 'icon' | 'special' | 'dupes';
 const FILTERS: [Filter, string][] = [['all', 'Alle'], ['elite', 'Elite 85+'], ['icon', 'Ikonen'], ['special', 'Sonderkarten'], ['dupes', 'Doppelte']];
@@ -11,6 +12,7 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
   const club = useClub();
   const [filter, setFilter] = useState<Filter>('all');
   const [msg, setMsg] = useState('');
+  const [detail, setDetail] = useState<string | null>(null);
 
   const owned: { card: CollectCard; count: number }[] = [
     ...club.specials.map((card) => ({ card, count: 1 })),
@@ -57,7 +59,7 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
       {shown.length ? (
         <div className="collection-grid">
           {shown.map(({ card, count }) => (
-            <UtCard key={card.id} card={card} size="sm" count={count} shine={rarity(card) >= 200} />
+            <UtCard key={card.id} card={card} size="sm" count={count} shine={rarity(card) >= 200} onClick={() => setDetail(card.id)} />
           ))}
         </div>
       ) : (
@@ -66,6 +68,50 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
           {!owned.length && <button className="btn primary" onClick={onStore}>Zum Store</button>}
         </div>
       )}
+      {detail && <CardDetail id={detail} onClose={() => setDetail(null)} />}
     </main>
+  );
+}
+
+/** Große Ansicht einer Karte mit Werten, Anzahl, Status im Team und Einzelverkauf. */
+function CardDetail({ id, onClose }: { id: string; onClose: () => void }) {
+  const club = useClub();
+  const card = cardById(club, id);
+  if (!card) return null;
+  const count = club.cards[id] ?? 1;
+  const own = club.specials.some((s) => s.id === id);
+  const inSquad = club.squad.includes(id);
+  const canSell = !own && (count > 1 || !inSquad);
+  const sellOne = () => {
+    const c = getClubState();
+    const n = (c.cards[id] ?? 0) - 1;
+    const cards = { ...c.cards };
+    if (n > 0) cards[id] = n;
+    else delete cards[id];
+    setClubState({ ...c, cards, coins: c.coins + sellValue(card) });
+    if (n <= 0) onClose();
+  };
+  return (
+    <div className="overlay card-detail" role="dialog" aria-modal="true" aria-label={card.name}>
+      <div className="overlay-inner">
+        <header className="overlay-head"><button className="nav-back" onClick={onClose}>‹ Zurück</button></header>
+        <div className="detail-body">
+          <UtCard card={card} size="lg" shine={rarity(card) >= 200} />
+          <div className="detail-info">
+            <h2>{card.name}</h2>
+            <ul className="mk-kv">
+              <li><span>Position</span><span>{card.position}</span></li>
+              <li><span>Nation</span><span>{card.nation}</span></li>
+              <li><span>{card.league ? 'Verein' : 'Kartentyp'}</span><span>{card.league ? `${card.club} · ${card.league}` : card.label ?? card.club}</span></li>
+              <li><span>Im Besitz</span><span>{own ? 'eigene Sonderkarte' : `${count}×`}</span></li>
+              <li><span>Im Team</span><span>{inSquad ? 'aufgestellt' : 'nein'}</span></li>
+              {!own && <li><span>Verkaufswert</span><span>🪙 {sellValue(card).toLocaleString('de-DE')}</span></li>}
+            </ul>
+            {canSell && <button className="btn secondary" onClick={sellOne}>1× verkaufen (+{sellValue(card).toLocaleString('de-DE')} 🪙)</button>}
+            {!canSell && !own && <p className="muted">Aufgestellt – zum Verkaufen erst aus dem Team nehmen.</p>}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

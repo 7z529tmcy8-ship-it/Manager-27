@@ -14,6 +14,7 @@ interface Props {
   onLoad: (career: Career) => void;
   onStore: () => void;
   onCollection: () => void;
+  onTeam: () => void;
   onFame: () => void;
   onAchievements: () => void;
 }
@@ -21,7 +22,7 @@ interface Props {
 const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 
 /** Hauptmenü im Stil eines Sammelkarten-Hubs: große Kacheln, Coins oben, die eigene Karte im Mittelpunkt. */
-export default function Hub({ onNew, onLoad, onStore, onCollection, onFame, onAchievements }: Props) {
+export default function Hub({ onNew, onLoad, onStore, onCollection, onTeam, onFame, onAchievements }: Props) {
   const club = useClub();
   const [saves, setSaves] = useState(listCareers);
   const [showSaves, setShowSaves] = useState(false);
@@ -74,6 +75,7 @@ export default function Hub({ onNew, onLoad, onStore, onCollection, onFame, onAc
         <Tile icon="⚽" title="Neue Karriere" sub="Eigener Spieler, Profi, Legende oder zweite Chance" onClick={onNew} />
         <Tile icon="🎁" title="Store" sub={club.welcomeClaimed ? 'Packs mit Coins öffnen' : 'Gratis-Pack wartet!'} badge={!club.welcomeClaimed ? '1' : undefined} onClick={onStore} accent />
         <Tile icon="🗂️" title="Sammlung" sub={`${owned} von ${CARD_POOL.length}+ Karten`} onClick={onCollection} />
+        <Tile icon="🛡️" title="Mein Team" sub={`Aufstellung, Duelle (Stufe ${club.duelLevel}), Tauschaufgaben`} onClick={onTeam} />
         <Tile icon="🏠" title="Spielstände" sub={`${saves.length} gespeichert`} onClick={() => setShowSaves(true)} disabled={!saves.length} />
         <Tile icon="🏆" title="Erfolge" sub="Karriereziele" onClick={onAchievements} disabled={!saves.length} />
         <Tile icon="🏛️" title="Hall of Fame" sub="Deine besten Karrieren" onClick={onFame} disabled={!hasHistory} />

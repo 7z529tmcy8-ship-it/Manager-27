@@ -1,6 +1,6 @@
 import { FAILED_TALENTS, LEGENDS } from '../data/legends';
 import { REAL_PLAYERS } from '../data/players';
-import { getClub, slugify } from '../data/leagues';
+import { getClub, getLeague, slugify } from '../data/leagues';
 import { cardTier } from './player';
 import type { Career, Position, SeasonRecord, SpecialCard, SpecialType } from './types';
 
@@ -15,6 +15,8 @@ export interface CollectCard {
   position: Position;
   nation: string;
   club: string;
+  /** Liga des Vereins (für Chemie); leer bei Ikonen und Talenten. */
+  league?: string;
   ovr: number;
   variant: CardVariant;
   label?: string;
@@ -38,6 +40,13 @@ export interface ClubState {
   packsOpened: number;
   /** Willkommens-Pack schon geöffnet? */
   welcomeClaimed: boolean;
+  /** Aufstellung (11 Karten-IDs im 4-3-3, null = leer). */
+  squad: (string | null)[];
+  /** Höchste freigeschaltete Duell-Stufe (1–10) und Bilanz. */
+  duelLevel: number;
+  duels: { w: number; d: number; l: number };
+  /** Erledigte Tauschaufgaben (ID → wie oft). */
+  tasksDone: Record<string, number>;
 }
 
 export const START_COINS = 3000;
@@ -49,6 +58,10 @@ export const freshClub = (): ClubState => ({
   credited: {},
   packsOpened: 0,
   welcomeClaimed: false,
+  squad: Array(11).fill(null),
+  duelLevel: 1,
+  duels: { w: 0, d: 0, l: 0 },
+  tasksDone: {},
 });
 
 // ---------- Kartenpool ----------
@@ -56,7 +69,7 @@ const cardId = (name: string) => slugify(name);
 
 export const CARD_POOL: CollectCard[] = [
   ...REAL_PLAYERS.map((p) => ({
-    id: cardId(p.name), name: p.name, position: p.position, nation: p.nation, club: getClub(p.clubId).name, ovr: p.ovr,
+    id: cardId(p.name), name: p.name, position: p.position, nation: p.nation, club: getClub(p.clubId).name, league: getLeague(getClub(p.clubId).leagueId).name, ovr: p.ovr,
     variant: cardTier(p.ovr) === 'bronze' ? ('silver' as const) : (cardTier(p.ovr) as CardVariant),
   })),
   ...LEGENDS.map((l) => ({ id: cardId(l.name), name: l.name, position: l.position, nation: l.nation, club: 'Ikone', ovr: l.potential, variant: 'icon' as const, label: 'Ikone' })),
@@ -201,6 +214,7 @@ export function specialToCard(careerId: string, s: SpecialCard): CollectCard {
     position: s.position,
     nation: s.nation,
     club: getClub(s.clubId).name,
+    league: getLeague(getClub(s.clubId).leagueId).name,
     ovr: s.ovr,
     variant: s.type,
     label: `Saison ${s.season}`,

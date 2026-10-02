@@ -25,6 +25,11 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
   Logos, Namen oder Kartendesigns von EA
 - **Coins, Packs & Sammlung:** Coins nach jeder Saison; Packs (Standard, Gold, Premium, Ikonen, dazu ein Gratis-Pack)
   mit animiertem „Walkout“ für seltene Karten; Sammlung mit Filtern und Schnellverkauf von Doppelten
+- **Kartendesign:** eigene Kartenform mit Flagge, Monogramm, sechs Werten (z. B. TEM/SCH/PAS/DRI/DEF/PHY), Glanzeffekt
+  und Leuchten bei seltenen Karten; Antippen öffnet die Detailansicht (Werte, Anzahl, Einzelverkauf)
+- **Mein Team:** aus der Sammlung eine Elf im 4-3-3 aufstellen (Auto-Aufstellung oder per Hand) – mit Teamwertung und
+  Chemie (gleiche Nation, Liga, Verein; falsche Position = keine Chemie). Damit **Duelle** gegen 10 immer stärkere
+  Gegner spielen (Live-Ticker, Coins als Belohnung) und **Tauschaufgaben** erledigen (Karten abgeben → Pack)
 - **Sonderkarten:** Team der Saison, Spieler des Monats, Rekordjäger, Titelheld – nach starken Saisons
 - **Erfolge & Hall of Fame:** Karriereziele mit Fortschritt, Rangliste aller Karrieren
 - **Einstellungen:** Schwierigkeit (Leicht/Normal/Schwer), Design, Animationen, Passwort-Sperre
