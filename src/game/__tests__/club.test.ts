@@ -26,6 +26,11 @@ it('Packs: Preis, Größe, Garantien, keine Karte doppelt im selben Pack', () =>
       if (pack.id === 'premium') expect(res.result.cards.some((c) => c.card.ovr >= 85)).toBe(true);
       if (pack.id === 'icon') expect(res.result.cards.some((c) => c.card.variant === 'icon')).toBe(true);
       if (pack.id === 'gold') expect(res.result.cards.every((c) => c.card.ovr >= 75)).toBe(true);
+      if (pack.id === 'germany') expect(res.result.cards.every((c) => c.card.nation === 'Deutschland')).toBe(true);
+      if (pack.id === 'bundesliga') expect(res.result.cards.every((c) => c.card.league === 'Bundesliga')).toBe(true);
+      if (pack.id === 'wonder') expect(res.result.cards.every((c) => (c.card.age ?? 99) <= 21)).toBe(true);
+      if (pack.id === 'worldstar') expect(res.result.cards.every((c) => c.card.ovr >= 88)).toBe(true);
+      if (pack.id === 'goat') expect(res.result.cards.some((c) => c.card.variant === 'icon' && c.card.ovr >= 94)).toBe(true);
       club = { ...res.club, coins: 100_000 };
     }
   }
@@ -66,4 +71,14 @@ it('Items: Trainingsboost nur einmal pro Saison und nicht über das Potenzial', 
   expect(c.player.ovr).toBe(71);
   expect(canUseItem(c, 'training')).toBe(false);
   expect(canUseItem(c, 'fitness')).toBe(false);
+});
+
+it('Kurznamen für kleine Karten', async () => {
+  const { shortName } = await import('../../components/UtCard');
+  expect(shortName('Said El Mala')).toBe('El Mala');
+  expect(shortName('Virgil van Dijk')).toBe('van Dijk');
+  expect(shortName('Marc-André ter Stegen')).toBe('ter Stegen');
+  expect(shortName('Vinícius Júnior')).toBe('Vini Jr.');
+  expect(shortName('Jamal Musiala')).toBe('Musiala');
+  expect(shortName('Pelé')).toBe('Pelé');
 });

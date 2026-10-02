@@ -23,8 +23,10 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
 - **Arena-Design & Hub:** dunkles, leuchtendes Design (in den Einstellungen umschaltbar) und ein Hauptmenü aus Kacheln:
   aktuelle Spielerkarte, Neue Karriere, Store, Sammlung, Spielstände, Erfolge, Hall of Fame. Eigene Designs – keine
   Logos, Namen oder Kartendesigns von EA
-- **Coins, Packs & Sammlung:** Coins nach jeder Saison; Packs (Standard, Gold, Premium, Ikonen, dazu ein Gratis-Pack)
-  mit animiertem „Walkout“ für seltene Karten; Sammlung mit Filtern und Schnellverkauf von Doppelten
+- **Coins, Packs & Sammlung:** Coins nach jeder Saison; 10 Packs: Standard, Gold, Premium, Ikonen, Wundertüte
+  (1 völlig zufällige Karte), Deutschland, Bundesliga, Wunderkind (bis 21 Jahre), Weltstar (88+) und GOAT (Ikone 94+
+  garantiert), dazu ein Gratis-Pack. Über 150 Karten: echte Spieler (u. a. Messi, Ronaldo, Dembélé, Salah), Ikonen wie
+  Pelé, Maradona, Cruyff, Beckenbauer und gescheiterte Talente – mit animiertem „Walkout“ für seltene Karten; Sammlung mit Filtern und Schnellverkauf von Doppelten
 - **Kartendesign:** eigene Kartenform mit Flagge, Monogramm, sechs Werten (z. B. TEM/SCH/PAS/DRI/DEF/PHY), Glanzeffekt
   und Leuchten bei seltenen Karten; Antippen öffnet die Detailansicht (Werte, Anzahl, Einzelverkauf)
 - **Mein Team:** aus der Sammlung eine Elf im 4-3-3 aufstellen (Auto-Aufstellung oder per Hand) – mit Teamwertung und

@@ -41,7 +41,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
           const afford = club.coins >= p.price;
           return (
             <div key={p.id} className={`pack-card p-${p.id}`}>
-              <div className="pack-art" aria-hidden="true"><span>{p.name.split('-')[0]}</span></div>
+              <div className="pack-art" aria-hidden="true"><span>{p.name.replace('-Pack', '')}</span></div>
               <strong>{p.name}</strong>
               <small>{p.text.replace(', dazu mit Glück ein Item', '')}</small>
               <button className="btn primary" disabled={!afford} onClick={() => buy(p.id)}>

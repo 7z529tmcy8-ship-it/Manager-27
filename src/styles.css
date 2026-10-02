@@ -1331,3 +1331,18 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .detail-info .mk-kv { list-style: none; padding: 0; margin: 0 0 14px; }
 .duel-name { text-align: left; min-width: 0; }
 .ucard.lg .ucard-name { white-space: normal; overflow: visible; }
+
+/* Neue Packs */
+.p-mystery .pack-art { background: radial-gradient(circle at 30% 25%, #b06cff, #3a0f6e 70%); color: #fff; }
+.p-mystery .pack-art span::after { content: ' ?'; }
+.p-germany .pack-art { background: linear-gradient(180deg, #1a1a1a 0 33%, #d4141c 33% 66%, #f2c200 66%); color: #fff; text-shadow: 0 2px 6px rgba(0, 0, 0, .7); }
+.p-bundesliga .pack-art { background: linear-gradient(150deg, #e30613, #7a0009); color: #fff; }
+.p-wonder .pack-art { background: linear-gradient(150deg, #19e3c2, #0b5d6e); color: #03131a; }
+.p-worldstar .pack-art { background: radial-gradient(circle at 50% 30%, #3b6cf0, #0a1240 70%); color: #ffd76a; box-shadow: inset 0 0 40px rgba(255, 215, 106, .35); }
+.p-goat .pack-art {
+  background: linear-gradient(120deg, #ffe7a3, #fff 25%, #e9d7ff 45%, #b9f2ff 65%, #ffe7a3 85%); background-size: 300% 300%;
+  color: #3a2a10; animation: goat-shift 6s ease-in-out infinite;
+}
+@keyframes goat-shift { 50% { background-position: 100% 50%; } }
+@media (prefers-reduced-motion: reduce) { .p-goat .pack-art { animation: none; } }
+.pack-card.p-goat { box-shadow: 0 0 0 1px rgba(255, 215, 106, .6), 0 0 24px rgba(255, 215, 106, .25); }

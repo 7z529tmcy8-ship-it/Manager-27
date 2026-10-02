@@ -14,6 +14,17 @@ const VARIANT_LABEL: Partial<Record<CollectCard['variant'], string>> = {
 const OUTFIELD = ['TEM', 'SCH', 'PAS', 'DRI', 'DEF', 'PHY'];
 const KEEPER = ['HEC', 'HAN', 'ABS', 'REF', 'TEM', 'STE'];
 
+// Kurzname für kleine Karten: Nachname, mit Namenszusätzen (El Mala, van Dijk, ter Stegen) und ein paar Spitznamen.
+const SHORT: Record<string, string> = { 'Vinícius Júnior': 'Vini Jr.', 'Ronaldo Nazário': 'R9', 'Cristiano Ronaldo': 'Ronaldo', 'Trent Alexander-Arnold': 'Trent', 'Son Heung-min': 'Son', 'Kim Min-jae': 'Kim', 'Lee Kang-in': 'Lee' };
+const PARTICLES = new Set(['el', 'van', 'von', 'de', 'der', 'den', 'dos', 'da', 'di', 'ter', 'le', 'la']);
+export function shortName(name: string): string {
+  if (SHORT[name]) return SHORT[name];
+  const w = name.split(/\s+/);
+  if (w.length >= 3 && PARTICLES.has(w[w.length - 2].toLowerCase())) return w.slice(-2).join(' ');
+  if (w.length >= 3 && PARTICLES.has(w[w.length - 3].toLowerCase())) return w.slice(-3).join(' ');
+  return w[w.length - 1];
+}
+
 const initials = (name: string) => name.split(/\s+/).filter(Boolean).map((w) => w[0]).slice(-2).join('').toUpperCase();
 
 interface Props {
@@ -28,7 +39,7 @@ interface Props {
 
 /** Sammelkarte im eigenen Design: Form, Farben und Aufbau frei gestaltet. */
 export default function UtCard({ card, size = 'md', count, shine, chem, onClick }: Props) {
-  const lastName = card.name.split(' ').slice(-1)[0];
+  const lastName = shortName(card.name);
   const attrs = cardAttrs(card);
   const labels = card.position === 'TW' ? KEEPER : OUTFIELD;
   const big = size === 'md' || size === 'lg';

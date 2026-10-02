@@ -1,5 +1,6 @@
 import { FAILED_TALENTS, LEGENDS } from '../data/legends';
 import { REAL_PLAYERS } from '../data/players';
+import { EXTRA_ICONS, EXTRA_STARS } from '../data/cards';
 import { getClub, getLeague, slugify } from '../data/leagues';
 import { cardTier } from './player';
 import type { Career, Position, SeasonRecord, SpecialCard, SpecialType } from './types';
@@ -17,6 +18,8 @@ export interface CollectCard {
   club: string;
   /** Liga des Vereins (für Chemie); leer bei Ikonen und Talenten. */
   league?: string;
+  /** Alter (Saison 2025/26) – für das Wunderkind-Pack. */
+  age?: number;
   ovr: number;
   variant: CardVariant;
   label?: string;
@@ -69,10 +72,15 @@ const cardId = (name: string) => slugify(name);
 
 export const CARD_POOL: CollectCard[] = [
   ...REAL_PLAYERS.map((p) => ({
-    id: cardId(p.name), name: p.name, position: p.position, nation: p.nation, club: getClub(p.clubId).name, league: getLeague(getClub(p.clubId).leagueId).name, ovr: p.ovr,
+    id: cardId(p.name), name: p.name, position: p.position, nation: p.nation, club: getClub(p.clubId).name, league: getLeague(getClub(p.clubId).leagueId).name, age: p.age, ovr: p.ovr,
     variant: cardTier(p.ovr) === 'bronze' ? ('silver' as const) : (cardTier(p.ovr) as CardVariant),
   })),
   ...LEGENDS.map((l) => ({ id: cardId(l.name), name: l.name, position: l.position, nation: l.nation, club: 'Ikone', ovr: l.potential, variant: 'icon' as const, label: 'Ikone' })),
+  ...EXTRA_STARS.map(([name, nation, position, age, ovr, club, league]) => ({
+    id: cardId(name), name, position, nation, club, league, age, ovr,
+    variant: ovr >= 85 ? ('gold-rare' as const) : ovr >= 75 ? ('gold' as const) : ('silver' as const),
+  })),
+  ...EXTRA_ICONS.map(([name, nation, position, ovr]) => ({ id: cardId(name), name, position, nation, club: 'Ikone', ovr, variant: 'icon' as const, label: 'Ikone' })),
   ...FAILED_TALENTS.map((l) => ({ id: cardId(l.name), name: l.name, position: l.position, nation: l.nation, club: 'Zweite Chance', ovr: l.potential, variant: 'talent' as const, label: 'Was wäre wenn' })),
 ];
 export const getCard = (id: string) => CARD_POOL.find((c) => c.id === id);
@@ -120,6 +128,30 @@ export const PACKS: PackDef[] = [
   {
     id: 'icon', name: 'Ikonen-Pack', price: 25000, size: 2, text: '1 garantierte Ikone plus eine Karte ab 80.',
     weight: (c) => (c.ovr >= 80 && c.variant !== 'icon' ? 1 : 0), guarantee: (c) => c.variant === 'icon', itemChance: 0,
+  },
+  {
+    id: 'mystery', name: 'Wundertüte', price: 2000, size: 1, text: '1 völlig zufällige Karte – von Silber bis Ikone ist alles drin.',
+    weight: () => 1, itemChance: 0,
+  },
+  {
+    id: 'germany', name: 'Deutschland-Pack', price: 4500, size: 3, text: '3 deutsche Spieler – mit etwas Glück eine deutsche Ikone.',
+    weight: (c) => (c.nation !== 'Deutschland' ? 0 : c.variant === 'icon' ? 0.15 : 1), itemChance: 0,
+  },
+  {
+    id: 'bundesliga', name: 'Bundesliga-Pack', price: 4500, size: 3, text: '3 Spieler aus der Bundesliga, gute Chemie garantiert.',
+    weight: (c) => (c.league === 'Bundesliga' ? 1 : 0), itemChance: 0,
+  },
+  {
+    id: 'wonder', name: 'Wunderkind-Pack', price: 6000, size: 3, text: '3 Talente bis 21 Jahre – die Stars von morgen.',
+    weight: (c) => (c.age !== undefined && c.age <= 21 ? Math.exp((c.ovr - 75) / 10) : 0), itemChance: 0,
+  },
+  {
+    id: 'worldstar', name: 'Weltstar-Pack', price: 15000, size: 2, text: '2 Weltstars ab 88 – kleine Chance auf eine Ikone.',
+    weight: (c) => (c.ovr < 88 || c.variant === 'talent' ? 0 : c.variant === 'icon' ? 0.12 : 1), itemChance: 0,
+  },
+  {
+    id: 'goat', name: 'GOAT-Pack', price: 40000, size: 2, text: 'Eine Ikone ab 94 garantiert (Pelé, Maradona, Cruyff …) plus ein Weltstar.',
+    weight: (c) => (c.ovr >= 88 && c.variant !== 'icon' && c.variant !== 'talent' ? 1 : 0), guarantee: (c) => c.variant === 'icon' && c.ovr >= 94, itemChance: 0,
   },
 ];
 

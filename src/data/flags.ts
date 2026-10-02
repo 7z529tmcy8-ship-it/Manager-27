@@ -6,7 +6,7 @@ const FLAGS: Record<string, string> = {
   Spanien: '🇪🇸', Südkorea: '🇰🇷', Türkei: '🇹🇷', USA: '🇺🇸', Ägypten: '🇪🇬', Österreich: '🇦🇹', Marokko: '🇲🇦',
   Mexiko: '🇲🇽', Ghana: '🇬🇭', Schottland: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', Wales: '🏴󠁧󠁢󠁷󠁬󠁳󠁿', Uruguay: '🇺🇾', Senegal: '🇸🇳', Nigeria: '🇳🇬',
   Kamerun: '🇨🇲', Ukraine: '🇺🇦', Serbien: '🇷🇸', Georgien: '🇬🇪', Ungarn: '🇭🇺', Tschechien: '🇨🇿', Griechenland: '🇬🇷',
-  Kanada: '🇨🇦', Australien: '🇦🇺', Algerien: '🇩🇿', Tunesien: '🇹🇳', Slowenien: '🇸🇮', Slowakei: '🇸🇰', Finnland: '🇫🇮',
+  Kanada: '🇨🇦', Australien: '🇦🇺', Algerien: '🇩🇿', Tunesien: '🇹🇳', Slowenien: '🇸🇮', Slowakei: '🇸🇰', Finnland: '🇫🇮', Russland: '🇷🇺',
 };
 
 export const flagOf = (nation: string) => FLAGS[nation] ?? '🏳️';
