@@ -9,12 +9,15 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
 - **Einfacher Spielablauf:** Ein Knopf simuliert immer bis zur nächsten Pause – erst bis zur Winterpause, dann bis
   Saisonende (Pokal- und Europapokal-Finals laufen automatisch). Am Ende jeder Saison gibt es **drei Möglichkeiten**
   als Karten, z. B. Wechsel, Leihe, Bleiben/Verlängern (bei auslaufendem Vertrag weitere Angebote oder Karriereende)
+- **Winterpause:** optional ein **Wintertransfer** oder eine **Winter-Leihe** (Rückrunde beim neuen Verein) oder ein
+  **Trainingslager** (Chance auf +1 Wertung, je mehr Spielpraxis, desto besser – mit kleinem Verletzungsrisiko)
 - **Karriere als Zeitleiste:** Kopf mit Wertung, Nation, Position, Alter, Verein und Marktwert; darunter eine Zeile
   pro Saison (Alter, Verein, Wertung als Farb-Pille – Weltklasse hellblau, Spiele, Tore, Vorlagen, Titel als Symbole).
   Antippen zeigt Details (Liga, Platz, Ø-Note, Entwicklung, Titel, Ereignisse). Dazu Nationalmannschaft und Gesamtwerte
 - **Eigener Spieler** (Name, Nation, Position, Alter, Talent, Startverein), **echter Spieler**, **Legenden** mit
   Charakter oder **Zweite Chance** für gescheiterte Talente
-- **11 Ligen, Stand 2025/26:** Bundesliga bis Regionalliga Nord, Premier League, Championship, LaLiga, Serie A,
+- **12 Ligen, Stand 2025/26:** Bundesliga bis Regionalliga Nord und **Oberliga Niedersachsen** (5. Liga, die 16
+  echten Teilnehmer 2025/26, zwei Auf-/Abstiegsplätze mit der Regionalliga Nord), Premier League, Championship, LaLiga, Serie A,
   Ligue 1, Liga Portugal, Eredivisie – komplett simuliert inkl. Pokal, Europapokal, Auf- und Abstieg
 - **Realistische Entwicklung** nach Alter, Spielzeit, Leistung und Vereinsniveau, dazu zufällige Ereignisse
 - **Arena-Design & Hub:** dunkles, leuchtendes Design (in den Einstellungen umschaltbar) und ein Hauptmenü aus Kacheln:

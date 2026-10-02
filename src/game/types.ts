@@ -19,7 +19,7 @@ export interface League {
   name: string;
   country: string;
   cup: string;
-  tier: 1 | 2 | 3 | 4;
+  tier: 1 | 2 | 3 | 4 | 5;
   /** Durchschnittliche Tore pro Spiel in dieser Liga. */
   goalsPerGame: number;
   /** Anzahl Startplätze für CL / EL / Conference League. */
@@ -252,6 +252,8 @@ export interface SeasonProgress {
   /** Gewählte Belastung für die nächste Etappe. */
   load?: StageLoad;
   stageLog?: StageSummary[];
+  /** Trainingslager in dieser Winterpause schon absolviert. */
+  campDone?: boolean;
   cup: CupState;
   euro: EuroState | null;
   winterMove: WinterMove | null;

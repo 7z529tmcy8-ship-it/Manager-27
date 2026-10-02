@@ -1228,3 +1228,10 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
   .cs-th { font-size: .6rem; letter-spacing: .04em; }
   .cs-clubcell small { display: none; }
 }
+.cs-choices.n1 { grid-template-columns: minmax(0, 1fr); max-width: 260px; }
+.cs-choices.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cs-choice.k-camp small { color: var(--gold); }
+.cs-note { margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); font-size: .9rem; }
+.cs-note.good { box-shadow: inset 3px 0 0 var(--up); }
+.cs-note.bad { box-shadow: inset 3px 0 0 var(--down); }
+.cs-window .btn.secondary.cs-go { margin-top: 12px; }

@@ -1,14 +1,16 @@
 import { getClub } from '../data/leagues';
-import { acceptOffer, canStay, playFirstHalf, playSeason, requestOffers, retire, stayAtClub } from './career';
+import { acceptOffer, acceptWinterOffer, canStay, playFirstHalf, playSeason, requestOffers, retire, stayAtClub } from './career';
+import { chance, randInt } from './random';
 import { clubStrength } from './player';
-import { STAGES_PER_HALF } from './season';
+import { STAGES_PER_HALF, halfStats } from './season';
 import type { Career, Offer } from './types';
 
 // Vereinfachter Spielablauf: immer bis zur nächsten Pause simulieren (Winterpause, dann Saisonende),
 // am Saisonende genau drei Möglichkeiten. Keine Zwischen-Entscheidungen, Finals laufen automatisch.
 
 /** Bis zur Winterpause (aus der Saison) bzw. bis Saisonende (aus der Winterpause). */
-export function simulateToBreak(prev: Career): Career {
+export function simulateToBreak(input: Career): Career {
+  const prev: Career = { ...input, decisionResult: null };
   // Alte Spielstände können mitten in der Rückrunde stehen – dann direkt bis Saisonende.
   const inSecondHalf = (prev.progress?.stage ?? 0) >= STAGES_PER_HALF;
   if (prev.phase === 'season' && !inSecondHalf) return { ...playFirstHalf({ ...prev, decision: null }, true), decision: null };
@@ -27,7 +29,7 @@ function ensureOffers(c: Career): Career {
   return out;
 }
 
-export type ChoiceKind = 'transfer' | 'loan' | 'stay' | 'extend' | 'retire';
+export type ChoiceKind = 'transfer' | 'loan' | 'stay' | 'extend' | 'retire' | 'camp';
 
 export interface Choice {
   kind: ChoiceKind;
@@ -42,6 +44,7 @@ const TITLES: Record<ChoiceKind, string> = {
   stay: 'Bleiben',
   extend: 'Verlängern',
   retire: 'Karriere beenden',
+  camp: 'Trainingslager',
 };
 
 /** Die drei Möglichkeiten im Sommer: bester Wechsel, beste Leihe, Bleiben – mit sinnvollen Ersatzoptionen. */
@@ -79,3 +82,65 @@ export function applyChoice(prev: Career, choice: Choice): Career {
 
 export const choiceClub = (career: Career, c: Choice) =>
   c.offer ? getClub(c.offer.clubId).name : c.kind === 'stay' ? getClub(career.player.contract.clubId).name : '';
+
+// ---------- Winterpause ----------
+
+/** In der Winterpause: bis zu zwei Winter-Angebote (Wechsel/Leihe) und das Trainingslager. */
+export function winterChoices(career: Career): Choice[] {
+  if (career.phase !== 'winter') return [];
+  const strength = (o: Offer) => clubStrength(career, o.clubId);
+  const transfers = career.offers.filter((o) => o.type === 'Transfer' || o.type === 'Ablösefrei').sort((a, b) => strength(b) - strength(a));
+  const loans = career.offers.filter((o) => o.type === 'Leihe').sort((a, b) => strength(b) - strength(a));
+  const out: Choice[] = [];
+  if (transfers[0]) out.push({ kind: 'transfer', title: 'Wintertransfer', offer: transfers[0] });
+  if (loans[0]) out.push({ kind: 'loan', title: 'Winter-Leihe', offer: loans[0] });
+  else if (transfers[1]) out.push({ kind: 'transfer', title: 'Wintertransfer', offer: transfers[1] });
+  if (!career.progress?.campDone) out.push({ kind: 'camp', title: TITLES.camp });
+  return out;
+}
+
+export function applyWinterChoice(prev: Career, c: Choice): Career {
+  if (c.kind === 'camp') return winterCamp(prev);
+  const next = acceptWinterOffer(prev, c.offer!);
+  return {
+    ...next,
+    decision: null,
+    decisionResult: {
+      title: c.kind === 'loan' ? 'Winter-Leihe' : 'Wintertransfer',
+      text: `Du spielst die Rückrunde bei ${getClub(c.offer!.clubId).name}. Pokal und Europapokal laufen ohne dich weiter.`,
+      tone: 'good',
+    },
+  };
+}
+
+/**
+ * Trainingslager: Je mehr Spielpraxis in der Hinrunde, desto eher bringt es +1 Gesamtwertung (nie über das Potenzial).
+ * Kleines Risiko einer leichten Verletzung zum Start der Rückrunde.
+ */
+export function winterCamp(prev: Career): Career {
+  if (prev.phase !== 'winter' || !prev.progress || prev.progress.campDone) return prev;
+  const career: Career = structuredClone(prev);
+  const prog = career.progress!;
+  const p = career.player;
+  prog.campDone = true;
+  const s = halfStats(prog.matches);
+  const share = s.possibleMinutes ? s.minutes / s.possibleMinutes : 0;
+  const parts: string[] = [];
+  let tone: 'good' | 'bad' | 'neutral' = 'neutral';
+  if (p.ovr < p.potential && chance(0.35 + 0.35 * share)) {
+    p.ovr += 1;
+    parts.push('Harte Einheiten zahlen sich aus: +1 Gesamtwertung.');
+    tone = 'good';
+  } else {
+    parts.push('Viel geschwitzt, aber noch kein Sprung bei der Wertung.');
+  }
+  if (chance(0.08)) {
+    const weeks = randInt(1, 3);
+    p.carryInjuryWeeks = (p.carryInjuryWeeks ?? 0) + weeks;
+    parts.push(`Leider eine Zerrung: ${weeks} ${weeks === 1 ? 'Woche' : 'Wochen'} Pause zum Rückrundenstart.`);
+    tone = tone === 'good' ? 'neutral' : 'bad';
+  }
+  career.decisionResult = { title: 'Trainingslager', text: parts.join(' '), tone };
+  career.updatedAt = Date.now();
+  return career;
+}

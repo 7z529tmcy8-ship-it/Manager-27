@@ -66,9 +66,9 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'journeyman', icon: '🧳', name: 'Wandervogel', description: 'Spiele für 6 verschiedene Vereine.', progress: (c) => [new Set(c.history.map((s) => s.clubId)).size, 6] },
   { id: 'loyal', icon: '❤️', name: 'Ewige Treue', description: '12 Saisons am Stück beim selben Verein.', progress: (c) => [longestClubSpell(c), 12] },
   {
-    id: 'bottom_up', icon: '🪜', name: 'Von ganz unten', description: 'Spiele in der Regionalliga und später in einer Top-Liga.',
+    id: 'bottom_up', icon: '🪜', name: 'Von ganz unten', description: 'Spiele in der Regional- oder Oberliga und später in einer Top-Liga.',
     progress: (c) => {
-      const firstRegional = c.history.findIndex((s) => getLeague(s.leagueId).tier === 4);
+      const firstRegional = c.history.findIndex((s) => getLeague(s.leagueId).tier >= 4);
       return has(firstRegional >= 0 && c.history.slice(firstRegional).some((s) => getLeague(s.leagueId).tier === 1));
     },
   },

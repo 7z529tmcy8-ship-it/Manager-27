@@ -19,7 +19,12 @@ export const LEAGUES: League[] = [
   {
     // Vereinfacht: Nur die Regionalliga Nord ist enthalten, daher tauscht sie genau einen Platz mit der 3. Liga.
     id: 'rln', name: 'Regionalliga Nord', country: 'Deutschland', cup: 'DFB-Pokal', tier: 4, goalsPerGame: 3.2,
-    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'l3', spots: 1 }, topScorerGoals: 24,
+    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'l3', spots: 1 }, down: { leagueId: 'ondn', spots: 2 }, topScorerGoals: 24,
+  },
+  {
+    // 5. Liga. Vereinfacht: Nur die Oberliga Niedersachsen ist enthalten, sie tauscht zwei Plätze mit der Regionalliga Nord.
+    id: 'ondn', name: 'Oberliga Niedersachsen', country: 'Deutschland', cup: 'DFB-Pokal', tier: 5, goalsPerGame: 3.5,
+    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'rln', spots: 2 }, topScorerGoals: 24,
   },
   {
     id: 'pl', name: 'Premier League', country: 'England', cup: 'FA Cup', tier: 1, goalsPerGame: 2.9,
@@ -79,6 +84,13 @@ const RAW: Record<string, [string, number][]> = {
     ['Kickers Emden', 56], ['SC Weiche Flensburg 08', 56], ['SSV Jeddeloh II', 55], ['FC St. Pauli II', 55],
     ['Eintracht Norderstedt', 55], ['Holstein Kiel II', 54], ['SC BW Lohne', 54], ['Altona 93', 54],
     ['HSC Hannover', 54], ['FSV Schöningen', 53],
+  ],
+  // Teilnehmer 2025/26 (recherchiert 10/2026). Stärken grob nach der Abschlusstabelle geschätzt.
+  ondn: [
+    ['SV Atlas Delmenhorst', 52], ['1. FC Germania Egestorf/Langreder', 51], ['Heeslinger SC', 50], ['VfV 06 Hildesheim', 49],
+    ['SV Wilhelmshaven', 49], ['Lüneburger SK Hansa', 48], ['SC Spelle-Venhaus', 48], ['SV Meppen II', 47],
+    ['TuS Bersenbrück', 47], ['BSV Rehden', 47], ['FC Verden 04', 46], ['Eintracht Braunschweig II', 46],
+    ['MTV Wolfenbüttel', 46], ['TSV Wetschen', 44], ['Lupo Martini Wolfsburg', 42], ['SV Holthausen Biene', 41],
   ],
   pl: [
     ['Liverpool FC', 85], ['Manchester City', 84], ['Arsenal FC', 84], ['Chelsea FC', 83],

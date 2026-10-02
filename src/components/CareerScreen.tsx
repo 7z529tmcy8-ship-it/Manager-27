@@ -3,7 +3,8 @@ import { flagOf, nationCode } from '../data/flags';
 import { getClub, getLeague } from '../data/leagues';
 import { clubLeagueId, currentClubId, formatMoney, playerValue } from '../game/player';
 import { halfStats } from '../game/season';
-import { applyChoice, choiceClub, seasonChoices, simulateToBreak, type Choice } from '../game/simple';
+import { applyChoice, applyWinterChoice, choiceClub, seasonChoices, simulateToBreak, winterChoices, type Choice } from '../game/simple';
+import { STAGES_PER_HALF } from '../game/season';
 import type { Career, SeasonRecord } from '../game/types';
 
 interface Props {
@@ -25,9 +26,11 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
   const clubId = currentClubId(p);
   const [picked, setPicked] = useState<number | null>(null);
   const [open, setOpen] = useState<string | null>(null);
-  const choices = seasonChoices(career);
+  const choices = career.phase === 'winter' ? winterChoices(career) : seasonChoices(career);
   const prog = career.progress;
-  const half = career.phase === 'winter' && prog ? halfStats(prog.matches) : null;
+  const secondHalf = career.phase === 'winter' || (career.phase === 'season' && (prog?.stage ?? 0) >= STAGES_PER_HALF);
+  const half = secondHalf && prog ? halfStats(prog.matches) : null;
+  const note = career.decisionResult;
   const totals = career.history.reduce((a, r) => ({ apps: a.apps + r.apps, goals: a.goals + r.goals, assists: a.assists + r.assists }), { apps: 0, goals: 0, assists: 0 });
   const retired = career.phase === 'retired';
 
@@ -40,7 +43,7 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
     const c = choices[picked];
     if (c.kind === 'retire' && !window.confirm('Karriere wirklich beenden?')) return;
     setPicked(null);
-    onChange(applyChoice(career, c));
+    onChange(career.phase === 'winter' ? applyWinterChoice(career, c) : applyChoice(career, c));
   };
 
   return (
@@ -86,7 +89,7 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
               <span className="cs-clubcell muted">? <em>Karriere-Entscheidung …</em></span>
             ) : (
               <>
-                <span className="cs-clubcell">{getClub(clubId).name}<small>{half ? 'Hinrunde' : 'neue Saison'}</small></span>
+                <span className="cs-clubcell">{getClub(clubId).name}<small>{career.phase === 'winter' ? 'Winterpause' : half ? 'Rückrunde' : 'neue Saison'}</small></span>
                 <span><b className={`cs-pill ${ovrClass(p.ovr)}`}>{p.ovr}</b></span>
                 <span>{half ? `👕 ${half.apps}` : '–'}</span>
                 <span>{half ? `⚽ ${half.goals}` : '–'}</span>
@@ -139,15 +142,29 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
 
       {(career.phase === 'season' || career.phase === 'winter' || career.phase === 'final') && (
         <section className="cs-window">
+          {career.phase === 'winter' && <h2>Winterpause</h2>}
           {half && (
             <p className="cs-sub">
-              Winterpause: {half.apps} Spiele, {half.goals} Tore, {half.assists} Vorlagen
-              {half.avgRating ? ` · Ø-Note ${half.avgRating.toFixed(2)}` : ''}
-              {prog?.ovrWinter !== undefined ? ` · Wertung jetzt ${p.ovr}` : ''}
+              Hinrunde: {half.apps} Spiele, {half.goals} Tore, {half.assists} Vorlagen
+              {half.avgRating ? ` · Ø-Note ${half.avgRating.toFixed(2)}` : ''} · Wertung jetzt {p.ovr}
             </p>
           )}
+          {note && <p className={`cs-note ${note.tone}`}><b>{note.title}:</b> {note.text}</p>}
+          {career.phase === 'winter' && choices.length > 0 && (
+            <>
+              <p className="cs-sub">Willst du die Pause nutzen? Optional – du kannst auch einfach weiterspielen.</p>
+              <div className={`cs-choices n${choices.length}`}>
+                {choices.map((c, i) => (
+                  <ChoiceCard key={c.offer?.id ?? c.kind} career={career} c={c} selected={picked === i} onPick={() => setPicked(picked === i ? null : i)} />
+                ))}
+              </div>
+              {picked !== null && (
+                <button className="btn secondary big cs-go" onClick={confirm}>{choices[picked].title} bestätigen</button>
+              )}
+            </>
+          )}
           <button className="btn primary big cs-go" onClick={run}>
-            {career.phase === 'season' ? 'Bis zur Winterpause simulieren' : 'Bis Saisonende simulieren'}
+            {secondHalf ? 'Bis Saisonende simulieren' : 'Bis zur Winterpause simulieren'}
           </button>
         </section>
       )}
@@ -197,7 +214,7 @@ function ChoiceCard({ career, c, selected, onPick }: { career: Career; c: Choice
   return (
     <button className={`cs-choice k-${c.kind} ${selected ? 'on' : ''}`} onClick={onPick} aria-pressed={selected}>
       <small>{c.title}</small>
-      <strong>{c.kind === 'retire' ? 'Schuhe an den Nagel' : choiceClub(career, c)}</strong>
+      <strong>{c.kind === 'retire' ? 'Schuhe an den Nagel' : c.kind === 'camp' ? '☀️ Ab in den Süden' : choiceClub(career, c)}</strong>
       {league && <span className="cs-choice-league">{league}</span>}
       {o && (
         <span className="cs-choice-meta">
@@ -209,6 +226,7 @@ function ChoiceCard({ career, c, selected, onPick }: { career: Career; c: Choice
       )}
       {c.kind === 'stay' && <span className="cs-choice-meta">Vertrag noch {career.player.contract.yearsLeft} J.</span>}
       {c.kind === 'retire' && <span className="cs-choice-meta">Mit {career.player.age} Jahren aufhören</span>}
+      {c.kind === 'camp' && <span className="cs-choice-meta">Chance auf +1 Wertung – je mehr Spielpraxis, desto besser. Kleines Verletzungsrisiko.</span>}
     </button>
   );
 }
