@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CARD_POOL, ITEMS, getCard, rarity, sellDuplicates, sellValue, type CollectCard, type ItemKind } from '../game/club';
+import { CARD_POOL, getCard, rarity, sellDuplicates, sellValue, type CollectCard } from '../game/club';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import UtCard from './UtCard';
 
@@ -53,12 +53,6 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
       </div>
       {msg && <p className="hub-msg">{msg}</p>}
 
-      <div className="items-row">
-        {(Object.keys(ITEMS) as ItemKind[]).map((k) => (
-          <span key={k} className="item-pill" title={ITEMS[k].text}>{ITEMS[k].icon} {ITEMS[k].name} ×{club.items[k]}</span>
-        ))}
-        <span className="hub-sub small">Items setzt du im Karrieremodus ein (Reiter „Saison“).</span>
-      </div>
 
       {shown.length ? (
         <div className="collection-grid">

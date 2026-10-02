@@ -73,12 +73,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     },
   },
   { id: 'fee100', icon: '💰', name: 'Rekordtransfer', description: 'Wechsle für mindestens 100 Mio. €.', progress: (c) => [Math.min(100, Math.max(0, ...(c.transfers ?? []).map((t) => t.fee / 1e6))), 100] },
-  { id: 'comeback', icon: '🍺', name: 'Rücktritt vom Rücktritt', description: 'Komm nach dem Karriereende zurück und spiele wieder.', progress: (c) => has(!!c.comebackUsed && c.history[c.history.length - 1]?.apps > 0) },
-  { id: 'charts', icon: '🎤', name: 'Doppelleben', description: 'Lande drei Hits mit deinem Nebenprojekt.', progress: (c) => [Math.min(3, c.player.sideProject?.hits ?? 0), 3] },
-  { id: 'president', icon: '🎰', name: 'Präsident & Spieler', description: 'Gewinne im Lotto und kaufe deinen eigenen Verein.', progress: (c) => has(!!c.owner) },
-  { id: 'press10', icon: '🎙️', name: 'Sprücheklopfer', description: 'Gib 10 Pressekonferenzen.', progress: (c) => [c.pressCount ?? 0, 10] },
   { id: 'second_chance', icon: '💔', name: 'Zweite Chance', description: 'Bringe ein gescheitertes Talent auf eine Gesamtwertung von 85.', progress: (c) => [c.secondChance ? Math.min(peak(c), 85) : 0, 85] },
-  { id: 'jackpot777', icon: '🎰', name: '777', description: 'Knacke den Jackpot am Spielautomaten.', progress: (c) => [Math.min(1, c.casino?.jackpots ?? 0), 1] },
   { id: 'rival10', icon: '⚔️', name: 'Rivale bezwungen', description: 'Gewinne 10 Saison-Duelle gegen deinen Rivalen.', progress: (c) => [(c.rival?.history ?? []).filter((h) => h.duel === 'player').length, 10] },
 ];
 

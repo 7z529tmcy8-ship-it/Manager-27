@@ -6,118 +6,28 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
 
 ## Features
 
-- **Eigener Spieler** (Name, Nation, Position, Alter, Talentstufe, Startverein) oder **echter Spieler** als Start
-  (z. B. Lennart Karl, Musiala, Yamal, Haaland – Werte sind eigene Schätzungen, keine EA-Ratings)
-- **11 Ligen, Stand 2025/26:** Bundesliga, 2. Bundesliga, 3. Liga, Regionalliga Nord, Premier League,
-  Championship, LaLiga, Serie A, Ligue 1, Liga Portugal, Eredivisie – mit Auf- und Abstieg und Europapokal-Plätzen.
-  Zweite Mannschaften steigen höchstens in die 3. Liga auf. Vereinfachung: Da nur die Regionalliga Nord enthalten ist,
-  tauscht sie genau einen Platz mit der 3. Liga
-- **Saison-Simulation:** Alle Ligen werden komplett durchgespielt, dazu nationaler Pokal und
-  Champions/Europa/Conference League. Für den Spieler: Einsätze, Minuten, Tore, Vorlagen, Noten, Verletzungen
-- **Saison in 6 Etappen:** je ca. 6 Spieltage – danach Etappen-Bilanz, Tabellenbewegung, Formkurve (Noten der
-  letzten Spiele) und die nächsten Gegner (Topspiel/Pflichtsieg). Vor jeder Etappe die Belastung wählen: Normal,
-  Voll angreifen (mehr Einsätze, mehr Verletzungsrisiko), Extra-Schichten (bessere Form) oder Schonen.
-  „Ganze Saison“ spielt jederzeit den Rest am Stück
-- **Saison-Story:** nach jeder Saison ein Rückblick zum Durchtippen – Zahlen zählen hoch, Karten-Upgrade
-  (Bronze → Silber → Gold → Elite), Konfetti bei Titeln, Geschichte der Saison und Rivalen-Duell
-- **Hinrunde & Rückrunde mit Wintertransferfenster:** Nach der Hinrunde gibt es eine Zwischenbilanz und
-  Winter-Angebote (Leihe bis Saisonende, Transfer). Wer wechselt, spielt die Rückrunde beim neuen Verein –
-  Pokal und Europapokal laufen dann ohne ihn weiter. „Ganze Saison“ überspringt die Winterpause
-- **Realistische Entwicklung** (nach Hin- und Rückrunde, mit Erklärung im Saisonrückblick):
-  - junge Spieler wachsen Richtung (verborgenem) Potenzial – je jünger, desto schneller
-  - Spielzeit und Leistung (Note, Torbeteiligungen) beschleunigen die Entwicklung; wer auf der Bank sitzt,
-    stagniert und kann sogar Potenzial verlieren
-  - über das Potenzial hinaus wächst nur, wer besser spielt als für seine Stärke erwartet
-  - eine starke Saison mit viel Spielzeit führt bis 31 nie zu einem Minus (außer durch Ereignisse)
-  - ab 30 setzt der Abbau ein (Torhüter später); starke Leistungen und Spielpraxis bremsen ihn deutlich
-- **Ereignisse:** Durchbruch, Mentor, Spätzünder, Extraschichten, Trainerwechsel, Zoff mit dem Trainer,
-  Formkrise, Eingewöhnungsprobleme, schwere Verletzungen … – sie verändern Gesamtwertung, Potenzial oder
-  das Trainervertrauen (und damit die Einsatzzeit)
-- **Transferfenster nach jeder Saison:** Transfers, Leihen, Vertragsverlängerungen, ablösefreie Wechsel,
-  „Auf Transferliste setzen“, „Um Leihe bitten“, Karriereende
-- **Karriere-Übersicht:** Stationen, Verlauf der Gesamtwertung, Trophäenschrank, Auszeichnungen
-  (Torschützenkönig, Golden Boy, Ballon d’Or …), Länderspiele inkl. WM/EM
-- **Legenden & Charakter:** 14 Kultfiguren (Balotelli, Zlatan, Ronaldinho, Cantona, Gascoigne, Kahn, Effenberg …)
-  starten als „Was wäre wenn“-Karriere jung im heutigen Fußball. Acht Charaktereigenschaften (Unberechenbar,
-  Heißsporn, Showman, Partylöwe, Diva, Anführer, Vollprofi, Eiskalt) verändern Noten, Rote Karten, Entwicklung,
-  Finals und lösen eigene Ereignisse und Entscheidungen aus – auch für eigene Spieler wählbar
-- **Wettskandal:** ein zwielichtiges Angebot – ablehnen, melden (Held) oder das Geld nehmen. Wer annimmt, riskiert in
-  jeder Halbserie das Auffliegen: 25 Spiele Sperre, −2 Wertung, eventuell Rauswurf
-- **Doppelleben:** Rapalbum, Modemarke oder Streaming-Kanal starten – Hits bringen Vertrauen und Kultstatus, Flops
-  Spott; die Entwicklung auf dem Platz leidet etwas. Jederzeit beendbar
-- **Rücktritt vom Rücktritt:** nach dem Karriereende einmal zurückkommen (bis 38): zwei Jahre Pause, −15 Wertung,
-  dann vereinslos ins Transferfenster
-- **Arena-Design & Hub:** dunkles, leuchtendes Design (Standard, in den Einstellungen umschaltbar) und ein Hauptmenü
-  aus großen Kacheln im Stil von Sammelkarten-Spielen: deine aktuelle Spielerkarte im Mittelpunkt, Coins oben,
-  Kacheln für Karriere, Store, Sammlung, Stadtkarte, Spielstände, Erfolge, Hall of Fame und Casino. Eigene Designs –
-  keine Logos, Namen oder Kartendesigns von EA
-- **Coins:** nach jeder Saison für Spiele, Tore, Vorlagen, Titel, Auszeichnungen, Erfolge und Sonderkarten; gelten
-  für alle Karrieren (Club). Startguthaben 3.000 Coins
-- **Store & Packs:** Standard-, Gold-, Premium- und Ikonen-Pack (plus ein Gratis-Willkommens-Pack). Animiertes Öffnen,
-  bei seltenen Karten mit „Walkout“ (Nation → Position → Verein, Lichtstrahlen, Konfetti). In Packs: echte Spieler,
-  Legenden als Ikonen, gescheiterte Talente als „Was wäre wenn“-Karten und Items (Fitness-Kit, Trainingsboost),
-  die man im Karrieremodus einsetzt
-- **Sammlung:** alle gezogenen Karten mit Filtern, Doppelte schnell verkaufen
-- **Sonderkarten:** nach starken Saisons bekommt dein Spieler eine Sonderkarte (Team der Saison, Spieler des Monats,
-  Rekordjäger, Titelheld) – mit eigenem Design auf der Spielerkarte und in der Sammlung
-- **Startmenü als Stadtkarte:** eine selbst gezeichnete Karte im Stil einer Karten-App mit Stadion (Weiterspielen),
-  Nachwuchsakademie (neue Karriere), Fußballmuseum (Hall of Fame), Trophäenhaus (Erfolge), Spielerwohnheim
-  (Spielstände) – plus Kiosk und eine verdächtige Lagerhalle. Antippen zoomt hin und öffnet die Ortskarte unten
-- **Zweite Chance:** 12 gescheiterte Talente (Freddy Adu, Bojan Krkić, Pato, Wilshere, Kerlon, Macheda, Ravel Morrison,
-  Anderson, Hachim Mastour, Giovani dos Santos, Kakuta, Marko Marin) starten noch einmal jung – schaffst du Wertung 85?
-  Neuer Charakterzug „Verletzungsanfällig“ (deutlich höheres Verletzungsrisiko)
-- **Postfach:** ✉️ oben im Spiel – alle persönlichen Nachrichten an einem Ort (Saisonbilanz, Angebote, Vertragslage,
-  Wechsel, Ereignisse, Ergebnisse von Entscheidungen und Pressekonferenzen, Erfolge) mit Ungelesen-Zähler und
-  Sprung an die passende Stelle
-- **Urlaubsmodus:** 3 Saisons, 5 Saisons oder bis Vertragsende am Stück simulieren. Du bleibst beim Verein,
-  Entscheidungen und Presse werden übersprungen; angehalten wird bei Vertragsende, Top-Angebot oder Karriereende
-- **Einstellungen:** ⚙️ im Spiel und auf der Karte. Pro Karriere: Schwierigkeit (Leicht/Normal/Schwer – wirkt auf
-  Einsätze, Verletzungen und Entwicklung) und Häufigkeit der Pressekonferenzen. Pro Gerät: Design (Automatisch/Hell/
-  Dunkel), Animationen an/aus, Casino ein-/ausblenden, Passwort-Sperre wieder aktivieren
-- **Glückspalast (Casino):** Das Gehalt landet jetzt auf einem Konto (Spielgeld). Im Casino – über 🎰 oben im Spiel
-  oder auf der Stadtkarte – gibt es einen einarmigen Banditen mit drei echten, nacheinander stoppenden Walzen und
-  Hebel. Einsatz von 1 Tsd. € bis All-in, Auszahlungsquote gut 90 % (auf Dauer gewinnt die Bank). 777 = ×50 und
-  Schlagzeile; wer zu oft zockt, wird von Paparazzi erwischt (Trainervertrauen −1)
-- **Pressekonferenzen:** zwischen den Etappen lädt oft die Presse ein – Torflaute, Lauf, Bank, Tabellenplatz,
-  Rivale, Schiri oder völlig absurde Fragen („Gehört Ananas auf Pizza?“). Die Antworten wirken auf
-  Trainervertrauen und Form, manchmal gibt es Sperren und Schlagzeilen
-- **Lotto & eigener Verein:** im Sommer ein Lottoschein am Kiosk (absichtlich unrealistische 5 % Gewinnchance).
-  Mit dem Jackpot kannst du deinen Verein kaufen und bist Spieler und Präsident zugleich: du stellst dich selbst auf,
-  verlängerst deinen Vertrag selbst und gibst im Präsidentenbüro Geld aus (Stars kaufen, Trainer feuern,
-  Stadion vergolden, Statue von dir)
-- **Passwort-Sperre:** Beim Öffnen fragt die Seite nach dem Passwort (`123`). Entsperrt bleibt sie, solange der Tab
-  offen ist. Der Geheimcode `Larp` (Groß-/Kleinschreibung egal) öffnet stattdessen eine eigene, vom Spiel
-  unabhängige Seite: eine **Markt-App** (`src/terminal/`) im hellen, ruhigen Stil einer Trading-App – Übersicht mit
-  Top/Flop des Tages, Suche und Mini-Charts, Detailansicht mit Chart (Zeiträume, Ø 50/200 Tage), Rendite, gleitenden
-  Durchschnitten, Risiko und Stammdaten, Vergleich (indexiert auf 100, „laufen zu x % gleich“) und Ranking. Dazu ein **Day-Trading-Spiel**: ein Börsentag
-  (09:00–17:30) im Zeitraffer (≈ 2 Min., Tempo 1×/2×/5×), Live-Kerzenchart, Geld-/Briefkurs, 1 € Gebühr, Long & Short,
-  Stop-Loss/Take-Profit, Hebel 1×/2×/5×, Spiel-News, Zwangsschließung zum Börsenschluss, Tagesbilanz und Statistik
-  über alle Tage (10.000 € Spielgeld, im Browser gespeichert). Tasten: K kaufen · V verkaufen · X schließen · Leertaste Pause. Die
-  Stammdaten (ISIN, TER, Fondsgröße) wurden im September 2026 recherchiert; die **Kurse sind simuliert**. Beides steht in `src/components/PasswordGate.tsx`. Das ist
-  nur eine Sperre im Browser – wer den Quellcode liest, sieht Passwort und Code
-- **Live-Finals:** Pokal-, Europapokal- und Turnierfinals (WM/EM/Copa) laufen als Live-Ticker. In deinen Szenen
-  entscheidest du selbst (abziehen, querlegen, dribbeln / grätschen, stellen / rauslaufen, Elfmeter-Ecke) – das
-  beeinflusst Ergebnis, Tore und Note. „Ganze Saison“ spielt Finals automatisch
-- **Entscheidungen:** Positionswechsel, angeschlagen ins Topspiel, Trainingslager, Interview zu Wechselgerüchten,
-  Elfmeterschütze, Mannschaftsabend, Mentor – jede Wahl hat Folgen für Wertung, Vertrauen oder Verletzungen
-- **Rivale:** ein Talent auf deiner Position macht parallel Karriere (eigene Entwicklung und Wechsel); jede Saison
-  gibt es ein Duell, und ein stärkerer Rivale gleicher Nation kann dir den Platz in der Nationalelf wegnehmen
-- **Kapitän & Vereinslegende:** nach einigen Jahren als Stammspieler Kapitänsbinde (mehr Einsätze), nach vielen
-  Jahren oder Titeln Legendenstatus – beim Karriereende wird die Rückennummer nicht mehr vergeben
-- **Schlagzeilen:** Presse-Feed zu deinen Leistungen, Titeln, Transfers, dem Rivalen und den Ligen
-- **Saisonziele vom Trainer:** zwei Ziele je Saison (z. B. Tore, Vorlagen, Zu-null-Spiele, Einsätze, Ø-Note),
-  passend zu Rolle, Position und Teamstärke; Zwischenstand zur Winterpause. Alle erreicht → mehr Vertrauen und
-  10 % Gehaltsbonus, keins erreicht → der Trainer ist enttäuscht
-- **Trainingsschwerpunkt:** vor jeder Halbserie ein Attribut trainieren (+1 pro Halbserie, max. +10); Schlüssel-
-  attribute der Position helfen zusätzlich der Gesamtwertung bzw. bremsen den Abbau; „Regeneration“ senkt das
-  Verletzungsrisiko
-- **Erfolge:** 33 Karriereziele (100 Tore, Triple, Weltmeister, Ballon d’Or, Von ganz unten …) mit Fortschritt,
-  über alle Karrieren
-- **Hall of Fame:** Rangliste aller Karrieren nach Legendenpunkten (sortierbar), Rekorde über alle Karrieren
-  und Vergleich von bis zu drei Karrieren inklusive Entwicklungskurven
-- Über 80 echte Spieler als Startvorlage (u. a. Hayate Matsuda, Kubo, Mitoma, Musiala, Wirtz, Yamal)
-- **Transferhistorie:** alle Wechsel und Leihen mit Ablöse, Gesamtsumme der Ablösen (auch am Karriereende)
-- Spielstände werden im Browser gespeichert (localStorage)
+- **Einfacher Spielablauf:** Ein Knopf simuliert immer bis zur nächsten Pause – erst bis zur Winterpause, dann bis
+  Saisonende (Pokal- und Europapokal-Finals laufen automatisch). Am Ende jeder Saison gibt es **drei Möglichkeiten**
+  als Karten, z. B. Wechsel, Leihe, Bleiben/Verlängern (bei auslaufendem Vertrag weitere Angebote oder Karriereende)
+- **Karriere als Zeitleiste:** Kopf mit Wertung, Nation, Position, Alter, Verein und Marktwert; darunter eine Zeile
+  pro Saison (Alter, Verein, Wertung als Farb-Pille – Weltklasse hellblau, Spiele, Tore, Vorlagen, Titel als Symbole).
+  Antippen zeigt Details (Liga, Platz, Ø-Note, Entwicklung, Titel, Ereignisse). Dazu Nationalmannschaft und Gesamtwerte
+- **Eigener Spieler** (Name, Nation, Position, Alter, Talent, Startverein), **echter Spieler**, **Legenden** mit
+  Charakter oder **Zweite Chance** für gescheiterte Talente
+- **11 Ligen, Stand 2025/26:** Bundesliga bis Regionalliga Nord, Premier League, Championship, LaLiga, Serie A,
+  Ligue 1, Liga Portugal, Eredivisie – komplett simuliert inkl. Pokal, Europapokal, Auf- und Abstieg
+- **Realistische Entwicklung** nach Alter, Spielzeit, Leistung und Vereinsniveau, dazu zufällige Ereignisse
+- **Arena-Design & Hub:** dunkles, leuchtendes Design (in den Einstellungen umschaltbar) und ein Hauptmenü aus Kacheln:
+  aktuelle Spielerkarte, Neue Karriere, Store, Sammlung, Spielstände, Erfolge, Hall of Fame. Eigene Designs – keine
+  Logos, Namen oder Kartendesigns von EA
+- **Coins, Packs & Sammlung:** Coins nach jeder Saison; Packs (Standard, Gold, Premium, Ikonen, dazu ein Gratis-Pack)
+  mit animiertem „Walkout“ für seltene Karten; Sammlung mit Filtern und Schnellverkauf von Doppelten
+- **Sonderkarten:** Team der Saison, Spieler des Monats, Rekordjäger, Titelheld – nach starken Saisons
+- **Erfolge & Hall of Fame:** Karriereziele mit Fortschritt, Rangliste aller Karrieren
+- **Einstellungen:** Schwierigkeit (Leicht/Normal/Schwer), Design, Animationen, Passwort-Sperre
+- **Passwort-Sperre:** `123` öffnet das Spiel (gilt, solange der Tab offen ist). Der Geheimcode `Larp` öffnet eine
+  eigene Markt-App mit ETF-Übersicht und Day-Trading-Spiel (`src/terminal/`, Kurse simuliert). Beides ist nur eine
+  Sperre im Browser – wer den Quellcode liest, sieht Passwort und Code
 
 ## Lokal starten
 

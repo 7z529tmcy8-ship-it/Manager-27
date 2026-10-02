@@ -95,14 +95,14 @@ export interface PackDef {
 
 const lowWeight = (c: CollectCard) => (c.variant === 'icon' ? 0.02 : c.variant === 'talent' ? 0.15 : Math.exp(-(c.ovr - 70) / 5));
 export const PACKS: PackDef[] = [
-  { id: 'standard', name: 'Standard-Pack', price: 1500, size: 3, text: '3 Karten, meist Silber und Gold, dazu mit Glück ein Item.', weight: lowWeight, itemChance: 0.5 },
+  { id: 'standard', name: 'Standard-Pack', price: 1500, size: 3, text: '3 Karten, meist Silber und Gold, dazu mit Glück ein Item.', weight: lowWeight, itemChance: 0 },
   {
     id: 'gold', name: 'Gold-Pack', price: 4000, size: 3, text: '3 Karten ab 75, Chance auf Elite.',
-    weight: (c) => (c.variant === 'icon' ? 0.05 : c.ovr >= 75 ? Math.exp(-(c.ovr - 78) / 6) : 0), itemChance: 0.35,
+    weight: (c) => (c.variant === 'icon' ? 0.05 : c.ovr >= 75 ? Math.exp(-(c.ovr - 78) / 6) : 0), itemChance: 0,
   },
   {
     id: 'premium', name: 'Premium-Pack', price: 10000, size: 4, text: '4 Karten ab 78, eine davon garantiert Elite (85+).',
-    weight: (c) => (c.variant === 'icon' ? 0.1 : c.ovr >= 78 ? 1 : 0), guarantee: (c) => c.ovr >= 85 && c.variant !== 'icon', itemChance: 0.25,
+    weight: (c) => (c.variant === 'icon' ? 0.1 : c.ovr >= 78 ? 1 : 0), guarantee: (c) => c.ovr >= 85 && c.variant !== 'icon', itemChance: 0,
   },
   {
     id: 'icon', name: 'Ikonen-Pack', price: 25000, size: 2, text: '1 garantierte Ikone plus eine Karte ab 80.',

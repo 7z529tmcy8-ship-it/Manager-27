@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { DIFFICULTIES, PRESS_FREQUENCIES, setCareerSettings, settingsOf } from '../game/difficulty';
-import type { Career, Difficulty, PressFrequency } from '../game/types';
+import { DIFFICULTIES, setCareerSettings, settingsOf } from '../game/difficulty';
+import type { Career, Difficulty } from '../game/types';
 import { UNLOCK_KEY } from './PasswordGate';
 import { updateSettings, useSettings, type AppSettings } from '../settings';
 
@@ -80,13 +80,6 @@ export default function Settings({ career, onChange, onClose }: Props) {
               onPick={(difficulty) => onChange(setCareerSettings(career, { difficulty }))}
               hint={DIFFICULTIES[cs.difficulty].hint}
             />
-            <Choice<PressFrequency>
-              label="Pressekonferenzen"
-              value={cs.press}
-              options={(Object.keys(PRESS_FREQUENCIES) as PressFrequency[]).map((f) => [f, PRESS_FREQUENCIES[f].label])}
-              onPick={(press) => onChange(setCareerSettings(career, { press }))}
-              hint="Wie oft dich die Presse zwischen den Etappen einlädt."
-            />
           </section>
         )}
 
@@ -98,8 +91,7 @@ export default function Settings({ career, onChange, onClose }: Props) {
             options={[['arena', 'Arena'], ['auto', 'Auto'], ['light', 'Hell'], ['dark', 'Dunkel']]}
             onPick={(theme) => set({ theme })}
           />
-          <Toggle label="Animationen" checked={app.animations} onToggle={() => set({ animations: !app.animations })} hint="Walzen, Konfetti, Hochzählen und Karten-Zoom." />
-          <Toggle label="Casino anzeigen" checked={app.casino} onToggle={() => set({ casino: !app.casino })} hint="Blendet den Glückspalast im Spiel und auf der Karte aus." />
+          <Toggle label="Animationen" checked={app.animations} onToggle={() => set({ animations: !app.animations })} hint="Pack-Öffnung, Konfetti und Hochzählen." />
           <div className="setting setting-row">
             <span className="grow"><span className="setting-label">Passwort-Sperre</span></span>
             <button className="btn secondary small" onClick={lock}>Wieder sperren</button>

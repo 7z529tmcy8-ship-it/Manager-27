@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import CreateCareer from './components/CreateCareer';
-import Game from './components/Game';
+import CareerScreen from './components/CareerScreen';
 import Achievements from './components/Achievements';
-import CityMap from './components/CityMap';
 import Collection from './components/Collection';
 import HallOfFame from './components/HallOfFame';
 import Hub from './components/Hub';
@@ -14,13 +13,12 @@ import { getClubState, setClubState } from './clubStore';
 
 type Screen =
   | { name: 'home' }
-  | { name: 'city' }
   | { name: 'store' }
   | { name: 'collection' }
   | { name: 'create' }
   | { name: 'fame' }
   | { name: 'achievements' }
-  | { name: 'game'; career: Career; casino?: boolean };
+  | { name: 'game'; career: Career };
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
@@ -56,22 +54,10 @@ export default function App() {
         <Hub
           onNew={() => setScreen({ name: 'create' })}
           onLoad={load}
-          onCasino={(career) => setScreen({ name: 'game', career, casino: true })}
           onStore={() => setScreen({ name: 'store' })}
           onCollection={() => setScreen({ name: 'collection' })}
-          onCity={() => setScreen({ name: 'city' })}
           onFame={() => setScreen({ name: 'fame' })}
           onAchievements={() => setScreen({ name: 'achievements' })}
-        />
-      )}
-      {screen.name === 'city' && (
-        <CityMap
-          onBack={home}
-          onNew={() => setScreen({ name: 'create' })}
-          onFame={() => setScreen({ name: 'fame' })}
-          onAchievements={() => setScreen({ name: 'achievements' })}
-          onLoad={load}
-          onCasino={(career) => setScreen({ name: 'game', career, casino: true })}
         />
       )}
       {screen.name === 'store' && <Store onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
@@ -80,7 +66,7 @@ export default function App() {
       {screen.name === 'fame' && <HallOfFame onBack={home} onOpen={load} />}
       {screen.name === 'create' && <CreateCareer onCancel={home} onCreate={update} />}
       {screen.name === 'game' && (
-        <Game career={screen.career} openCasino={screen.casino} onChange={update} onExit={home} />
+        <CareerScreen career={screen.career} onChange={update} onExit={home} />
       )}
     </div>
   );

@@ -6,17 +6,14 @@ import { activeSpecial } from '../game/specials';
 import { deleteCareer, listCareers } from '../game/storage';
 import type { Career } from '../game/types';
 import { useClub } from '../clubStore';
-import { useSettings } from '../settings';
 import Settings from './Settings';
 import UtCard from './UtCard';
 
 interface Props {
   onNew: () => void;
   onLoad: (career: Career) => void;
-  onCasino: (career: Career) => void;
   onStore: () => void;
   onCollection: () => void;
-  onCity: () => void;
   onFame: () => void;
   onAchievements: () => void;
 }
@@ -24,9 +21,8 @@ interface Props {
 const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 
 /** Hauptmenü im Stil eines Sammelkarten-Hubs: große Kacheln, Coins oben, die eigene Karte im Mittelpunkt. */
-export default function Hub({ onNew, onLoad, onCasino, onStore, onCollection, onCity, onFame, onAchievements }: Props) {
+export default function Hub({ onNew, onLoad, onStore, onCollection, onFame, onAchievements }: Props) {
   const club = useClub();
-  const app = useSettings();
   const [saves, setSaves] = useState(listCareers);
   const [showSaves, setShowSaves] = useState(false);
   const [settings, setSettings] = useState(false);
@@ -78,11 +74,9 @@ export default function Hub({ onNew, onLoad, onCasino, onStore, onCollection, on
         <Tile icon="⚽" title="Neue Karriere" sub="Eigener Spieler, Profi, Legende oder zweite Chance" onClick={onNew} />
         <Tile icon="🎁" title="Store" sub={club.welcomeClaimed ? 'Packs mit Coins öffnen' : 'Gratis-Pack wartet!'} badge={!club.welcomeClaimed ? '1' : undefined} onClick={onStore} accent />
         <Tile icon="🗂️" title="Sammlung" sub={`${owned} von ${CARD_POOL.length}+ Karten`} onClick={onCollection} />
-        <Tile icon="🗺️" title="Stadtkarte" sub="Stadion, Museum, Kiosk …" onClick={onCity} />
         <Tile icon="🏠" title="Spielstände" sub={`${saves.length} gespeichert`} onClick={() => setShowSaves(true)} disabled={!saves.length} />
         <Tile icon="🏆" title="Erfolge" sub="Karriereziele" onClick={onAchievements} disabled={!saves.length} />
         <Tile icon="🏛️" title="Hall of Fame" sub="Deine besten Karrieren" onClick={onFame} disabled={!hasHistory} />
-        {app.casino && latest && <Tile icon="🎰" title="Glückspalast" sub="Mit dem Gehalt zocken" onClick={() => onCasino(latest)} />}
       </div>
 
       <p className="disclaimer hub-disc">
