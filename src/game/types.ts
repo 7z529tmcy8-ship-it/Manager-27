@@ -101,6 +101,8 @@ export interface PlayerSkills {
   unlocked: string[];
   /** In der laufenden Saison bereits gutgeschriebene EP. */
   seasonXp: number;
+  /** Punkte wurden schon einmal neu verteilt (geht nur einmal pro Karriere). */
+  respecUsed?: boolean;
   /** Meldung nach der letzten Pause, z. B. „+320 EP · Level 4“. */
   note?: string;
 }

@@ -35,8 +35,12 @@ export interface Skill {
   name: string;
   text: string;
   cost: number;
-  /** Stufe im Baum: Stufe 2 braucht eine Fähigkeit aus Stufe 1, Stufe 3 eine aus Stufe 2. */
-  tier: 1 | 2 | 3;
+  /** Stufe im Baum: 1–3 in den beiden Ästen, 4 = Meisterstück. */
+  tier: 1 | 2 | 3 | 4;
+  /** Ast im Baum ('a' links, 'b' rechts); Stufe 2/3 braucht die Fähigkeit davor im selben Ast. */
+  branch?: 'a' | 'b';
+  /** Mehrstufige Fähigkeit (allgemeine Fähigkeiten): so oft kann sie gelernt werden, Wirkung pro Stufe. */
+  maxRank?: number;
   mods?: Partial<SkillMods>;
   /** Einmaliger Wertungsschub beim Freischalten. */
   ovr?: number;
@@ -48,13 +52,16 @@ export interface Archetype {
   name: string;
   text: string;
   positions: Position[];
+  /** Namen der beiden Äste. */
+  branches: [string, string];
   skills: Skill[];
 }
 
-export const ARCHETYPES: Archetype[] = [
+const RAW_ARCHETYPES: Archetype[] = [
   {
     id: 'striker', icon: '🎯', name: 'Torjäger', text: 'Lebt für Tore: Abschluss, Kopfball, eiskalt vor dem Kasten.',
     positions: ['ST', 'FL', 'ZOM'],
+    branches: ['Abschluss', 'Strafraum'],
     skills: [
       { id: 'st_finish', icon: '🎯', name: 'Abschlussstärke', text: '+12 % Torchance', cost: 1, tier: 1, mods: { goal: 1.12 } },
       { id: 'st_header', icon: '🗿', name: 'Kopfballungeheuer', text: '+8 % Torchance, +0,1 Note', cost: 1, tier: 1, mods: { goal: 1.08, rating: 0.1 } },
@@ -62,11 +69,13 @@ export const ARCHETYPES: Archetype[] = [
       { id: 'st_clinical', icon: '🧊', name: 'Eiskalt', text: '+0,3 Note in Pokal, Europapokal und Finals', cost: 2, tier: 2, mods: { bigGame: 0.3 } },
       { id: 'st_complete', icon: '⭐', name: 'Kompletter Stürmer', text: '+1 Gesamtwertung, +5 % Vorlagen', cost: 3, tier: 3, ovr: 1, mods: { assist: 1.05 } },
       { id: 'st_legend', icon: '👑', name: 'Torjägerkanone', text: '+15 % Torchance', cost: 3, tier: 3, mods: { goal: 1.15 } },
+      { id: 'st_master', icon: '👹', name: 'Killerinstinkt', text: '+12 % Torchance, +0,3 Note in großen Spielen, +1 Gesamtwertung', cost: 4, tier: 4, ovr: 1, mods: { goal: 1.12, bigGame: 0.3 } },
     ],
   },
   {
     id: 'playmaker', icon: '🎩', name: 'Spielmacher', text: 'Sieht Pässe, die sonst keiner sieht.',
     positions: ['ZM', 'ZOM', 'FL', 'ZDM'],
+    branches: ['Regie', 'Standards & Pässe'],
     skills: [
       { id: 'pm_vision', icon: '👁️', name: 'Spielübersicht', text: '+12 % Vorlagen', cost: 1, tier: 1, mods: { assist: 1.12 } },
       { id: 'pm_setpiece', icon: '🌀', name: 'Standardspezialist', text: '+6 % Tore, +6 % Vorlagen', cost: 1, tier: 1, mods: { goal: 1.06, assist: 1.06 } },
@@ -74,11 +83,13 @@ export const ARCHETYPES: Archetype[] = [
       { id: 'pm_killer', icon: '🗡️', name: 'Tödlicher Pass', text: '+12 % Vorlagen', cost: 2, tier: 2, mods: { assist: 1.12 } },
       { id: 'pm_maestro', icon: '⭐', name: 'Maestro', text: '+1 Gesamtwertung, +0,1 Note', cost: 3, tier: 3, ovr: 1, mods: { rating: 0.1 } },
       { id: 'pm_bigstage', icon: '🎭', name: 'Große Bühne', text: '+0,4 Note in Pokal, Europapokal und Finals', cost: 3, tier: 3, mods: { bigGame: 0.4 } },
+      { id: 'pm_master', icon: '🧠', name: 'Genie', text: '+15 % Vorlagen, +0,15 Note, +1 Gesamtwertung', cost: 4, tier: 4, ovr: 1, mods: { assist: 1.15, rating: 0.15 } },
     ],
   },
   {
     id: 'winger', icon: '⚡', name: 'Flügelflitzer', text: 'Tempo, Tricks und Flanken.',
     positions: ['FL', 'AV', 'ST', 'ZOM'],
+    branches: ['Tempo', 'Technik'],
     skills: [
       { id: 'wi_pace', icon: '💨', name: 'Turbo', text: '+6 % Tore, +6 % Vorlagen', cost: 1, tier: 1, mods: { goal: 1.06, assist: 1.06 } },
       { id: 'wi_cross', icon: '🎯', name: 'Flankengott', text: '+12 % Vorlagen', cost: 1, tier: 1, mods: { assist: 1.12 } },
@@ -86,11 +97,13 @@ export const ARCHETYPES: Archetype[] = [
       { id: 'wi_cutin', icon: '↩️', name: 'Nach innen ziehen', text: '+10 % Tore', cost: 2, tier: 2, mods: { goal: 1.1 } },
       { id: 'wi_flair', icon: '⭐', name: 'Straßenfußballer', text: '+1 Gesamtwertung, +0,2 Note in großen Spielen', cost: 3, tier: 3, ovr: 1, mods: { bigGame: 0.2 } },
       { id: 'wi_engine', icon: '🫀', name: 'Unermüdlich', text: '−20 % Verletzungsrisiko, mehr Einsätze', cost: 3, tier: 3, mods: { injury: 0.8, selection: 0.5 } },
+      { id: 'wi_master', icon: '🌪️', name: 'Unaufhaltsam', text: '+8 % Tore, +10 % Vorlagen, +0,1 Note, +1 Gesamtwertung', cost: 4, tier: 4, ovr: 1, mods: { goal: 1.08, assist: 1.1, rating: 0.1 } },
     ],
   },
   {
     id: 'engine', icon: '🔋', name: 'Box-to-Box', text: 'Überall auf dem Platz: Zweikämpfe, Läufe, Tore.',
     positions: ['ZM', 'ZDM', 'ZOM', 'AV'],
+    branches: ['Laufwunder', 'Zweikampf & Kopf'],
     skills: [
       { id: 'bb_stamina', icon: '🔋', name: 'Ausdauer', text: '−15 % Verletzungsrisiko', cost: 1, tier: 1, mods: { injury: 0.85 } },
       { id: 'bb_tackle', icon: '🦵', name: 'Zweikampfmonster', text: '+0,15 Note', cost: 1, tier: 1, mods: { rating: 0.15 } },
@@ -98,11 +111,13 @@ export const ARCHETYPES: Archetype[] = [
       { id: 'bb_leader', icon: '🦁', name: 'Mentalitätsmonster', text: 'Deutlich mehr Einsätze, +0,1 Note', cost: 2, tier: 2, mods: { selection: 1, rating: 0.1 } },
       { id: 'bb_complete', icon: '⭐', name: 'Kompletter Mittelfeldspieler', text: '+1 Gesamtwertung, +6 % Vorlagen', cost: 3, tier: 3, ovr: 1, mods: { assist: 1.06 } },
       { id: 'bb_pro', icon: '🧘', name: 'Ewiger Motor', text: '−20 % Leistungsabbau ab 30', cost: 3, tier: 3, mods: { decline: 0.8 } },
+      { id: 'bb_master', icon: '♾️', name: 'Überall', text: '+0,2 Note, deutlich mehr Einsätze, −15 % Verletzungen, +1 Gesamtwertung', cost: 4, tier: 4, ovr: 1, mods: { rating: 0.2, selection: 1, injury: 0.85 } },
     ],
   },
   {
     id: 'rock', icon: '🧱', name: 'Abwehrchef', text: 'Hält hinten den Laden zusammen.',
     positions: ['IV', 'AV', 'ZDM'],
+    branches: ['Verteidigen', 'Führung'],
     skills: [
       { id: 'ro_position', icon: '📐', name: 'Stellungsspiel', text: '+0,2 Note bei Spielen zu null', cost: 1, tier: 1, mods: { cleanSheet: 0.2 } },
       { id: 'ro_air', icon: '🗿', name: 'Lufthoheit', text: '+0,1 Note, +10 % Tore (Standards)', cost: 1, tier: 1, mods: { rating: 0.1, goal: 1.1 } },
@@ -110,11 +125,13 @@ export const ARCHETYPES: Archetype[] = [
       { id: 'ro_boss', icon: '📣', name: 'Lautsprecher', text: 'Deutlich mehr Einsätze', cost: 2, tier: 2, mods: { selection: 1.2 } },
       { id: 'ro_wall', icon: '⭐', name: 'Bollwerk', text: '+1 Gesamtwertung, +0,2 Note bei Spielen zu null', cost: 3, tier: 3, ovr: 1, mods: { cleanSheet: 0.2 } },
       { id: 'ro_vet', icon: '🧘', name: 'Routinier', text: '−25 % Leistungsabbau ab 30', cost: 3, tier: 3, mods: { decline: 0.75 } },
+      { id: 'ro_master', icon: '🏰', name: 'Die Mauer', text: '+0,3 Note bei Spielen zu null, +0,15 Note, +1 Gesamtwertung', cost: 4, tier: 4, ovr: 1, mods: { cleanSheet: 0.3, rating: 0.15 } },
     ],
   },
   {
     id: 'keeper', icon: '🧤', name: 'Torwand', text: 'Reflexe, Ausstrahlung und Nerven aus Stahl.',
     positions: ['TW'],
+    branches: ['Reflexe', 'Ausstrahlung'],
     skills: [
       { id: 'kp_reflex', icon: '⚡', name: 'Katzenreflexe', text: '+0,15 Note', cost: 1, tier: 1, mods: { rating: 0.15 } },
       { id: 'kp_box', icon: '✋', name: 'Strafraumbeherrschung', text: '+0,2 Note bei Spielen zu null', cost: 1, tier: 1, mods: { cleanSheet: 0.2 } },
@@ -122,16 +139,26 @@ export const ARCHETYPES: Archetype[] = [
       { id: 'kp_sweeper', icon: '🧹', name: 'Mitspielender Torwart', text: '+0,1 Note, mehr Einsätze', cost: 2, tier: 2, mods: { rating: 0.1, selection: 0.8 } },
       { id: 'kp_wall', icon: '⭐', name: 'Die Wand', text: '+1 Gesamtwertung', cost: 3, tier: 3, ovr: 1 },
       { id: 'kp_old', icon: '🍷', name: 'Wie guter Wein', text: '−30 % Leistungsabbau ab 30', cost: 3, tier: 3, mods: { decline: 0.7 } },
+      { id: 'kp_master', icon: '🦸', name: 'Unbezwingbar', text: '+0,2 Note, +0,3 Note in großen Spielen, +1 Gesamtwertung', cost: 4, tier: 4, ovr: 1, mods: { rating: 0.2, bigGame: 0.3 } },
     ],
   },
 ];
 
-/** Für alle Spielertypen: Athletik und Einstellung. */
+// Äste zuordnen: In jeder Stufe ist die erste Fähigkeit im linken Ast (a), die zweite im rechten (b).
+export const ARCHETYPES: Archetype[] = RAW_ARCHETYPES.map((a) => ({
+  ...a,
+  skills: a.skills.map((s) => (s.tier === 4 ? s : { ...s, branch: a.skills.filter((x) => x.tier === s.tier).indexOf(s) === 0 ? 'a' : 'b' })),
+}));
+
+/** Für alle Spielertypen: Athletik und Einstellung – mehrstufig, Wirkung pro Stufe. */
 export const GENERAL_SKILLS: Skill[] = [
-  { id: 'gen_physio', icon: '🩺', name: 'Eigener Physio', text: '−20 % Verletzungsrisiko', cost: 1, tier: 1, mods: { injury: 0.8 } },
-  { id: 'gen_extra', icon: '🏋️', name: 'Extraschichten', text: '+10 % Entwicklung bis 29', cost: 2, tier: 1, mods: { growth: 1.1 } },
-  { id: 'gen_mind', icon: '🧠', name: 'Mentaltrainer', text: '+0,1 Note, mehr Einsätze', cost: 2, tier: 1, mods: { rating: 0.1, selection: 0.5 } },
+  { id: 'gen_physio', icon: '🩺', name: 'Eigener Physio', text: '−10 % Verletzungsrisiko pro Stufe', cost: 1, tier: 1, maxRank: 3, mods: { injury: 0.9 } },
+  { id: 'gen_extra', icon: '🏋️', name: 'Extraschichten', text: '+6 % Entwicklung bis 29 pro Stufe', cost: 2, tier: 1, maxRank: 2, mods: { growth: 1.06 } },
+  { id: 'gen_mind', icon: '🧠', name: 'Mentaltrainer', text: '+0,05 Note und mehr Einsätze pro Stufe', cost: 1, tier: 1, maxRank: 3, mods: { rating: 0.05, selection: 0.3 } },
 ];
+
+/** Meisterstück: braucht mindestens so viele Fähigkeiten des Spielertyps, davon eine aus Stufe 3. */
+export const MASTER_REQUIRES = 4;
 
 export const getArchetype = (id: ArchetypeId) => ARCHETYPES.find((a) => a.id === id)!;
 
@@ -150,8 +177,10 @@ const MULT: (keyof SkillMods)[] = ['goal', 'assist', 'injury', 'growth', 'declin
 export function skillMods(p: Pick<PlayerState, 'skills'>): SkillMods {
   const out = { ...NEUTRAL };
   if (!p.skills) return out;
-  for (const s of allSkills(p)) {
-    if (!p.skills.unlocked.includes(s.id) || !s.mods) continue;
+  const all = allSkills(p);
+  for (const id of p.skills.unlocked) {
+    const s = all.find((x) => x.id === id);
+    if (!s?.mods) continue;
     for (const [k, v] of Object.entries(s.mods) as [keyof SkillMods, number][]) {
       out[k] = MULT.includes(k) ? out[k] * v : out[k] + v;
     }
@@ -177,7 +206,8 @@ export function levelInfo(xp: number): { level: number; into: number; need: numb
 /** Freie Fähigkeitspunkte: ein Punkt pro Level, abzüglich der ausgegebenen. */
 export function freePoints(p: Pick<PlayerState, 'skills'>): number {
   if (!p.skills) return 0;
-  const spent = allSkills(p).filter((s) => p.skills!.unlocked.includes(s.id)).reduce((a, s) => a + s.cost, 0);
+  const all = allSkills(p);
+  const spent = p.skills.unlocked.reduce((a, id) => a + (all.find((s) => s.id === id)?.cost ?? 0), 0);
   return levelInfo(p.skills.xp).level - spent;
 }
 
@@ -197,16 +227,62 @@ export function xpFor(s: XpStats, position: Position): number {
 export const xpForSeason = (r: SeasonRecord, position: Position) =>
   xpFor({ apps: r.apps, goals: r.goals, assists: r.assists, avgRating: r.avgRating, cleanSheets: r.cleanSheets, trophies: r.trophies.length }, position);
 
-export function canUnlock(p: Pick<PlayerState, 'skills'>, skillId: string): boolean {
+/** Wie oft eine Fähigkeit schon gelernt wurde (mehrstufige Fähigkeiten zählen mehrfach). */
+export const rankOf = (p: Pick<PlayerState, 'skills'>, skillId: string) => (p.skills?.unlocked ?? []).filter((x) => x === skillId).length;
+
+/** Warum eine Fähigkeit (noch) nicht freigeschaltet werden kann – oder null, wenn es geht. */
+export function lockReason(p: Pick<PlayerState, 'skills'>, skillId: string): string | null {
   const skills = p.skills;
-  if (!skills || skills.unlocked.includes(skillId)) return false;
-  const all = allSkills(p);
-  const s = all.find((x) => x.id === skillId);
-  if (!s || freePoints(p) < s.cost) return false;
-  if (s.tier === 1) return true;
-  // Stufe 2 bzw. 3 braucht eine freigeschaltete Fähigkeit derselben Spielertyp-Reihe aus der Stufe davor.
+  if (!skills) return 'Kein Spielertyp';
+  const s = allSkills(p).find((x) => x.id === skillId);
+  if (!s) return 'Unbekannt';
+  if (rankOf(p, skillId) >= (s.maxRank ?? 1)) return 'Gelernt';
   const own = getArchetype(skills.archetype).skills;
-  return own.some((x) => x.tier === s.tier - 1 && skills.unlocked.includes(x.id));
+  if (s.tier === 4) {
+    const learned = own.filter((x) => x.tier < 4 && skills.unlocked.includes(x.id));
+    if (learned.length < MASTER_REQUIRES || !learned.some((x) => x.tier === 3)) {
+      return `Braucht ${MASTER_REQUIRES} Fähigkeiten, eine davon aus Stufe 3`;
+    }
+  } else if (s.branch && s.tier > 1) {
+    const before = own.find((x) => x.branch === s.branch && x.tier === s.tier - 1);
+    if (before && !skills.unlocked.includes(before.id)) return `Braucht „${before.name}“`;
+  }
+  if (freePoints(p) < s.cost) return `${s.cost} FP nötig`;
+  return null;
+}
+
+export const canUnlock = (p: Pick<PlayerState, 'skills'>, skillId: string) => lockReason(p, skillId) === null;
+
+/** Einmal pro Karriere: alle Punkte zurückbekommen und neu verteilen (Wertungsboni werden abgezogen). */
+export function respecSkills(prev: Career): Career {
+  const sk = prev.player.skills;
+  if (!sk || sk.respecUsed || !sk.unlocked.length) return prev;
+  const career: Career = structuredClone(prev);
+  const p = career.player;
+  const all = allSkills(p);
+  const ovrBack = p.skills!.unlocked.reduce((a, id) => a + (all.find((s) => s.id === id)?.ovr ?? 0), 0);
+  p.ovr = Math.max(40, p.ovr - ovrBack);
+  p.skills!.unlocked = [];
+  p.skills!.respecUsed = true;
+  career.updatedAt = Date.now();
+  return career;
+}
+
+/** Lesbare Liste der aktiven Boni. */
+export function bonusSummary(m: SkillMods): string[] {
+  const pct = (v: number) => `${v > 1 ? '+' : '−'}${Math.round(Math.abs(v - 1) * 100)} %`;
+  const dec = (v: number) => `+${v.toFixed(2).replace(/0$/, '').replace('.', ',')}`;
+  const out: string[] = [];
+  if (m.goal !== 1) out.push(`${pct(m.goal)} Torchance`);
+  if (m.assist !== 1) out.push(`${pct(m.assist)} Vorlagen`);
+  if (m.rating) out.push(`${dec(m.rating)} Note`);
+  if (m.bigGame) out.push(`${dec(m.bigGame)} Note in großen Spielen`);
+  if (m.cleanSheet) out.push(`${dec(m.cleanSheet)} Note bei Spielen zu null`);
+  if (m.selection) out.push('mehr Einsätze');
+  if (m.injury !== 1) out.push(`${pct(m.injury)} Verletzungsrisiko`);
+  if (m.growth !== 1) out.push(`${pct(m.growth)} Entwicklung`);
+  if (m.decline !== 1) out.push(`${pct(m.decline)} Abbau ab 30`);
+  return out;
 }
 
 export function chooseArchetype(prev: Career, id: ArchetypeId): Career {

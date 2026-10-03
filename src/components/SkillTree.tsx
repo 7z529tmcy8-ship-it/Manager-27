@@ -2,14 +2,19 @@ import {
   ARCHETYPES,
   GENERAL_SKILLS,
   archetypesFor,
-  canUnlock,
   chooseArchetype,
+  bonusSummary,
   freePoints,
   getArchetype,
   levelInfo,
+  lockReason,
+  rankOf,
+  respecSkills,
+  skillMods,
   unlockSkill,
   type Skill,
 } from '../game/skills';
+import { useState } from 'react';
 import type { Career } from '../game/types';
 
 /** Auswahl des Spielertyps (einmal pro Karriere). */
@@ -52,31 +57,65 @@ export function LevelChip({ career, onOpen }: { career: Career; onOpen: () => vo
   );
 }
 
-/** Fähigkeitenbaum als Overlay. */
+/** Fähigkeitenbaum als Overlay: zwei Äste, Meisterstück, allgemeine Fähigkeiten mit Stufen. */
 export default function SkillTree({ career, onChange, onClose }: { career: Career; onChange: (c: Career) => void; onClose: () => void }) {
   const p = career.player;
   const sk = p.skills!;
   const type = getArchetype(sk.archetype);
   const info = levelInfo(sk.xp);
   const free = freePoints(p);
+  const bonuses = bonusSummary(skillMods(p));
+  const [just, setJust] = useState<string | null>(null);
 
-  const card = (s: Skill) => {
-    const owned = sk.unlocked.includes(s.id);
-    const can = canUnlock(p, s.id);
+  const learn = (id: string) => {
+    setJust(id);
+    onChange(unlockSkill(career, id));
+  };
+
+  const node = (s: Skill, wide = false) => {
+    const rank = rankOf(p, s.id);
+    const max = s.maxRank ?? 1;
+    const owned = rank >= max;
+    const reason = lockReason(p, s.id);
+    const can = reason === null;
     return (
       <button
         key={s.id}
-        className={`sk-skill ${owned ? 'owned' : can ? 'can' : 'locked'}`}
+        className={`sk-skill ${owned ? 'owned' : can ? 'can' : rank > 0 ? 'partial' : 'locked'} ${s.tier === 4 ? 'master' : ''} ${wide ? 'wide' : ''} ${just === s.id ? 'just' : ''}`}
         disabled={!can}
-        onClick={() => onChange(unlockSkill(career, s.id))}
-        aria-label={`${s.name}: ${s.text}${owned ? ', freigeschaltet' : `, kostet ${s.cost} Punkte`}`}
+        onClick={() => learn(s.id)}
+        aria-label={`${s.name}: ${s.text}. ${owned ? 'Freigeschaltet' : reason ?? `Kostet ${s.cost} Punkte`}`}
       >
         <span className="sk-icon" aria-hidden="true">{s.icon}</span>
         <strong>{s.name}</strong>
         <small>{s.text}</small>
-        <em>{owned ? '✓ aktiv' : `${s.cost} FP`}</em>
+        {max > 1 && (
+          <span className="sk-pips" aria-hidden="true">
+            {Array.from({ length: max }, (_, i) => <i key={i} className={i < rank ? 'on' : ''} />)}
+          </span>
+        )}
+        <em>{owned ? '✓ aktiv' : can ? `${s.cost} FP · lernen` : reason === `${s.cost} FP nötig` ? `${s.cost} FP` : `🔒 ${reason}`}</em>
       </button>
     );
+  };
+
+  const branch = (b: 'a' | 'b') => {
+    const list = type.skills.filter((s) => s.branch === b).sort((x, y) => x.tier - y.tier);
+    return (
+      <div className="sk-branch">
+        <h3>{type.branches[b === 'a' ? 0 : 1]}</h3>
+        {list.map((s, i) => (
+          <div key={s.id} className={`sk-step ${i > 0 ? 'linked' : ''} ${i > 0 && sk.unlocked.includes(list[i - 1].id) ? 'lit' : ''}`}>
+            <span className="sk-tier-tag">Stufe {s.tier}</span>
+            {node(s)}
+          </div>
+        ))}
+      </div>
+    );
+  };
+  const master = type.skills.find((s) => s.tier === 4);
+  const reset = () => {
+    if (window.confirm('Alle Fähigkeitspunkte zurückholen und neu verteilen? Das geht nur einmal pro Karriere.')) onChange(respecSkills(career));
   };
 
   return (
@@ -95,18 +134,38 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
           <div className="coach-bar"><i className="high" style={{ width: `${Math.round((info.into / info.need) * 100)}%` }} /></div>
           <span>{info.into}/{info.need} EP</span>
         </div>
-        <p className="sk-points">{free > 0 ? `🎁 ${free} Fähigkeitspunkt${free === 1 ? '' : 'e'} frei` : 'Keine freien Punkte – spiel weiter, um EP zu sammeln.'}</p>
+        <p className={`sk-points ${free > 0 ? 'has' : ''}`}>
+          {free > 0 ? `🎁 ${free} Fähigkeitspunkt${free === 1 ? '' : 'e'} frei` : 'Keine freien Punkte – spiel weiter, um EP zu sammeln.'}
+        </p>
 
-        {[1, 2, 3].map((tier) => (
-          <section key={tier} className="sk-tier">
-            <h3>Stufe {tier}{tier > 1 ? <small> · braucht eine Fähigkeit aus Stufe {tier - 1}</small> : null}</h3>
-            <div className="sk-grid">{type.skills.filter((s) => s.tier === tier).map(card)}</div>
+        <div className="sk-bonus">
+          <strong>Aktive Boni</strong>
+          {bonuses.length ? (
+            <div className="sk-bonus-list">{bonuses.map((b) => <span key={b}>{b}</span>)}</div>
+          ) : (
+            <small>Noch keine – lerne deine erste Fähigkeit.</small>
+          )}
+        </div>
+
+        <div className="sk-tree">
+          {branch('a')}
+          {branch('b')}
+        </div>
+        {master && (
+          <section className="sk-master-wrap">
+            <h3>👑 Meisterstück</h3>
+            {node(master, true)}
           </section>
-        ))}
+        )}
+
         <section className="sk-tier">
-          <h3>Allgemein</h3>
-          <div className="sk-grid three">{GENERAL_SKILLS.map(card)}</div>
+          <h3>Allgemein <small>· mehrere Stufen möglich</small></h3>
+          <div className="sk-grid three">{GENERAL_SKILLS.map((s) => node(s))}</div>
         </section>
+
+        {sk.unlocked.length > 0 && !sk.respecUsed && (
+          <button className="btn secondary small sk-reset" onClick={reset}>↺ Punkte neu verteilen (einmal pro Karriere)</button>
+        )}
       </div>
     </div>
   );

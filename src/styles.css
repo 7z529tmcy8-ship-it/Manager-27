@@ -1463,3 +1463,35 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .bld-fit { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .82rem; color: var(--muted); }
 .bld-fit b { color: var(--text); }
 @media (max-width: 480px) { .bld-attrs li { grid-template-columns: 78px minmax(0, 1fr) 26px 30px 18px 30px; gap: 6px; } .bld-btn { width: 30px; height: 30px; } }
+
+/* Fähigkeitenbaum v2: Äste, Meisterstück, Stufen */
+.sk-points.has { animation: sk-pulse 1.6s ease-in-out infinite; }
+@keyframes sk-pulse { 50% { opacity: .55; } }
+.sk-bonus { margin: 10px 0 4px; padding: 12px; border-radius: 16px; border: 1px solid var(--hairline); background: rgba(127, 127, 127, .06); display: grid; gap: 8px; }
+.sk-bonus small { color: var(--muted); }
+.sk-bonus-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.sk-bonus-list span { padding: 4px 10px; border-radius: 99px; background: rgba(127, 127, 127, .14); font-size: .78rem; font-weight: 700; }
+.sk-tree { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.sk-branch h3 { margin: 0 0 8px; font-size: 1rem; text-align: center; }
+.sk-step { position: relative; display: grid; gap: 4px; }
+.sk-step.linked { padding-top: 22px; }
+.sk-step.linked::before { content: ''; position: absolute; top: 2px; left: 50%; width: 3px; height: 18px; transform: translateX(-50%); border-radius: 2px; background: var(--hairline); }
+.sk-step.lit::before { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.sk-tier-tag { font-size: .68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); text-align: center; }
+.sk-skill.partial { border-color: var(--accent); opacity: .85; }
+.sk-skill em { line-height: 1.3; }
+.sk-pips { display: flex; gap: 4px; }
+.sk-pips i { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--accent); }
+.sk-pips i.on { background: var(--accent); }
+.sk-master-wrap { margin-top: 18px; }
+.sk-master-wrap h3 { margin: 0 0 8px; font-size: 1rem; text-align: center; }
+.sk-skill.master { text-align: center; justify-items: center; padding: 16px; border-width: 2px; background: linear-gradient(135deg, rgba(255, 196, 0, .12), rgba(255, 140, 0, .04)); }
+.sk-skill.master .sk-icon { font-size: 2rem; }
+.sk-skill.master.can { border-color: var(--gold); box-shadow: 0 0 18px rgba(255, 196, 0, .35); }
+.sk-skill.master.owned { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset, 0 0 22px rgba(255, 196, 0, .4); }
+.sk-skill.master.owned em { color: var(--gold); }
+.sk-skill.just { animation: sk-pop .5s ease; }
+@keyframes sk-pop { 0% { transform: scale(1); } 40% { transform: scale(1.06); box-shadow: 0 0 28px var(--accent); } 100% { transform: scale(1); } }
+.sk-reset { margin-top: 18px; }
+.reduce-motion .sk-skill.just, .reduce-motion .sk-points.has { animation: none; }
+@media (max-width: 480px) { .sk-tree { gap: 8px; } .sk-skill { padding: 10px; } .sk-skill small { font-size: .74rem; } }
