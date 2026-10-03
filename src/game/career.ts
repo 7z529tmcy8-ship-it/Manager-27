@@ -46,6 +46,10 @@ export interface NewPlayer {
   traits?: TraitId[];
   /** Gescheitertes Talent mit zweiter Chance. */
   secondChance?: boolean;
+  /** Aus dem Spieler-Baukasten: eigenes Attributprofil und Körperbau. */
+  profile?: number[];
+  height?: number;
+  weight?: number;
 }
 
 export function createCareer(np: NewPlayer): Career {
@@ -64,7 +68,9 @@ export function createCareer(np: NewPlayer): Career {
       age: np.age,
       ovr: np.ovr,
       potential: Math.max(np.potential, np.ovr),
-      profile: createProfile(np.position),
+      profile: np.profile ?? createProfile(np.position),
+      height: np.height,
+      weight: np.weight,
       contract: {
         clubId: club.id,
         yearsLeft: np.age <= 21 ? 3 : 2,

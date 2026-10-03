@@ -90,6 +90,9 @@ export interface PlayerState {
   trainingGains?: number[];
   /** Spielertyp, Erfahrungspunkte und freigeschaltete Fähigkeiten. */
   skills?: PlayerSkills;
+  /** Körperbau (nur bei selbst erstellten Spielern). */
+  height?: number;
+  weight?: number;
 }
 
 export interface PlayerSkills {

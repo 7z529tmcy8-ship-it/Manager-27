@@ -1436,3 +1436,30 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .race li b { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
 .race-msg { margin: 8px 0 0; font-size: .85rem; color: var(--muted); font-weight: 600; }
 .race-msg.lead { color: var(--gold); }
+
+/* Spieler-Baukasten */
+.builder { display: grid; gap: 12px; }
+.bld-slider { display: grid; gap: 6px; }
+.bld-slider span { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.bld-slider small { color: var(--muted); font-size: .78rem; }
+.bld-slider input[type=range] { width: 100%; accent-color: var(--accent); }
+.bld-points-head { display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px; }
+.bld-points-head span { color: var(--muted); font-weight: 700; font-size: .85rem; }
+.bld-points-head span.left { color: var(--gold); }
+.bld-attrs { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.bld-attrs li { display: grid; grid-template-columns: minmax(84px, 120px) minmax(0, 1fr) 28px 32px 22px 32px; gap: 8px; align-items: center; }
+.bld-name { font-size: .88rem; font-weight: 600; }
+.bld-name i { color: var(--gold); font-style: normal; }
+.bld-bar { height: 8px; border-radius: 99px; background: var(--hairline); overflow: hidden; }
+.bld-bar i { display: block; height: 100%; background: var(--accent); border-radius: inherit; transition: width .2s; }
+.bld-attrs b { text-align: right; font-variant-numeric: tabular-nums; }
+.bld-btn { width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); font-size: 1.1rem; font-weight: 800; cursor: pointer; }
+.bld-btn:disabled { opacity: .35; cursor: default; }
+.bld-pts { text-align: center; font-weight: 800; color: var(--gold); }
+.bld-scout { display: grid; grid-template-columns: auto 1fr; gap: 10px 18px; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--hairline); background: rgba(127, 127, 127, .06); }
+.bld-scout > div { display: grid; }
+.bld-scout small { color: var(--muted); font-size: .75rem; }
+.bld-scout strong { font-size: 1.3rem; }
+.bld-fit { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .82rem; color: var(--muted); }
+.bld-fit b { color: var(--text); }
+@media (max-width: 480px) { .bld-attrs li { grid-template-columns: 78px minmax(0, 1fr) 26px 30px 18px 30px; gap: 6px; } .bld-btn { width: 30px; height: 30px; } }

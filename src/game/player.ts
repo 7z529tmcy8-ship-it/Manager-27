@@ -6,7 +6,7 @@ export const OUTFIELD_ATTRS = ['TEM', 'SCH', 'PAS', 'DRI', 'DEF', 'PHY'] as cons
 export const KEEPER_ATTRS = ['HEC', 'HAN', 'ABS', 'REF', 'TEM', 'STE'] as const;
 
 // Typische Abweichung jedes Attributs vom Gesamtwert je Position.
-const PROFILE: Record<Position, number[]> = {
+export const PROFILE: Record<Position, number[]> = {
   TW: [1, -1, -8, 2, -35, 0],
   IV: [-10, -35, -15, -18, 2, 3],
   AV: [5, -25, -3, -2, -1, -3],

@@ -4,7 +4,9 @@ import { NATIONS, POSITIONS, REAL_PLAYERS, type RealPlayerTemplate } from '../da
 import { FAILED_TALENTS, HANNOVER_2018, LEGENDS, type LegendTemplate } from '../data/legends';
 import { createCareer } from '../game/career';
 import { MAX_TRAITS, TRAITS, getTrait, type TraitId } from '../game/traits';
-import { pick, randInt } from '../game/random';
+import { pick } from '../game/random';
+import { HEIGHT_RANGE, IDEAL_HEIGHT, MAX_PER_ATTR, POINT_POOL, ATTR_WEIGHTS, WEIGHT_RANGE, evaluateBuild, rollBuild, scoutLabel } from '../game/creator';
+import { attributeLabels } from '../game/player';
 import type { Career, Position } from '../game/types';
 
 interface Props {
@@ -12,12 +14,6 @@ interface Props {
   onCreate: (career: Career) => void;
 }
 
-const TALENTS = [
-  { id: 'solid', label: 'Solide', hint: 'Potenzial ca. 72–78', ovr: [60, 64], pot: [72, 78] },
-  { id: 'talent', label: 'Talent', hint: 'Potenzial ca. 78–84', ovr: [62, 66], pot: [78, 84] },
-  { id: 'top', label: 'Top-Talent', hint: 'Potenzial ca. 84–89', ovr: [64, 68], pot: [84, 89] },
-  { id: 'wonder', label: 'Wunderkind', hint: 'Potenzial ca. 89–94', ovr: [66, 70], pot: [89, 94] },
-] as const;
 
 export default function CreateCareer({ onCancel, onCreate }: Props) {
   const [tab, setTab] = useState<'own' | 'real' | 'legends' | 'failed' | 'h96'>('own');
@@ -49,7 +45,9 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
   const [nation, setNation] = useState('Deutschland');
   const [position, setPosition] = useState<Position>('ST');
   const [age, setAge] = useState(17);
-  const [talent, setTalent] = useState<(typeof TALENTS)[number]['id']>('talent');
+  const [height, setHeight] = useState(182);
+  const [weight, setWeight] = useState(76);
+  const [points, setPoints] = useState<number[]>([0, 0, 0, 0, 0, 0]);
   const [leagueId, setLeagueId] = useState('bl1');
   const [clubId, setClubId] = useState('');
   const [traits, setTraits] = useState<TraitId[]>([]);
@@ -60,15 +58,13 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
   );
 
   const start = () => {
-    const t = TALENTS.find((x) => x.id === talent)!;
-    const ovr = randInt(t.ovr[0], t.ovr[1]) + (age - 17);
-    const potential = randInt(t.pot[0], t.pot[1]);
+    const { ovr, potential, profile } = rollBuild({ position, age, height, weight, points });
     // Zufälliger Verein: einer, bei dem der Spieler realistische Chancen auf Einsätze hat.
     const club = clubId
       ? getClub(clubId)
       : pick(CLUBS.filter((c) => c.strength >= ovr + 2 && c.strength <= ovr + 9));
     onCreate(
-      createCareer({ name: name.trim() || 'Namenloser Held', nation, position, age, ovr, potential, clubId: club.id, traits }),
+      createCareer({ name: name.trim() || 'Namenloser Held', nation, position, age, ovr, potential, clubId: club.id, traits, profile, height, weight }),
     );
   };
 
@@ -105,18 +101,8 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
           setTraits((t) => (t.includes(id) ? t.filter((x) => x !== id) : t.length < MAX_TRAITS ? [...t, id] : t))} />
       </fieldset>
 
-      <fieldset>
-        <legend>Talent</legend>
-        <div className="choice-grid">
-          {TALENTS.map((t) => (
-            <button key={t.id} className={`choice ${talent === t.id ? 'active' : ''}`} onClick={() => setTalent(t.id)}>
-              <strong>{t.label}</strong>
-              <small>{t.hint}</small>
-            </button>
-          ))}
-        </div>
-        <p className="hint">Das genaue Potenzial bleibt verborgen – und kann durch gute oder schlechte Saisons steigen oder sinken.</p>
-      </fieldset>
+      <Builder position={position} age={age} height={height} weight={weight} points={points}
+        onHeight={setHeight} onWeight={setWeight} onPoints={setPoints} />
 
       <div className="row">
         <label>
@@ -241,5 +227,75 @@ function LegendPicker({ onCreate, list, intro, secondChance }: { onCreate: (c: C
         ))}
       </ul>
     </section>
+  );
+}
+
+const ATTR_NAMES: Record<string, string> = {
+  TEM: 'Tempo', SCH: 'Schuss', PAS: 'Passen', DRI: 'Dribbling', DEF: 'Defensive', PHY: 'Physis',
+  HEC: 'Hechten', HAN: 'Fangen', ABS: 'Abschlag', REF: 'Reflexe', STE: 'Stellungsspiel',
+};
+
+/** Spieler-Baukasten: Körperbau und Attributpunkte bestimmen Startwertung und Potenzial. */
+function Builder(props: {
+  position: Position; age: number; height: number; weight: number; points: number[];
+  onHeight: (v: number) => void; onWeight: (v: number) => void; onPoints: (v: number[]) => void;
+}) {
+  const { position, age, height, weight, points } = props;
+  const r = evaluateBuild({ position, age, height, weight, points });
+  const left = POINT_POOL - points.reduce((a, b) => a + b, 0);
+  const labels = attributeLabels(position);
+  const weights = ATTR_WEIGHTS[position];
+  const [lo, hi] = IDEAL_HEIGHT[position];
+  const bmiText = r.bmi < 21 ? 'schmächtig' : r.bmi > 24.5 ? 'kräftig' : 'athletisch';
+  const change = (i: number, d: number) => {
+    const next = [...points];
+    next[i] = Math.max(0, Math.min(MAX_PER_ATTR, next[i] + d));
+    if (next.reduce((a, b) => a + b, 0) <= POINT_POOL) props.onPoints(next);
+  };
+
+  return (
+    <fieldset className="builder">
+      <legend>Körper & Attribute</legend>
+      <p className="hint">Kein Potenzial zum Auswählen: Größe, Gewicht und die verteilten Punkte entscheiden, wie viel Talent in deinem Spieler steckt. Passt alles zur Position, steigt das Potenzial.</p>
+
+      <label className="bld-slider">
+        <span>Größe <b>{height} cm</b> <small>ideal für {position}: {lo}–{hi} cm</small></span>
+        <input type="range" min={HEIGHT_RANGE[0]} max={HEIGHT_RANGE[1]} value={height} onChange={(e) => props.onHeight(Number(e.target.value))} />
+      </label>
+      <label className="bld-slider">
+        <span>Gewicht <b>{weight} kg</b> <small>BMI {r.bmi.toFixed(1).replace('.', ',')} · {bmiText}</small></span>
+        <input type="range" min={WEIGHT_RANGE[0]} max={WEIGHT_RANGE[1]} value={weight} onChange={(e) => props.onWeight(Number(e.target.value))} />
+      </label>
+
+      <div className="bld-points-head">
+        <strong>Attributpunkte</strong>
+        <span className={left > 0 ? 'left' : ''}>{left} von {POINT_POOL} übrig</span>
+      </div>
+      <ul className="bld-attrs">
+        {labels.map((l, i) => {
+          const value = Math.round(Math.max(20, Math.min(99, r.ovr + r.offsets[i])));
+          return (
+            <li key={l}>
+              <span className="bld-name">{ATTR_NAMES[l] ?? l}{weights[i] >= 2 ? <i title="Wichtig für die Position"> ★</i> : null}</span>
+              <span className="bld-bar"><i style={{ width: `${value}%` }} /></span>
+              <b>{value}</b>
+              <button type="button" className="bld-btn" aria-label={`${ATTR_NAMES[l] ?? l} senken`} disabled={points[i] === 0} onClick={() => change(i, -1)}>−</button>
+              <span className="bld-pts">{points[i]}</span>
+              <button type="button" className="bld-btn" aria-label={`${ATTR_NAMES[l] ?? l} erhöhen`} disabled={left === 0 || points[i] >= MAX_PER_ATTR} onClick={() => change(i, 1)}>+</button>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="hint">★ = wichtig für die Position. Größere Spieler sind stärker in Physis und Zweikampf, kleinere schneller und wendiger.</p>
+
+      <div className="bld-scout">
+        <div><small>Startwertung</small><strong>~{r.ovr}</strong></div>
+        <div><small>Scout-Einschätzung</small><strong>{scoutLabel(r.potential + 1)}</strong><small>Potenzial ca. {r.potential - 3}–{r.potential + 4} · der Rest ist Glück</small></div>
+        <div className="bld-fit">
+          <span>Körper passt <b>{Math.round(r.bodyFit * 100)} %</b></span>
+          <span>Attribute passen <b>{Math.round(r.attrFit * 100)} %</b></span>
+        </div>
+      </div>
+    </fieldset>
   );
 }
