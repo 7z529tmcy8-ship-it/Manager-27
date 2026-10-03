@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import CoachPanel from './CoachPanel';
+import ScorerRace from './ScorerRace';
 import SkillTree, { ArchetypePicker, LevelChip } from './SkillTree';
 import { flagOf, nationCode } from '../data/flags';
 import { getClub, getLeague } from '../data/leagues';
@@ -143,6 +144,7 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
         <section className="cs-window">
           <h2>Transferfenster</h2>
           <p className="cs-sub">Die Saison ist vorbei. Wähle, wie es weitergeht.</p>
+          <ScorerRace career={career} />
           <div className="cs-choices">
             {choices.map((c, i) => (
               <ChoiceCard key={c.offer?.id ?? c.kind} career={career} c={c} selected={picked === i} onPick={() => setPicked(i)} />
@@ -169,6 +171,7 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
             </p>
           )}
           {note && <p className={`cs-note ${note.tone}`}><b>{note.title}:</b> {note.text}</p>}
+          {career.phase === 'winter' && <ScorerRace career={career} />}
           {career.phase === 'winter' && choices.length > 0 && (
             <>
               <p className="cs-sub">Willst du die Pause nutzen? Optional – du kannst auch einfach weiterspielen.</p>

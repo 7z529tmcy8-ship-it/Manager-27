@@ -1420,3 +1420,19 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .sk-skill.owned em { color: var(--accent); }
 .sk-skill.locked { opacity: .5; }
 @media (max-width: 480px) { .sk-grid.three { grid-template-columns: 1fr; } }
+
+/* Torjäger-Rennen */
+.race { margin: 14px 0; padding: 12px; border-radius: 16px; border: 1px solid var(--hairline); background: rgba(127, 127, 127, .06); }
+.race h3 { margin: 0 0 8px; font-size: 1rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; }
+.race h3 small { color: var(--muted); font-weight: 600; font-size: .78rem; }
+.race ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.race li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 10px; }
+.race li.you { background: rgba(127, 127, 127, .16); box-shadow: 0 0 0 1px var(--accent) inset; }
+.race li.gap { margin-top: 8px; }
+.race-rank { font-weight: 800; color: var(--muted); }
+.race-name { display: grid; min-width: 0; }
+.race-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .9rem; }
+.race-name small { color: var(--muted); font-size: .72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.race li b { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.race-msg { margin: 8px 0 0; font-size: .85rem; color: var(--muted); font-weight: 600; }
+.race-msg.lead { color: var(--gold); }

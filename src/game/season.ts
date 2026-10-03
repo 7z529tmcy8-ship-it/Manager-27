@@ -14,6 +14,7 @@ import { difficultyOf } from './difficulty';
 import { injuryFactor } from './training';
 import { hasTrait } from './traits';
 import { skillMods } from './skills';
+import { raceRank, scorerRace } from './scorers';
 import { chance, clamp, normal, pick, poisson, rand, randInt, sigmoid, weightedPick } from './random';
 import type {
   Career,
@@ -639,8 +640,9 @@ export function finishSeason(career: Career, prog: SeasonProgress): SeasonOutcom
 
   const awards: string[] = [];
   const leagueStats = summarize(matches, 'Liga');
-  const topScorerMark = Math.max(12, Math.round(league.topScorerGoals * normal(1, 0.12)));
-  if (leagueStats.goals >= topScorerMark) awards.push(`Torschützenkönig ${league.name}`);
+  // Torjägerkanone: Wer im Torjäger-Rennen der Liga vorne liegt (mindestens 8 Tore).
+  const race = scorerRace(table, seasonLabel(career.year), { name: player.name, clubId, goals: leagueStats.goals });
+  if (leagueStats.goals >= 8 && raceRank(race) === 1) awards.push(`Torschützenkönig ${league.name}`);
   if (leagueStats.avgRating !== null && leagueStats.avgRating >= 7.5 && leagueStats.apps >= 20 && position <= 4) {
     awards.push(`Spieler der Saison ${league.name}`);
   }
