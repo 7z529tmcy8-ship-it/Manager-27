@@ -47,7 +47,6 @@ const RAW: [string, string, Position, number, number, number, string][] = [
   ['Endrick', 'Brasilien', 'ST', 19, 76, 88, 'Real Madrid'],
   ['Erling Haaland', 'Norwegen', 'ST', 25, 91, 92, 'Manchester City'],
   // Japan & Südkorea
-  ['Hayate Matsuda', 'Japan', 'AV', 21, 64, 74, 'Hannover 96'],
   ['Takefusa Kubo', 'Japan', 'FL', 24, 82, 84, 'Real Sociedad'],
   ['Kaoru Mitoma', 'Japan', 'FL', 28, 81, 81, 'Brighton & Hove Albion'],
   ['Ritsu Doan', 'Japan', 'FL', 27, 80, 80, 'Eintracht Frankfurt'],
@@ -99,6 +98,36 @@ const RAW: [string, string, Position, number, number, number, string][] = [
   ['Geovany Quenda', 'Portugal', 'FL', 18, 76, 88, 'Sporting Lissabon'],
   ['Rodrigo Mora', 'Portugal', 'ZOM', 18, 74, 87, 'FC Porto'],
   ['Kees Smit', 'Niederlande', 'ZM', 19, 72, 87, 'AZ Alkmaar'],
+  // Hannover 96 – kompletter Profikader (Stand Saison 2026/27, Alter umgerechnet auf den Spielstart 2025/26).
+  // Positionen und Nationen laut Vereins- und Kaderangaben; Wertungen sind eigene Schätzungen.
+  ['Pascal Loretz', 'Schweiz', 'TW', 22, 69, 78, 'Hannover 96'],
+  ['Leo Weinkauf', 'Deutschland', 'TW', 28, 66, 67, 'Hannover 96'],
+  ['Jonas Schwanke', 'Deutschland', 'TW', 18, 55, 72, 'Hannover 96'],
+  ['Boris Tomiak', 'Deutschland', 'IV', 27, 69, 70, 'Hannover 96'],
+  ['Jean Hugonet', 'Frankreich', 'IV', 25, 68, 71, 'Hannover 96'],
+  ['Virgil Ghita', 'Rumänien', 'IV', 27, 68, 69, 'Hannover 96'],
+  ['Ime Okon', 'Südafrika', 'IV', 21, 66, 75, 'Hannover 96'],
+  ['Karl Steinmann', 'Deutschland', 'IV', 19, 60, 75, 'Hannover 96'],
+  ['Maurice Neubauer', 'Deutschland', 'AV', 29, 67, 67, 'Hannover 96'],
+  ['Hayate Matsuda', 'Japan', 'AV', 21, 64, 74, 'Hannover 96'],
+  ['Williams Kokolo', 'Frankreich', 'AV', 25, 66, 69, 'Hannover 96'],
+  ['Stefan Thordarson', 'Island', 'ZDM', 26, 69, 70, 'Hannover 96'],
+  ['Waniss Taibi', 'Frankreich', 'ZM', 23, 68, 73, 'Hannover 96'],
+  ['Franz Roggow', 'Deutschland', 'ZM', 23, 65, 70, 'Hannover 96'],
+  ['Bastian Allgeier', 'Deutschland', 'ZM', 23, 65, 70, 'Hannover 96'],
+  ['Noah Engelbreth', 'Deutschland', 'ZM', 20, 61, 72, 'Hannover 96'],
+  ['Mwisho Mhango', 'Malawi', 'ZM', 17, 56, 74, 'Hannover 96'],
+  ['Marcel Hartel', 'Deutschland', 'ZOM', 29, 72, 72, 'Hannover 96'],
+  ['Kolja Oudenne', 'Schweden', 'ZOM', 23, 67, 73, 'Hannover 96'],
+  ['Lars Gindorf', 'Deutschland', 'FL', 24, 68, 71, 'Hannover 96'],
+  ['Mustapha Bundu', 'Sierra Leone', 'FL', 28, 67, 67, 'Hannover 96'],
+  ['Daisuke Yokota', 'Japan', 'FL', 25, 67, 70, 'Hannover 96'],
+  ['Emir Sahiti', 'Kosovo', 'FL', 26, 68, 70, 'Hannover 96'],
+  ['Benjamin Källman', 'Finnland', 'ST', 27, 69, 69, 'Hannover 96'],
+  ['Benedikt Pichler', 'Österreich', 'ST', 28, 66, 66, 'Hannover 96'],
+  ['Husseyn Chakroun', 'Libanon', 'ST', 20, 60, 70, 'Hannover 96'],
+  ['Taycan Etcibasi', 'Deutschland', 'ST', 18, 60, 79, 'Hannover 96'],
+  ['Yunus Ünal', 'Deutschland', 'ST', 17, 56, 77, 'Hannover 96'],
 ];
 
 export const REAL_PLAYERS: RealPlayerTemplate[] = RAW.map(
@@ -140,6 +169,14 @@ export const NATIONS: Nation[] = [
   { name: 'Guinea', callUp: 72 },
   { name: 'Dänemark', callUp: 76 },
   { name: 'Irland', callUp: 73 },
+  { name: 'Island', callUp: 69 },
+  { name: 'Rumänien', callUp: 72 },
+  { name: 'Finnland', callUp: 68 },
+  { name: 'Kosovo', callUp: 67 },
+  { name: 'Südafrika', callUp: 66 },
+  { name: 'Sierra Leone', callUp: 62 },
+  { name: 'Libanon', callUp: 60 },
+  { name: 'Malawi', callUp: 58 },
 ];
 
 export function getNation(name: string): Nation {

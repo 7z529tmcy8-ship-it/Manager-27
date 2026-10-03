@@ -79,6 +79,12 @@ const FAILED_RAW: typeof RAW = [
     'Um seinen Wechsel zu Chelsea gab es sogar Streit vor der FIFA – danach folgte Leihe auf Leihe.'],
   ['Marko Marin', 'Deutschland', 'FL', 19, 72, 87, 'Borussia Mönchengladbach', ['showman'],
     'Als „deutscher Messi“ gefeiert, bei Chelsea kaum gespielt – danach quer durch Europa.'],
+  ['Hatem Ben Arfa', 'Frankreich', 'FL', 18, 73, 91, 'Olympique Lyon', ['showman', 'diva', 'wildcard'],
+    'Dribbelte als Teenager ganze Abwehrreihen schwindelig – aber Trainer und Ben Arfa wurden selten Freunde.'],
+  ['Adriano', 'Brasilien', 'ST', 20, 75, 93, 'Inter Mailand', ['showman', 'party', 'wildcard'],
+    '„L’Imperatore“: linker Hammer, Bulle von Statur. Phänomen und Absturz zugleich.'],
+  ['Adel Taarabt', 'Marokko', 'ZOM', 18, 68, 89, 'Tottenham Hotspur', ['showman', 'diva', 'party'],
+    'Tricks wie aus dem Käfig – Defensivarbeit stand allerdings selten auf seinem Plan.'],
 ];
 
 export const FAILED_TALENTS: LegendTemplate[] = FAILED_RAW.map(([name, nation, position, age, ovr, potential, club, traits, bio]) => ({
