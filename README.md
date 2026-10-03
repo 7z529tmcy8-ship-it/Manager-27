@@ -35,8 +35,8 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
 - **Sonderkarten:** Team der Saison, Spieler des Monats, Rekordjäger, Titelheld – nach starken Saisons
 - **Erfolge & Hall of Fame:** Karriereziele mit Fortschritt, Rangliste aller Karrieren
 - **Einstellungen:** Schwierigkeit (Leicht/Normal/Schwer), Design, Animationen, Passwort-Sperre
-- **Passwort-Sperre:** `123` öffnet das Spiel (gilt, solange der Tab offen ist). Der Geheimcode `Larp` öffnet eine
-  eigene Markt-App mit ETF-Übersicht und Day-Trading-Spiel (`src/terminal/`, Kurse simuliert). Beides ist nur eine
+- **Passwort-Sperre:** `123` öffnet das Spiel (gilt, solange der Tab offen ist). Der Geheimcode `Larp` öffnet den
+  Rapper-Karriere-Simulator „Homestudio Hustle“ (reines HTML/CSS/JS in `public/rapper/`, läuft auch allein). Beides ist nur eine
   Sperre im Browser – wer den Quellcode liest, sieht Passwort und Code
 
 ## Lokal starten

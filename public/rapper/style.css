@@ -1,0 +1,214 @@
+/* =========================================================
+   Homestudio Hustle – Design
+   Dunkel, modern, für das Handy gebaut. Alle Farben stehen
+   oben als Variablen, damit du sie leicht ändern kannst.
+   ========================================================= */
+
+:root {
+  --bg: #0d0e14;
+  --surface: #171923;
+  --surface-2: #20232f;
+  --line: rgba(255, 255, 255, 0.08);
+  --text: #f2f3f7;
+  --muted: #9aa0b4;
+  --accent: #b46cff;      /* Lila – Hauptfarbe */
+  --accent-2: #ff4fa3;    /* Pink – für Verläufe */
+  --good: #3ddc97;
+  --bad: #ff5d6c;
+  --gold: #ffc94d;
+  --radius: 18px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: radial-gradient(120% 60% at 50% 0%, #1d1430 0%, var(--bg) 60%);
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2 { margin: 0; }
+h2 { font-size: 1.1rem; margin: 22px 0 10px; }
+.muted { color: var(--muted); }
+.hidden { display: none !important; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  min-height: 48px;           /* groß genug zum Tippen */
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.2s, background 0.2s;
+}
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border: 0;
+  font-weight: 800;
+}
+.btn-big { width: 100%; font-size: 1.1rem; padding: 18px; margin-top: 14px; }
+.btn-danger { background: transparent; border-color: var(--bad); color: var(--bad); margin-top: 24px; width: 100%; }
+
+/* ---------- Startbildschirm ---------- */
+.start { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+.start-card {
+  width: 100%; max-width: 420px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 24px; padding: 28px 22px; display: grid; gap: 10px; text-align: center;
+}
+.logo { font-size: 3.4rem; animation: pulse 2s ease-in-out infinite; }
+.start-card h1 { font-size: 2rem; background: linear-gradient(135deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+label { text-align: left; font-weight: 600; font-size: 0.9rem; margin-top: 8px; }
+input[type="text"] {
+  font: inherit; color: var(--text); background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 12px; padding: 14px; width: 100%;
+}
+input[type="text"]:focus { outline: 2px solid var(--accent); }
+
+/* ---------- Kopfzeile mit Werten ---------- */
+#game { max-width: 720px; margin: 0 auto; padding: 0 16px 100px; }
+.topbar {
+  position: sticky; top: 0; z-index: 5; padding: 12px 0 10px;
+  background: rgba(13, 14, 20, 0.92); backdrop-filter: blur(10px);
+}
+.title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.title-row h1 { font-size: 1.15rem; }
+.rapper { color: var(--accent); font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.stat {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  padding: 8px; display: grid; gap: 2px; min-width: 0;
+}
+.stat-label { font-size: 0.7rem; color: var(--muted); }
+.stat b { font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stat-energy { grid-column: 1 / -1; }
+.bar { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--good), var(--gold)); transition: width 0.4s; }
+.bar i.low { background: var(--bad); }
+.stat.bump b { animation: bump 0.5s; }
+
+/* ---------- Studio ---------- */
+.studio-info { display: flex; justify-content: space-between; margin: 14px 0 10px; color: var(--muted); }
+.studio-info b { color: var(--text); }
+.actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.action { display: grid; gap: 4px; justify-items: start; text-align: left; padding: 16px; min-height: 110px; }
+.action-icon { font-size: 1.8rem; }
+.action-name { font-weight: 800; font-size: 1rem; }
+.action small { color: var(--muted); font-size: 0.78rem; line-height: 1.3; }
+
+.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.log li { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 0.9rem; }
+.log li.good { border-left: 4px solid var(--good); }
+.log li.bad { border-left: 4px solid var(--bad); }
+.log li:first-child { animation: slide-in 0.35s ease; }
+
+/* ---------- Songs ---------- */
+.song-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.song {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 12px 14px; display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center;
+}
+.song.new { animation: pop 0.6s ease; }
+.quality {
+  width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center;
+  font-weight: 900; font-size: 1.2rem; background: var(--surface-2);
+}
+.quality.q-high { background: linear-gradient(135deg, var(--gold), #ff9d3d); color: #2a1a00; }
+.quality.q-mid { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+.song-title { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.song-meta { color: var(--muted); font-size: 0.8rem; }
+
+/* ---------- Charts ---------- */
+.chart-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.chart-row {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px;
+  display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center;
+}
+.chart-row.mine { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset, 0 0 18px rgba(180, 108, 255, 0.25); }
+.chart-rank { font-weight: 900; font-size: 1.2rem; text-align: center; }
+.chart-row:nth-child(1) .chart-rank { color: var(--gold); }
+.chart-name { min-width: 0; }
+.chart-name strong, .chart-name small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chart-name small { color: var(--muted); font-size: 0.8rem; }
+.chart-streams { text-align: right; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.move { display: block; font-size: 0.72rem; font-weight: 800; }
+.move.up { color: var(--good); }
+.move.down { color: var(--bad); }
+.move.new { color: var(--gold); }
+
+/* ---------- Navigation unten ---------- */
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; display: grid; grid-template-columns: repeat(3, 1fr);
+  background: rgba(23, 25, 35, 0.96); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom);
+}
+.tab {
+  font: inherit; font-size: 1.3rem; color: var(--muted); background: none; border: 0; padding: 10px 0 12px;
+  display: grid; justify-items: center; gap: 2px; cursor: pointer; min-height: 60px;
+}
+.tab span { font-size: 0.75rem; font-weight: 700; }
+.tab.active { color: var(--text); }
+.tab.active span { color: var(--accent); }
+
+/* ---------- Fenster (Modal) ---------- */
+.modal {
+  position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 16px;
+  background: rgba(0, 0, 0, 0.7); animation: fade-in 0.25s ease;
+}
+.modal-card {
+  width: 100%; max-width: 420px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 24px; padding: 22px; display: grid; gap: 10px; animation: rise 0.35s ease;
+}
+.modal-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+
+.week-card { text-align: center; }
+.week-number {
+  font-size: 2.4rem; font-weight: 900;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: zoom 0.6s ease;
+}
+.week-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.week-summary div { background: var(--surface-2); border-radius: 12px; padding: 10px 6px; }
+.week-summary small { display: block; color: var(--muted); font-size: 0.72rem; }
+.week-summary b { font-size: 1.05rem; }
+.event { background: var(--surface-2); border-radius: 14px; padding: 14px; text-align: left; line-height: 1.45; }
+.event.good { border-left: 4px solid var(--good); }
+.event.bad { border-left: 4px solid var(--bad); }
+.event strong { display: block; margin-bottom: 4px; }
+
+/* ---------- Meldung (Toast) ---------- */
+.toast {
+  position: fixed; left: 50%; bottom: 84px; transform: translate(-50%, 20px); opacity: 0; z-index: 30;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 99px; padding: 12px 18px;
+  font-weight: 700; max-width: calc(100% - 32px); text-align: center; pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- Animationen ---------- */
+@keyframes pulse { 50% { transform: scale(1.08); } }
+@keyframes bump { 40% { transform: scale(1.25); color: var(--gold); } }
+@keyframes slide-in { from { opacity: 0; transform: translateY(-8px); } }
+@keyframes pop { 0% { transform: scale(0.85); opacity: 0; } 60% { transform: scale(1.03); } 100% { transform: scale(1); } }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes rise { from { opacity: 0; transform: translateY(30px); } }
+@keyframes zoom { 0% { transform: scale(0.3); opacity: 0; } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+/* Wer weniger Bewegung möchte (Systemeinstellung), bekommt keine Animationen. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* Größere Bildschirme: Werte in einer Reihe */
+@media (min-width: 640px) {
+  .stats { grid-template-columns: repeat(5, 1fr); }
+  .stat-energy { grid-column: auto; }
+  .actions { grid-template-columns: repeat(4, 1fr); }
+}

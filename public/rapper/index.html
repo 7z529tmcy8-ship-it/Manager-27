@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Homestudio Hustle</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ===== Startbildschirm: erscheint nur, wenn es noch keinen Spielstand gibt ===== -->
+  <section id="start-screen" class="start hidden">
+    <div class="start-card">
+      <div class="logo" aria-hidden="true">🎤</div>
+      <h1 id="start-title">Homestudio Hustle</h1>
+      <p class="muted">Vom Kinderzimmer-Studio an die Spitze der Charts. Woche für Woche.</p>
+      <label for="rapper-name">Dein Rapper-Name</label>
+      <input id="rapper-name" type="text" maxlength="24" placeholder="z. B. MC Nachtschicht" autocomplete="off" />
+      <button id="start-btn" class="btn btn-primary btn-big">Karriere starten</button>
+    </div>
+  </section>
+
+  <!-- ===== Das eigentliche Spiel ===== -->
+  <main id="game" class="hidden">
+    <!-- Kopfzeile mit den Werten – bleibt beim Scrollen oben -->
+    <header class="topbar">
+      <div class="title-row">
+        <h1 id="game-title">Homestudio Hustle</h1>
+        <span id="rapper-label" class="rapper"></span>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="stat-label">💰 Geld</span><b id="stat-money">0 €</b></div>
+        <div class="stat"><span class="stat-label">👥 Fans</span><b id="stat-fans">0</b></div>
+        <div class="stat"><span class="stat-label">⭐ Ruf</span><b id="stat-rep">0</b></div>
+        <div class="stat"><span class="stat-label">📅 Woche</span><b id="stat-week">1</b></div>
+        <div class="stat stat-energy">
+          <span class="stat-label">⚡ Energie <b id="stat-energy">100</b></span>
+          <div class="bar"><i id="energy-bar"></i></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Seite 1: Studio mit allen Aktionen -->
+    <section id="page-studio" class="page">
+      <div class="studio-info">
+        <span>🎛️ Studio-Level <b id="studio-level">1</b></span>
+        <span>🎵 Songs <b id="song-count">0</b></span>
+      </div>
+
+      <div class="actions">
+        <button id="btn-record" class="btn action">
+          <span class="action-icon">🎙️</span>
+          <span class="action-name">Song aufnehmen</span>
+          <small id="info-record"></small>
+        </button>
+        <button id="btn-job" class="btn action">
+          <span class="action-icon">🍔</span>
+          <span class="action-name">Nebenjob</span>
+          <small id="info-job"></small>
+        </button>
+        <button id="btn-studio" class="btn action">
+          <span class="action-icon">🎛️</span>
+          <span class="action-name">Studio upgraden</span>
+          <small id="info-studio"></small>
+        </button>
+        <button id="btn-gig" class="btn action">
+          <span class="action-icon">🎤</span>
+          <span class="action-name">Auftritt</span>
+          <small id="info-gig"></small>
+        </button>
+      </div>
+
+      <button id="btn-week" class="btn btn-primary btn-big">Woche beenden ⏭️</button>
+
+      <h2>Was zuletzt passiert ist</h2>
+      <ul id="log" class="log"></ul>
+    </section>
+
+    <!-- Seite 2: meine Songs -->
+    <section id="page-songs" class="page hidden">
+      <h2>Meine Songs</h2>
+      <p id="songs-empty" class="muted">Noch keine Songs. Ab ins Studio!</p>
+      <ul id="song-list" class="song-list"></ul>
+    </section>
+
+    <!-- Seite 3: Charts -->
+    <section id="page-charts" class="page hidden">
+      <h2>Top 10 der Woche</h2>
+      <p class="muted">Streams der letzten Woche. Deine Songs sind markiert.</p>
+      <ol id="chart-list" class="chart-list"></ol>
+      <button id="btn-new-game" class="btn btn-danger">Neues Spiel</button>
+    </section>
+
+    <!-- Navigation unten (gut mit dem Daumen erreichbar) -->
+    <nav class="tabs">
+      <button class="tab active" data-page="studio">🎛️<span>Studio</span></button>
+      <button class="tab" data-page="songs">🎵<span>Songs</span></button>
+      <button class="tab" data-page="charts">📈<span>Charts</span></button>
+    </nav>
+  </main>
+
+  <!-- ===== Fenster: Songtitel eingeben ===== -->
+  <div id="record-dialog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="record-heading">
+    <div class="modal-card">
+      <h2 id="record-heading">Neuer Song 🎙️</h2>
+      <label for="song-title">Songtitel</label>
+      <input id="song-title" type="text" maxlength="40" placeholder="z. B. Nachtbus nach oben" autocomplete="off" />
+      <div class="modal-buttons">
+        <button id="record-cancel" class="btn">Abbrechen</button>
+        <button id="record-confirm" class="btn btn-primary">Aufnehmen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Wochenwechsel-Animation mit Zusammenfassung ===== -->
+  <div id="week-overlay" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="week-heading">
+    <div class="modal-card week-card">
+      <div class="week-number" id="week-heading">Woche 2</div>
+      <div id="week-summary" class="week-summary"></div>
+      <div id="week-event" class="event"></div>
+      <button id="week-close" class="btn btn-primary btn-big">Weiter</button>
+    </div>
+  </div>
+
+  <!-- Kurze Meldungen unten am Bildschirm -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>
