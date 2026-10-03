@@ -29,6 +29,8 @@ export interface League {
   down?: { leagueId: string; spots: number };
   /** Grobe Torjägerkanonen-Marke (Tore des Torschützenkönigs im Schnitt). */
   topScorerGoals: number;
+  /** Exotische Liga (MLS, Saudi-Arabien …): Angebote von dort erst gegen Karriereende. */
+  exotic?: boolean;
 }
 
 export interface Contract {
@@ -271,6 +273,8 @@ export interface Offer {
   /** Ablöse in € (nur zur Info). */
   fee: number;
   message: string;
+  /** Besondere Angebote gegen Karriereende: Rückkehr zum Heimatverein oder Abenteuer im Ausland. */
+  tag?: 'home' | 'exotic';
 }
 
 export interface Career {
@@ -338,6 +342,42 @@ export interface Career {
   secondChance?: boolean;
   /** Anzahl gegebener Pressekonferenzen. */
   pressCount?: number;
+  /** Verein, bei dem die Karriere begann (für die Heimkehr gegen Karriereende). */
+  homeClubId?: string;
+  /** Spieler ist für den letzten Akt zum Heimatverein zurückgekehrt. */
+  homecoming?: boolean;
+  /** Trainerkarriere nach dem Karriereende. */
+  coach?: CoachState | null;
+}
+
+export interface CoachSeason {
+  season: string;
+  /** Alter des Trainers in dieser Saison. */
+  age: number;
+  clubId: string;
+  leagueId: string;
+  position: number;
+  /** Erwarteter Platz laut Kaderstärke (Vorgabe des Vereins). */
+  expected: number;
+  points: number;
+  trophies: string[];
+  /** Trainerwert am Saisonende. */
+  rating: number;
+  sacked: boolean;
+}
+
+export interface CoachState {
+  clubId: string | null;
+  /** Trainerwert (ähnlich der Gesamtwertung beim Spieler), beeinflusst die Teamstärke. */
+  rating: number;
+  age: number;
+  year: number;
+  history: CoachSeason[];
+  /** Angebote (Vereins-IDs) im Sommer bzw. direkt nach dem Karriereende oder einer Entlassung. */
+  offers: string[];
+  phase: 'choose' | 'season' | 'done';
+  /** Meldung zur letzten Saison. */
+  note?: string;
 }
 
 export type Difficulty = 'easy' | 'normal' | 'hard';

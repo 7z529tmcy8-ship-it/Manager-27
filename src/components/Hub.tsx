@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { getClub } from '../data/leagues';
 import { CARD_POOL, careerCard } from '../game/club';
 import { currentClubId, seasonLabel } from '../game/player';
-import { activeSpecial } from '../game/specials';
 import { deleteCareer, listCareers } from '../game/storage';
 import type { Career } from '../game/types';
 import { useClub } from '../clubStore';
@@ -50,7 +49,7 @@ export default function Hub({ onNew, onLoad, onStore, onCollection, onTeam, onFa
           onKeyDown={(e) => e.key === 'Enter' && (latest ? onLoad(latest) : onNew())}>
           {latest ? (
             <>
-              <UtCard card={careerCard(latest, activeSpecial(latest))} size="lg" shine={latest.player.ovr >= 85 || !!activeSpecial(latest)} />
+              <UtCard card={careerCard(latest)} size="lg" shine={latest.player.ovr >= 85 || latest.phase === 'retired'} />
               <div className="hero-text">
                 <span className="hub-kicker">Karriere fortsetzen</span>
                 <strong>{latest.player.name}</strong>

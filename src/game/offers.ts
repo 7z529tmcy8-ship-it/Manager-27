@@ -84,7 +84,7 @@ export function generateOffers(
     // Nur Vereine, für die der Spieler sportlich überhaupt in Frage kommt.
     const options = CLUBS.filter((c) => {
       const d = clubStrength(career, c.id) - appeal;
-      return !taken.has(c.id) && d <= 6 && d >= -10;
+      return !taken.has(c.id) && d <= 6 && d >= -10 && (!getLeague(clubLeagueId(career, c.id)).exotic || p.age >= EXOTIC_AGE);
     });
     if (!options.length) break;
     const club = weightedPick(options, (c) => {
@@ -107,7 +107,7 @@ export function generateOffers(
   if (!freeAgent && p.age <= 23 && (share < (winter ? 0.3 : 0.45) || mode === 'loan')) {
     const loans = mode === 'loan' ? randInt(3, 4) : randInt(1, 2);
     for (let i = 0; i < loans; i++) {
-      const options = CLUBS.filter((c) => !taken.has(c.id) && clubStrength(career, c.id) < parentStrength - 1);
+      const options = CLUBS.filter((c) => !taken.has(c.id) && clubStrength(career, c.id) < parentStrength - 1 && !getLeague(clubLeagueId(career, c.id)).exotic);
       if (!options.length) break;
       const club = weightedPick(options, (c) => {
         const d = clubStrength(career, c.id) - (p.ovr - 1);
@@ -131,7 +131,65 @@ export function generateOffers(
     }
   }
 
+  if (!winter && mode !== 'loan') {
+    const home = homecomingOffer(career, taken, freeAgent);
+    if (home) offers.push(home);
+    const exotic = exoticOffer(career, taken, appeal, freeAgent);
+    if (exotic) offers.push(exotic);
+  }
+
   return offers;
+}
+
+/** Ab diesem Alter kommen Angebote aus MLS, Saudi-Arabien, Japan und Australien. */
+export const EXOTIC_AGE = 31;
+/** Ab diesem Alter möchte der Heimatverein den Spieler zurückholen. */
+export const HOMECOMING_AGE = 33;
+
+/** Der Verein, bei dem die Karriere begann (ältere Spielstände: aus Transfers bzw. erster Saison). */
+export function homeClubOf(career: Career): string | null {
+  return career.homeClubId ?? career.transfers?.[0]?.fromClubId ?? career.history[0]?.clubId ?? null;
+}
+
+const EXOTIC_PITCH: Record<string, string> = {
+  mls: 'Sonne, Stadien voller Fans und ein Leben in Amerika',
+  spl: 'Ein Gehalt, bei dem selbst Weltstars schwach werden',
+  j1: 'Respekt, Disziplin und eine Liga voller Techniker',
+  alm: 'Strand, Sonne und Fußball am anderen Ende der Welt',
+};
+const EXOTIC_WAGE: Record<string, number> = { mls: 1.6, spl: 3, j1: 1.3, alm: 1.2 };
+
+/** Rückkehr zum Heimatverein für den letzten Akt der Karriere. */
+function homecomingOffer(career: Career, taken: Set<string>, freeAgent: boolean): Offer | null {
+  const p = career.player;
+  const home = homeClubOf(career);
+  if (p.age < HOMECOMING_AGE || career.homecoming || !home || taken.has(home) || !chance(0.75)) return null;
+  taken.add(home);
+  const s = clubStrength(career, home);
+  const offer = transferOffer(career, home, s, freeAgent, '');
+  offer.role = roleFor(p.ovr + 3, s, p.age);
+  offer.fee = Math.round(offer.fee * 0.3 / 1e5) * 1e5;
+  offer.message = `${getClub(home).name}, dein Heimatverein, will dich zurückholen – für den letzten Akt deiner Karriere.`;
+  offer.tag = 'home';
+  return offer;
+}
+
+/** Ein Abenteuer im Ausland: MLS, Saudi Pro League, J1 League oder A-League. */
+function exoticOffer(career: Career, taken: Set<string>, appeal: number, freeAgent: boolean): Offer | null {
+  const p = career.player;
+  if (p.age < EXOTIC_AGE || !chance(p.age >= 33 ? 0.9 : 0.6)) return null;
+  const options = CLUBS.filter((c) => getLeague(clubLeagueId(career, c.id)).exotic && !taken.has(c.id));
+  if (!options.length) return null;
+  const club = weightedPick(options, (c) => Math.exp(-((clubStrength(career, c.id) - (appeal - 3)) ** 2) / 50) + 1e-6);
+  taken.add(club.id);
+  const leagueId = clubLeagueId(career, club.id);
+  const s = clubStrength(career, club.id);
+  const offer = transferOffer(career, club.id, s, freeAgent, '');
+  offer.role = roleFor(p.ovr + 2, s, p.age);
+  offer.wage = Math.round((offer.wage * (EXOTIC_WAGE[leagueId] ?? 1.3)) / 500) * 500;
+  offer.message = `${club.name} (${getLeague(leagueId).name}) lockt: ${EXOTIC_PITCH[leagueId] ?? 'ein Abenteuer im Ausland'}.`;
+  offer.tag = 'exotic';
+  return offer;
 }
 
 /** Ab diesem Alter kann sich der Spieler selbst bei Vereinen bewerben. */

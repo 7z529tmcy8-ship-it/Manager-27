@@ -54,6 +54,24 @@ export const LEAGUES: League[] = [
     id: 'ere', name: 'Eredivisie', country: 'Niederlande', cup: 'KNVB-Beker', tier: 1, goalsPerGame: 3.1,
     europe: { cl: 2, el: 1, conf: 1 }, topScorerGoals: 24,
   },
+  // Exotische Ligen für das Karriereende: Angebote von dort gibt es erst für ältere Spieler (ab 31).
+  {
+    // Vereinfacht: Auswahl von 16 der 30 MLS-Teams, ohne Conferences und Playoffs.
+    id: 'mls', name: 'MLS', country: 'USA', cup: 'US Open Cup', tier: 1, goalsPerGame: 3.0,
+    europe: { cl: 0, el: 0, conf: 0 }, topScorerGoals: 24, exotic: true,
+  },
+  {
+    id: 'spl', name: 'Saudi Pro League', country: 'Saudi-Arabien', cup: 'King’s Cup', tier: 1, goalsPerGame: 3.0,
+    europe: { cl: 0, el: 0, conf: 0 }, topScorerGoals: 28, exotic: true,
+  },
+  {
+    id: 'j1', name: 'J1 League', country: 'Japan', cup: 'Emperor’s Cup', tier: 1, goalsPerGame: 2.6,
+    europe: { cl: 0, el: 0, conf: 0 }, topScorerGoals: 20, exotic: true,
+  },
+  {
+    id: 'alm', name: 'A-League', country: 'Australien', cup: 'Australia Cup', tier: 1, goalsPerGame: 3.1,
+    europe: { cl: 0, el: 0, conf: 0 }, topScorerGoals: 18, exotic: true,
+  },
 ];
 
 const RAW: Record<string, [string, number][]> = {
@@ -141,6 +159,30 @@ const RAW: Record<string, [string, number][]> = {
     ['SC Heerenveen', 71], ['FC Groningen', 70], ['Sparta Rotterdam', 69], ['Fortuna Sittard', 69],
     ['PEC Zwolle', 69], ['NAC Breda', 68], ['Heracles Almelo', 68], ['FC Volendam', 67],
     ['Excelsior Rotterdam', 67], ['Telstar', 66],
+  ],
+  mls: [
+    ['Inter Miami CF', 72], ['Los Angeles FC', 71], ['San Diego FC', 70], ['Vancouver Whitecaps', 70],
+    ['Philadelphia Union', 70], ['FC Cincinnati', 69], ['Columbus Crew', 69], ['LA Galaxy', 69],
+    ['Seattle Sounders', 69], ['New York City FC', 68], ['Orlando City', 68], ['Atlanta United', 67],
+    ['Portland Timbers', 67], ['New York Red Bulls', 66], ['Toronto FC', 65], ['CF Montréal', 64],
+  ],
+  spl: [
+    ['Al-Hilal', 77], ['Al-Nassr', 77], ['Al-Ittihad', 76], ['Al-Ahli', 76], ['Al-Qadsiah', 73],
+    ['Al-Ettifaq', 70], ['Al-Shabab', 69], ['Al-Taawoun', 68], ['NEOM SC', 68], ['Al-Fateh', 66],
+    ['Al-Khaleej', 66], ['Al-Kholood', 65], ['Al-Fayha', 65], ['Al-Riyadh', 64], ['Damac FC', 64],
+    ['Al-Okhdood', 63], ['Al-Hazem', 62], ['Al-Najma', 62],
+  ],
+  j1: [
+    ['Vissel Kobe', 69], ['Kashima Antlers', 69], ['Sanfrecce Hiroshima', 69], ['Kashiwa Reysol', 68],
+    ['Urawa Red Diamonds', 68], ['Kawasaki Frontale', 68], ['Machida Zelvia', 68], ['Kyoto Sanga', 67],
+    ['Gamba Osaka', 67], ['Yokohama F. Marinos', 67], ['FC Tokyo', 66], ['Cerezo Osaka', 66],
+    ['Nagoya Grampus', 66], ['Avispa Fukuoka', 65], ['Shimizu S-Pulse', 65], ['Tokyo Verdy', 64],
+    ['Fagiano Okayama', 64], ['Shonan Bellmare', 63], ['Yokohama FC', 63], ['Albirex Niigata', 63],
+  ],
+  alm: [
+    ['Melbourne City', 65], ['Auckland FC', 65], ['Western Sydney Wanderers', 64], ['Melbourne Victory', 64],
+    ['Sydney FC', 64], ['Adelaide United', 63], ['Macarthur FC', 62], ['Wellington Phoenix', 62],
+    ['Central Coast Mariners', 61], ['Brisbane Roar', 61], ['Newcastle Jets', 61], ['Perth Glory', 60],
   ],
 };
 

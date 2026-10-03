@@ -42,7 +42,7 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
       </header>
       <h1 className="hub-title">Sammlung</h1>
       <p className="hub-sub">
-        {Object.keys(club.cards).length} von {CARD_POOL.length} Karten gesammelt · {club.specials.length} eigene Sonderkarten · {club.packsOpened} Packs geöffnet
+        {Object.keys(club.cards).length} von {CARD_POOL.length} Karten gesammelt · {club.specials.length} eigene Karten · {club.packsOpened} Packs geöffnet
       </p>
 
       <div className="hub-row">

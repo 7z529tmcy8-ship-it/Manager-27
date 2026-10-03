@@ -88,6 +88,7 @@ export function createCareer(np: NewPlayer): Career {
     rival: createRival(np, club.id),
     news: [],
     secondChance: np.secondChance || undefined,
+    homeClubId: club.id,
   };
   career.seasonGoals = createSeasonGoals(career);
   postInbox(career, {
@@ -355,6 +356,10 @@ export function acceptWinterOffer(prev: Career, offer: Offer, quick = false): Ca
   const prog = career.progress!;
   const fromClubId = currentClubId(p);
   recordTransfer(career, 'Winter', fromClubId, offer);
+  if (offer.tag === 'home') {
+    career.homecoming = true;
+    postInbox(career, { kind: 'transfer', title: 'Heimkehr', text: `Zurück, wo alles begann: ${getClub(offer.clubId).name} feiert deine Rückkehr.` });
+  }
   if (offer.type === 'Leihe') {
     p.loan = { clubId: offer.clubId, parentClubId: p.contract.clubId, role: offer.role };
   } else {
@@ -702,6 +707,10 @@ export function acceptOffer(prev: Career, offer: Offer): Career {
     p.captainOf = null;
   } else {
     postInbox(career, { kind: 'contract', title: 'Vertrag verlängert', text: `Neuer Vertrag bei ${getClub(offer.clubId).name}: ${offer.years} Jahre, ${formatMoney(offer.wage)} pro Woche.` });
+  }
+  if (offer.tag === 'home') {
+    career.homecoming = true;
+    postInbox(career, { kind: 'transfer', title: 'Heimkehr', text: `Zurück, wo alles begann: ${getClub(offer.clubId).name} feiert deine Rückkehr.` });
   }
   if (offer.type === 'Leihe') {
     p.loan = { clubId: offer.clubId, parentClubId: p.contract.clubId, role: offer.role };

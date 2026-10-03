@@ -63,12 +63,12 @@ function goalsExpected(att: number, def: number, home: boolean, leagueGoals: num
   return Math.max(0.15, base * Math.exp(0.065 * (att - def)));
 }
 
-function playMatch(sHome: number, sAway: number, goals: number): [number, number] {
+export function playMatch(sHome: number, sAway: number, goals: number): [number, number] {
   return [poisson(goalsExpected(sHome, sAway, true, goals)), poisson(goalsExpected(sAway, sHome, false, goals))];
 }
 
 /** Doppelrunde nach dem Kreisverfahren: liefert Spieltage mit [Heim, Gast]. */
-function roundRobin(ids: string[]): [string, string][][] {
+export function roundRobin(ids: string[]): [string, string][][] {
   const teams = [...ids];
   if (teams.length % 2) teams.push('__bye');
   const n = teams.length;
@@ -87,11 +87,19 @@ function roundRobin(ids: string[]): [string, string][][] {
   return [...rounds, ...second];
 }
 
-function emptyRow(clubId: string): TableRow {
+/** Ältere Spielstände kennen neu hinzugekommene Ligen noch nicht – deren Tabellen leer anlegen. */
+export function ensureLeagueRows(career: Career, prog: SeasonProgress): void {
+  for (const l of LEAGUES) {
+    if (!prog.rows[l.id]) prog.rows[l.id] = CLUBS.filter((c) => clubLeagueId(career, c.id) === l.id).map((c) => emptyRow(c.id));
+  }
+  for (const c of CLUBS) if (prog.strength[c.id] === undefined) prog.strength[c.id] = clubStrength(career, c.id);
+}
+
+export function emptyRow(clubId: string): TableRow {
   return { clubId, played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: 0 };
 }
 
-function addResult(row: TableRow, gf: number, ga: number) {
+export function addResult(row: TableRow, gf: number, ga: number) {
   row.played++;
   row.goalsFor += gf;
   row.goalsAgainst += ga;
@@ -452,6 +460,7 @@ export function playStage(career: Career, prog: SeasonProgress, stage: number): 
   prog.form = Math.min(8, prog.form + LOADS[prog.load ?? 'normal'].form);
   const inHalf = (at: number) => (half === 1 ? at < 0.5 : at >= 0.5);
 
+  ensureLeagueRows(career, prog);
   for (const l of LEAGUES) {
     const rowList = prog.rows[l.id];
     const rows = new Map(rowList.map((r) => [r.clubId, r]));
@@ -607,6 +616,7 @@ export function finishSeason(career: Career, prog: SeasonProgress): SeasonOutcom
   const notes = [...prog.notes];
 
   const tables: Record<string, TableRow[]> = {};
+  ensureLeagueRows(career, prog);
   for (const l of LEAGUES) tables[l.id] = sortTable(prog.rows[l.id]);
 
   const table = tables[leagueId];

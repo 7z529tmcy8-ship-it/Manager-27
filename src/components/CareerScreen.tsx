@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import CoachPanel from './CoachPanel';
 import { flagOf, nationCode } from '../data/flags';
 import { getClub, getLeague } from '../data/leagues';
 import { clubLeagueId, currentClubId, formatMoney, playerValue } from '../game/player';
@@ -65,7 +66,7 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
             <span className="cs-pos">{p.position}</span>
             <span className="cs-age"><small>Alter</small> {p.age}</span>
           </div>
-          <div className="cs-club">{retired ? 'Karriere beendet' : getClub(clubId).name}</div>
+          <div className="cs-club">{retired ? (career.coach ? 'Trainer' : 'Karriere beendet') : getClub(clubId).name}</div>
           <div className="cs-head-row">
             <span className="cs-league">{retired ? `${career.history.length} Saisons` : getLeague(clubLeagueId(career, clubId)).name}{p.loan ? ' · Leihe' : ''}</span>
             <span className="cs-value"><small>Wert</small> {money(playerValue(p))}</span>
@@ -137,6 +138,11 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
           <button className="btn primary big cs-go" disabled={picked === null} onClick={confirm}>
             {picked === null ? 'Möglichkeit wählen' : `${choices[picked].title} bestätigen`}
           </button>
+          {p.age >= 30 && !choices.some((c) => c.kind === 'retire') && (
+            <button className="btn secondary small cs-go" onClick={() => window.confirm('Karriere wirklich beenden?') && onChange(applyChoice(career, { kind: 'retire', title: 'Karriere beenden' }))}>
+              Karriere beenden
+            </button>
+          )}
         </section>
       )}
 
@@ -169,13 +175,7 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
         </section>
       )}
 
-      {retired && (
-        <section className="cs-window">
-          <h2>Karriereende</h2>
-          <p className="cs-sub">{career.retiredReason}</p>
-          <button className="btn primary big cs-go" onClick={onExit}>Zum Hauptmenü</button>
-        </section>
-      )}
+      {retired && <CoachPanel career={career} onChange={onChange} onExit={onExit} />}
     </main>
   );
 }
@@ -224,6 +224,8 @@ function ChoiceCard({ career, c, selected, onPick }: { career: Career; c: Choice
           {o.fee > 0 ? <><br />Ablöse {formatMoney(o.fee)}</> : null}
         </span>
       )}
+      {c.kind === 'home' && <span className="cs-choice-meta">🏠 Zurück, wo alles begann</span>}
+      {c.kind === 'exotic' && <span className="cs-choice-meta">✈️ Abenteuer mit Top-Gehalt</span>}
       {c.kind === 'stay' && <span className="cs-choice-meta">Vertrag noch {career.player.contract.yearsLeft} J.</span>}
       {c.kind === 'retire' && <span className="cs-choice-meta">Mit {career.player.age} Jahren aufhören</span>}
       {c.kind === 'camp' && <span className="cs-choice-meta">Chance auf +1 Wertung – je mehr Spielpraxis, desto besser. Kleines Verletzungsrisiko.</span>}

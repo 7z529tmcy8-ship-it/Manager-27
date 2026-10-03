@@ -29,7 +29,7 @@ function ensureOffers(c: Career): Career {
   return out;
 }
 
-export type ChoiceKind = 'transfer' | 'loan' | 'stay' | 'extend' | 'retire' | 'camp';
+export type ChoiceKind = 'transfer' | 'loan' | 'stay' | 'extend' | 'retire' | 'camp' | 'home' | 'exotic';
 
 export interface Choice {
   kind: ChoiceKind;
@@ -45,6 +45,8 @@ const TITLES: Record<ChoiceKind, string> = {
   extend: 'Verlängern',
   retire: 'Karriere beenden',
   camp: 'Trainingslager',
+  home: 'Heimkehr',
+  exotic: 'Abenteuer',
 };
 
 /** Die drei Möglichkeiten im Sommer: bester Wechsel, beste Leihe, Bleiben – mit sinnvollen Ersatzoptionen. */
@@ -52,17 +54,22 @@ export function seasonChoices(career: Career): Choice[] {
   if (career.phase !== 'window') return [];
   const strength = (o: Offer) => clubStrength(career, o.clubId);
   const byStrength = (a: Offer, b: Offer) => strength(b) - strength(a);
-  const transfers = career.offers.filter((o) => o.type === 'Transfer' || o.type === 'Ablösefrei').sort(byStrength);
+  const transfers = career.offers.filter((o) => (o.type === 'Transfer' || o.type === 'Ablösefrei') && !o.tag).sort(byStrength);
   const loans = career.offers.filter((o) => o.type === 'Leihe').sort(byStrength);
   const extension = career.offers.find((o) => o.type === 'Verlängerung');
+  const home = career.offers.find((o) => o.tag === 'home');
+  const exotic = career.offers.find((o) => o.tag === 'exotic');
 
   const out: Choice[] = [];
   const take = (kind: ChoiceKind, offer?: Offer) => {
     if (out.length < 3 && !(offer && out.some((c) => c.offer?.id === offer.id))) out.push({ kind, title: TITLES[kind], offer });
   };
-  if (transfers[0]) take('transfer', transfers[0]);
-  if (loans[0]) take('loan', loans[0]);
-  else if (transfers[1]) take('transfer', transfers[1]);
+  // Gegen Karriereende ersetzen Heimkehr und Abenteuer im Ausland die normalen Optionen.
+  if (home) take('home', home);
+  else if (transfers[0]) take('transfer', transfers[0]);
+  if (exotic) take('exotic', exotic);
+  else if (loans[0]) take('loan', loans[0]);
+  else if (transfers[home ? 0 : 1]) take('transfer', transfers[home ? 0 : 1]);
   if (extension) take('extend', extension);
   else if (canStay(career)) take('stay');
   // Auffüllen, falls weniger als drei: weitere Angebote, sonst Karriereende.

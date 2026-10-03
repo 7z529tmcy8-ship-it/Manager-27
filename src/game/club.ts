@@ -2,8 +2,10 @@ import { FAILED_TALENTS, LEGENDS } from '../data/legends';
 import { REAL_PLAYERS } from '../data/players';
 import { EXTRA_ICONS, EXTRA_STARS } from '../data/cards';
 import { getClub, getLeague, slugify } from '../data/leagues';
+import { summarizeCareer } from './legacy';
+import { homeClubOf } from './offers';
 import { cardTier } from './player';
-import type { Career, Position, SeasonRecord, SpecialCard, SpecialType } from './types';
+import type { Career, CoachSeason, Position, SeasonRecord, SpecialCard, SpecialType } from './types';
 
 // „Club“ über alle Karrieren hinweg: Coins, gesammelte Karten, Items. Angelehnt an Karten-Sammelmodi,
 // aber mit eigenen Namen und Designs. Coins verdient man nur im Karrieremodus – kein echtes Geld.
@@ -220,22 +222,72 @@ export function seasonCoins(r: SeasonRecord, specials: number): number {
   );
 }
 
-/** Noch nicht ausgezahlte Saisons einer Karriere gutschreiben und ihre Sonderkarten in die Sammlung legen. */
-export function creditCareer(club: ClubState, career: Career): { club: ClubState; gained: number; seasons: number } {
+/**
+ * Noch nicht ausgezahlte Saisons (als Spieler und als Trainer) gutschreiben.
+ * Sonderkarten einzelner Saisons gibt es nicht mehr – dafür nach dem Karriereende genau eine eigene Ikonen-Karte.
+ */
+export function creditCareer(
+  club: ClubState,
+  career: Career,
+): { club: ClubState; gained: number; seasons: number; icon: CollectCard | null } {
   const done = club.credited[career.id] ?? 0;
   const fresh = career.history.slice(done);
-  if (!fresh.length) return { club, gained: 0, seasons: 0 };
   let gained = 0;
-  const specials = [...club.specials];
   for (const r of fresh) {
     const mine = (career.specialCards ?? []).filter((s) => s.season === r.season);
     gained += seasonCoins(r, mine.length);
-    specials.push(...mine.map((s) => specialToCard(career.id, s)));
   }
+  const coachKey = `${career.id}:coach`;
+  const coachSeasons = career.coach?.history ?? [];
+  const coachFresh = coachSeasons.slice(club.credited[coachKey] ?? 0);
+  for (const s of coachFresh) gained += coachCoins(s);
+
+  const icon = career.phase === 'retired' && career.history.length && !club.specials.some((c) => c.id === iconId(career))
+    ? careerIcon(career)
+    : null;
+  if (!fresh.length && !coachFresh.length && !icon) return { club, gained: 0, seasons: 0, icon: null };
   return {
-    club: { ...club, coins: club.coins + gained, specials, credited: { ...club.credited, [career.id]: career.history.length } },
+    club: {
+      ...club,
+      coins: club.coins + gained,
+      specials: icon ? [...club.specials, icon] : club.specials,
+      credited: { ...club.credited, [career.id]: career.history.length, [coachKey]: coachSeasons.length },
+    },
     gained,
-    seasons: fresh.length,
+    seasons: fresh.length + coachFresh.length,
+    icon,
+  };
+}
+
+/** Coins für eine Trainersaison: Grundbetrag, Platzierung über den Erwartungen und Titel. */
+export function coachCoins(s: CoachSeason): number {
+  return 250 + Math.max(0, s.expected - s.position) * 60 + s.trophies.length * 500;
+}
+
+const iconId = (career: Career) => `own-icon-${career.id}`;
+
+/**
+ * Die eigene Ikonen-Karte nach dem Karriereende: Bestwert der Karriere plus Bonus für Titel,
+ * Ballon d’Or, Legendenstatus und eine Heimkehr. Verein ist der, für den am meisten Spiele gemacht wurden.
+ */
+export function careerIcon(career: Career): CollectCard {
+  const s = summarizeCareer(career);
+  const p = career.player;
+  const atHome = !!career.homecoming && p.contract.clubId === homeClubOf(career);
+  const bonus = Math.min(5, Math.floor(s.titles / 4) + s.ballonDor + (s.legends ? 1 : 0) + (atHome ? 1 : 0));
+  const apps: Record<string, number> = {};
+  for (const r of career.history) apps[r.clubId] = (apps[r.clubId] ?? 0) + r.apps;
+  const clubId = Object.entries(apps).sort((a, b) => b[1] - a[1])[0]?.[0] ?? p.contract.clubId;
+  return {
+    id: iconId(career),
+    name: p.name,
+    position: p.position,
+    nation: p.nation,
+    club: getClub(clubId).name,
+    league: getLeague(getClub(clubId).leagueId).name,
+    ovr: Math.min(99, s.peak + bonus),
+    variant: 'icon',
+    label: atHome ? 'Heimkehr-Ikone' : 'Karriere-Ikone',
   };
 }
 
@@ -276,10 +328,10 @@ export function applyItem(prev: Career, kind: ItemKind): Career {
   return career;
 }
 
-/** Die aktuelle Karte des eigenen Spielers – als Sonderkarte, wenn er sich in der letzten Saison eine verdient hat. */
-export function careerCard(career: Career, special: SpecialCard | null): CollectCard {
+/** Die aktuelle Karte des eigenen Spielers – nach dem Karriereende seine Ikonen-Karte. */
+export function careerCard(career: Career): CollectCard {
   const p = career.player;
-  if (special) return specialToCard(career.id, special);
+  if (career.phase === 'retired' && career.history.length) return careerIcon(career);
   const tier = cardTier(p.ovr);
   return {
     id: `cur-${career.id}`,
