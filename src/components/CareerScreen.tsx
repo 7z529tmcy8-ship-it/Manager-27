@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import CoachPanel from './CoachPanel';
+import SkillTree, { ArchetypePicker, LevelChip } from './SkillTree';
 import { flagOf, nationCode } from '../data/flags';
 import { getClub, getLeague } from '../data/leagues';
 import { clubLeagueId, currentClubId, formatMoney, playerValue } from '../game/player';
 import { halfStats } from '../game/season';
+import { freePoints } from '../game/skills';
 import { applyChoice, applyWinterChoice, choiceClub, seasonChoices, simulateToBreak, winterChoices, type Choice } from '../game/simple';
 import { STAGES_PER_HALF } from '../game/season';
 import type { Career, SeasonRecord } from '../game/types';
@@ -27,6 +29,9 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
   const clubId = currentClubId(p);
   const [picked, setPicked] = useState<number | null>(null);
   const [open, setOpen] = useState<string | null>(null);
+  const [tree, setTree] = useState(false);
+  const needType = !p.skills && career.phase !== 'retired';
+  const xpNote = p.skills?.note;
   const choices = career.phase === 'winter' ? winterChoices(career) : seasonChoices(career);
   const prog = career.progress;
   const secondHalf = career.phase === 'winter' || (career.phase === 'season' && (prog?.stage ?? 0) >= STAGES_PER_HALF);
@@ -52,7 +57,9 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
       <div className="cs-nav">
         <button className="cs-link" onClick={onExit}>‹ Menü</button>
         <span className="cs-nav-name">{p.name}</span>
+        <LevelChip career={career} onOpen={() => setTree(true)} />
       </div>
+      {tree && p.skills && <SkillTree career={career} onChange={onChange} onClose={() => setTree(false)} />}
 
       {/* Kopf: Wertung, Nation, Position, Alter, Verein, Marktwert */}
       <header className="cs-head">
@@ -126,7 +133,13 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
       </div>
 
       {/* Aktion */}
-      {career.phase === 'window' && choices.length > 0 && (
+      {needType && <ArchetypePicker career={career} onChange={onChange} />}
+
+      {!needType && xpNote && career.phase !== 'retired' && (
+        <button className="cs-note good sk-note" onClick={() => setTree(true)}>⭐ {xpNote}{p.skills && freePoints(p) > 0 ? ' → Fähigkeiten öffnen' : ''}</button>
+      )}
+
+      {!needType && career.phase === 'window' && choices.length > 0 && (
         <section className="cs-window">
           <h2>Transferfenster</h2>
           <p className="cs-sub">Die Saison ist vorbei. Wähle, wie es weitergeht.</p>
@@ -146,7 +159,7 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
         </section>
       )}
 
-      {(career.phase === 'season' || career.phase === 'winter' || career.phase === 'final') && (
+      {!needType && (career.phase === 'season' || career.phase === 'winter' || career.phase === 'final') && (
         <section className="cs-window">
           {career.phase === 'winter' && <h2>Winterpause</h2>}
           {half && (

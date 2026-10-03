@@ -1391,3 +1391,32 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .coach-table li.gap { margin-top: 10px; }
 .coach-table li b { text-align: right; }
 @media (max-width: 480px) { .coach-tactics { grid-template-columns: 1fr; } }
+
+/* Spielertyp & Fähigkeitenbaum */
+.sk-chip { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 99px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); font-weight: 800; font-size: .8rem; cursor: pointer; }
+.sk-chip i { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--accent); }
+.sk-chip b { background: var(--gold); color: #1a1300; border-radius: 99px; padding: 1px 7px; font-size: .72rem; }
+.sk-chip.has-points { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+.sk-note { display: block; width: 100%; text-align: left; margin-top: 16px; cursor: pointer; font: inherit; color: inherit; }
+.sk-head { display: flex; gap: 14px; align-items: center; margin: 4px 0 12px; }
+.sk-head h2 { margin: 0; font-size: 1.6rem; }
+.sk-big { font-size: 2.6rem; }
+.sk-level { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; font-size: .85rem; font-weight: 700; }
+.sk-points { margin: 10px 0 4px; font-weight: 700; color: var(--gold); }
+.sk-tier { margin-top: 18px; }
+.sk-tier h3 { margin: 0 0 8px; font-size: 1rem; }
+.sk-tier h3 small { color: var(--muted); font-weight: 600; font-size: .78rem; }
+.sk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.sk-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.sk-skill { display: grid; gap: 3px; text-align: left; padding: 12px; border-radius: 16px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); font: inherit; }
+.sk-skill .sk-icon { font-size: 1.4rem; }
+.sk-skill strong { font-size: .95rem; }
+.sk-skill small { color: var(--muted); font-size: .78rem; line-height: 1.35; }
+.sk-skill em { font-style: normal; font-weight: 800; font-size: .75rem; color: var(--muted); }
+.sk-skill.can { border-color: var(--gold); cursor: pointer; }
+.sk-skill.can em { color: var(--gold); }
+.sk-skill.can:hover { transform: translateY(-2px); }
+.sk-skill.owned { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.sk-skill.owned em { color: var(--accent); }
+.sk-skill.locked { opacity: .5; }
+@media (max-width: 480px) { .sk-grid.three { grid-template-columns: 1fr; } }

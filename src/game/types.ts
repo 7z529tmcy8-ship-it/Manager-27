@@ -88,6 +88,18 @@ export interface PlayerState {
   trainingFocus?: TrainingFocus;
   /** Durch Training gewonnene Attributpunkte (für die Obergrenze). */
   trainingGains?: number[];
+  /** Spielertyp, Erfahrungspunkte und freigeschaltete Fähigkeiten. */
+  skills?: PlayerSkills;
+}
+
+export interface PlayerSkills {
+  archetype: import('./skills').ArchetypeId;
+  xp: number;
+  unlocked: string[];
+  /** In der laufenden Saison bereits gutgeschriebene EP. */
+  seasonXp: number;
+  /** Meldung nach der letzten Pause, z. B. „+320 EP · Level 4“. */
+  note?: string;
 }
 
 export type TrainingFocus = number | 'balanced' | 'rest';

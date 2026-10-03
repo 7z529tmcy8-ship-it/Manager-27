@@ -13,6 +13,7 @@ import {
 import { difficultyOf } from './difficulty';
 import { injuryFactor } from './training';
 import { hasTrait } from './traits';
+import { skillMods } from './skills';
 import { chance, clamp, normal, pick, poisson, rand, randInt, sigmoid, weightedPick } from './random';
 import type {
   Career,
@@ -140,6 +141,7 @@ function playerMatch(
   rotation = 0,
 ): MatchLine {
   const { player, prog } = ctx;
+  const mods = skillMods(player);
   const own = prog.strength[ctx.clubId];
   const opp = prog.strength[opponentId] ?? getClub(opponentId).strength;
   const rel = player.ovr - own;
@@ -156,7 +158,7 @@ function playerMatch(
     // Der Präsident stellt sich selbst auf.
     const president = ownsCurrentClub(ctx) ? 4 : 0;
     const load = LOADS[prog.load ?? 'normal'];
-    const selection = rel + ROLE_BONUS[currentRole(player)] + (prog.form - 6.8) * 2 + (player.morale ?? 0) + captain + president + rotation + load.selection + difficultyOf(ctx.career).selection;
+    const selection = rel + ROLE_BONUS[currentRole(player)] + (prog.form - 6.8) * 2 + (player.morale ?? 0) + captain + president + rotation + load.selection + difficultyOf(ctx.career).selection + mods.selection;
     const startP = player.position === 'TW' ? sigmoid((selection + 1) / 1.2) : sigmoid((selection + 1.5) / 2.2);
     if (chance(startP)) {
       status = 'start';
@@ -178,15 +180,16 @@ function playerMatch(
   let rating: number | null = null;
   if (minutes > 0) {
     const penalties = (player.penaltyTakerOf === ctx.clubId ? 1.15 : 1) * (hasTrait(player, 'showman') ? 1.05 : 1);
-    const pGoal = Math.min(0.8, GOAL_SHARE[player.position] * penalties * Math.exp(rel * 0.04) * share);
-    const pAssist = Math.min(0.6, ASSIST_SHARE[player.position] * Math.exp(rel * 0.04) * share);
+    const pGoal = Math.min(0.8, GOAL_SHARE[player.position] * penalties * mods.goal * Math.exp(rel * 0.04) * share);
+    const pAssist = Math.min(0.6, ASSIST_SHARE[player.position] * mods.assist * Math.exp(rel * 0.04) * share);
     for (let g = 0; g < gf; g++) {
       if (chance(pGoal)) goals++;
       else if (chance(pAssist / (1 - pGoal))) assists++;
     }
     let r = 6.5 + rel * 0.03 + (gf > ga ? 0.35 : gf < ga ? -0.35 : 0) + goals * 0.9 + assists * 0.6;
+    r += mods.rating + (competition !== 'Liga' ? mods.bigGame : 0);
     if (DEFENSIVE.includes(player.position)) {
-      if (ga === 0 && minutes >= 60) r += 0.5;
+      if (ga === 0 && minutes >= 60) r += 0.5 + mods.cleanSheet;
       if (player.position === 'TW' || player.position === 'IV') r -= ga * 0.15;
     }
     // Unberechenbare Spieler schwanken stärker.
@@ -202,7 +205,7 @@ function playerMatch(
     rating = Math.round(clamp(r, 3, 10) * 10) / 10;
     prog.form = prog.form * 0.8 + rating * 0.2;
 
-    const injuryRisk = (0.012 + Math.max(0, player.age - 30) * 0.002) * injuryFactor(player) * LOADS[prog.load ?? 'normal'].injury * difficultyOf(ctx.career).injury;
+    const injuryRisk = (0.012 + Math.max(0, player.age - 30) * 0.002) * injuryFactor(player) * LOADS[prog.load ?? 'normal'].injury * difficultyOf(ctx.career).injury * mods.injury;
     if (chance(injuryRisk * share)) {
       const weeks = injuryWeeks();
       prog.injuredFor = Math.round(weeks * 1.3);

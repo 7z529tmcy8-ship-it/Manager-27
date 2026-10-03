@@ -3,6 +3,7 @@ import { acceptOffer, acceptWinterOffer, canStay, playFirstHalf, playSeason, req
 import { chance, randInt } from './random';
 import { clubStrength } from './player';
 import { STAGES_PER_HALF, halfStats } from './season';
+import { grantXp, levelInfo, xpFor, xpForSeason } from './skills';
 import type { Career, Offer } from './types';
 
 // Vereinfachter Spielablauf: immer bis zur nächsten Pause simulieren (Winterpause, dann Saisonende),
@@ -13,10 +14,26 @@ export function simulateToBreak(input: Career): Career {
   const prev: Career = { ...input, decisionResult: null };
   // Alte Spielstände können mitten in der Rückrunde stehen – dann direkt bis Saisonende.
   const inSecondHalf = (prev.progress?.stage ?? 0) >= STAGES_PER_HALF;
-  if (prev.phase === 'season' && !inSecondHalf) return { ...playFirstHalf({ ...prev, decision: null }, true), decision: null };
-  if (prev.phase === 'season') return ensureOffers({ ...playSeason({ ...prev, decision: null }), decision: null });
-  if (prev.phase === 'winter' || prev.phase === 'final') return ensureOffers({ ...playSeason({ ...prev, decision: null }), decision: null });
+  if (prev.phase === 'season' && !inSecondHalf) return withXp({ ...playFirstHalf({ ...prev, decision: null }, true), decision: null });
+  if (prev.phase === 'season' || prev.phase === 'winter' || prev.phase === 'final') {
+    return withXp(ensureOffers({ ...playSeason({ ...prev, decision: null }), decision: null }));
+  }
   return prev;
+}
+
+/** Erfahrungspunkte nach jeder Pause gutschreiben (Winterpause: Hinrunde, Saisonende: ganze Saison). */
+function withXp(c: Career): Career {
+  if (!c.player.skills) return c;
+  const career: Career = structuredClone(c);
+  const p = career.player;
+  const winter = career.phase === 'winter' && career.progress;
+  const last = career.history[career.history.length - 1];
+  const total = winter ? xpFor(halfStats(career.progress!.matches), p.position) : last ? xpForSeason(last, p.position) : 0;
+  const { gained, levels } = grantXp(career, total, !winter);
+  p.skills!.note = gained > 0
+    ? `+${gained} EP${levels > 0 ? ` · Level ${levelInfo(p.skills!.xp).level} erreicht – ${levels === 1 ? 'ein neuer Fähigkeitspunkt' : `${levels} neue Fähigkeitspunkte`}!` : ''}`
+    : undefined;
+  return career;
 }
 
 /** Damit es im Sommer immer echte Alternativen gibt, werden bei Bedarf zusätzliche Angebote eingeholt. */
