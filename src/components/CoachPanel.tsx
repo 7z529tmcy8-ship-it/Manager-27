@@ -1,17 +1,28 @@
 import { useState } from 'react';
 import { getClub, getLeague } from '../data/leagues';
 import {
+  MAX_SIGNINGS,
+  TACTICS,
+  WINTER_ACTIONS,
+  boardTrust,
   canStartCoaching,
   chooseCoachClub,
   coachSummary,
   endCoaching,
   expectedPosition,
-  playCoachSeason,
+  livePosition,
+  playCoachHalf,
+  setTactic,
+  signTarget,
+  signingBoost,
   startCoaching,
   startRating,
+  type WinterAction,
+  winterAction,
 } from '../game/coach';
-import { clubLeagueId, clubStrength } from '../game/player';
-import type { Career } from '../game/types';
+import { flagOf } from '../data/flags';
+import { clubLeagueId, clubStrength, formatMoney } from '../game/player';
+import type { Career, CoachTactic } from '../game/types';
 
 /** Trainerkarriere nach dem Karriereende: Zeitleiste der Trainerstationen plus Vereinswahl bzw. Simulation. */
 export default function CoachPanel({ career, onChange, onExit }: { career: Career; onChange: (c: Career) => void; onExit: () => void }) {
@@ -109,14 +120,12 @@ export default function CoachPanel({ career, onChange, onExit }: { career: Caree
           </>
         )}
 
-        {coach.phase === 'season' && coach.clubId && (
-          <>
-            <h2>Saison {coach.year}/{String((coach.year + 1) % 100).padStart(2, '0')}</h2>
-            <p className="cs-sub">
-              {getClub(coach.clubId).name} · {getLeague(clubLeagueId(career, coach.clubId)).name} · Ziel: Platz {expectedPosition(career, coach.clubId)}
-            </p>
-            <button className="btn primary big cs-go" onClick={() => onChange(playCoachSeason(career))}>Saison simulieren</button>
-          </>
+        {coach.phase === 'season' && !coach.live && coach.clubId && (
+          <button className="btn primary big cs-go" onClick={() => onChange(setTactic(career, 'balanced'))}>Zur Saisonvorbereitung</button>
+        )}
+
+        {(coach.phase === 'prep' || coach.phase === 'winter') && coach.clubId && coach.live && (
+          <CoachSeasonView career={career} onChange={onChange} />
         )}
 
         {coach.phase === 'done' ? (
@@ -127,6 +136,108 @@ export default function CoachPanel({ career, onChange, onExit }: { career: Caree
           </button>
         )}
       </section>
+    </>
+  );
+}
+
+/** Laufende Trainersaison: Vorbereitung bzw. Winterpause mit Taktik, Transfers, Tabelle und Entscheidung. */
+function CoachSeasonView({ career, onChange }: { career: Career; onChange: (c: Career) => void }) {
+  const coach = career.coach!;
+  const live = coach.live!;
+  const clubId = coach.clubId!;
+  const winter = coach.phase === 'winter';
+  const { position, table } = livePosition(career);
+  const trust = boardTrust(career);
+  const around = table
+    .map((r, i) => ({ r, pos: i + 1 }))
+    .filter(({ pos }) => pos <= 3 || Math.abs(pos - position) <= 1 || pos === table.length);
+
+  return (
+    <>
+      <h2>{winter ? 'Winterpause' : `Saisonvorbereitung ${coach.year}/${String((coach.year + 1) % 100).padStart(2, '0')}`}</h2>
+      <p className="cs-sub">
+        {getClub(clubId).name} · {getLeague(clubLeagueId(career, clubId)).name} · Ziel des Vorstands: Platz {live.expected}
+      </p>
+
+      {winter && (
+        <div className="coach-block">
+          <div className="coach-trust">
+            <span>Vertrauen des Vorstands</span>
+            <div className="coach-bar" role="meter" aria-valuenow={trust} aria-valuemin={0} aria-valuemax={100}>
+              <i style={{ width: `${trust}%` }} className={trust < 30 ? 'low' : trust < 60 ? 'mid' : 'high'} />
+            </div>
+            <b>{trust}%</b>
+          </div>
+          <div className="coach-form" aria-label="Letzte Spiele">
+            {live.form.slice(-5).map((f, i) => <span key={i} className={`f-${f}`}>{f}</span>)}
+          </div>
+          <ol className="coach-table">
+            {around.map(({ r, pos }, i) => (
+              <li key={r.clubId} className={`${r.clubId === clubId ? 'own' : ''} ${i > 0 && around[i - 1].pos !== pos - 1 ? 'gap' : ''}`}>
+                <span>{pos}.</span><span>{getClub(r.clubId).name}</span><span>{r.goalsFor}:{r.goalsAgainst}</span><b>{r.points}</b>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {winter && !live.winterDone && (
+        <div className="coach-block">
+          <h3>Eine Entscheidung für die Rückrunde</h3>
+          <div className="cs-choices">
+            {(Object.keys(WINTER_ACTIONS) as WinterAction[]).map((k) => (
+              <button key={k} className="cs-choice k-camp" onClick={() => onChange(winterAction(career, k))}>
+                <small>{WINTER_ACTIONS[k].icon} Winter</small>
+                <strong>{WINTER_ACTIONS[k].name}</strong>
+                <span className="cs-choice-meta">{WINTER_ACTIONS[k].text}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="coach-block">
+        <h3>Taktik</h3>
+        <div className="coach-tactics" role="radiogroup" aria-label="Taktik">
+          {(Object.keys(TACTICS) as CoachTactic[]).map((k) => (
+            <button key={k} role="radio" aria-checked={live.tactic === k} className={`coach-tactic ${live.tactic === k ? 'on' : ''}`} onClick={() => onChange(setTactic(career, k))}>
+              <strong>{TACTICS[k].icon} {TACTICS[k].name}</strong>
+              <small>{TACTICS[k].text}</small>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="coach-block">
+        <h3>
+          Transfermarkt <span className="coach-budget">Budget {formatMoney(live.budget)}</span>
+        </h3>
+        {live.signings.length > 0 && (
+          <p className="cs-sub">Neu im Team: {live.signings.map((t) => `${t.name} (${t.ovr})`).join(', ')}</p>
+        )}
+        <ul className="coach-targets">
+          {live.targets.map((t) => {
+            const afford = t.fee <= live.budget && live.signings.length < MAX_SIGNINGS;
+            return (
+              <li key={t.id}>
+                <b className="cs-pill gold">{t.ovr}</b>
+                <span className="grow">
+                  <strong>{flagOf(t.nation)} {t.name}</strong>
+                  <small>{t.position} · {t.age} J.{t.fromClubId ? ` · ${getClub(t.fromClubId).name}` : ''} · +{signingBoost(career, clubId, t).toLocaleString('de-DE')} Stärke</small>
+                </span>
+                <button className="btn secondary small" disabled={!afford} onClick={() => onChange(signTarget(career, t.id))}>
+                  {formatMoney(t.fee)}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="hint">Höchstens {MAX_SIGNINGS} Neuzugänge pro Saison. Ein Teil der Verstärkung bleibt auch nächste Saison.</p>
+      </div>
+
+      <button className="btn primary big cs-go" onClick={() => onChange(playCoachHalf(career))}>
+        {winter ? 'Bis Saisonende simulieren' : 'Bis zur Winterpause simulieren'}
+      </button>
     </>
   );
 }

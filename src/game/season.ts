@@ -58,7 +58,7 @@ interface SeasonContext {
   stage: number;
 }
 
-function goalsExpected(att: number, def: number, home: boolean, leagueGoals: number): number {
+export function goalsExpected(att: number, def: number, home: boolean, leagueGoals: number): number {
   const base = leagueGoals / 2 + (home ? 0.18 : -0.18);
   return Math.max(0.15, base * Math.exp(0.065 * (att - def)));
 }

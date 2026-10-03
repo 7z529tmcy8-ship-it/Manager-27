@@ -5,9 +5,9 @@ import { clubStrength, seasonLabel } from './player';
 import { chance, clamp, normal, pick, poisson, rand, randInt, sigmoid, weightedPick } from './random';
 import type { Career, PlayerState, Position, RivalSeason, RivalState, SeasonRecord } from './types';
 
-const FIRST = ['Luca', 'Noah', 'Leon', 'Jonas', 'Elias', 'Mateo', 'Kian', 'Rayan', 'Milan', 'Adrian', 'Enzo', 'Julian',
+export const FIRST = ['Luca', 'Noah', 'Leon', 'Jonas', 'Elias', 'Mateo', 'Kian', 'Rayan', 'Milan', 'Adrian', 'Enzo', 'Julian',
   'Lorenzo', 'Tiago', 'Oscar', 'Emil', 'Nico', 'Yannick', 'Malik', 'Samuel', 'Davide', 'Kaito', 'Hugo', 'Arthur'];
-const LAST = ['Brandt', 'Keller', 'Wagner', 'Rossi', 'Moreau', 'García', 'Silva', 'Jansen', 'Nowak', 'Yilmaz', 'Hartmann',
+export const LAST = ['Brandt', 'Keller', 'Wagner', 'Rossi', 'Moreau', 'García', 'Silva', 'Jansen', 'Nowak', 'Yilmaz', 'Hartmann',
   'Lindqvist', 'Costa', 'Petrović', 'Fischer', 'Dubois', 'Romero', 'de Vries', 'Almeida', 'Takahashi', 'Kovač', 'Sørensen'];
 
 // Erwartete Saisonnote nach Stärkeabstand (wie in der Entwicklung)

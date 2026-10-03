@@ -364,6 +364,8 @@ export interface CoachSeason {
   /** Trainerwert am Saisonende. */
   rating: number;
   sacked: boolean;
+  tactic?: CoachTactic;
+  signings?: string[];
 }
 
 export interface CoachState {
@@ -375,9 +377,43 @@ export interface CoachState {
   history: CoachSeason[];
   /** Angebote (Vereins-IDs) im Sommer bzw. direkt nach dem Karriereende oder einer Entlassung. */
   offers: string[];
-  phase: 'choose' | 'season' | 'done';
-  /** Meldung zur letzten Saison. */
+  /** choose = Verein wählen, prep = Saisonvorbereitung, first = Hinrunde läuft, winter = Winterpause, season = alter Spielstand. */
+  phase: 'choose' | 'prep' | 'winter' | 'season' | 'done';
+  /** Meldung zur letzten Saison bzw. Entscheidung. */
   note?: string;
+  /** Laufende Trainersaison. */
+  live?: CoachLive | null;
+}
+
+export type CoachTactic = 'attack' | 'balanced' | 'defend';
+
+export interface TransferTarget {
+  id: string;
+  name: string;
+  position: Position;
+  nation: string;
+  age: number;
+  ovr: number;
+  fee: number;
+  /** Aktueller Verein (nur bei echten Spielern). */
+  fromClubId?: string;
+}
+
+export interface CoachLive {
+  tactic: CoachTactic;
+  /** Zusätzliche Teamstärke aus Transfers, Trainingslager und Kabinenansprache. */
+  boost: number;
+  budget: number;
+  targets: TransferTarget[];
+  signings: TransferTarget[];
+  /** Tabellen aller Ligen während der Saison. */
+  rows: Record<string, TableRow[]>;
+  strength: Record<string, number>;
+  expected: number;
+  /** Ergebnisse des eigenen Teams: S/U/N. */
+  form: ('S' | 'U' | 'N')[];
+  /** Entscheidung in der Winterpause wurde getroffen. */
+  winterDone?: boolean;
 }
 
 export type Difficulty = 'easy' | 'normal' | 'hard';

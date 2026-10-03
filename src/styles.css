@@ -1358,3 +1358,36 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .coach-row.sacked { opacity: .75; }
 .coach-row .cs-clubcell small { margin-left: 6px; }
 @media (max-width: 480px) { .coach-row .cs-clubcell small { display: none; } }
+
+/* Trainersaison */
+.coach-block { margin: 16px 0; }
+.coach-block h3 { margin: 0 0 8px; font-size: 1.05rem; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.coach-budget { font-size: .85rem; color: var(--gold); font-weight: 800; }
+.coach-tactics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.coach-tactic { display: grid; gap: 4px; text-align: left; padding: 10px; border-radius: 14px; border: 1px solid var(--hairline); background: transparent; color: var(--text); cursor: pointer; opacity: .75; }
+.coach-tactic.on { opacity: 1; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.coach-tactic small { color: var(--muted); font-size: .72rem; line-height: 1.35; }
+.coach-targets { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.coach-targets li { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; border: 1px solid var(--hairline); }
+.coach-targets .grow { flex: 1; min-width: 0; display: grid; }
+.coach-targets strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.coach-targets small { color: var(--muted); font-size: .75rem; }
+.coach-targets .btn { white-space: nowrap; }
+.coach-trust { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; font-size: .85rem; color: var(--muted); }
+.coach-trust b { color: var(--text); }
+.coach-bar { height: 8px; border-radius: 99px; background: var(--hairline); overflow: hidden; }
+.coach-bar i { display: block; height: 100%; border-radius: inherit; }
+.coach-bar i.low { background: var(--down); }
+.coach-bar i.mid { background: var(--gold); }
+.coach-bar i.high { background: var(--accent); }
+.coach-form { display: flex; gap: 4px; margin: 10px 0; }
+.coach-form span { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; font-size: .7rem; font-weight: 800; color: #fff; }
+.coach-form .f-S { background: #2bb673; }
+.coach-form .f-U { background: #8a8fa3; }
+.coach-form .f-N { background: #e5484d; }
+.coach-table { list-style: none; margin: 0; padding: 0; font-size: .85rem; }
+.coach-table li { display: grid; grid-template-columns: 30px 1fr auto 34px; gap: 8px; padding: 5px 8px; border-radius: 8px; }
+.coach-table li.own { background: rgba(127, 127, 127, .15); font-weight: 800; }
+.coach-table li.gap { margin-top: 10px; }
+.coach-table li b { text-align: right; }
+@media (max-width: 480px) { .coach-tactics { grid-template-columns: 1fr; } }

@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { getLeague, slugify } from '../../data/leagues';
 import { createCareer, retire } from '../career';
 import { careerIcon, creditCareer, freshClub } from '../club';
-import { chooseCoachClub, endCoaching, playCoachSeason, startCoaching } from '../coach';
+import { boardTrust, chooseCoachClub, endCoaching, playCoachHalf, playCoachSeason, setTactic, signTarget, startCoaching, winterAction } from '../coach';
 import { generateOffers } from '../offers';
 import { clubLeagueId } from '../player';
 import { applyChoice, seasonChoices, simulateToBreak } from '../simple';
@@ -67,7 +67,7 @@ it('Trainerkarriere: Verein wählen, Saisons spielen, Bilanz und Ruhestand', () 
   for (let i = 0; i < 12 && c.coach!.phase !== 'done'; i++) {
     const coach = c.coach!;
     c = chooseCoachClub(c, coach.offers[0] ?? coach.clubId!);
-    expect(c.coach!.phase).toBe('season');
+    expect(c.coach!.phase).toBe('prep');
     c = playCoachSeason(c);
     const last = c.coach!.history[c.coach!.history.length - 1];
     expect(last.position).toBeGreaterThan(0);
@@ -79,4 +79,33 @@ it('Trainerkarriere: Verein wählen, Saisons spielen, Bilanz und Ruhestand', () 
   expect(club.seasons).toBe(c.history.length + c.coach!.history.length);
   c = endCoaching(c);
   expect(c.coach!.phase).toBe('done');
+});
+
+it('Trainersaison: Taktik, Transfers, Winterpause mit Entscheidung', () => {
+  let c = startCoaching(played());
+  c = chooseCoachClub(c, c.coach!.offers[0]);
+  const live = c.coach!.live!;
+  expect(live.targets.length).toBe(4);
+  expect(live.budget).toBeGreaterThan(0);
+  c = setTactic(c, 'defend');
+  expect(c.coach!.live!.tactic).toBe('defend');
+  const cheap = [...live.targets].sort((a, b) => a.fee - b.fee)[0];
+  const before = c.coach!.live!.budget;
+  c = signTarget({ ...c, coach: { ...c.coach!, live: { ...c.coach!.live!, budget: cheap.fee + before } } }, cheap.id);
+  expect(c.coach!.live!.signings).toHaveLength(1);
+  expect(c.coach!.live!.boost).toBeGreaterThan(0);
+  expect(c.coach!.live!.budget).toBe(before);
+  c = playCoachHalf(c);
+  if (c.coach!.phase === 'winter') {
+    expect(c.coach!.live!.form.length).toBeGreaterThan(5);
+    expect(boardTrust(c)).toBeGreaterThanOrEqual(0);
+    c = winterAction(c, 'camp');
+    expect(c.coach!.live!.winterDone).toBe(true);
+    expect(winterAction(c, 'speech')).toBe(c);
+    c = playCoachHalf(c);
+  }
+  expect(c.coach!.phase).toBe('choose');
+  const last = c.coach!.history[0];
+  expect(last.tactic).toBe('defend');
+  expect(last.signings).toHaveLength(1);
 });
