@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { CLUBS, LEAGUES, getClub } from '../data/leagues';
 import { NATIONS, POSITIONS, REAL_PLAYERS, type RealPlayerTemplate } from '../data/players';
-import { FAILED_TALENTS, LEGENDS, type LegendTemplate } from '../data/legends';
+import { FAILED_TALENTS, HANNOVER_2018, LEGENDS, type LegendTemplate } from '../data/legends';
 import { createCareer } from '../game/career';
 import { MAX_TRAITS, TRAITS, getTrait, type TraitId } from '../game/traits';
 import { pick, randInt } from '../game/random';
@@ -20,7 +20,7 @@ const TALENTS = [
 ] as const;
 
 export default function CreateCareer({ onCancel, onCreate }: Props) {
-  const [tab, setTab] = useState<'own' | 'real' | 'legends' | 'failed'>('own');
+  const [tab, setTab] = useState<'own' | 'real' | 'legends' | 'failed' | 'h96'>('own');
 
   return (
     <main className="create">
@@ -33,11 +33,13 @@ export default function CreateCareer({ onCancel, onCreate }: Props) {
         <button className={tab === 'real' ? 'active' : ''} onClick={() => setTab('real')}>Echter Spieler</button>
         <button className={tab === 'legends' ? 'active' : ''} onClick={() => setTab('legends')}>⭐ Legenden</button>
         <button className={tab === 'failed' ? 'active' : ''} onClick={() => setTab('failed')}>💔 Zweite Chance</button>
+        <button className={tab === 'h96' ? 'active' : ''} onClick={() => setTab('h96')}>🕰️ 96 von 2018</button>
       </div>
       {tab === 'own' && <OwnPlayer onCreate={onCreate} />}
       {tab === 'real' && <RealPlayer onCreate={onCreate} />}
       {tab === 'legends' && <LegendPicker onCreate={onCreate} list={LEGENDS} intro={LEGEND_INTRO} />}
       {tab === 'failed' && <LegendPicker onCreate={onCreate} list={FAILED_TALENTS} intro={FAILED_INTRO} secondChance />}
+      {tab === 'h96' && <LegendPicker onCreate={onCreate} list={HANNOVER_2018} intro={H96_INTRO} />}
     </main>
   );
 }
@@ -207,6 +209,8 @@ function TraitChips({ selected, onToggle }: { selected: TraitId[]; onToggle: (id
 
 const LEGEND_INTRO =
   '„Was wäre wenn?“ – Kultfiguren starten als junge Spieler im heutigen Fußball, mit ihrem ganz eigenen Charakter. Werte und Startvereine sind frei erfunden, die Ereignisse augenzwinkernd.';
+const H96_INTRO =
+  'Zeitreise: der Bundesliga-Kader von Hannover 96 aus der Saison 2018/19. Jeder Spieler startet mit seinem damaligen Alter bei Hannover 96 – im heutigen Fußball. Wertungen sind eigene Schätzungen.';
 const FAILED_INTRO =
   'Als Wunderkinder gefeiert, am Ende nie ganz oben angekommen. Hier startest du noch einmal mit ihrem Talent – schaffst du, was ihnen verwehrt blieb? Ziel: Gesamtwertung 85. Werte sind eigene Schätzungen.';
 

@@ -90,3 +90,38 @@ const FAILED_RAW: typeof RAW = [
 export const FAILED_TALENTS: LegendTemplate[] = FAILED_RAW.map(([name, nation, position, age, ovr, potential, club, traits, bio]) => ({
   name, nation, position, age, ovr, potential, clubId: slugify(club), traits, bio,
 }));
+
+// Hannover 96, Bundesliga-Kader 2018/19 (Platz 17, Abstieg). Spieler starten mit ihrem damaligen Alter bei Hannover 96
+// im heutigen Fußball. Positionen und Nationen laut Kaderlisten; Wertungen und Potenziale sind eigene Schätzungen.
+const H96_2018_RAW: [string, string, Position, number, number, number, string][] = [
+  ['Michael Esser', 'Deutschland', 'TW', 30, 76, 77, 'Stammkeeper der Saison 2018/19.'],
+  ['Philipp Tschauner', 'Deutschland', 'TW', 32, 70, 70, 'Erfahrener Rückhalt auf der Bank.'],
+  ['Waldemar Anton', 'Deutschland', 'IV', 21, 72, 82, 'Junger Abwehrchef aus der eigenen Jugend – später Nationalspieler.'],
+  ['Felipe', 'Brasilien', 'IV', 31, 73, 73, 'Brasilianischer Innenverteidiger mit viel Erfahrung.'],
+  ['Kevin Wimmer', 'Österreich', 'IV', 25, 73, 75, 'Österreichischer Linksfuß in der Innenverteidigung.'],
+  ['Josip Elez', 'Kroatien', 'IV', 24, 68, 72, 'Kroatischer Innenverteidiger.'],
+  ['Timo Hübers', 'Deutschland', 'IV', 21, 63, 76, 'Junger Innenverteidiger, damals noch am Anfang.'],
+  ['Julian Korb', 'Deutschland', 'AV', 26, 72, 73, 'Rechtsverteidiger mit Bundesliga-Erfahrung.'],
+  ['Oliver Sorg', 'Deutschland', 'AV', 28, 72, 72, 'Erfahrener Rechtsverteidiger.'],
+  ['Miiko Albornoz', 'Chile', 'AV', 27, 71, 71, 'Chilenischer Linksverteidiger.'],
+  ['Matthias Ostrzolek', 'Deutschland', 'AV', 28, 71, 71, 'Linksverteidiger mit HSV-Vergangenheit.'],
+  ['Marvin Bakalorz', 'Deutschland', 'ZDM', 29, 72, 72, 'Kämpfer im defensiven Mittelfeld.'],
+  ['Pirmin Schwegler', 'Schweiz', 'ZDM', 31, 72, 72, 'Schweizer Routinier und Vizekapitän.'],
+  ['Walace', 'Brasilien', 'ZDM', 23, 74, 78, 'Olympiasieger 2016 mit Brasilien, Staubsauger vor der Abwehr.'],
+  ['Iver Fossum', 'Norwegen', 'ZM', 21, 70, 77, 'Norwegisches Mittelfeldtalent.'],
+  ['Edgar Prib', 'Deutschland', 'ZM', 29, 70, 70, 'Laufstarker Mittelfeldspieler, lange bei 96.'],
+  ['Florent Muslija', 'Deutschland', 'ZOM', 20, 66, 77, 'Kam 2018 aus Karlsruhe, technisch stark.'],
+  ['Genki Haraguchi', 'Japan', 'FL', 27, 74, 74, 'Japanischer Nationalspieler mit viel Tempo.'],
+  ['Takuma Asano', 'Japan', 'FL', 23, 71, 75, 'Japanischer Flitzer, damals von Arsenal ausgeliehen.'],
+  ['Ihlas Bebou', 'Togo', 'FL', 24, 73, 77, 'Schneller Angreifer aus Togo.'],
+  ['Linton Maina', 'Deutschland', 'FL', 19, 64, 80, 'Dribbelstarkes Talent aus der 96-Jugend.'],
+  ['Noah Sarenren Bazee', 'Deutschland', 'FL', 21, 66, 75, 'Flinker Außenspieler mit Tempo.'],
+  ['Nicolai Müller', 'Deutschland', 'FL', 31, 74, 74, 'Kam im Winter per Leihe aus Frankfurt.'],
+  ['Niclas Füllkrug', 'Deutschland', 'ST', 25, 76, 80, 'Bulliger Mittelstürmer – Jahre später WM-Torschütze für Deutschland.'],
+  ['Jonathas', 'Brasilien', 'ST', 29, 74, 74, 'Brasilianischer Mittelstürmer, 2017 für viel Geld geholt.'],
+  ['Hendrik Weydandt', 'Deutschland', 'ST', 23, 65, 72, 'Vom Amateur zum Bundesliga-Torschützen.'],
+];
+
+export const HANNOVER_2018: LegendTemplate[] = H96_2018_RAW.map(([name, nation, position, age, ovr, potential, bio]) => ({
+  name, nation, position, age, ovr, potential, clubId: slugify('Hannover 96'), traits: [], bio,
+}));
