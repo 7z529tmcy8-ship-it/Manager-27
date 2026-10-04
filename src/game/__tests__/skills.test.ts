@@ -81,5 +81,6 @@ it('Äste, Meisterstück, mehrstufige Fähigkeiten und Neuverteilen', async () =
   expect(r.player.skills!.unlocked).toHaveLength(0);
   expect(freePoints(r.player)).toBeGreaterThan(before);
   expect(r.player.ovr).toBe(c.player.ovr - 2);
-  expect(respecSkills(unlockSkill(r, 'st_finish'))).toEqual(unlockSkill(r, 'st_finish'));
+  const again = unlockSkill(r, 'st_finish');
+  expect(respecSkills(again)).toBe(again); // zweites Neuverteilen geht nicht
 });

@@ -1,4 +1,4 @@
-import { getCard, type ClubState, type CollectCard } from './club';
+import { getCard, withUpgrade, type ClubState, type CollectCard } from './club';
 import { clamp, poisson, randInt } from './random';
 import type { Position } from './types';
 
@@ -47,12 +47,13 @@ export function ownedCards(club: ClubState): CollectCard[] {
   return [
     ...club.specials,
     ...Object.entries(club.cards).filter(([, n]) => n > 0).map(([id]) => getCard(id)).filter((c): c is CollectCard => !!c),
-  ];
+  ].map((c) => withUpgrade(club, c));
 }
 
 export function cardById(club: ClubState, id: string | null): CollectCard | null {
   if (!id) return null;
-  return getCard(id) ?? club.specials.find((s) => s.id === id) ?? null;
+  const card = getCard(id) ?? club.specials.find((s) => s.id === id);
+  return card ? withUpgrade(club, card) : null;
 }
 
 /** Chemie je Slot (0–3) und gesamt (max. 33). Ikonen haben immer volle Chemie, solange sie passend stehen. */

@@ -1238,3 +1238,11 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .secret-frame { position: fixed; inset: 0; display: flex; flex-direction: column; background: #0d0e14; z-index: 100; }
 .secret-leave { align-self: flex-start; margin: 6px 10px; padding: 6px 12px; border-radius: 99px; border: 1px solid rgba(255, 255, 255, .15); background: transparent; color: #f2f3f7; font: inherit; font-size: .85rem; cursor: pointer; }
 .secret-frame iframe { flex: 1; width: 100%; border: 0; }
+
+/* Karten verbessern */
+.upgrade-box { display: grid; gap: 8px; margin: 12px 0; padding: 12px; border-radius: 16px; border: 1px solid var(--hairline); background: rgba(127, 127, 127, .06); }
+.upgrade-box small { color: var(--muted); }
+.upgrade-box.max { border-color: var(--gold); }
+.upgrade-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.upgrade-boost { font-size: .78rem; font-weight: 800; color: var(--gold); }
+.ucard-boost { position: absolute; top: 17%; right: 12%; z-index: 2; padding: 1px 6px; border-radius: 99px; background: #1db954; color: #fff; font-size: .62rem; font-weight: 900; }

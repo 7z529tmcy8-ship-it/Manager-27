@@ -25,6 +25,8 @@ export interface CollectCard {
   ovr: number;
   variant: CardVariant;
   label?: string;
+  /** Durch Coins verbessert: so viele Punkte über dem Grundwert. */
+  boost?: number;
 }
 
 export type ItemKind = 'fitness' | 'training';
@@ -45,6 +47,8 @@ export interface ClubState {
   packsOpened: number;
   /** Willkommens-Pack schon geöffnet? */
   welcomeClaimed: boolean;
+  /** Karten-Verbesserungen: Karten-ID → zusätzliche Wertungspunkte. */
+  upgrades?: Record<string, number>;
   /** Aufstellung (11 Karten-IDs im 4-3-3, null = leer). */
   squad: (string | null)[];
   /** Höchste freigeschaltete Duell-Stufe (1–10) und Bilanz. */
@@ -67,6 +71,7 @@ export const freshClub = (): ClubState => ({
   duelLevel: 1,
   duels: { w: 0, d: 0, l: 0 },
   tasksDone: {},
+  upgrades: {},
 });
 
 // ---------- Kartenpool ----------
@@ -341,5 +346,45 @@ export function careerCard(career: Career): CollectCard {
     club: getClub(p.loan ? p.loan.clubId : p.contract.clubId).name,
     ovr: p.ovr,
     variant: tier === 'bronze' ? 'silver' : tier,
+  };
+}
+
+// ---------- Karten verbessern ----------
+// Jede Stufe kostet 20 % mehr als die vorige: 80→81 ≈ 3.850, 90→91 ≈ 23.750, 98→99 ≈ 102.000 Coins.
+// Von 90 auf 99 sind es zusammen rund 494.000 Coins – 99er-Karten bleiben etwas Besonderes.
+export const MAX_CARD_OVR = 99;
+
+/** Preis, um eine Karte von `ovr` auf `ovr + 1` zu verbessern. */
+export function upgradeCost(ovr: number): number {
+  return Math.max(100, Math.round((100 * 1.2 ** (ovr - 60)) / 50) * 50);
+}
+
+/** Gesamtpreis von `ovr` bis 99. */
+export function costTo99(ovr: number): number {
+  let sum = 0;
+  for (let o = ovr; o < MAX_CARD_OVR; o++) sum += upgradeCost(o);
+  return sum;
+}
+
+/** Karte mit eingerechneter Verbesserung. */
+export function withUpgrade(club: Pick<ClubState, 'upgrades'>, card: CollectCard): CollectCard {
+  const boost = club.upgrades?.[card.id] ?? 0;
+  if (!boost) return card;
+  return { ...card, ovr: Math.min(MAX_CARD_OVR, card.ovr + boost), boost };
+}
+
+/** Karte um einen Punkt verbessern. Gibt null zurück, wenn es nicht geht (nicht im Besitz, schon 99, zu wenig Coins). */
+export function upgradeCard(club: ClubState, id: string): ClubState | null {
+  const base = getCard(id) ?? club.specials.find((s) => s.id === id);
+  const owned = (club.cards[id] ?? 0) > 0 || club.specials.some((s) => s.id === id);
+  if (!base || !owned) return null;
+  const card = withUpgrade(club, base);
+  if (card.ovr >= MAX_CARD_OVR) return null;
+  const cost = upgradeCost(card.ovr);
+  if (club.coins < cost) return null;
+  return {
+    ...club,
+    coins: club.coins - cost,
+    upgrades: { ...(club.upgrades ?? {}), [id]: (club.upgrades?.[id] ?? 0) + 1 },
   };
 }

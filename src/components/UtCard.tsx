@@ -72,6 +72,7 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick 
         </span>
       )}
       {count !== undefined && count > 1 && <span className="ucard-count">×{count}</span>}
+      {(card.boost ?? 0) > 0 && <span className="ucard-boost" title={`Um ${card.boost} verbessert`}>▲{card.boost}</span>}
     </Tag>
   );
 }

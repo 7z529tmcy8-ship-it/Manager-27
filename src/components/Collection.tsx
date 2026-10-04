@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CARD_POOL, getCard, rarity, sellDuplicates, sellValue, type CollectCard } from '../game/club';
+import { CARD_POOL, MAX_CARD_OVR, costTo99, getCard, rarity, sellDuplicates, sellValue, upgradeCard, upgradeCost, withUpgrade, type CollectCard } from '../game/club';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import UtCard from './UtCard';
 import { cardById } from '../game/squad';
@@ -15,8 +15,8 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
   const [detail, setDetail] = useState<string | null>(null);
 
   const owned: { card: CollectCard; count: number }[] = [
-    ...club.specials.map((card) => ({ card, count: 1 })),
-    ...Object.entries(club.cards).map(([id, count]) => ({ card: getCard(id)!, count })).filter((x) => x.card),
+    ...club.specials.map((card) => ({ card: withUpgrade(club, card), count: 1 })),
+    ...Object.entries(club.cards).filter(([id]) => getCard(id)).map(([id, count]) => ({ card: withUpgrade(club, getCard(id)!), count })),
   ].sort((a, b) => rarity(b.card) - rarity(a.card));
 
   const shown = owned.filter(({ card, count }) =>
@@ -79,6 +79,8 @@ function CardDetail({ id, onClose }: { id: string; onClose: () => void }) {
   const card = cardById(club, id);
   if (!card) return null;
   const count = club.cards[id] ?? 1;
+  // Verkaufswert immer vom Grundwert – Verbesserungen bringen beim Verkauf nichts zurück.
+  const value = sellValue({ ...card, ovr: card.ovr - (card.boost ?? 0) });
   const own = club.specials.some((s) => s.id === id);
   const inSquad = club.squad.includes(id);
   const canSell = !own && (count > 1 || !inSquad);
@@ -86,9 +88,13 @@ function CardDetail({ id, onClose }: { id: string; onClose: () => void }) {
     const c = getClubState();
     const n = (c.cards[id] ?? 0) - 1;
     const cards = { ...c.cards };
+    const upgrades = { ...(c.upgrades ?? {}) };
     if (n > 0) cards[id] = n;
-    else delete cards[id];
-    setClubState({ ...c, cards, coins: c.coins + sellValue(card) });
+    else {
+      delete cards[id];
+      delete upgrades[id]; // Verbesserungen gehen mit der letzten Karte verloren
+    }
+    setClubState({ ...c, cards, upgrades, coins: c.coins + value });
     if (n <= 0) onClose();
   };
   return (
@@ -105,13 +111,40 @@ function CardDetail({ id, onClose }: { id: string; onClose: () => void }) {
               <li><span>{card.league ? 'Verein' : 'Kartentyp'}</span><span>{card.league ? `${card.club} · ${card.league}` : card.label ?? card.club}</span></li>
               <li><span>Im Besitz</span><span>{own ? 'eigene Sonderkarte' : `${count}×`}</span></li>
               <li><span>Im Team</span><span>{inSquad ? 'aufgestellt' : 'nein'}</span></li>
-              {!own && <li><span>Verkaufswert</span><span>🪙 {sellValue(card).toLocaleString('de-DE')}</span></li>}
+              {!own && <li><span>Verkaufswert</span><span>🪙 {value.toLocaleString('de-DE')}</span></li>}
             </ul>
-            {canSell && <button className="btn secondary" onClick={sellOne}>1× verkaufen (+{sellValue(card).toLocaleString('de-DE')} 🪙)</button>}
+            <UpgradeBox card={card} coins={club.coins} onUpgrade={() => {
+              const next = upgradeCard(getClubState(), id);
+              if (next) setClubState(next);
+            }} />
+            {canSell && <button className="btn secondary" onClick={sellOne}>1× verkaufen (+{value.toLocaleString('de-DE')} 🪙)</button>}
+            {canSell && count === 1 && (card.boost ?? 0) > 0 && <p className="muted">Beim Verkauf der letzten Karte gehen die Verbesserungen verloren.</p>}
             {!canSell && !own && <p className="muted">Aufgestellt – zum Verkaufen erst aus dem Team nehmen.</p>}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Karte mit Coins verbessern: jede Stufe teurer, 99 ist das Maximum. */
+function UpgradeBox({ card, coins, onUpgrade }: { card: CollectCard; coins: number; onUpgrade: () => void }) {
+  const fmt = (n: number) => n.toLocaleString('de-DE');
+  if (card.ovr >= MAX_CARD_OVR) {
+    return <div className="upgrade-box max"><strong>👑 Maximal verbessert</strong><small>Diese Karte hat 99 erreicht.</small></div>;
+  }
+  const cost = upgradeCost(card.ovr);
+  const afford = coins >= cost;
+  return (
+    <div className="upgrade-box">
+      <div className="upgrade-head">
+        <strong>⬆️ Karte verbessern</strong>
+        {(card.boost ?? 0) > 0 && <span className="upgrade-boost">bereits +{card.boost}</span>}
+      </div>
+      <button className="btn primary" disabled={!afford} onClick={onUpgrade}>
+        {card.ovr} → {card.ovr + 1} · 🪙 {fmt(cost)}
+      </button>
+      <small>{afford ? `Bis 99 insgesamt noch 🪙 ${fmt(costTo99(card.ovr))}` : `Dir fehlen 🪙 ${fmt(cost - coins)}`}</small>
     </div>
   );
 }
