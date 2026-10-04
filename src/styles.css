@@ -1246,3 +1246,20 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .upgrade-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .upgrade-boost { font-size: .78rem; font-weight: 800; color: var(--gold); }
 .ucard-boost { position: absolute; top: 17%; right: 12%; z-index: 2; padding: 1px 6px; border-radius: 99px; background: #1db954; color: #fff; font-size: .62rem; font-weight: 900; }
+
+/* Abseits des Platzes */
+.vice { margin: 14px 0; border: 1px solid var(--hairline); border-radius: 16px; padding: 10px 12px; background: rgba(127, 127, 127, .05); }
+.vice summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; font-weight: 800; list-style: none; min-height: 32px; }
+.vice summary::-webkit-details-marker { display: none; }
+.vice-meter { width: 110px; height: 8px; border-radius: 99px; background: var(--hairline); overflow: hidden; flex-shrink: 0; }
+.vice-meter i { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .3s; }
+.vice-meter.mid i { background: var(--gold); }
+.vice-meter.high i { background: var(--down); }
+.vice-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; margin-top: 8px; }
+.vice-card { display: grid; gap: 4px; text-align: left; padding: 12px; border-radius: 14px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); font: inherit; cursor: pointer; }
+.vice-card:disabled { opacity: .45; cursor: default; }
+.vice-card.danger { border-color: rgba(229, 72, 77, .5); }
+.vice-card small { font-size: .76rem; line-height: 1.35; }
+.vice-reward { color: var(--accent); }
+.vice-risk { color: var(--down); }
+.vice-card em { font-style: normal; font-size: .72rem; color: var(--muted); }

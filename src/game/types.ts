@@ -363,6 +363,19 @@ export interface Career {
   homeClubId?: string;
   /** Spieler ist für den letzten Akt zum Heimatverein zurückgekehrt. */
   homecoming?: boolean;
+  /** Skandal-Zähler (0–100) aus Aktionen abseits des Platzes. */
+  scandal?: number;
+  /** Wie oft der Verein schon den Vertrag wegen Skandalen aufgelöst hat. */
+  scandalStrikes?: number;
+  /** Bereits erwischt: beim zweiten Mal gibt es keine Gnade mehr. */
+  caughtBetting?: boolean;
+  caughtDoping?: boolean;
+  /** Pause, in der schon eine Aktion abseits des Platzes gemacht wurde (eine pro Pause). */
+  viceBreak?: string;
+  /** Ergebnis der letzten Aktion abseits des Platzes. */
+  viceNote?: DecisionResult | null;
+  /** Karriere durch Skandale beendet. */
+  destroyed?: boolean;
   /** Trainerkarriere nach dem Karriereende. */
   coach?: CoachState | null;
 }

@@ -292,7 +292,7 @@ export function careerIcon(career: Career): CollectCard {
     league: getLeague(getClub(clubId).leagueId).name,
     ovr: Math.min(99, s.peak + bonus),
     variant: 'icon',
-    label: atHome ? 'Heimkehr-Ikone' : 'Karriere-Ikone',
+    label: career.destroyed ? 'Gefallener Star' : atHome ? 'Heimkehr-Ikone' : 'Karriere-Ikone',
   };
 }
 

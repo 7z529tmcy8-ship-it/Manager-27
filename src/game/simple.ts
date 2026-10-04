@@ -4,6 +4,7 @@ import { chance, randInt } from './random';
 import { clubStrength } from './player';
 import { STAGES_PER_HALF, halfStats } from './season';
 import { grantXp, levelInfo, xpFor, xpForSeason } from './skills';
+import { coolDownScandal } from './vices';
 import type { Career, Offer } from './types';
 
 // Vereinfachter Spielablauf: immer bis zur nächsten Pause simulieren (Winterpause, dann Saisonende),
@@ -21,10 +22,15 @@ export function simulateToBreak(input: Career): Career {
   return prev;
 }
 
-/** Erfahrungspunkte nach jeder Pause gutschreiben (Winterpause: Hinrunde, Saisonende: ganze Saison). */
+/**
+ * Nach jeder Pause: Skandal kühlt ab, alte Meldung „abseits des Platzes“ verschwindet, und es gibt
+ * Erfahrungspunkte (Winterpause: Hinrunde, Saisonende: ganze Saison).
+ */
 function withXp(c: Career): Career {
-  if (!c.player.skills) return c;
   const career: Career = structuredClone(c);
+  coolDownScandal(career);
+  career.viceNote = null;
+  if (!career.player.skills) return career;
   const p = career.player;
   const winter = career.phase === 'winter' && career.progress;
   const last = career.history[career.history.length - 1];

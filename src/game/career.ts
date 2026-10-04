@@ -207,6 +207,24 @@ function kidnap(career: Career): Career {
   });
 }
 
+/** Lange Sperre (z. B. nach einem Dopingtest): Saisons ohne Spiele, danach vereinslos mit gesunkener Wertung. */
+export function banForSeasons(prev: Career, seasons: number, reason: string): Career {
+  const career: Career = structuredClone(prev);
+  const p = career.player;
+  const target = Math.max(45, p.ovr - 4 * seasons);
+  return skipSeasons(career, {
+    seasons,
+    label: 'gesperrt',
+    firstEvent: { title: 'Gesperrt!', tone: 'bad', effect: `${seasons} ${seasons === 1 ? 'Saison' : 'Saisons'} Sperre`, text: reason },
+    devReason: 'Gesperrt – nur Einzeltraining.',
+    note: () => 'Gesperrt – keine Spiele.',
+    news: (i) => (i === seasons - 1 ? `${p.name} darf wieder spielen – aber wer nimmt ihn noch?` : `${p.name} sitzt weiter seine Sperre ab.`),
+    ovrTarget: target,
+    potentialAfter: target,
+    banner: { title: '⛔ Sperre abgesessen', text: `${reason} Jetzt bist du vereinslos und deine Wertung ist auf ${target} gefallen.`, tone: 'bad' },
+  });
+}
+
 /** Comeback nur einmal pro Karriere und nicht zu alt. */
 export const COMEBACK_MAX_AGE = 38;
 export function canComeback(career: Career): boolean {

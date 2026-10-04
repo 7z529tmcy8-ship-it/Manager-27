@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import CoachPanel from './CoachPanel';
 import ScorerRace from './ScorerRace';
+import VicePanel from './VicePanel';
 import SkillTree, { ArchetypePicker, LevelChip } from './SkillTree';
 import { flagOf, nationCode } from '../data/flags';
 import { getClub, getLeague } from '../data/leagues';
@@ -150,6 +151,7 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
               <ChoiceCard key={c.offer?.id ?? c.kind} career={career} c={c} selected={picked === i} onPick={() => setPicked(i)} />
             ))}
           </div>
+          <VicePanel career={career} onChange={onChange} />
           <button className="btn primary big cs-go" disabled={picked === null} onClick={confirm}>
             {picked === null ? 'Möglichkeit wählen' : `${choices[picked].title} bestätigen`}
           </button>
@@ -185,6 +187,7 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
               )}
             </>
           )}
+          {career.phase === 'winter' && <VicePanel career={career} onChange={onChange} />}
           <button className="btn primary big cs-go" onClick={run}>
             {secondHalf ? 'Bis Saisonende simulieren' : 'Bis zur Winterpause simulieren'}
           </button>
