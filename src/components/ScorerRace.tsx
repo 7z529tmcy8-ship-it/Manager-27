@@ -50,8 +50,11 @@ export default function ScorerRace({ career }: { career: Career }) {
         ? `Platz ${rank} – ${gap} ${gap === 1 ? 'Tor' : 'Tore'} hinter ${leader.name}.`
         : `Platz ${rank}: ${gap} ${gap === 1 ? 'Tor' : 'Tore'} Rückstand auf ${leader.name}.`;
   return (
-    <div className="race">
-      <h3>⚽ Torjäger-Rennen <small>{leagueName}{final ? ' · Endstand' : ' · nach der Hinrunde'}</small></h3>
+    <details className="race" open={final && rank === 1}>
+      <summary>
+        <span>⚽ Torjäger-Rennen <small>{leagueName}{final ? ' · Endstand' : ' · nach der Hinrunde'}</small></span>
+        <b className={rank === 1 ? 'lead' : ''}>{rank === 1 ? '👑 ' : ''}Platz {rank} · {me.goals} Tore</b>
+      </summary>
       <ol>
         {raceExcerpt(race).map(({ entry, rank: r }, i, arr) => (
           <li key={`${entry.name}-${entry.clubId}`} className={`${entry.you ? 'you' : ''} ${i > 0 && arr[i - 1].rank !== r - 1 ? 'gap' : ''}`}>
@@ -62,6 +65,6 @@ export default function ScorerRace({ career }: { career: Career }) {
         ))}
       </ol>
       <p className={`race-msg ${rank === 1 ? 'lead' : ''}`}>{message}</p>
-    </div>
+    </details>
   );
 }

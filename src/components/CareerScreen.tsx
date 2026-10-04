@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CoachPanel from './CoachPanel';
 import ScorerRace from './ScorerRace';
 import VicePanel from './VicePanel';
@@ -19,6 +19,9 @@ interface Props {
 }
 
 /** Farbe der Wertungs-Pille: Weltklasse hellblau, sonst Gold/Silber/Bronze. */
+/** So viele Saisons zeigt die eingeklappte Zeitleiste. */
+const COLLAPSED = 2;
+
 const ovrClass = (ovr: number) => (ovr >= 90 ? 'top' : ovr >= 75 ? 'gold' : ovr >= 65 ? 'silver' : 'bronze');
 const money = (v: number) => (v >= 1e6 ? `€${Math.round(v / 1e6)}M` : `€${Math.round(v / 1e3)}K`);
 
@@ -32,6 +35,13 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
   const [picked, setPicked] = useState<number | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const [tree, setTree] = useState(false);
+  const [full, setFull] = useState(false);
+  const shown = full ? career.history : career.history.slice(-COLLAPSED);
+  const hidden = career.history.length - shown.length;
+  // Neue Phase (Winterpause, Sommer, neue Saison): zurück nach oben zu den Entscheidungen.
+  useEffect(() => {
+    if (window.scrollY > 120) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [career.phase, career.history.length]);
   const needType = !p.skills && career.phase !== 'retired';
   const xpNote = p.skills?.note;
   const choices = career.phase === 'winter' ? winterChoices(career) : seasonChoices(career);
@@ -83,12 +93,90 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
         </div>
       </header>
 
-      {/* Zeitleiste */}
+      {/* Aktion */}
+      {needType && <ArchetypePicker career={career} onChange={onChange} />}
+
+      {!needType && xpNote && career.phase !== 'retired' && (
+        <button className="cs-note good sk-note" onClick={() => setTree(true)}>⭐ {xpNote}{p.skills && freePoints(p) > 0 ? ' → Fähigkeiten öffnen' : ''}</button>
+      )}
+
+      {!needType && career.phase === 'window' && choices.length > 0 && (
+        <section className="cs-window">
+          <h2>Transferfenster</h2>
+          <p className="cs-sub">Die Saison ist vorbei. Wähle, wie es weitergeht.</p>
+          <div className="cs-choices">
+            {choices.map((c, i) => (
+              <ChoiceCard key={c.offer?.id ?? c.kind} career={career} c={c} selected={picked === i} onPick={() => setPicked(i)} />
+            ))}
+          </div>
+          <button className="btn primary big cs-go" disabled={picked === null} onClick={confirm}>
+            {picked === null ? 'Möglichkeit wählen' : `${choices[picked].title} bestätigen`}
+          </button>
+          {p.age >= 30 && !choices.some((c) => c.kind === 'retire') && (
+            <button className="btn secondary small cs-go" onClick={() => window.confirm('Karriere wirklich beenden?') && onChange(applyChoice(career, { kind: 'retire', title: 'Karriere beenden' }))}>
+              Karriere beenden
+            </button>
+          )}
+          <div className="cs-extras">
+            <ScorerRace career={career} />
+            <VicePanel career={career} onChange={onChange} />
+          </div>
+        </section>
+      )}
+
+      {!needType && (career.phase === 'season' || career.phase === 'winter' || career.phase === 'final') && (
+        <section className="cs-window">
+          {career.phase === 'winter' && <h2>Winterpause</h2>}
+          {half && (
+            <p className="cs-sub">
+              Hinrunde: {half.apps} Spiele, {half.goals} Tore, {half.assists} Vorlagen
+              {half.avgRating ? ` · Ø-Note ${half.avgRating.toFixed(2)}` : ''} · Wertung jetzt {p.ovr}
+            </p>
+          )}
+          {note && <p className={`cs-note ${note.tone}`}><b>{note.title}:</b> {note.text}</p>}
+          <button className="btn primary big cs-go" onClick={run}>
+            {secondHalf ? 'Bis Saisonende simulieren' : 'Bis zur Winterpause simulieren'}
+          </button>
+          {career.phase === 'winter' && (
+            <div className="cs-extras">
+              {choices.length > 0 && (
+                <>
+                  <h3 className="cs-optional">Optional: Pause nutzen</h3>
+                  <div className={`cs-choices n${choices.length}`}>
+                    {choices.map((c, i) => (
+                      <ChoiceCard key={c.offer?.id ?? c.kind} career={career} c={c} selected={picked === i} onPick={() => setPicked(picked === i ? null : i)} />
+                    ))}
+                  </div>
+                  {picked !== null && (
+                    <button className="btn secondary big cs-go" onClick={confirm}>{choices[picked].title} bestätigen</button>
+                  )}
+                </>
+              )}
+              <ScorerRace career={career} />
+              <VicePanel career={career} onChange={onChange} />
+            </div>
+          )}
+        </section>
+      )}
+
+      {retired && <CoachPanel career={career} onChange={onChange} onExit={onExit} />}
+
+      {/* Zeitleiste: standardmäßig nur die letzten Saisons, damit Entscheidungen oben bleiben */}
+      <div className="cs-timeline-head">
+        <h2>Karriereverlauf</h2>
+        {full && career.history.length > COLLAPSED && <button className="cs-link" onClick={() => setFull(false)}>Einklappen ▴</button>}
+      </div>
       <div className="cs-table" role="table" aria-label="Karriereverlauf">
         <div className="cs-row cs-th" role="row">
           <span>Alter</span><span>Verein</span><span>OVR</span><span title="Spiele">👕</span><span title="Tore">⚽</span><span title="Vorlagen">👟</span>
         </div>
-        {career.history.map((r) => (
+        {hidden > 0 && (
+          <button className="cs-row cs-more" onClick={() => setFull(true)}>
+            <span />
+            <span className="cs-clubcell">▸ {hidden} frühere {hidden === 1 ? 'Saison' : 'Saisons'} anzeigen</span>
+          </button>
+        )}
+        {shown.map((r) => (
           <SeasonRow key={r.season} r={r} open={open === r.season} onToggle={() => setOpen(open === r.season ? null : r.season)} />
         ))}
 
@@ -108,11 +196,11 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
             )}
           </div>
         )}
-        {!retired && [1, 2].map((k) => (
+        {!retired && full && [1, 2].map((k) => (
           <div key={k} className={`cs-row cs-future f${k}`} aria-hidden="true"><span className="cs-agebox">{p.age + k}</span></div>
         ))}
 
-        {p.caps > 0 && (
+        {p.caps > 0 && (full || career.history.length <= COLLAPSED) && (
           <div className="cs-row cs-nation" role="row">
             <span className="cs-flag">{flagOf(p.nation)}</span>
             <span className="cs-clubcell">{p.nation}<small>Nationalmannschaft</small></span>
@@ -134,67 +222,6 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
         )}
       </div>
 
-      {/* Aktion */}
-      {needType && <ArchetypePicker career={career} onChange={onChange} />}
-
-      {!needType && xpNote && career.phase !== 'retired' && (
-        <button className="cs-note good sk-note" onClick={() => setTree(true)}>⭐ {xpNote}{p.skills && freePoints(p) > 0 ? ' → Fähigkeiten öffnen' : ''}</button>
-      )}
-
-      {!needType && career.phase === 'window' && choices.length > 0 && (
-        <section className="cs-window">
-          <h2>Transferfenster</h2>
-          <p className="cs-sub">Die Saison ist vorbei. Wähle, wie es weitergeht.</p>
-          <ScorerRace career={career} />
-          <div className="cs-choices">
-            {choices.map((c, i) => (
-              <ChoiceCard key={c.offer?.id ?? c.kind} career={career} c={c} selected={picked === i} onPick={() => setPicked(i)} />
-            ))}
-          </div>
-          <VicePanel career={career} onChange={onChange} />
-          <button className="btn primary big cs-go" disabled={picked === null} onClick={confirm}>
-            {picked === null ? 'Möglichkeit wählen' : `${choices[picked].title} bestätigen`}
-          </button>
-          {p.age >= 30 && !choices.some((c) => c.kind === 'retire') && (
-            <button className="btn secondary small cs-go" onClick={() => window.confirm('Karriere wirklich beenden?') && onChange(applyChoice(career, { kind: 'retire', title: 'Karriere beenden' }))}>
-              Karriere beenden
-            </button>
-          )}
-        </section>
-      )}
-
-      {!needType && (career.phase === 'season' || career.phase === 'winter' || career.phase === 'final') && (
-        <section className="cs-window">
-          {career.phase === 'winter' && <h2>Winterpause</h2>}
-          {half && (
-            <p className="cs-sub">
-              Hinrunde: {half.apps} Spiele, {half.goals} Tore, {half.assists} Vorlagen
-              {half.avgRating ? ` · Ø-Note ${half.avgRating.toFixed(2)}` : ''} · Wertung jetzt {p.ovr}
-            </p>
-          )}
-          {note && <p className={`cs-note ${note.tone}`}><b>{note.title}:</b> {note.text}</p>}
-          {career.phase === 'winter' && <ScorerRace career={career} />}
-          {career.phase === 'winter' && choices.length > 0 && (
-            <>
-              <p className="cs-sub">Willst du die Pause nutzen? Optional – du kannst auch einfach weiterspielen.</p>
-              <div className={`cs-choices n${choices.length}`}>
-                {choices.map((c, i) => (
-                  <ChoiceCard key={c.offer?.id ?? c.kind} career={career} c={c} selected={picked === i} onPick={() => setPicked(picked === i ? null : i)} />
-                ))}
-              </div>
-              {picked !== null && (
-                <button className="btn secondary big cs-go" onClick={confirm}>{choices[picked].title} bestätigen</button>
-              )}
-            </>
-          )}
-          {career.phase === 'winter' && <VicePanel career={career} onChange={onChange} />}
-          <button className="btn primary big cs-go" onClick={run}>
-            {secondHalf ? 'Bis Saisonende simulieren' : 'Bis zur Winterpause simulieren'}
-          </button>
-        </section>
-      )}
-
-      {retired && <CoachPanel career={career} onChange={onChange} onExit={onExit} />}
     </main>
   );
 }

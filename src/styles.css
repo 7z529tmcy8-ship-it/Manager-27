@@ -1263,3 +1263,24 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .vice-reward { color: var(--accent); }
 .vice-risk { color: var(--down); }
 .vice-card em { font-style: normal; font-size: .72rem; color: var(--muted); }
+
+/* Zeitleiste unter den Entscheidungen, eingeklappt */
+.cs-timeline-head { display: flex; align-items: baseline; justify-content: space-between; margin: 24px 0 8px; }
+.cs-timeline-head h2 { margin: 0; font-size: 1.1rem; }
+.cs-more { width: 100%; font: inherit; color: var(--accent); background: transparent; border: 1px dashed var(--hairline); cursor: pointer; text-align: left; }
+.cs-more .cs-clubcell { font-weight: 700; }
+
+/* Optionales unter dem Hauptknopf, Torjäger-Rennen einklappbar */
+.cs-extras { margin-top: 18px; padding-top: 4px; border-top: 1px solid var(--hairline); }
+.cs-optional { margin: 14px 0 8px; font-size: .95rem; color: var(--muted); font-weight: 700; }
+.race summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; cursor: pointer; list-style: none; font-weight: 800; min-height: 32px; }
+.race summary::-webkit-details-marker { display: none; }
+.race summary small { color: var(--muted); font-weight: 600; font-size: .78rem; }
+.race summary b { font-size: .85rem; white-space: nowrap; }
+.race summary b.lead { color: var(--gold); }
+.race[open] summary { margin-bottom: 8px; }
+.race h3 { display: none; }
+.cs-more .cs-clubcell { grid-column: 1 / -1; }
+.cs-more > span:first-child { display: none; }
+.cs-choice small { overflow-wrap: anywhere; }
+@media (max-width: 480px) { .cs-choice small { letter-spacing: .03em; font-size: .6rem; } }
