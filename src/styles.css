@@ -1222,6 +1222,10 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .sk-pips i { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--accent); }
 .sk-pips i.on { background: var(--accent); }
 .sk-master-wrap { margin-top: 18px; }
+.sk-master-hint { margin: 0 0 10px; text-align: center; color: var(--muted); font-size: .8rem; }
+.sk-tier-tag.elite { color: var(--gold); }
+.sk-skill.elite { background: linear-gradient(160deg, rgba(255, 196, 0, .07), transparent 60%); }
+.sk-skill.elite.owned { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
 .sk-master-wrap h3 { margin: 0 0 8px; font-size: 1rem; text-align: center; }
 .sk-skill.master { text-align: center; justify-items: center; padding: 16px; border-width: 2px; background: linear-gradient(135deg, rgba(255, 196, 0, .12), rgba(255, 140, 0, .04)); }
 .sk-skill.master .sk-icon { font-size: 2rem; }

@@ -6,6 +6,9 @@ import {
   bonusSummary,
   freePoints,
   getArchetype,
+  isMaster,
+  MASTER_OTHER,
+  MASTER_TOP,
   levelInfo,
   lockReason,
   rankOf,
@@ -34,7 +37,7 @@ export function ArchetypePicker({ career, onChange }: { career: Career; onChange
             <small>{a.icon} Spielertyp</small>
             <strong>{a.name}</strong>
             <span className="cs-choice-meta">{a.text}</span>
-            <span className="cs-choice-league">{a.skills.filter((s) => s.tier === 3).map((s) => s.name).join(' · ')}</span>
+            <span className="cs-choice-league">{a.skills.filter((s) => s.tier === 5).map((s) => s.name).join(' · ')}</span>
           </button>
         ))}
       </div>
@@ -81,7 +84,7 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
     return (
       <button
         key={s.id}
-        className={`sk-skill ${owned ? 'owned' : can ? 'can' : rank > 0 ? 'partial' : 'locked'} ${s.tier === 4 ? 'master' : ''} ${wide ? 'wide' : ''} ${just === s.id ? 'just' : ''}`}
+        className={`sk-skill ${owned ? 'owned' : can ? 'can' : rank > 0 ? 'partial' : 'locked'} ${isMaster(s) ? 'master' : s.tier >= 4 && !s.maxRank ? 'elite' : ''} ${wide ? 'wide' : ''} ${just === s.id ? 'just' : ''}`}
         disabled={!can}
         onClick={() => learn(s.id)}
         aria-label={`${s.name}: ${s.text}. ${owned ? 'Freigeschaltet' : reason ?? `Kostet ${s.cost} Punkte`}`}
@@ -106,14 +109,14 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
         <h3>{type.branches[b === 'a' ? 0 : 1]}</h3>
         {list.map((s, i) => (
           <div key={s.id} className={`sk-step ${i > 0 ? 'linked' : ''} ${i > 0 && sk.unlocked.includes(list[i - 1].id) ? 'lit' : ''}`}>
-            <span className="sk-tier-tag">Stufe {s.tier}</span>
+            <span className={`sk-tier-tag ${s.tier >= 4 ? 'elite' : ''}`}>Stufe {s.tier}{s.tier === 5 ? ' · Weltklasse' : s.tier === 4 ? ' · Elite' : ''}</span>
             {node(s)}
           </div>
         ))}
       </div>
     );
   };
-  const master = type.skills.find((s) => s.tier === 4);
+  const master = type.skills.find(isMaster);
   const reset = () => {
     if (window.confirm('Alle Fähigkeitspunkte zurückholen und neu verteilen? Das geht nur einmal pro Karriere.')) onChange(respecSkills(career));
   };
@@ -154,6 +157,7 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
         {master && (
           <section className="sk-master-wrap">
             <h3>👑 Meisterstück</h3>
+            <p className="sk-master-hint">Nur für die Größten: ein Ast komplett bis Stufe {MASTER_TOP}, der andere mindestens bis Stufe {MASTER_OTHER}.</p>
             {node(master, true)}
           </section>
         )}

@@ -13,6 +13,18 @@ export const GREETING = 'An Alle Ayris die das spielen!';
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-05-skilltree-xl',
+    date: '05.10.2026',
+    title: 'Fähigkeitenbaum XL – schwer zu holen, stark wenn man es schafft',
+    items: [
+      '🌳 Jeder Ast hat jetzt 5 statt 3 Stufen – 10 Fähigkeiten pro Spielertyp statt 6.',
+      '💰 Kosten steigen: Stufe 1 kostet 1 Punkt, Stufe 5 kostet 5. Einen ganzen Ast zu füllen kostet 15 Punkte.',
+      '🌍 Stufe 5 „Weltklasse“: bis zu +2 Gesamtwertung oder +20–25 % Tore bzw. Vorlagen.',
+      '👑 Das Meisterstück kostet 8 Punkte und braucht einen kompletten Ast plus Stufe 2 im anderen. Dafür gibt es +2 Gesamtwertung und richtig starke Boni. Das schaffen nur echte Weltstars, meist erst mit Mitte 30.',
+      'ℹ️ Schon gelernte Fähigkeiten bleiben erhalten.',
+    ],
+  },
+  {
     id: '2026-10-05-landesliga',
     date: '05.10.2026',
     title: 'Familie, Vermögen, Landesliga & mehr Gefühl',

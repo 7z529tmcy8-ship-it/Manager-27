@@ -11,9 +11,10 @@ it('Jede Position hat mindestens einen Spielertyp, Fähigkeiten-IDs sind eindeut
   const ids = ARCHETYPES.flatMap((a) => a.skills.map((s) => s.id));
   expect(new Set(ids).size).toBe(ids.length);
   for (const a of ARCHETYPES) {
-    for (const t of [1, 2, 3]) expect(a.skills.filter((s) => s.tier === t)).toHaveLength(2);
-    expect(a.skills.filter((s) => s.tier === 4)).toHaveLength(1);
-    expect(a.skills.filter((s) => s.branch === 'a')).toHaveLength(3);
+    for (const t of [1, 2, 3, 4, 5]) expect(a.skills.filter((s) => s.tier === t)).toHaveLength(2);
+    expect(a.skills.filter((s) => s.tier === 6)).toHaveLength(1);
+    expect(a.skills.filter((s) => s.branch === 'a')).toHaveLength(5);
+    expect(a.skills.filter((s) => s.branch === 'b')).toHaveLength(5);
   }
 });
 
@@ -59,17 +60,19 @@ it('Fähigkeiten freischalten: Kosten, Stufen-Voraussetzung, Wirkung', () => {
 it('Äste, Meisterstück, mehrstufige Fähigkeiten und Neuverteilen', async () => {
   const { lockReason, rankOf, respecSkills, bonusSummary } = await import('../skills');
   let c = chooseArchetype(base(), 'striker');
-  c = { ...c, player: { ...c.player, skills: { ...c.player.skills!, xp: 20000 } } };
+  c = { ...c, player: { ...c.player, skills: { ...c.player.skills!, xp: 60000 } } };
   // Stufe 2 im rechten Ast braucht die Stufe-1-Fähigkeit des rechten Asts.
   c = unlockSkill(c, 'st_finish');
   expect(lockReason(c.player, 'st_clinical')).toContain('Kopfballungeheuer');
-  // Meisterstück erst nach 4 Fähigkeiten inkl. Stufe 3.
+  // Meisterstück erst, wenn ein Ast komplett und der andere bis Stufe 2 gelernt ist.
   expect(canUnlock(c.player, 'st_master')).toBe(false);
-  for (const id of ['st_poacher', 'st_complete', 'st_header']) c = unlockSkill(c, id);
+  for (const id of ['st_poacher', 'st_complete', 'st_volley', 'st_header', 'st_clinical']) c = unlockSkill(c, id);
+  expect(lockReason(c.player, 'st_master')).toContain('Stufe 5');
+  c = unlockSkill(c, 'st_world');
   expect(canUnlock(c.player, 'st_master')).toBe(true);
   const ovr = c.player.ovr;
   c = unlockSkill(c, 'st_master');
-  expect(c.player.ovr).toBe(ovr + 1);
+  expect(c.player.ovr).toBe(ovr + 2);
   // Physio: drei Stufen, Wirkung pro Stufe.
   for (let i = 0; i < 4; i++) c = unlockSkill(c, 'gen_physio');
   expect(rankOf(c.player, 'gen_physio')).toBe(3);
@@ -80,7 +83,7 @@ it('Äste, Meisterstück, mehrstufige Fähigkeiten und Neuverteilen', async () =
   const r = respecSkills(c);
   expect(r.player.skills!.unlocked).toHaveLength(0);
   expect(freePoints(r.player)).toBeGreaterThan(before);
-  expect(r.player.ovr).toBe(c.player.ovr - 2);
+  expect(r.player.ovr).toBe(c.player.ovr - 5); // Kompletter Stürmer +1, Weltklasse +2, Meisterstück +2
   const again = unlockSkill(r, 'st_finish');
   expect(respecSkills(again)).toBe(again); // zweites Neuverteilen geht nicht
 });
