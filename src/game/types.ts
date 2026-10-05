@@ -19,7 +19,7 @@ export interface League {
   name: string;
   country: string;
   cup: string;
-  tier: 1 | 2 | 3 | 4 | 5;
+  tier: 1 | 2 | 3 | 4 | 5 | 6;
   /** Durchschnittliche Tore pro Spiel in dieser Liga. */
   goalsPerGame: number;
   /** Anzahl Startplätze für CL / EL / Conference League. */

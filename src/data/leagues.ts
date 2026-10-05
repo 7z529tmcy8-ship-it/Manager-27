@@ -24,7 +24,12 @@ export const LEAGUES: League[] = [
   {
     // 5. Liga. Vereinfacht: Nur die Oberliga Niedersachsen ist enthalten, sie tauscht zwei Plätze mit der Regionalliga Nord.
     id: 'ondn', name: 'Oberliga Niedersachsen', country: 'Deutschland', cup: 'DFB-Pokal', tier: 5, goalsPerGame: 3.5,
-    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'rln', spots: 2 }, topScorerGoals: 24,
+    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'rln', spots: 2 }, down: { leagueId: 'llh', spots: 1 }, topScorerGoals: 24,
+  },
+  {
+    // 6. Liga. Vereinfacht: Nur die Landesliga Hannover ist enthalten; ihr Meister steigt in die Oberliga auf, der Oberliga-Letzte ab.
+    id: 'llh', name: 'Landesliga Hannover', country: 'Deutschland', cup: 'DFB-Pokal', tier: 6, goalsPerGame: 3.6,
+    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'ondn', spots: 1 }, topScorerGoals: 26,
   },
   {
     id: 'pl', name: 'Premier League', country: 'England', cup: 'FA Cup', tier: 1, goalsPerGame: 2.9,
@@ -109,6 +114,14 @@ const RAW: Record<string, [string, number][]> = {
     ['SV Wilhelmshaven', 49], ['Lüneburger SK Hansa', 48], ['SC Spelle-Venhaus', 48], ['SV Meppen II', 47],
     ['TuS Bersenbrück', 47], ['BSV Rehden', 47], ['FC Verden 04', 46], ['Eintracht Braunschweig II', 46],
     ['MTV Wolfenbüttel', 46], ['TSV Wetschen', 44], ['Lupo Martini Wolfsburg', 42], ['SV Holthausen Biene', 41],
+  ],
+  // Landesliga Hannover 2025/26 (17 Vereine), Stärke grob nach dem Saisonverlauf geschätzt.
+  llh: [
+    ['SC Hemmingen-Westerfeld', 41], ['STK Eilvese', 40], ['SV Ramlingen/Ehlershausen', 40], ['1. FC Wunstorf', 38],
+    ['OSV Hannover', 38], ['SV Arminia Hannover', 38], ['SV Bavenstedt', 37], ['TSV Krähenwinkel/Kaltenweide', 36],
+    ['TSV Mühlenfeld', 35], ['TSV Godshorn', 35], ['SSG Halvestorf-Herkendorf', 35], ['SV Iraklis Hellas Hannover', 34],
+    ['TSV Barsinghausen', 33], ['SV Newroz Hildesheim', 32], ['SV Bruchhausen-Vilsen', 32], ['HSC BW Tündern', 31],
+    ['VfR Germania Ochtersum', 30],
   ],
   pl: [
     ['Liverpool FC', 85], ['Manchester City', 84], ['Arsenal FC', 84], ['Chelsea FC', 83],

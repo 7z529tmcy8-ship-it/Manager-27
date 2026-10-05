@@ -18,3 +18,19 @@ it('Karriere in der Oberliga Niedersachsen: Saison läuft, Angebote kommen, Auf-
   c = applyChoice(c, seasonChoices(c)[0]);
   expect(c.phase).toBe('season');
 });
+
+it('Landesliga Hannover (6. Liga): 17 Vereine, Meister steigt in die Oberliga auf', async () => {
+  const { createCareer } = await import('../career');
+  const { simulateToBreak } = await import('../simple');
+  const { slugify } = await import('../../data/leagues');
+  let c = createCareer({ name: 'Landesliga', nation: 'Deutschland', position: 'ST', age: 18, ovr: 52, potential: 70, clubId: slugify('SC Hemmingen-Westerfeld') });
+  expect(c.clubLeague[c.player.contract.clubId]).toBe('llh');
+  c = simulateToBreak(simulateToBreak(c));
+  const r = c.history[0];
+  expect(r.leagueId).toBe('llh');
+  expect(r.table).toHaveLength(17);
+  expect(Object.values(c.clubLeague).filter((l) => l === 'llh')).toHaveLength(17);
+  expect(Object.values(c.clubLeague).filter((l) => l === 'ondn')).toHaveLength(16);
+  // Der Tabellenerste der Landesliga spielt jetzt Oberliga.
+  expect(c.clubLeague[r.table[0].clubId]).toBe('ondn');
+});

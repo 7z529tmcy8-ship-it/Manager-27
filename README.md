@@ -16,7 +16,7 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
   Antippen zeigt Details (Liga, Platz, Ø-Note, Entwicklung, Titel, Ereignisse). Dazu Nationalmannschaft und Gesamtwerte
 - **Eigener Spieler** (Name, Nation, Position, Alter, Talent, Startverein), **echter Spieler**, **Legenden** mit
   Charakter oder **Zweite Chance** für gescheiterte Talente
-- **12 Ligen, Stand 2025/26:** Bundesliga bis Regionalliga Nord und **Oberliga Niedersachsen** (5. Liga, die 16
+- **17 Ligen, Stand 2025/26:** Bundesliga bis Regionalliga Nord, **Oberliga Niedersachsen** und **Landesliga Hannover** (6. Liga, 17 Vereine; der Meister steigt auf), außerdem MLS, Saudi Pro League, J1 League und A-League. Oberliga Niedersachsen: die 16
   echten Teilnehmer 2025/26, zwei Auf-/Abstiegsplätze mit der Regionalliga Nord), Premier League, Championship, LaLiga, Serie A,
   Ligue 1, Liga Portugal, Eredivisie – komplett simuliert inkl. Pokal, Europapokal, Auf- und Abstieg
 - **Realistische Entwicklung** nach Alter, Spielzeit, Leistung und Vereinsniveau, dazu zufällige Ereignisse
