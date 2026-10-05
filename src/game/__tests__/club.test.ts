@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { slugify } from '../../data/leagues';
 import { createCareer, playSeason } from '../career';
-import { CARD_POOL, PACKS, applyItem, canUseItem, creditCareer, freshClub, openPack, sellDuplicates } from '../club';
+import { CARD_POOL, PACKS, type CollectCard, applyItem, canUseItem, creditCareer, freshClub, openPack, sellDuplicates } from '../club';
 import { specialsFor } from '../specials';
 import type { SeasonRecord } from '../types';
 
@@ -17,21 +17,23 @@ it('Kartenpool: eindeutige IDs, Ikonen und Talente dabei', () => {
 });
 
 it('Packs: Preis, Größe, Garantien, keine Karte doppelt im selben Pack', () => {
-  let club = { ...freshClub(), coins: 100_000 };
+  let club = { ...freshClub(), coins: 1_000_000 };
   for (const pack of PACKS) {
     for (let k = 0; k < 30; k++) {
       const res = openPack(club, pack.id)!;
       expect(res.result.cards).toHaveLength(pack.size);
       expect(new Set(res.result.cards.map((c) => c.card.id)).size).toBe(pack.size);
-      if (pack.id === 'premium') expect(res.result.cards.some((c) => c.card.ovr >= 85)).toBe(true);
-      if (pack.id === 'icon') expect(res.result.cards.some((c) => c.card.variant === 'icon')).toBe(true);
-      if (pack.id === 'gold') expect(res.result.cards.every((c) => c.card.ovr >= 75)).toBe(true);
-      if (pack.id === 'germany') expect(res.result.cards.every((c) => c.card.nation === 'Deutschland')).toBe(true);
-      if (pack.id === 'bundesliga') expect(res.result.cards.every((c) => c.card.league === 'Bundesliga')).toBe(true);
-      if (pack.id === 'wonder') expect(res.result.cards.every((c) => (c.card.age ?? 99) <= 21)).toBe(true);
-      if (pack.id === 'worldstar') expect(res.result.cards.every((c) => c.card.ovr >= 88)).toBe(true);
-      if (pack.id === 'goat') expect(res.result.cards.some((c) => c.card.variant === 'icon' && c.card.ovr >= 94)).toBe(true);
-      club = { ...res.club, coins: 100_000 };
+      const cards = res.result.cards.map((c) => c.card);
+      if (pack.id === 'premium') expect(cards.some((c) => c.ovr >= 83)).toBe(true);
+      if (pack.id === 'icon') expect(cards.some((c) => c.variant === 'icon')).toBe(true);
+      if (pack.id === 'cult') expect(cards.some((c) => c.variant === 'cult')).toBe(true);
+      if (pack.id === 'gold') expect(cards.every((c) => c.ovr >= 75)).toBe(true);
+      if (pack.id === 'germany') expect(cards.every((c) => c.nation === 'Deutschland')).toBe(true);
+      if (pack.id === 'bundesliga') expect(cards.every((c) => c.league === 'Bundesliga')).toBe(true);
+      if (pack.id === 'wonder') expect(cards.every((c) => (c.age ?? 99) <= 21)).toBe(true);
+      if (pack.id === 'worldstar') expect(cards.some((c) => c.ovr >= 83)).toBe(true);
+      if (pack.id === 'goat') expect(cards.every((c) => c.variant === 'icon' && c.ovr >= 94)).toBe(true);
+      club = { ...res.club, coins: 1_000_000 };
     }
   }
   expect(openPack({ ...freshClub(), coins: 10 }, 'gold')).toBeNull();
@@ -97,4 +99,20 @@ it('Karten verbessern: teurer pro Stufe, max 99, rund 500.000 Coins von 90 auf 9
   expect(card.boost).toBe(9);
   expect(club.coins).toBe(600_000 - costTo99(90));
   expect(upgradeCard({ ...freshClub(), coins: 10, cards: { [id]: 1 } }, id)).toBeNull(); // zu wenig Coins
+});
+
+it('Packs sind hart: Top-Karten selten, Chancen passen zur Anzeige', async () => {
+  const { oddsAtLeast, packTier } = await import('../club');
+  const draws = (id: string, n: number) => {
+    const out: CollectCard[] = [];
+    for (let i = 0; i < n; i++) out.push(...openPack({ ...freshClub(), coins: 1e9 }, id)!.result.cards.map((c) => c.card));
+    return out;
+  };
+  const gold = draws('gold', 3000);
+  const elitePlus = gold.filter((c) => ['elite', 'special', 'icon'].includes(packTier(c))).length / gold.length;
+  expect(elitePlus).toBeLessThan(0.04);
+  expect(Math.abs(elitePlus * 100 - oddsAtLeast(PACKS.find((p) => p.id === 'gold')!.odds, 'elite'))).toBeLessThan(1.2);
+  const std = draws('standard', 2000);
+  expect(std.filter((c) => c.variant === 'icon').length / std.length).toBeLessThan(0.005);
+  expect(CARD_POOL.filter((c) => c.variant === 'cult').length).toBeGreaterThanOrEqual(25);
 });

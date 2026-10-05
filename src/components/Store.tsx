@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { play } from '../sound';
-import { ITEMS, PACKS, openPack, rarity, type PackResult } from '../game/club';
+import { ITEMS, PACKS, oddsAtLeast, openPack, rarity, type PackDef, type PackResult } from '../game/club';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { motionReduced } from '../settings';
 import Confetti from './Confetti';
@@ -44,7 +44,8 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
             <div key={p.id} className={`pack-card p-${p.id}`}>
               <div className="pack-art" aria-hidden="true"><span>{p.name.replace('-Pack', '')}</span></div>
               <strong>{p.name}</strong>
-              <small>{p.text.replace(', dazu mit Glück ein Item', '')}</small>
+              <small>{p.text}</small>
+              <PackOddsLine pack={p} />
               <button className="btn primary" disabled={!afford} onClick={() => buy(p.id)}>
                 {afford ? `Öffnen · 🪙 ${fmtCoins(p.price)}` : `Fehlen 🪙 ${fmtCoins(p.price - club.coins)}`}
               </button>
@@ -160,4 +161,20 @@ export function PackOpening({ name, result, onClose, onCollection }: { name: str
       )}
     </div>
   );
+}
+
+const pct = (v: number) => (v >= 10 ? Math.round(v) : v >= 1 ? v.toFixed(1) : v.toFixed(2)).toString().replace('.', ',') + ' %';
+
+/** Offene Chancen wie im echten Spiel: Wie wahrscheinlich ist eine starke Karte? */
+function PackOddsLine({ pack }: { pack: PackDef }) {
+  const odds = pack.first?.odds ?? pack.odds;
+  const parts: string[] = [];
+  const rare = oddsAtLeast(odds, 'rare');
+  const elite = oddsAtLeast(odds, 'elite');
+  const icon = oddsAtLeast(odds, 'icon');
+  if (rare > 0 && rare < 100) parts.push(`83+: ${pct(rare)}`);
+  if (elite > 0 && elite < 100) parts.push(`87+/Spezial: ${pct(elite)}`);
+  if (icon > 0 && icon < 100) parts.push(`Ikone: ${pct(icon)}`);
+  if (!parts.length) return null;
+  return <span className="pack-odds">{pack.first ? 'Beste Karte' : 'Pro Karte'} · {parts.join(' · ')}</span>;
 }

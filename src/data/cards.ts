@@ -53,3 +53,68 @@ export const EXTRA_ICONS: [string, string, Position, number][] = [
   ['Bastian Schweinsteiger', 'Deutschland', 'ZM', 90],
   ['Michael Ballack', 'Deutschland', 'ZM', 90],
 ];
+
+/**
+ * Wunderkinder 2026/27 (Golden-Boy-Kandidaten und Toptalente). Vereine Stand Oktober 2026 (nach dem
+ * Sommer-Transferfenster 2026, per Websuche geprüft). [Name, Nation, Position, Alter 2026, Wertung, Verein, Liga]
+ */
+export const WONDERKIDS_2026: [string, string, Position, number, number, string, string][] = [
+  ['Thiago Pitarch', 'Spanien', 'ZDM', 19, 76, 'Real Madrid', 'LaLiga'],
+  ['Marc Bernal', 'Spanien', 'ZDM', 19, 77, 'FC Barcelona', 'LaLiga'],
+  ['Xavi Espart', 'Spanien', 'AV', 19, 74, 'FC Barcelona', 'LaLiga'],
+  ['Jon Martín', 'Spanien', 'IV', 20, 77, 'Real Sociedad', 'LaLiga'],
+  ['Junior Kroupi', 'Frankreich', 'ST', 20, 80, 'AFC Bournemouth', 'Premier League'],
+  ['Rayan', 'Brasilien', 'FL', 20, 78, 'AFC Bournemouth', 'Premier League'],
+  ['Luka Vušković', 'Kroatien', 'IV', 19, 79, 'Brighton & Hove Albion', 'Premier League'],
+  ['Charalampos Kostoulas', 'Griechenland', 'ST', 19, 75, 'Brighton & Hove Albion', 'Premier League'],
+  ['Jorrel Hato', 'Niederlande', 'AV', 20, 80, 'Chelsea FC', 'Premier League'],
+  ['Marco Palestra', 'Italien', 'AV', 21, 79, 'Chelsea FC', 'Premier League'],
+  ['Jérémy Jacquet', 'Frankreich', 'IV', 20, 79, 'Liverpool FC', 'Premier League'],
+  ['Leny Yoro', 'Frankreich', 'IV', 20, 79, 'Manchester United', 'Premier League'],
+  ['Lucas Bergvall', 'Schweden', 'ZM', 20, 79, 'Tottenham Hotspur', 'Premier League'],
+  ['Max Dowman', 'England', 'ZOM', 16, 72, 'Arsenal FC', 'Premier League'],
+  ['Konstantinos Karetsas', 'Griechenland', 'FL', 18, 77, 'Borussia Dortmund', 'Bundesliga'],
+  ['Joane Gadou', 'Frankreich', 'IV', 19, 76, 'Borussia Dortmund', 'Bundesliga'],
+  ['Finn Jeltsch', 'Deutschland', 'IV', 20, 78, 'VfB Stuttgart', 'Bundesliga'],
+  ['Kerim Alajbegović', 'Bosnien-Herzegowina', 'FL', 19, 77, 'Juventus Turin', 'Serie A'],
+  ['Francesco Pio Esposito', 'Italien', 'ST', 21, 79, 'Inter Mailand', 'Serie A'],
+  ['Victor Froholdt', 'Dänemark', 'ZM', 20, 79, 'FC Porto', 'Liga Portugal'],
+  ['Gianluca Prestianni', 'Argentinien', 'FL', 20, 77, 'Benfica Lissabon', 'Liga Portugal'],
+];
+
+/**
+ * Kult-Helden: Publikumslieblinge und „Forgotten Names“ in ihrer besten Zeit – Tricks, Tore, Geschichten.
+ * [Name, Nation, Position, Wertung, Verein der besten Zeit]. Wertungen sind eigene Schätzungen.
+ */
+export const CULT_HEROES: [string, string, Position, number, string][] = [
+  ['Ricardo Quaresma', 'Portugal', 'FL', 86, 'FC Porto'],
+  ['Juan Román Riquelme', 'Argentinien', 'ZOM', 89, 'Boca Juniors'],
+  ['Pablo Aimar', 'Argentinien', 'ZOM', 86, 'FC Valencia'],
+  ['Wesley Sneijder', 'Niederlande', 'ZOM', 88, 'Inter Mailand'],
+  ['Rafael van der Vaart', 'Niederlande', 'ZOM', 86, 'Hamburger SV'],
+  ['Dimitar Berbatov', 'Bulgarien', 'ST', 87, 'Manchester United'],
+  ['Christian Vieri', 'Italien', 'ST', 89, 'Inter Mailand'],
+  ['Jay-Jay Okocha', 'Nigeria', 'ZOM', 86, 'Bolton Wanderers'],
+  ['Obafemi Martins', 'Nigeria', 'ST', 83, 'Newcastle United'],
+  ['Taribo West', 'Nigeria', 'IV', 80, 'Inter Mailand'],
+  ['Denílson', 'Brasilien', 'FL', 84, 'Real Betis'],
+  ['Djibril Cissé', 'Frankreich', 'ST', 84, 'AJ Auxerre'],
+  ['Hidetoshi Nakata', 'Japan', 'ZOM', 84, 'AS Rom'],
+  ['Shinji Kagawa', 'Japan', 'ZOM', 85, 'Borussia Dortmund'],
+  ['Aliaksandr Hleb', 'Belarus', 'ZOM', 84, 'Arsenal FC'],
+  ['Kevin-Prince Boateng', 'Ghana', 'ZM', 83, 'AC Mailand'],
+  ['Mesut Özil', 'Deutschland', 'ZOM', 88, 'Real Madrid'],
+  ['Ailton', 'Brasilien', 'ST', 85, 'Werder Bremen'],
+  ['Diego', 'Brasilien', 'ZOM', 86, 'Werder Bremen'],
+  ['Grafite', 'Brasilien', 'ST', 85, 'VfL Wolfsburg'],
+  ['Zvjezdan Misimović', 'Bosnien-Herzegowina', 'ZOM', 84, 'VfL Wolfsburg'],
+  ['Marcelinho', 'Brasilien', 'ZOM', 85, 'Hertha BSC'],
+  ['Zé Roberto', 'Brasilien', 'ZM', 86, 'FC Bayern München'],
+  ['Roque Santa Cruz', 'Paraguay', 'ST', 83, 'Blackburn Rovers'],
+  ['Kevin Kurányi', 'Deutschland', 'ST', 84, 'FC Schalke 04'],
+  ['Gerald Asamoah', 'Deutschland', 'ST', 80, 'FC Schalke 04'],
+  ['Lukas Podolski', 'Deutschland', 'ST', 85, '1. FC Köln'],
+  ['Mario Gómez', 'Deutschland', 'ST', 86, 'VfB Stuttgart'],
+  ['Jens Lehmann', 'Deutschland', 'TW', 86, 'Arsenal FC'],
+  ['Hans-Jörg Butt', 'Deutschland', 'TW', 80, 'Bayer Leverkusen'],
+];

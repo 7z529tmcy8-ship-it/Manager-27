@@ -1,6 +1,6 @@
 import { FAILED_TALENTS, LEGENDS } from '../data/legends';
 import { REAL_PLAYERS } from '../data/players';
-import { EXTRA_ICONS, EXTRA_STARS } from '../data/cards';
+import { CULT_HEROES, EXTRA_ICONS, EXTRA_STARS, WONDERKIDS_2026 } from '../data/cards';
 import { getClub, getLeague, slugify } from '../data/leagues';
 import { summarizeCareer } from './legacy';
 import { homeClubOf } from './offers';
@@ -10,7 +10,7 @@ import type { Career, CoachSeason, Position, SeasonRecord, SpecialCard, SpecialT
 // „Club“ über alle Karrieren hinweg: Coins, gesammelte Karten, Items. Angelehnt an Karten-Sammelmodi,
 // aber mit eigenen Namen und Designs. Coins verdient man nur im Karrieremodus – kein echtes Geld.
 
-export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | SpecialType;
+export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | SpecialType;
 
 export interface CollectCard {
   id: string;
@@ -83,11 +83,12 @@ export const CARD_POOL: CollectCard[] = [
     variant: cardTier(p.ovr) === 'bronze' ? ('silver' as const) : (cardTier(p.ovr) as CardVariant),
   })),
   ...LEGENDS.map((l) => ({ id: cardId(l.name), name: l.name, position: l.position, nation: l.nation, club: 'Ikone', ovr: l.potential, variant: 'icon' as const, label: 'Ikone' })),
-  ...EXTRA_STARS.map(([name, nation, position, age, ovr, club, league]) => ({
+  ...[...EXTRA_STARS, ...WONDERKIDS_2026].map(([name, nation, position, age, ovr, club, league]) => ({
     id: cardId(name), name, position, nation, club, league, age, ovr,
     variant: ovr >= 85 ? ('gold-rare' as const) : ovr >= 75 ? ('gold' as const) : ('silver' as const),
   })),
   ...EXTRA_ICONS.map(([name, nation, position, ovr]) => ({ id: cardId(name), name, position, nation, club: 'Ikone', ovr, variant: 'icon' as const, label: 'Ikone' })),
+  ...CULT_HEROES.map(([name, nation, position, ovr, club]) => ({ id: cardId(name), name, position, nation, club, ovr, variant: 'cult' as const })),
   ...FAILED_TALENTS.map((l) => ({ id: cardId(l.name), name: l.name, position: l.position, nation: l.nation, club: 'Zweite Chance', ovr: l.potential, variant: 'talent' as const, label: 'Was wäre wenn' })),
 ];
 export const getCard = (id: string) => CARD_POOL.find((c) => c.id === id);
@@ -96,6 +97,7 @@ export const getCard = (id: string) => CARD_POOL.find((c) => c.id === id);
 export function sellValue(c: CollectCard): number {
   if (c.variant === 'icon') return 4000;
   if (c.variant === 'talent') return 800;
+  if (c.variant === 'cult') return 1500;
   if (c.variant === 'gold-rare') return 900 + (c.ovr - 85) * 150;
   if (c.variant === 'gold') return 250;
   return 80;
@@ -103,64 +105,124 @@ export function sellValue(c: CollectCard): number {
 
 /** Seltenheit für Sortierung und „bester Zug“. */
 export function rarity(c: CollectCard): number {
-  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, icon: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
+  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
   return base * 100 + c.ovr;
 }
 
 // ---------- Packs ----------
+// Jede Karte im Pack wird einzeln ausgewürfelt: erst die Stufe (nach festen Wahrscheinlichkeiten, die der Store
+// offen anzeigt), dann eine Karte dieser Stufe – innerhalb der Stufe sind die schwächeren Karten häufiger.
+
+export type PackTier = 'silver' | 'gold' | 'rare' | 'elite' | 'special' | 'icon';
+/** Reihenfolge von schwach nach stark. */
+const TIERS: PackTier[] = ['silver', 'gold', 'rare', 'elite', 'special', 'icon'];
+
+/** Stufe einer Karte für Packs: Silber < 75, Gold 75–82, Selten 83–86, Elite 87+, Spezial (Kult/Was wäre wenn), Ikone. */
+export function packTier(c: CollectCard): PackTier {
+  if (c.variant === 'icon') return 'icon';
+  if (c.variant === 'talent' || c.variant === 'cult') return 'special';
+  return c.ovr >= 87 ? 'elite' : c.ovr >= 83 ? 'rare' : c.ovr >= 75 ? 'gold' : 'silver';
+}
+
+/** Wahrscheinlichkeiten pro Stufe in Prozent. */
+export type PackOdds = Partial<Record<PackTier, number>>;
+
 export interface PackDef {
   id: string;
   name: string;
   price: number;
   size: number;
   text: string;
-  /** Welche Karten in Frage kommen und mit welchem Gewicht. */
-  weight: (c: CollectCard) => number;
-  /** Garantie für die erste Karte. */
-  guarantee?: (c: CollectCard) => boolean;
-  itemChance: number;
+  /** Welche Karten überhaupt vorkommen können (z. B. nur Deutsche). */
+  filter?: (c: CollectCard) => boolean;
+  /** Chancen für jede Karte … */
+  odds: PackOdds;
+  /** … außer der ersten, wenn die eigene Chancen bzw. eine eigene Auswahl hat (Garantie). */
+  first?: { odds: PackOdds; filter?: (c: CollectCard) => boolean };
 }
 
-const lowWeight = (c: CollectCard) => (c.variant === 'icon' ? 0.02 : c.variant === 'talent' ? 0.15 : Math.exp(-(c.ovr - 70) / 5));
+const BL = (c: CollectCard) => c.league === 'Bundesliga';
+const GOLD_FILL: PackOdds = { gold: 85, rare: 13, elite: 2 };
+
 export const PACKS: PackDef[] = [
-  { id: 'standard', name: 'Standard-Pack', price: 1500, size: 3, text: '3 Karten, meist Silber und Gold, dazu mit Glück ein Item.', weight: lowWeight, itemChance: 0 },
   {
-    id: 'gold', name: 'Gold-Pack', price: 4000, size: 3, text: '3 Karten ab 75, Chance auf Elite.',
-    weight: (c) => (c.variant === 'icon' ? 0.05 : c.ovr >= 75 ? Math.exp(-(c.ovr - 78) / 6) : 0), itemChance: 0,
+    id: 'standard', name: 'Standard-Pack', price: 2000, size: 3, text: '3 Karten, meist Silber und Gold.',
+    odds: { silver: 70, gold: 26.5, rare: 3, elite: 0.4, special: 0.08, icon: 0.02 },
   },
   {
-    id: 'premium', name: 'Premium-Pack', price: 10000, size: 4, text: '4 Karten ab 78, eine davon garantiert Elite (85+).',
-    weight: (c) => (c.variant === 'icon' ? 0.1 : c.ovr >= 78 ? 1 : 0), guarantee: (c) => c.ovr >= 85 && c.variant !== 'icon', itemChance: 0,
+    id: 'gold', name: 'Gold-Pack', price: 7500, size: 3, text: '3 Karten ab 75, kleine Chance auf mehr.',
+    odds: { gold: 88, rare: 10, elite: 1.5, special: 0.4, icon: 0.1 },
   },
   {
-    id: 'icon', name: 'Ikonen-Pack', price: 25000, size: 2, text: '1 garantierte Ikone plus eine Karte ab 80.',
-    weight: (c) => (c.ovr >= 80 && c.variant !== 'icon' ? 1 : 0), guarantee: (c) => c.variant === 'icon', itemChance: 0,
+    id: 'premium', name: 'Premium-Pack', price: 20000, size: 4, text: '4 Karten ab 75, die beste garantiert ab 83.',
+    odds: { gold: 85, rare: 12, elite: 2.5, special: 0.4, icon: 0.1 },
+    first: { odds: { rare: 80, elite: 15, special: 3.5, icon: 1.5 } },
   },
   {
-    id: 'mystery', name: 'Wundertüte', price: 2000, size: 1, text: '1 völlig zufällige Karte – von Silber bis Ikone ist alles drin.',
-    weight: () => 1, itemChance: 0,
+    id: 'mystery', name: 'Wundertüte', price: 3000, size: 1, text: '1 völlig zufällige Karte – von Silber bis Ikone ist alles drin.',
+    odds: { silver: 55, gold: 33, rare: 8, elite: 2.5, special: 1, icon: 0.5 },
   },
   {
-    id: 'germany', name: 'Deutschland-Pack', price: 4500, size: 3, text: '3 deutsche Spieler – mit etwas Glück eine deutsche Ikone.',
-    weight: (c) => (c.nation !== 'Deutschland' ? 0 : c.variant === 'icon' ? 0.15 : 1), itemChance: 0,
+    id: 'germany', name: 'Deutschland-Pack', price: 6000, size: 3, text: '3 deutsche Spieler – mit viel Glück eine deutsche Ikone.',
+    filter: (c) => c.nation === 'Deutschland', odds: { silver: 40, gold: 50, rare: 8, elite: 1.5, special: 0.3, icon: 0.2 },
   },
   {
-    id: 'bundesliga', name: 'Bundesliga-Pack', price: 4500, size: 3, text: '3 Spieler aus der Bundesliga, gute Chemie garantiert.',
-    weight: (c) => (c.league === 'Bundesliga' ? 1 : 0), itemChance: 0,
+    id: 'bundesliga', name: 'Bundesliga-Pack', price: 6000, size: 3, text: '3 Spieler aus der Bundesliga, gute Chemie garantiert.',
+    filter: BL, odds: { silver: 40, gold: 50, rare: 8, elite: 2 },
   },
   {
-    id: 'wonder', name: 'Wunderkind-Pack', price: 6000, size: 3, text: '3 Talente bis 21 Jahre – die Stars von morgen.',
-    weight: (c) => (c.age !== undefined && c.age <= 21 ? Math.exp((c.ovr - 75) / 10) : 0), itemChance: 0,
+    id: 'wonder', name: 'Wunderkind-Pack', price: 9000, size: 3, text: '3 Talente bis 21 Jahre – die Stars von morgen.',
+    filter: (c) => c.age !== undefined && c.age <= 21, odds: { silver: 35, gold: 50, rare: 13, elite: 2 },
   },
   {
-    id: 'worldstar', name: 'Weltstar-Pack', price: 15000, size: 2, text: '2 Weltstars ab 88 – kleine Chance auf eine Ikone.',
-    weight: (c) => (c.ovr < 88 || c.variant === 'talent' ? 0 : c.variant === 'icon' ? 0.12 : 1), itemChance: 0,
+    id: 'cult', name: 'Kult-Pack', price: 12000, size: 2, text: '1 garantierter Kult-Held (Riquelme, Ailton, Quaresma …) plus eine Gold-Karte.',
+    odds: GOLD_FILL, first: { odds: { special: 100 }, filter: (c) => c.variant === 'cult' },
   },
   {
-    id: 'goat', name: 'GOAT-Pack', price: 40000, size: 2, text: 'Eine Ikone ab 94 garantiert (Pelé, Maradona, Cruyff …) plus ein Weltstar.',
-    weight: (c) => (c.ovr >= 88 && c.variant !== 'icon' && c.variant !== 'talent' ? 1 : 0), guarantee: (c) => c.variant === 'icon' && c.ovr >= 94, itemChance: 0,
+    id: 'worldstar', name: 'Weltstar-Pack', price: 30000, size: 2, text: '2 Karten, die beste ab 83 – gute Chance auf einen Weltstar ab 87.',
+    odds: { gold: 70, rare: 27, elite: 3 }, first: { odds: { rare: 65, elite: 32, icon: 3 } },
+  },
+  {
+    id: 'icon', name: 'Ikonen-Pack', price: 60000, size: 2, text: '1 garantierte Ikone plus eine Gold-Karte.',
+    odds: GOLD_FILL, first: { odds: { icon: 100 } },
+  },
+  {
+    id: 'goat', name: 'GOAT-Pack', price: 150000, size: 1, text: 'Eine Ikone ab 94 garantiert: Pelé, Maradona, Cruyff, Ronaldo …',
+    odds: { icon: 100 }, filter: (c) => c.variant === 'icon' && c.ovr >= 94,
   },
 ];
+
+/** Chance (in %), dass eine einzelne Karte mindestens diese Stufe hat – für die Anzeige im Store. */
+export function oddsAtLeast(odds: PackOdds, tier: PackTier): number {
+  const total = TIERS.reduce((a, t) => a + (odds[t] ?? 0), 0);
+  const from = TIERS.indexOf(tier);
+  return (TIERS.slice(from).reduce((a, t) => a + (odds[t] ?? 0), 0) / total) * 100;
+}
+
+function rollTier(odds: PackOdds, rand: () => number): PackTier {
+  const total = TIERS.reduce((a, t) => a + (odds[t] ?? 0), 0);
+  let r = rand() * total;
+  for (const t of TIERS) {
+    r -= odds[t] ?? 0;
+    if (r < 0) return t;
+  }
+  return 'silver';
+}
+
+/** Eine Karte ziehen: Stufe würfeln, dann innerhalb der Stufe (schwächere häufiger). Leere Stufe → nächstschwächere. */
+function drawCard(odds: PackOdds, filter: (c: CollectCard) => boolean, taken: CollectCard[], rand: () => number): CollectCard {
+  const pool = CARD_POOL.filter((c) => filter(c) && !taken.includes(c));
+  const rolled = TIERS.indexOf(rollTier(odds, rand));
+  // Erst abwärts suchen, notfalls aufwärts – so gibt es nie ein leeres Pack.
+  const order = [...TIERS.slice(0, rolled + 1).reverse(), ...TIERS.slice(rolled + 1)];
+  for (const t of order) {
+    const list = pool.filter((c) => packTier(c) === t);
+    if (!list.length) continue;
+    const min = Math.min(...list.map((c) => c.ovr));
+    return weightedPick(list, (c) => Math.exp(-(c.ovr - min) / 4), rand);
+  }
+  return pool[0];
+}
 
 export interface PackResult {
   cards: { card: CollectCard; duplicate: boolean }[];
@@ -179,9 +241,10 @@ export function openPack(club: ClubState, packId: string, rand = Math.random, fr
   const pack = PACKS.find((p) => p.id === packId);
   if (!pack || (!free && club.coins < pack.price)) return null;
   const chosen: CollectCard[] = [];
+  const base = pack.filter ?? (() => true);
   for (let i = 0; i < pack.size; i++) {
-    const pool = CARD_POOL.filter((c) => !chosen.includes(c) && (i === 0 && pack.guarantee ? pack.guarantee(c) : pack.weight(c) > 0));
-    chosen.push(weightedPick(pool, i === 0 && pack.guarantee ? () => 1 : pack.weight, rand));
+    const slot = i === 0 ? pack.first : undefined;
+    chosen.push(drawCard(slot?.odds ?? pack.odds, slot?.filter ?? base, chosen, rand));
   }
   const cards = { ...club.cards };
   const result: PackResult = { cards: [], items: [] };
@@ -189,14 +252,8 @@ export function openPack(club: ClubState, packId: string, rand = Math.random, fr
     result.cards.push({ card: c, duplicate: (cards[c.id] ?? 0) > 0 });
     cards[c.id] = (cards[c.id] ?? 0) + 1;
   }
-  const items = { ...club.items };
-  if (rand() < pack.itemChance) {
-    const kind: ItemKind = rand() < 0.5 ? 'fitness' : 'training';
-    items[kind] += 1;
-    result.items.push(kind);
-  }
   return {
-    club: { ...club, coins: club.coins - (free ? 0 : pack.price), cards, items, packsOpened: club.packsOpened + 1 },
+    club: { ...club, coins: club.coins - (free ? 0 : pack.price), cards, packsOpened: club.packsOpened + 1 },
     result,
   };
 }

@@ -718,6 +718,7 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .ucard.v-gold { --a: #ffe9a8; --b: #c9962e; --ink: #2a1c00; }
 .ucard.v-gold-rare { --a: #34343c; --b: #060608; --ink: #ffd76a; --edge: rgba(255, 215, 106, .65); --glow: rgba(255, 215, 106, .35); }
 .ucard.v-icon { --a: #fffaf0; --b: #d8c7a0; --ink: #3a2a10; --edge: rgba(196, 160, 90, .9); --glow: rgba(255, 240, 200, .45); }
+.ucard.v-cult { --a: #0f6b63; --b: #1a0d2e; --ink: #ffb347; --edge: rgba(255, 179, 71, .7); --glow: rgba(255, 140, 60, .4); }
 .ucard.v-talent { --a: #3a3f4f; --b: #13151c; --ink: #a7c4ff; --edge: rgba(167, 196, 255, .5); --glow: rgba(120, 160, 255, .3); }
 .ucard.v-tots { --a: #1f46a8; --b: #040b26; --ink: #ffd76a; --edge: rgba(255, 215, 106, .7); --glow: rgba(80, 140, 255, .45); }
 .ucard.v-potm { --a: #9b3ff0; --b: #2b0a4a; --ink: #fff; --edge: rgba(255, 255, 255, .5); --glow: rgba(180, 90, 255, .45); }
@@ -820,6 +821,8 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 @media (min-width: 760px) { .store-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .pack-card { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 18px; background: var(--surface); border: 1px solid var(--hairline); }
 .pack-card small { color: var(--muted); font-size: .8rem; flex: 1; }
+.pack-odds { font-size: .7rem; font-weight: 700; color: var(--gold); line-height: 1.35; }
+.p-cult .pack-art { background: linear-gradient(150deg, #0f6b63, #1a0d2e); color: #ffb347; }
 .pack-card .btn { width: 100%; font-size: .85rem; padding: 9px 10px; }
 .pack-art {
   aspect-ratio: 3 / 4; border-radius: 12px; display: grid; place-items: center; font-weight: 900; text-transform: uppercase;
