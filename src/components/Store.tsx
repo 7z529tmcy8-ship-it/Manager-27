@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { play } from '../sound';
 import { ITEMS, PACKS, openPack, rarity, type PackResult } from '../game/club';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { motionReduced } from '../settings';
@@ -73,6 +74,16 @@ export function PackOpening({ name, result, onClose, onCollection }: { name: str
   const [phase, setPhase] = useState<Phase>('pack');
   const [step, setStep] = useState(0);
   const quick = motionReduced();
+
+  // Sounds zur Pack-Öffnung.
+  useEffect(() => {
+    if (phase === 'pack') play('packShake');
+    if (phase === 'walkout') play('walkout');
+    if (phase === 'reveal') play(special ? 'revealRare' : 'reveal');
+  }, [phase, special]);
+  useEffect(() => {
+    if (phase === 'walkout' && step > 0 && step <= 3) play('walkStep');
+  }, [phase, step]);
 
   useEffect(() => {
     if (phase === 'pack') {

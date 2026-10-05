@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { play } from '../sound';
 import { resolveFlirt, renameChild } from '../game/family';
 import type { Career } from '../game/types';
 import Confetti from './Confetti';
@@ -8,6 +9,10 @@ export default function LifePopups({ career, onChange, onFamily }: { career: Car
   const h = career.household;
   const birthChild = h?.birth ? h.children.find((c) => c.id === h.birth!.childId) : null;
   const [name, setName] = useState('');
+  const popup = birthChild ? `birth:${birthChild.id}` : h?.flirt ? 'flirt' : null;
+  useEffect(() => {
+    if (popup) play(popup === 'flirt' ? 'notify' : 'fanfare');
+  }, [popup]);
 
   if (birthChild) {
     const save = (openFamily: boolean) => {
@@ -21,7 +26,7 @@ export default function LifePopups({ career, onChange, onFamily }: { career: Car
         <div className="life-card birth">
           <div className="life-emoji" aria-hidden="true">👶</div>
           <h2 id="birth-title">Überraschung – du wirst Vater!</h2>
-          <p>Neun Monate nach der Party kommt die Nachricht aus Brasilien: Das Kind ist da. Ab jetzt triffst du in jeder Winterpause 5 Entscheidungen für seine Erziehung.</p>
+          <p>Neun Monate nach der Party kommt die Nachricht aus Brasilien: Das Kind ist da. Unter „Familie“ legst du fest, wie es aufwächst – Verein, Schule, Zocken, Essen.</p>
           <label>
             Wie soll das Kind heißen?
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder={birthChild.name} maxLength={20} />

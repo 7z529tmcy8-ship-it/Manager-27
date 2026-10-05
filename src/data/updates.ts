@@ -13,6 +13,18 @@ export const GREETING = 'An Alle Ayris die das spielen!';
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-05-sounds',
+    date: '05.10.2026',
+    title: 'Jetzt mit Sound 🔊',
+    items: [
+      '🔊 Das Spiel hat jetzt Sounds: Klicks, Münzen beim Verdienen, Kasse beim Ausgeben.',
+      '🎁 Pack-Öffnung mit Rascheln, Glitzer-Akkord und bei seltenen Karten einem Walkout mit Stadion-Grollen.',
+      '📯 Schiri-Pfiff zur Winterpause und zum Saisonende, Fanfare mit Jubel bei Titeln, Torjägerkanone und Ballon d’Or.',
+      '⭐ Eigene Sounds für Level-Up, neue Fähigkeiten, Wechsel, Durchbruch und Absturz.',
+      '⚙️ In den Einstellungen kannst du Sounds ausschalten und die Lautstärke wählen (leise, mittel, laut).',
+    ],
+  },
+  {
     id: '2026-10-05-backup-projekt',
     date: '05.10.2026',
     title: 'Sichern & Laden + das Leipzig-Projekt',

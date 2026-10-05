@@ -18,6 +18,7 @@ import {
   type Skill,
 } from '../game/skills';
 import { useState } from 'react';
+import { play } from '../sound';
 import type { Career } from '../game/types';
 
 /** Auswahl des Spielertyps (einmal pro Karriere). */
@@ -72,6 +73,7 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
 
   const learn = (id: string) => {
     setJust(id);
+    play('unlock');
     onChange(unlockSkill(career, id));
   };
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import CreateCareer from './components/CreateCareer';
 import CareerScreen from './components/CareerScreen';
 import Achievements from './components/Achievements';
@@ -12,7 +12,8 @@ import { UPDATES, type UpdateNote } from './data/updates';
 import { creditCareer } from './game/club';
 import { saveCareer } from './game/storage';
 import type { Career } from './game/types';
-import { getClubState, setClubState } from './clubStore';
+import { getClubState, setClubState, useClub } from './clubStore';
+import { installClickSound, play } from './sound';
 
 type Screen =
   | { name: 'home' }
@@ -34,6 +35,16 @@ export default function App() {
     const t = setTimeout(() => setToast(null), 3500);
     return () => clearTimeout(t);
   }, [toast]);
+
+  // Sounds: Klick bei jedem Knopf, Münzen beim Verdienen, Kasse beim Ausgeben.
+  useEffect(() => installClickSound(), []);
+  const coins = useClub().coins;
+  const lastCoins = useRef(coins);
+  useEffect(() => {
+    if (coins === lastCoins.current) return;
+    play(coins > lastCoins.current ? 'coin' : 'spend');
+    lastCoins.current = coins;
+  }, [coins]);
 
   // Update-Banner: erscheint einmal nach jedem neuen Update (und auf Wunsch über „Neuigkeiten“).
   const [news, setNews] = useState<UpdateNote[]>(unseenUpdates);

@@ -5,10 +5,14 @@ export interface AppSettings {
   theme: 'arena' | 'auto' | 'light' | 'dark';
   animations: boolean;
   casino: boolean;
+  /** Soundeffekte an/aus. */
+  sound: boolean;
+  /** Lautstärke 0–1. */
+  volume: number;
 }
 
 const KEY = 'fc-manager-settings';
-const DEFAULTS: AppSettings = { theme: 'arena', animations: true, casino: true };
+const DEFAULTS: AppSettings = { theme: 'arena', animations: true, casino: true, sound: true, volume: 0.6 };
 
 function load(): AppSettings {
   try {

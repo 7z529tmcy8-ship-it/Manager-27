@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Moment } from '../game/moments';
 import { motionReduced } from '../settings';
+import { play, type SoundId } from '../sound';
 import Confetti from './Confetti';
 
 const ICON: Record<Moment['kind'], string> = {
@@ -29,6 +30,12 @@ function Counter({ from, to }: { from: number; to: number }) {
 export default function MomentOverlay({ moments, onDone }: { moments: Moment[]; onDone: () => void }) {
   const [i, setI] = useState(0);
   const m = moments[i];
+  useEffect(() => {
+    const kind = moments[i]?.kind;
+    if (!kind) return;
+    const sound: Record<Moment['kind'], SoundId> = { scorer: 'fanfare', ballon: 'fanfare', title: 'fanfare', award: 'fanfare', transfer: 'transfer', rise: 'rise', fall: 'fall' };
+    play(sound[kind]);
+  }, [i, moments]);
   if (!m) return null;
   const next = () => (i + 1 < moments.length ? setI(i + 1) : onDone());
   const happy = m.kind !== 'fall';

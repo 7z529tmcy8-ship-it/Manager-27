@@ -3,6 +3,7 @@ import { DIFFICULTIES, setCareerSettings, settingsOf } from '../game/difficulty'
 import type { Career, Difficulty } from '../game/types';
 import { UNLOCK_KEY } from './PasswordGate';
 import { updateSettings, useSettings, type AppSettings } from '../settings';
+import { play } from '../sound';
 
 interface Props {
   /** Ohne Karriere (z. B. im Startmenü) gibt es nur die Geräte-Einstellungen. */
@@ -92,6 +93,15 @@ export default function Settings({ career, onChange, onClose }: Props) {
             onPick={(theme) => set({ theme })}
           />
           <Toggle label="Animationen" checked={app.animations} onToggle={() => set({ animations: !app.animations })} hint="Pack-Öffnung, Konfetti und Hochzählen." />
+          <Toggle label="Sounds" checked={app.sound} onToggle={() => { set({ sound: !app.sound }); if (!app.sound) setTimeout(() => play('coin'), 30); }} hint="Klicks, Coins, Pack-Öffnung, Pfiff, Fanfare bei Titeln." />
+          {app.sound && (
+            <Choice<string>
+              label="Lautstärke"
+              value={String(app.volume)}
+              options={[['0.3', 'Leise'], ['0.6', 'Mittel'], ['1', 'Laut']]}
+              onPick={(v) => { set({ volume: Number(v) }); setTimeout(() => play('coin'), 30); }}
+            />
+          )}
           <div className="setting setting-row">
             <span className="grow"><span className="setting-label">Passwort-Sperre</span></span>
             <button className="btn secondary small" onClick={lock}>Wieder sperren</button>

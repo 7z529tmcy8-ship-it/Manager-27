@@ -12,7 +12,8 @@ import { flagOf, nationCode } from '../data/flags';
 import { getClub, getLeague } from '../data/leagues';
 import { clubLeagueId, currentClubId, formatMoney, playerValue } from '../game/player';
 import { halfStats } from '../game/season';
-import { freePoints } from '../game/skills';
+import { freePoints, levelInfo } from '../game/skills';
+import { play } from '../sound';
 import { applyChoice, applyWinterChoice, choiceClub, seasonChoices, simulateToBreak, winterChoices, type Choice } from '../game/simple';
 import { STAGES_PER_HALF } from '../game/season';
 import type { Career, SeasonRecord } from '../game/types';
@@ -40,6 +41,12 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   const onChange = (next: Career) => {
     const found = detectMoments(career, next);
     if (found.length) setMoments(found);
+    else if (
+      (next.phase !== career.phase && ['winter', 'window', 'retired'].includes(next.phase)) ||
+      (next.coach?.history.length ?? 0) > (career.coach?.history.length ?? 0)
+    ) play('whistle'); // Halbzeit- bzw. Abpfiff
+    const lv = (c: Career) => (c.player.skills ? levelInfo(c.player.skills.xp).level : 0);
+    if (lv(next) > lv(career)) setTimeout(() => play('levelUp'), found.length ? 0 : 900);
     commit(next);
   };
   const p = career.player;
