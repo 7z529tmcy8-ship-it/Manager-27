@@ -461,6 +461,8 @@ export interface Household {
   /** Alle bisher verdienten Coins aus Kindern, Mieten und Dividenden (werden dem Club gutgeschrieben). */
   totalIncome: number;
   report?: YearReport | null;
+  /** Die Einladung kam schon (nur einmal pro Karriere). */
+  flirtUsed?: boolean;
   /** Offene Einladung zur After-Party (großes Pop-up). */
   flirt?: { text: string } | null;
   /** Gerade geborenes Kind (großes Pop-up). */

@@ -63,8 +63,9 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
 
         {children.length === 0 && (
           <p className="cs-sub">
-            Noch keine Kinder. Ab 22 wirst du in den Pausen manchmal von Brasilianerinnen zur After-Party eingeladen – und
-            manchmal hat so eine Nacht Folgen. Mit 18 kann dein Kind Profi werden und verdient dann Coins für dich.
+            {h?.flirtUsed
+              ? 'Keine Kinder – die einmalige Einladung hast du ausgeschlagen.'
+              : 'Noch keine Kinder. Ab 22 kann dich in einer Pause einmal eine Gruppe Brasilianerinnen zur After-Party einladen – mit Folgen. Mit 18 kann dein Kind Profi werden und verdient dann Coins für dich.'}
           </p>
         )}
 

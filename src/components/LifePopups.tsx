@@ -42,7 +42,7 @@ export default function LifePopups({ career, onChange, onFamily }: { career: Car
           <div className="life-emoji" aria-hidden="true">🇧🇷💃</div>
           <h2 id="flirt-title">Einladung zur After-Party</h2>
           <p>{h.flirt.text}</p>
-          <p className="muted">Wer mitgeht, riskiert Schlagzeilen – und manchmal kommt neun Monate später ein Baby.</p>
+          <p className="muted">Diese Einladung kommt nur ein einziges Mal. Wer mitgeht, riskiert Schlagzeilen – und neun Monate später kommt ein Baby.</p>
           <div className="life-btns">
             <button className="btn secondary big" onClick={() => onChange(resolveFlirt(career, false))}>🙅 Ablehnen</button>
             <button className="btn primary big" onClick={() => onChange(resolveFlirt(career, true))}>🍾 Mitgehen</button>

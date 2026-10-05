@@ -14,8 +14,8 @@ export const DECISIONS_PER_YEAR = 5;
 export const FATHER_MIN_AGE = 22;
 /** Chance pro Pause, zur After-Party eingeladen zu werden. */
 export const FLIRT_CHANCE = 0.25;
-/** Chance, dass aus der Nacht ein Kind wird. */
-export const BABY_CHANCE = 0.45;
+/** Chance, dass aus der Nacht ein Kind wird (die Einladung kommt nur einmal pro Karriere – wer mitgeht, wird Vater). */
+export const BABY_CHANCE = 1;
 /** Ab dieser Wertung mit 18 wird das Kind Profi. */
 export const PRO_MIN_OVR = 56;
 
@@ -267,9 +267,11 @@ const FLIRT_TEXTS = [
   'Beim Sponsorentermin schreibt dir eine brasilianische Influencerin: „Heute Abend Party bei mir – kommst du?“',
 ];
 
-/** In einer Pause: ab 22 gelegentlich die Einladung (großes Pop-up). */
+/** In einer Pause: ab 22 kann die Einladung kommen (großes Pop-up) – aber nur ein einziges Mal pro Karriere. */
 export function maybeFlirt(career: Career, roll: () => number = Math.random): void {
   const h = householdOf(career);
+  // Nur einmal pro Karriere (ältere Spielstände mit Kindern zählen als „schon passiert“).
+  if (h.flirtUsed || h.children.length > 0) return;
   if (fatherAge(career) < FATHER_MIN_AGE || h.children.length >= MAX_CHILDREN || h.flirt || h.birth) return;
   if (roll() < FLIRT_CHANCE) h.flirt = { text: pick(FLIRT_TEXTS) };
 }
@@ -296,7 +298,7 @@ export function newChild(career: Career, name?: string): Child {
 }
 
 /**
- * Antwort auf die Einladung. Wer mitgeht, wird mit 45 % Vater – und mit etwas Pech landen Fotos in der Presse.
+ * Antwort auf die Einladung. Wer mitgeht, wird Vater – und mit etwas Pech landen Fotos in der Presse.
  * Gibt eine Meldung zurück.
  */
 export function resolveFlirt(prev: Career, accept: boolean, roll: () => number = Math.random): Career {
@@ -304,6 +306,7 @@ export function resolveFlirt(prev: Career, accept: boolean, roll: () => number =
   const h = householdOf(career);
   if (!h.flirt) return prev;
   h.flirt = null;
+  h.flirtUsed = true;
   if (!accept) {
     h.report = { ...(h.report ?? { year: h.year, kidIncome: 0, rent: 0, dividends: 0, notes: [] }), notes: ['Du bist brav nach Hause gegangen.'] };
     career.updatedAt = Date.now();

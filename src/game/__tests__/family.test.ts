@@ -30,6 +30,13 @@ it('Einladung erst ab 22, Kind entsteht mit Pop-up und 5 Entscheidungen', () => 
   expect(kid.household!.pending).toHaveLength(DECISIONS_PER_YEAR);
   const no = resolveFlirt({ ...base(), household: { ...kid.household!, children: [], pending: [], flirt: { text: 'x' } } }, false);
   expect(no.household!.children).toHaveLength(0);
+  // Nur einmal pro Karriere: nach Annahme oder Ablehnung keine weitere Einladung.
+  maybeFlirt(no, always);
+  expect(no.household!.flirt).toBeFalsy();
+  const again = structuredClone(kid);
+  again.household!.birth = null;
+  maybeFlirt(again, always);
+  expect(again.household!.flirt).toBeFalsy();
 });
 
 it('Entscheidungen nur in der Winterpause, mit Kosten und Wirkung', () => {
