@@ -1405,3 +1405,31 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 @keyframes mo-sink { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes mo-drop { to { transform: translateY(120vh); } }
 .reduce-motion .moment *, .reduce-motion .moment { animation: none !important; }
+
+/* Trainer: ein Knopf für die Saison, Details aufklappbar */
+.coach-quick { font-size: 1.1rem; }
+.coach-more { margin-top: 14px; border: 1px solid var(--hairline); border-radius: 16px; padding: 10px 12px; }
+.coach-more summary { cursor: pointer; font-weight: 700; color: var(--muted); list-style: none; min-height: 28px; }
+.coach-more summary::-webkit-details-marker { display: none; }
+.coach-more[open] summary { margin-bottom: 8px; color: var(--text); }
+.coach-hist-title { margin: 22px 0 8px; font-size: 1.05rem; }
+
+/* Erziehungsregeln: einmal einstellen, wirken jedes Jahr */
+.fam-year { margin: 0 0 14px; }
+.fam-rules { margin-top: 14px; display: grid; gap: 10px; }
+.fam-rules-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.fam-rules-head h4 { margin: 0; font-size: 1rem; }
+.fam-rules-head small { color: var(--gold); font-weight: 700; }
+.fam-rules .muted { margin: -6px 0 2px; font-size: .8rem; }
+.fam-rule { display: grid; gap: 6px; padding: 10px; border-radius: 14px; background: rgba(127, 127, 127, .06); }
+.fam-rule.later { opacity: .6; }
+.fam-rule-name { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; }
+.fam-rule-name small { color: var(--muted); font-weight: 600; }
+.fam-seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.fam-seg button {
+  flex: 1 1 auto; min-height: 40px; padding: 8px 10px; border-radius: 12px; border: 1px solid var(--hairline);
+  background: var(--surface); color: var(--text); font: inherit; font-size: .82rem; cursor: pointer;
+}
+.fam-seg button.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; font-weight: 800; }
+.fam-seg button:disabled { opacity: .4; cursor: default; }
+.fam-effect { color: var(--muted); font-size: .75rem; }

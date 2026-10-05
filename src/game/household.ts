@@ -9,11 +9,13 @@ export function closeYear(career: Career): void {
   const h = householdOf(career);
   const kids = familyYear(career);
   const inv = investYear(career);
-  const total = kids.income + inv.rent + inv.dividends;
+  // Netto: Einnahmen minus Erziehungskosten (kann auch negativ sein).
+  const total = kids.income + inv.rent + inv.dividends - kids.costs;
   h.totalIncome += total;
   h.report = {
     year: h.year,
     kidIncome: kids.income,
+    kidCosts: kids.costs,
     rent: inv.rent,
     dividends: inv.dividends,
     notes: [...kids.notes, ...inv.notes],

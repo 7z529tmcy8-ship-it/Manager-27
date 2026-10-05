@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { slugify } from '../../data/leagues';
 import { createCareer, retire } from '../career';
 import { creditCareer, freshClub } from '../club';
-import { DECISIONS_PER_YEAR, TEMPLATES, canDecide, childAge, decide, getTemplate, maybeFlirt, ovrAt18, resolveFlirt } from '../family';
+import { RULES, childAge, maybeFlirt, ovrAt18, resolveFlirt, ruleOption, setRule, yearlyCost } from '../family';
 import { closeYear, restYear } from '../household';
 import { buyProperty, buyShares, sellShares, sharePrice } from '../invest';
 import { simulateToBreak } from '../simple';
@@ -17,7 +17,7 @@ function withChild(c: Career = base()): Career {
   return resolveFlirt({ ...c, household: h }, true, () => 0.3); // 0.3: kein Paparazzi (≥ 0.15), aber Baby (< 0.45)
 }
 
-it('Einladung erst ab 22, Kind entsteht mit Pop-up und 5 Entscheidungen', () => {
+it('Einladung erst ab 22, Kind entsteht mit Pop-up', () => {
   const young = base(20);
   maybeFlirt(young, always);
   expect(young.household?.flirt).toBeFalsy();
@@ -27,7 +27,6 @@ it('Einladung erst ab 22, Kind entsteht mit Pop-up und 5 Entscheidungen', () => 
   const kid = withChild();
   expect(kid.household!.children).toHaveLength(1);
   expect(kid.household!.birth?.childId).toBe(kid.household!.children[0].id);
-  expect(kid.household!.pending).toHaveLength(DECISIONS_PER_YEAR);
   const no = resolveFlirt({ ...base(), household: { ...kid.household!, children: [], pending: [], flirt: { text: 'x' } } }, false);
   expect(no.household!.children).toHaveLength(0);
   // Nur einmal pro Karriere: nach Annahme oder Ablehnung keine weitere Einladung.
@@ -39,37 +38,34 @@ it('Einladung erst ab 22, Kind entsteht mit Pop-up und 5 Entscheidungen', () => 
   expect(again.household!.flirt).toBeFalsy();
 });
 
-it('Entscheidungen nur in der Winterpause, mit Kosten und Wirkung', () => {
+it('Erziehungsregeln: einmal einstellen, wirken jedes Jahr, kosten jährlich, Altersgrenzen', () => {
   let c = withChild();
-  expect(canDecide(c)).toBe(false); // mitten in der Saison
-  c = simulateToBreak(c);
-  expect(c.phase).toBe('winter');
-  const before = c.household!.children[0].stats;
-  const idx = 0;
-  const t = getTemplate(c.household!.pending[idx].templateId);
-  const optIndex = t.options.findIndex((o) => !o.cost);
-  const r = decide(c, idx, optIndex, 0);
-  const after = r.career.household!.children[0].stats;
-  const eff = t.options[optIndex].effects;
-  // Richtung stimmt; positive Schritte werden bei hohen Werten kleiner (abnehmender Ertrag).
-  for (const [k, v] of Object.entries(eff)) {
-    const key = k as keyof typeof after;
-    if ((v as number) > 0) expect(after[key]).toBeGreaterThan(before[key]);
-    else if (before[key] > 0) expect(after[key]).toBeLessThan(before[key]);
-    expect(after[key]).toBeLessThanOrEqual(before[key] + Math.max(0, v as number));
-  }
-  expect(decide(r.career, idx, 0, 0).career).toBe(r.career); // schon entschieden
-  const paid = TEMPLATES.find((x) => x.options.some((o) => o.cost))!;
-  expect(paid.options.some((o) => (o.cost ?? 0) > 0)).toBe(true);
+  const kid = () => c.household!.children[0];
+  const club = RULES.find((r) => r.id === 'club')!;
+  expect(ruleOption(kid(), club).id).toBe('none'); // Standard
+  c = setRule(c, kid().id, 'club', 'academy');
+  expect(ruleOption(kid(), club).id).toBe('academy');
+  expect(setRule(c, kid().id, 'club', 'boarding')).toBe(c); // Internat erst ab 12
+  // Alter 6: Verein wirkt jedes Jahr, ohne dass man etwas tun muss.
+  kid().bornYear = c.household!.year - 6;
+  expect(yearlyCost(c.household!, kid())).toBeGreaterThanOrEqual(500);
+  const tech = kid().stats.technique;
+  closeYear(c);
+  closeYear(c);
+  expect(kid().stats.technique).toBeGreaterThan(tech + 6);
+  expect(c.household!.report!.kidCosts).toBeGreaterThanOrEqual(500);
+  expect(c.household!.pending).toHaveLength(0); // keine Pflicht-Entscheidungen mehr
+  // Kosten werden mit dem Club verrechnet.
+  const paid = creditCareer({ ...freshClub(), coins: 10_000 }, c);
+  expect(paid.club.coins).toBeLessThan(10_000);
 });
 
-it('Jahreswechsel: Kind altert, neue Entscheidungen; Profi verdient Coins, die im Club landen', () => {
+it('Jahreswechsel: Kind altert; Profi verdient Coins, die im Club landen', () => {
   let c = withChild();
   c = simulateToBreak(simulateToBreak(c)); // eine Saison
   const h = c.household!;
   expect(h.year).toBe(1);
   expect(childAge(h, h.children[0])).toBe(1);
-  expect(h.pending.length).toBe(DECISIONS_PER_YEAR);
   // Kind künstlich auf 17 setzen und stark machen → wird Profi und verdient.
   const kid = h.children[0];
   kid.bornYear = h.year - 17;
@@ -108,6 +104,9 @@ it('Ruhestand: ein Jahr vergehen lassen; Investitionen kaufen, Dividenden, verka
   expect(sold.career.household!.shares).toHaveLength(0);
 });
 
-it('Für jedes Alter von 0 bis 17 gibt es mindestens 5 Entscheidungen', () => {
-  for (let a = 0; a <= 17; a++) expect(TEMPLATES.filter((t) => a >= t.ages[0] && a <= t.ages[1]).length, `Alter ${a}`).toBeGreaterThanOrEqual(DECISIONS_PER_YEAR);
+it('Jede Regel hat einen gültigen Standard, Options-IDs sind eindeutig', () => {
+  for (const r of RULES) {
+    expect(r.options.some((o) => o.id === r.default)).toBe(true);
+    expect(new Set(r.options.map((o) => o.id)).size).toBe(r.options.length);
+  }
 });

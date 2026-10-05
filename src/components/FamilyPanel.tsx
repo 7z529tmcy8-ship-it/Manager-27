@@ -1,14 +1,15 @@
 import { getClub } from '../data/leagues';
-import { getClubState, setClubState, useClub } from '../clubStore';
+import { useClub } from '../clubStore';
 import {
+  RULES,
   STAT_LABELS,
-  canDecide,
   characterTags,
   childAge,
-  decide,
-  getTemplate,
   kidWage,
-  type ChoiceOption,
+  ruleOption,
+  setRule,
+  yearlyCost,
+  type RuleOption,
 } from '../game/family';
 import { restYear } from '../game/household';
 import type { Career, Child, ChildStats } from '../game/types';
@@ -19,30 +20,23 @@ const STATUS: Record<Child['status'], string> = {
   kid: 'Kind', pro: '⚽ Fußballprofi', amateur: 'Kein Profi', retired: 'Karriere beendet',
 };
 
-/** Kurzer Text zur Wirkung einer Option, z. B. „+4 Technik · −2 Disziplin“. */
-function effectText(o: ChoiceOption): string {
+/** Kurzer Text zur Wirkung pro Jahr, z. B. „+4 Technik · −2 Disziplin“. */
+function effectText(o: RuleOption): string {
   return (Object.entries(o.effects) as [keyof ChildStats, number][])
     .map(([k, v]) => `${v > 0 ? '+' : '−'}${Math.abs(v)} ${STAT_LABELS[k]}`)
     .join(' · ');
 }
 
-/** Familie als Vollbild-Ebene: Kinder, ihre Werte und die Erziehungsentscheidungen des Jahres. */
+/**
+ * Familie als Vollbild-Ebene: Kinder, ihre Werte und die Erziehungsregeln.
+ * Regeln stellt man einmal ein – sie wirken jedes Jahr automatisch, bis man sie ändert.
+ */
 export default function FamilyPanel({ career, onChange, onClose }: { career: Career; onChange: (c: Career) => void; onClose: () => void }) {
   const club = useClub();
   const h = career.household;
   const children = h?.children ?? [];
-  const allowed = canDecide(career);
   const idle = career.phase === 'retired' && (!career.coach || career.coach.phase === 'done');
   const report = h?.report;
-
-  const choose = (index: number, option: number) => {
-    const res = decide(career, index, option, getClubState().coins);
-    if (res.cost) {
-      const c = getClubState();
-      setClubState({ ...c, coins: c.coins - res.cost });
-    }
-    onChange(res.career);
-  };
 
   return (
     <div className="overlay fam-overlay" role="dialog" aria-modal="true" aria-label="Familie">
@@ -53,11 +47,18 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
         </header>
         <h2 className="fam-title">👨‍👧 Familie</h2>
 
-        {report && (report.kidIncome > 0 || report.notes.length > 0) && (
+        {idle && children.length > 0 && (
+          <button className="btn primary big cs-go fam-year" onClick={() => onChange(restYear(career))}>
+            ▶ Ein Jahr vergehen lassen
+          </button>
+        )}
+
+        {report && (report.kidIncome > 0 || (report.kidCosts ?? 0) > 0 || report.notes.some((n) => !/^[📉📈🏆]/u.test(n))) && (
           <div className="fam-report">
-            <strong>Jahresbilanz</strong>
-            {report.kidIncome > 0 && <span>Einnahmen deiner Kinder: +{fmt(report.kidIncome)} 🪙</span>}
-            {report.notes.filter((n) => !n.startsWith('📉') && !n.startsWith('📈') && !n.startsWith('🏆')).map((n) => <span key={n}>{n}</span>)}
+            <strong>Letztes Jahr</strong>
+            {report.kidIncome > 0 && <span>Gehalt deiner Kinder: +{fmt(report.kidIncome)} 🪙</span>}
+            {(report.kidCosts ?? 0) > 0 && <span>Kosten für Verein, Training & Co.: −{fmt(report.kidCosts!)} 🪙</span>}
+            {report.notes.filter((n) => !/^[📉📈🏆]/u.test(n)).map((n) => <span key={n}>{n}</span>)}
           </div>
         )}
 
@@ -72,7 +73,7 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
         {children.map((child) => {
           const age = childAge(h!, child);
           const tags = characterTags(child);
-          const pending = (h!.pending ?? []).map((p, i) => ({ p, i })).filter(({ p }) => p.childId === child.id);
+          const cost = yearlyCost(h!, child);
           return (
             <section key={child.id} className="fam-child">
               <div className="fam-child-head">
@@ -90,63 +91,65 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
               {tags.length > 0 && <div className="fam-tags">{tags.map((t) => <span key={t}>{t}</span>)}</div>}
 
               {child.status === 'kid' && (
-                <ul className="fam-stats">
-                  {(Object.keys(STAT_LABELS) as (keyof ChildStats)[]).map((k) => (
-                    <li key={k}>
-                      <span>{STAT_LABELS[k]}</span>
-                      <span className="fam-bar"><i style={{ width: `${child.stats[k]}%` }} className={k === 'happiness' && child.stats[k] < 40 ? 'low' : ''} /></span>
-                      <b>{Math.round(child.stats[k])}</b>
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  <ul className="fam-stats">
+                    {(Object.keys(STAT_LABELS) as (keyof ChildStats)[]).map((k) => (
+                      <li key={k}>
+                        <span>{STAT_LABELS[k]}</span>
+                        <span className="fam-bar"><i style={{ width: `${child.stats[k]}%` }} className={k === 'happiness' && child.stats[k] < 40 ? 'low' : ''} /></span>
+                        <b>{Math.round(child.stats[k])}</b>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="fam-rules">
+                    <div className="fam-rules-head">
+                      <h4>Erziehung</h4>
+                      <small>{cost > 0 ? `Kosten: ${fmt(cost)} 🪙 pro Jahr` : 'kostenlos'}</small>
+                    </div>
+                    <p className="muted">Einmal einstellen – wirkt jedes Jahr automatisch, bis du es änderst.</p>
+                    {RULES.map((rule) => {
+                      const active = age >= rule.minAge && age <= (rule.maxAge ?? 17);
+                      const current = ruleOption(child, rule);
+                      return (
+                        <div key={rule.id} className={`fam-rule ${active ? '' : 'later'}`}>
+                          <div className="fam-rule-name">
+                            <span>{rule.icon} {rule.name}</span>
+                            {!active && <small>{age < rule.minAge ? `ab ${rule.minAge} Jahren` : 'vorbei'}</small>}
+                          </div>
+                          <div className="fam-seg" role="radiogroup" aria-label={rule.name}>
+                            {rule.options.map((o) => {
+                              const locked = o.minAge !== undefined && age < o.minAge;
+                              return (
+                                <button
+                                  key={o.id}
+                                  role="radio"
+                                  aria-checked={current.id === o.id}
+                                  className={current.id === o.id ? 'on' : ''}
+                                  disabled={locked}
+                                  onClick={() => onChange(setRule(career, child.id, rule.id, o.id))}
+                                  title={locked ? `ab ${o.minAge} Jahren` : effectText(o)}
+                                >
+                                  {o.label}{o.cost ? ` · ${fmt(o.cost)} 🪙` : ''}{locked ? ` (ab ${o.minAge})` : ''}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <small className="fam-effect">Pro Jahr: {effectText(current) || 'keine Wirkung'}</small>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
               )}
               {child.earned > 0 && <p className="cs-sub">Bisher verdient: {fmt(child.earned)} 🪙</p>}
 
-              {pending.length > 0 && (
-                <div className="fam-choices">
-                  <h4>Entscheidungen dieses Jahr ({pending.filter(({ p }) => p.chosen !== undefined).length}/{pending.length})</h4>
-                  {!allowed && <p className="muted">Entscheidungen triffst du in der Winterpause{career.phase === 'retired' ? ' deiner Trainersaison' : ''}.</p>}
-                  {pending.map(({ p, i }) => {
-                    const t = getTemplate(p.templateId);
-                    return (
-                      <div key={`${p.templateId}-${i}`} className={`fam-q ${p.chosen !== undefined ? 'done' : ''}`}>
-                        <strong>{t.icon} {t.question}</strong>
-                        <div className="fam-opts">
-                          {t.options.map((o, j) => {
-                            const picked = p.chosen === j;
-                            const afford = (o.cost ?? 0) <= club.coins;
-                            return (
-                              <button
-                                key={o.label}
-                                className={`fam-opt ${picked ? 'on' : ''}`}
-                                disabled={!allowed || p.chosen !== undefined || !afford}
-                                onClick={() => choose(i, j)}
-                              >
-                                <span>{picked ? '✓ ' : ''}{o.label}</span>
-                                <small>{effectText(o) || 'keine Wirkung'}{o.cost ? ` · 🪙 ${fmt(o.cost)}` : ''}</small>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <p className="muted">Offen gelassene Entscheidungen kosten am Jahresende Zufriedenheit.</p>
-                </div>
-              )}
-
               {child.log.length > 0 && (
-                <ul className="fam-log">{child.log.slice(0, 3).map((l, k) => <li key={k}>{l}</li>)}</ul>
+                <ul className="fam-log">{child.log.slice(0, 4).map((l, k) => <li key={k}>{l}</li>)}</ul>
               )}
             </section>
           );
         })}
-
-        {idle && (
-          <button className="btn primary big cs-go" onClick={() => onChange(restYear(career))}>
-            Ein Jahr vergehen lassen ⏭️
-          </button>
-        )}
       </div>
     </div>
   );

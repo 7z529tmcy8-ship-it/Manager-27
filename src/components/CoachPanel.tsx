@@ -12,6 +12,8 @@ import {
   expectedPosition,
   livePosition,
   playCoachHalf,
+  quickCoachLabel,
+  quickCoachSeason,
   setTactic,
   signTarget,
   signingBoost,
@@ -68,6 +70,66 @@ export default function CoachPanel({ career, onChange, onExit }: { career: Caree
         </div>
       </div>
 
+      <section className="cs-window">
+        {coach.note && <p className={`cs-note ${coach.note.startsWith('Entlassen') ? 'bad' : 'good'}`}>{coach.note}</p>}
+
+        {coach.phase !== 'done' && (
+          <>
+            <button className="btn primary big cs-go coach-quick" onClick={() => onChange(quickCoachSeason(career))}>
+              {quickCoachLabel(career)}
+            </button>
+            {coach.phase === 'prep' && (
+              <button className="btn secondary small cs-go" onClick={() => onChange(playCoachHalf(career))}>Nur bis zur Winterpause</button>
+            )}
+            <details className="coach-more" open={coach.phase === 'winter'}>
+              <summary>⚙️ Selbst steuern{coach.phase === 'choose' ? ': Verein wählen' : coach.phase === 'winter' ? ': Winter-Entscheidung, Taktik, Transfers' : ': Taktik und Transfers'}</summary>
+          {coach.phase === 'choose' && (
+            <>
+              <h2>{coach.history.length ? 'Sommerpause' : 'Erste Trainerstation'}</h2>
+              <p className="cs-sub">Wähle deinen Verein für die nächste Saison.</p>
+              <div className={`cs-choices n${Math.min(3, options.length)}`}>
+                {options.slice(0, 3).map((id) => {
+                  const stay = id === coach.clubId;
+                  return (
+                    <button key={id} className={`cs-choice ${stay ? 'k-stay' : 'k-transfer'} ${picked === id ? 'on' : ''}`} onClick={() => setPicked(id)} aria-pressed={picked === id}>
+                      <small>{stay ? 'Bleiben' : 'Angebot'}</small>
+                      <strong>{getClub(id).name}</strong>
+                      <span className="cs-choice-league">{getLeague(clubLeagueId(career, id)).name}</span>
+                      <span className="cs-choice-meta">
+                        Kaderstärke {Math.round(clubStrength(career, id))}
+                        <br />Ziel: Platz {expectedPosition(career, id)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <button className="btn primary big cs-go" disabled={!picked} onClick={confirm}>
+                {picked ? `${getClub(picked).name} übernehmen` : 'Verein wählen'}
+              </button>
+            </>
+          )}
+
+          {coach.phase === 'season' && !coach.live && coach.clubId && (
+            <button className="btn primary big cs-go" onClick={() => onChange(setTactic(career, 'balanced'))}>Zur Saisonvorbereitung</button>
+          )}
+
+          {(coach.phase === 'prep' || coach.phase === 'winter') && coach.clubId && coach.live && (
+            <CoachSeasonView career={career} onChange={onChange} />
+          )}
+            </details>
+          </>
+        )}
+
+        {coach.phase === 'done' ? (
+          <button className="btn primary big cs-go" onClick={onExit}>Zum Hauptmenü</button>
+        ) : (
+          <button className="btn secondary small cs-go" onClick={() => window.confirm('Trainerkarriere beenden?') && onChange(endCoaching(career))}>
+            In den Ruhestand
+          </button>
+        )}
+      </section>
+
+      {coach.history.length > 0 && <h3 className="coach-hist-title">Trainerstationen</h3>}
       {coach.history.length > 0 && (
         <div className="cs-table" role="table" aria-label="Trainerstationen">
           <div className="cs-row cs-th" role="row">
@@ -91,51 +153,6 @@ export default function CoachPanel({ career, onChange, onExit }: { career: Caree
         </div>
       )}
 
-      <section className="cs-window">
-        {coach.note && <p className={`cs-note ${coach.note.startsWith('Entlassen') ? 'bad' : 'good'}`}>{coach.note}</p>}
-
-        {coach.phase === 'choose' && (
-          <>
-            <h2>{coach.history.length ? 'Sommerpause' : 'Erste Trainerstation'}</h2>
-            <p className="cs-sub">Wähle deinen Verein für die nächste Saison.</p>
-            <div className={`cs-choices n${Math.min(3, options.length)}`}>
-              {options.slice(0, 3).map((id) => {
-                const stay = id === coach.clubId;
-                return (
-                  <button key={id} className={`cs-choice ${stay ? 'k-stay' : 'k-transfer'} ${picked === id ? 'on' : ''}`} onClick={() => setPicked(id)} aria-pressed={picked === id}>
-                    <small>{stay ? 'Bleiben' : 'Angebot'}</small>
-                    <strong>{getClub(id).name}</strong>
-                    <span className="cs-choice-league">{getLeague(clubLeagueId(career, id)).name}</span>
-                    <span className="cs-choice-meta">
-                      Kaderstärke {Math.round(clubStrength(career, id))}
-                      <br />Ziel: Platz {expectedPosition(career, id)}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            <button className="btn primary big cs-go" disabled={!picked} onClick={confirm}>
-              {picked ? `${getClub(picked).name} übernehmen` : 'Verein wählen'}
-            </button>
-          </>
-        )}
-
-        {coach.phase === 'season' && !coach.live && coach.clubId && (
-          <button className="btn primary big cs-go" onClick={() => onChange(setTactic(career, 'balanced'))}>Zur Saisonvorbereitung</button>
-        )}
-
-        {(coach.phase === 'prep' || coach.phase === 'winter') && coach.clubId && coach.live && (
-          <CoachSeasonView career={career} onChange={onChange} />
-        )}
-
-        {coach.phase === 'done' ? (
-          <button className="btn primary big cs-go" onClick={onExit}>Zum Hauptmenü</button>
-        ) : (
-          <button className="btn secondary small cs-go" onClick={() => window.confirm('Trainerkarriere beenden?') && onChange(endCoaching(career))}>
-            In den Ruhestand
-          </button>
-        )}
-      </section>
     </>
   );
 }

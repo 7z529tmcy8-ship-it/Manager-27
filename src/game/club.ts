@@ -250,7 +250,8 @@ export function creditCareer(
   // Familie und Vermögen: Einnahmen aus Kindern, Mieten und Dividenden.
   const hhKey = `${career.id}:hh`;
   const hhTotal = career.household?.totalIncome ?? 0;
-  const hhFresh = Math.max(0, hhTotal - (club.credited[hhKey] ?? 0));
+  // Kann negativ sein, wenn die Erziehung mehr kostet als Kinder und Vermögen einbringen.
+  const hhFresh = hhTotal - (club.credited[hhKey] ?? 0);
   gained += hhFresh;
 
   const icon = career.phase === 'retired' && career.history.length && !club.specials.some((c) => c.id === iconId(career))
@@ -260,7 +261,7 @@ export function creditCareer(
   return {
     club: {
       ...club,
-      coins: club.coins + gained,
+      coins: Math.max(0, club.coins + gained),
       specials: icon ? [...club.specials, icon] : club.specials,
       credited: { ...club.credited, [career.id]: career.history.length, [coachKey]: coachSeasons.length, [hhKey]: hhTotal },
     },

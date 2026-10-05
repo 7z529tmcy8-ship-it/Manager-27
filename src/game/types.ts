@@ -404,6 +404,8 @@ export interface Child {
   /** Gewohnheiten, z. B. wie oft gezockt oder Fastfood gegessen wurde. */
   habits: Record<string, number>;
   status: 'kid' | 'pro' | 'amateur' | 'retired';
+  /** Erziehungsregeln (Regel → gewählte Option), wirken jedes Jahr. */
+  rules?: Partial<Record<import('./family').RuleId, string>>;
   ovr?: number;
   potential?: number;
   clubId?: string;
@@ -445,6 +447,8 @@ export interface ShareHolding {
 export interface YearReport {
   year: number;
   kidIncome: number;
+  /** Kosten der Erziehung (Verein, Nachhilfe …). */
+  kidCosts?: number;
   rent: number;
   dividends: number;
   notes: string[];

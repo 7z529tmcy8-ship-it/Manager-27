@@ -7,7 +7,6 @@ import InvestPanel from './InvestPanel';
 import LifePopups from './LifePopups';
 import MomentOverlay from './MomentOverlay';
 import { detectMoments, type Moment } from '../game/moments';
-import { canDecide, openDecisions } from '../game/family';
 import SkillTree, { ArchetypePicker, LevelChip } from './SkillTree';
 import { flagOf, nationCode } from '../data/flags';
 import { getClub, getLeague } from '../data/leagues';
@@ -50,7 +49,6 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   const [tree, setTree] = useState(false);
   const [full, setFull] = useState(false);
   const [panel, setPanel] = useState<'family' | 'invest' | null>(null);
-  const familyOpen = canDecide(career) ? openDecisions(career).length : 0;
   const kids = career.household?.children.length ?? 0;
   const shown = full ? career.history : career.history.slice(-COLLAPSED);
   const hidden = career.history.length - shown.length;
@@ -110,7 +108,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           </div>
           <div className="cs-club">{retired ? (career.coach ? 'Trainer' : 'Karriere beendet') : getClub(clubId).name}</div>
           <div className="cs-head-row">
-            <span className="cs-league">{retired ? `${career.history.length} Saisons` : getLeague(clubLeagueId(career, clubId)).name}{p.loan ? ' · Leihe' : ''}</span>
+            <span className="cs-league">{retired ? `${career.history.length} ${career.history.length === 1 ? 'Saison' : 'Saisons'}` : getLeague(clubLeagueId(career, clubId)).name}{p.loan ? ' · Leihe' : ''}</span>
             <span className="cs-value"><small>Wert</small> {money(playerValue(p))}</span>
           </div>
         </div>
@@ -120,7 +118,6 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       <div className="cs-life">
         <button className="cs-life-btn" onClick={() => setPanel('family')}>
           👨‍👧 Familie{kids ? ` (${kids})` : ''}
-          {familyOpen > 0 && <b>{familyOpen} offen</b>}
         </button>
         <button className="cs-life-btn" onClick={() => setPanel('invest')}>💼 Vermögen</button>
       </div>
@@ -183,11 +180,6 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
                     <button className="btn secondary big cs-go" onClick={confirm}>{choices[picked].title} bestätigen</button>
                   )}
                 </>
-              )}
-              {familyOpen > 0 && (
-                <button className="cs-family-call" onClick={() => setPanel('family')}>
-                  👨‍👧 {familyOpen} Erziehungsentscheidungen für {kids === 1 ? career.household!.children[0].name : 'deine Kinder'} offen →
-                </button>
               )}
               <ScorerRace career={career} />
               <VicePanel career={career} onChange={onChange} />

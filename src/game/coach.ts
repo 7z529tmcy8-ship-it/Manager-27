@@ -154,8 +154,9 @@ function newSeason(career: Career, clubId: string): CoachLive {
   for (const club of CLUBS) strength[club.id] = clubStrength(career, club.id) + normal(0, 1.2);
   const rows: Record<string, TableRow[]> = {};
   for (const l of LEAGUES) rows[l.id] = CLUBS.filter((c) => clubLeagueId(career, c.id) === l.id).map((c) => emptyRow(c.id));
+  const last = career.coach?.history[career.coach.history.length - 1];
   return {
-    tactic: 'balanced',
+    tactic: last?.tactic ?? 'balanced', // Taktik der Vorsaison bleibt erhalten
     boost: 0,
     budget: budgetFor(clubStrength(career, clubId)),
     targets: transferTargets(career, clubId),
@@ -418,4 +419,33 @@ export function coachSummary(coach: CoachState) {
     promotions: coach.history.filter((s) => s.trophies.some((t) => t.startsWith('Aufstieg') || t.includes('Aufstieg'))).length,
     clubs: [...new Set(coach.history.map((s) => s.clubId))].length,
   };
+}
+
+/**
+ * Ein Klick für die ganze nächste Saison: beim Verein bleiben (bzw. nach einer Entlassung das beste Angebot),
+ * aktuelle Taktik behalten, Hin- und Rückrunde spielen. Für alle, die nicht jedes Detail steuern wollen.
+ */
+export function quickCoachSeason(prev: Career): Career {
+  let c = prev;
+  const coach = c.coach;
+  if (!coach || coach.phase === 'done') return prev;
+  if (coach.phase === 'choose') {
+    const club = coach.clubId ?? coach.offers[0];
+    if (!club) return prev;
+    c = chooseCoachClub(c, club);
+  }
+  if (c.coach!.phase === 'season' && !c.coach!.live) c = setTactic(c, 'balanced'); // alter Spielstand ohne Vorbereitung
+  for (let i = 0; i < 2 && (c.coach!.phase === 'prep' || c.coach!.phase === 'winter' || c.coach!.phase === 'season'); i++) {
+    c = playCoachHalf(c);
+  }
+  return c;
+}
+
+/** Text für den großen Knopf. */
+export function quickCoachLabel(career: Career): string {
+  const coach = career.coach;
+  if (!coach) return '';
+  if (coach.phase === 'winter') return '▶ Rückrunde spielen';
+  if (coach.phase === 'choose' && !coach.clubId && coach.offers[0]) return `▶ ${getClub(coach.offers[0]).name} übernehmen & Saison spielen`;
+  return '▶ Nächste Saison spielen';
 }
