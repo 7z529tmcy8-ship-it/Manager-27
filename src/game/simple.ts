@@ -5,6 +5,8 @@ import { clubStrength } from './player';
 import { STAGES_PER_HALF, halfStats } from './season';
 import { grantXp, levelInfo, xpFor, xpForSeason } from './skills';
 import { coolDownScandal } from './vices';
+import { maybeFlirt } from './family';
+import { closeYear } from './household';
 import type { Career, Offer } from './types';
 
 // Vereinfachter Spielablauf: immer bis zur nächsten Pause simulieren (Winterpause, dann Saisonende),
@@ -30,9 +32,12 @@ function withXp(c: Career): Career {
   const career: Career = structuredClone(c);
   coolDownScandal(career);
   career.viceNote = null;
+  const winter = career.phase === 'winter' && career.progress;
+  // Familie und Vermögen: Jahresabschluss nach jeder Saison, in jeder Pause evtl. eine Einladung.
+  if (!winter) closeYear(career);
+  if (career.phase !== 'retired') maybeFlirt(career);
   if (!career.player.skills) return career;
   const p = career.player;
-  const winter = career.phase === 'winter' && career.progress;
   const last = career.history[career.history.length - 1];
   const total = winter ? xpFor(halfStats(career.progress!.matches), p.position) : last ? xpForSeason(last, p.position) : 0;
   const { gained, levels } = grantXp(career, total, !winter);

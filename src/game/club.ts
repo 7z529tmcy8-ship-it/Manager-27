@@ -247,16 +247,22 @@ export function creditCareer(
   const coachFresh = coachSeasons.slice(club.credited[coachKey] ?? 0);
   for (const s of coachFresh) gained += coachCoins(s);
 
+  // Familie und Vermögen: Einnahmen aus Kindern, Mieten und Dividenden.
+  const hhKey = `${career.id}:hh`;
+  const hhTotal = career.household?.totalIncome ?? 0;
+  const hhFresh = Math.max(0, hhTotal - (club.credited[hhKey] ?? 0));
+  gained += hhFresh;
+
   const icon = career.phase === 'retired' && career.history.length && !club.specials.some((c) => c.id === iconId(career))
     ? careerIcon(career)
     : null;
-  if (!fresh.length && !coachFresh.length && !icon) return { club, gained: 0, seasons: 0, icon: null };
+  if (!fresh.length && !coachFresh.length && !icon && !hhFresh) return { club, gained: 0, seasons: 0, icon: null };
   return {
     club: {
       ...club,
       coins: club.coins + gained,
       specials: icon ? [...club.specials, icon] : club.specials,
-      credited: { ...club.credited, [career.id]: career.history.length, [coachKey]: coachSeasons.length },
+      credited: { ...club.credited, [career.id]: career.history.length, [coachKey]: coachSeasons.length, [hhKey]: hhTotal },
     },
     gained,
     seasons: fresh.length + coachFresh.length,

@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 import CoachPanel from './CoachPanel';
 import ScorerRace from './ScorerRace';
 import VicePanel from './VicePanel';
+import FamilyPanel from './FamilyPanel';
+import InvestPanel from './InvestPanel';
+import LifePopups from './LifePopups';
+import { canDecide, openDecisions } from '../game/family';
 import SkillTree, { ArchetypePicker, LevelChip } from './SkillTree';
 import { flagOf, nationCode } from '../data/flags';
 import { getClub, getLeague } from '../data/leagues';
@@ -36,6 +40,9 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
   const [open, setOpen] = useState<string | null>(null);
   const [tree, setTree] = useState(false);
   const [full, setFull] = useState(false);
+  const [panel, setPanel] = useState<'family' | 'invest' | null>(null);
+  const familyOpen = canDecide(career) ? openDecisions(career).length : 0;
+  const kids = career.household?.children.length ?? 0;
   const shown = full ? career.history : career.history.slice(-COLLAPSED);
   const hidden = career.history.length - shown.length;
   // Neue Phase (Winterpause, Sommer, neue Saison): zurück nach oben zu den Entscheidungen.
@@ -72,6 +79,9 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
         <LevelChip career={career} onOpen={() => setTree(true)} />
       </div>
       {tree && p.skills && <SkillTree career={career} onChange={onChange} onClose={() => setTree(false)} />}
+      {panel === 'family' && <FamilyPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
+      {panel === 'invest' && <InvestPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
+      <LifePopups career={career} onChange={onChange} onFamily={() => setPanel('family')} />
 
       {/* Kopf: Wertung, Nation, Position, Alter, Verein, Marktwert */}
       <header className="cs-head">
@@ -92,6 +102,15 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
           </div>
         </div>
       </header>
+
+      {/* Familie und Vermögen */}
+      <div className="cs-life">
+        <button className="cs-life-btn" onClick={() => setPanel('family')}>
+          👨‍👧 Familie{kids ? ` (${kids})` : ''}
+          {familyOpen > 0 && <b>{familyOpen} offen</b>}
+        </button>
+        <button className="cs-life-btn" onClick={() => setPanel('invest')}>💼 Vermögen</button>
+      </div>
 
       {/* Aktion */}
       {needType && <ArchetypePicker career={career} onChange={onChange} />}
@@ -151,6 +170,11 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
                     <button className="btn secondary big cs-go" onClick={confirm}>{choices[picked].title} bestätigen</button>
                   )}
                 </>
+              )}
+              {familyOpen > 0 && (
+                <button className="cs-family-call" onClick={() => setPanel('family')}>
+                  👨‍👧 {familyOpen} Erziehungsentscheidungen für {kids === 1 ? career.household!.children[0].name : 'deine Kinder'} offen →
+                </button>
               )}
               <ScorerRace career={career} />
               <VicePanel career={career} onChange={onChange} />

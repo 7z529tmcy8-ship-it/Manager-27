@@ -10,7 +10,8 @@ const caught = () => 0; // Zufall: immer erwischt
 const lucky = () => 0.99; // Zufall: nie erwischt
 
 it('Eine Aktion pro Pause, Doping nur im Sommer', () => {
-  const c = winter();
+  const w = winter();
+  const c = { ...w, player: { ...w.player, morale: 0 } }; // fester Startwert, damit das Vertrauen steigen kann
   expect(c.phase).toBe('winter');
   expect(canDoVice(c, 'doping')).toBe(false);
   const r = doVice(c, 'party', lucky);

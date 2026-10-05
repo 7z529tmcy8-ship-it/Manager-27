@@ -1284,3 +1284,76 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .cs-more > span:first-child { display: none; }
 .cs-choice small { overflow-wrap: anywhere; }
 @media (max-width: 480px) { .cs-choice small { letter-spacing: .03em; font-size: .6rem; } }
+
+/* ---------- Familie & Vermögen ---------- */
+.cs-life { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0 0; }
+.cs-life-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 8px 12px;
+  border-radius: 14px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); font: inherit; font-weight: 700; cursor: pointer;
+}
+.cs-life-btn b { background: var(--gold); color: #1a1300; border-radius: 99px; padding: 1px 8px; font-size: .72rem; }
+.cs-family-call {
+  display: block; width: 100%; margin: 12px 0; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--gold);
+  background: rgba(255, 196, 0, .08); color: var(--text); font: inherit; font-weight: 700; text-align: left; cursor: pointer;
+}
+.fam-title { font-size: 1.7rem; margin: 6px 0 12px; }
+.fam-report { display: grid; gap: 4px; margin: 0 0 14px; padding: 12px; border-radius: 14px; background: rgba(127, 127, 127, .08); font-size: .9rem; }
+.fam-child { margin: 0 0 16px; padding: 14px; border-radius: 18px; border: 1px solid var(--hairline); background: var(--surface); }
+.fam-child-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.fam-child-head h3 { margin: 0; font-size: 1.25rem; }
+.fam-child-head small { color: var(--muted); }
+.fam-pro { display: flex; gap: 8px; align-items: center; text-align: right; }
+.fam-pro small { color: var(--muted); font-size: .78rem; }
+.fam-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
+.fam-tags span { padding: 3px 10px; border-radius: 99px; background: rgba(127, 127, 127, .14); font-size: .75rem; font-weight: 700; }
+.fam-stats { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 5px; }
+.fam-stats li { display: grid; grid-template-columns: 96px 1fr 30px; gap: 8px; align-items: center; font-size: .85rem; }
+.fam-stats b { text-align: right; font-variant-numeric: tabular-nums; }
+.fam-bar { height: 8px; border-radius: 99px; background: var(--hairline); overflow: hidden; }
+.fam-bar i { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .3s; }
+.fam-bar i.low { background: var(--down); }
+.fam-choices { margin-top: 14px; display: grid; gap: 10px; }
+.fam-choices h4 { margin: 0; font-size: .95rem; }
+.fam-q { display: grid; gap: 6px; padding: 10px; border-radius: 14px; background: rgba(127, 127, 127, .06); }
+.fam-q.done { opacity: .7; }
+.fam-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px; }
+.fam-opt { display: grid; gap: 2px; text-align: left; padding: 10px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); font: inherit; cursor: pointer; min-height: 44px; }
+.fam-opt small { color: var(--muted); font-size: .72rem; line-height: 1.3; }
+.fam-opt.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.fam-opt:disabled { cursor: default; }
+.fam-opt:disabled:not(.on) { opacity: .5; }
+.fam-log { margin: 12px 0 0; padding-left: 18px; color: var(--muted); font-size: .8rem; }
+.inv-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.inv-summary div { display: grid; padding: 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--hairline); }
+.inv-summary small { color: var(--muted); }
+.inv-summary strong { font-size: 1.15rem; }
+.inv-tabs { margin: 14px 0 10px; }
+.inv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.inv-list li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--hairline); background: var(--surface); }
+.inv-list li.owned { border-color: var(--accent); }
+.inv-list .grow { flex: 1; min-width: 0; display: grid; }
+.inv-list small { color: var(--muted); font-size: .76rem; }
+.inv-list .up { color: #1db954; }
+.inv-list .down { color: var(--down); }
+.inv-icon { font-size: 1.5rem; }
+.inv-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.inv-buy { display: grid; gap: 10px; padding: 12px; border-radius: 14px; background: rgba(127, 127, 127, .06); }
+.inv-buy label { display: grid; gap: 4px; font-size: .85rem; font-weight: 600; }
+.inv-quote { display: grid; gap: 8px; }
+.inv-h { margin: 18px 0 8px; font-size: 1rem; }
+.life-pop { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, .75); animation: story-in .3s ease; }
+.life-card { position: relative; width: 100%; max-width: 440px; display: grid; gap: 12px; padding: 26px 22px; border-radius: 26px; text-align: center; background: var(--surface); border: 1px solid var(--hairline); box-shadow: 0 20px 60px rgba(0, 0, 0, .5); }
+.life-card.flirt { background: linear-gradient(160deg, #0f5132, #1b1f3a 55%, #3b1d4a); color: #fff; }
+.life-card.birth { background: linear-gradient(160deg, #ffe08a, #ffb3c7 60%, #b3d9ff); color: #1a1a1a; }
+.life-card h2 { margin: 0; font-size: 1.6rem; }
+.life-card p { margin: 0; line-height: 1.5; }
+.life-card .muted { opacity: .75; color: inherit; font-size: .88rem; }
+.life-card label { display: grid; gap: 6px; text-align: left; font-weight: 700; }
+.life-card input { font: inherit; padding: 12px; border-radius: 12px; border: 1px solid rgba(0, 0, 0, .2); }
+.life-emoji { font-size: 3.4rem; animation: life-bounce .8s ease; }
+@keyframes life-bounce { 0% { transform: scale(.4); opacity: 0; } 60% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); } }
+.life-card.birth input { background: #fff; color: #1a1a1a; }
+.life-card.birth .btn.secondary { color: #1a1a1a; border-color: rgba(0, 0, 0, .35); background: rgba(255, 255, 255, .5); }
+.reduce-motion .life-emoji { animation: none; }
+.life-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+@media (max-width: 480px) { .fam-stats li { grid-template-columns: 84px 1fr 28px; } .inv-list li { flex-wrap: wrap; } }

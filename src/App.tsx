@@ -39,7 +39,7 @@ export default function App() {
     const res = creditCareer(getClubState(), career);
     if (res.gained > 0 || res.icon) {
       setClubState(res.club);
-      const coins = res.gained > 0 ? `+${res.gained.toLocaleString('de-DE')} Coins für ${res.seasons === 1 ? 'die Saison' : `${res.seasons} Saisons`}` : '';
+      const coins = res.gained > 0 ? `+${res.gained.toLocaleString('de-DE')} Coins ${res.seasons === 0 ? 'aus Familie & Vermögen' : res.seasons === 1 ? 'für die Saison' : `für ${res.seasons} Saisons`}` : '';
       setToast(res.icon ? `👑 Deine Ikonen-Karte (${res.icon.ovr}) liegt in der Sammlung!${coins ? ` ${coins}` : ''}` : coins);
     }
     setScreen({ name: 'game', career });

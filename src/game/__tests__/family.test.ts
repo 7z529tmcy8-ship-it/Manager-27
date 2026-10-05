@@ -1,0 +1,106 @@
+import { expect, it } from 'vitest';
+import { slugify } from '../../data/leagues';
+import { createCareer, retire } from '../career';
+import { creditCareer, freshClub } from '../club';
+import { DECISIONS_PER_YEAR, TEMPLATES, canDecide, childAge, decide, getTemplate, maybeFlirt, ovrAt18, resolveFlirt } from '../family';
+import { closeYear, restYear } from '../household';
+import { buyProperty, buyShares, sellShares, sharePrice } from '../invest';
+import { simulateToBreak } from '../simple';
+import type { Career } from '../types';
+
+const base = (age = 25) => createCareer({ name: 'Papa', nation: 'Deutschland', position: 'ST', age, ovr: 80, potential: 84, clubId: slugify('Hannover 96') });
+const always = () => 0;
+
+/** Vater mit einem Kind (Einladung angenommen, Kind kommt sicher). */
+function withChild(c: Career = base()): Career {
+  const h = { year: 0, children: [], pending: [], properties: [], shares: [], totalIncome: 0, flirt: { text: 'Party' } };
+  return resolveFlirt({ ...c, household: h }, true, () => 0.3); // 0.3: kein Paparazzi (≥ 0.15), aber Baby (< 0.45)
+}
+
+it('Einladung erst ab 22, Kind entsteht mit Pop-up und 5 Entscheidungen', () => {
+  const young = base(20);
+  maybeFlirt(young, always);
+  expect(young.household?.flirt).toBeFalsy();
+  const c = base();
+  maybeFlirt(c, always);
+  expect(c.household?.flirt?.text).toBeTruthy();
+  const kid = withChild();
+  expect(kid.household!.children).toHaveLength(1);
+  expect(kid.household!.birth?.childId).toBe(kid.household!.children[0].id);
+  expect(kid.household!.pending).toHaveLength(DECISIONS_PER_YEAR);
+  const no = resolveFlirt({ ...base(), household: { ...kid.household!, children: [], pending: [], flirt: { text: 'x' } } }, false);
+  expect(no.household!.children).toHaveLength(0);
+});
+
+it('Entscheidungen nur in der Winterpause, mit Kosten und Wirkung', () => {
+  let c = withChild();
+  expect(canDecide(c)).toBe(false); // mitten in der Saison
+  c = simulateToBreak(c);
+  expect(c.phase).toBe('winter');
+  const before = c.household!.children[0].stats;
+  const idx = 0;
+  const t = getTemplate(c.household!.pending[idx].templateId);
+  const optIndex = t.options.findIndex((o) => !o.cost);
+  const r = decide(c, idx, optIndex, 0);
+  const after = r.career.household!.children[0].stats;
+  const eff = t.options[optIndex].effects;
+  // Richtung stimmt; positive Schritte werden bei hohen Werten kleiner (abnehmender Ertrag).
+  for (const [k, v] of Object.entries(eff)) {
+    const key = k as keyof typeof after;
+    if ((v as number) > 0) expect(after[key]).toBeGreaterThan(before[key]);
+    else if (before[key] > 0) expect(after[key]).toBeLessThan(before[key]);
+    expect(after[key]).toBeLessThanOrEqual(before[key] + Math.max(0, v as number));
+  }
+  expect(decide(r.career, idx, 0, 0).career).toBe(r.career); // schon entschieden
+  const paid = TEMPLATES.find((x) => x.options.some((o) => o.cost))!;
+  expect(paid.options.some((o) => (o.cost ?? 0) > 0)).toBe(true);
+});
+
+it('Jahreswechsel: Kind altert, neue Entscheidungen; Profi verdient Coins, die im Club landen', () => {
+  let c = withChild();
+  c = simulateToBreak(simulateToBreak(c)); // eine Saison
+  const h = c.household!;
+  expect(h.year).toBe(1);
+  expect(childAge(h, h.children[0])).toBe(1);
+  expect(h.pending.length).toBe(DECISIONS_PER_YEAR);
+  // Kind künstlich auf 17 setzen und stark machen → wird Profi und verdient.
+  const kid = h.children[0];
+  kid.bornYear = h.year - 17;
+  kid.talent = 85;
+  kid.stats = { fitness: 90, technique: 90, discipline: 90, school: 50, social: 50, happiness: 70 };
+  closeYear(c);
+  expect(kid.status).toBe('pro');
+  closeYear(c);
+  expect(c.household!.totalIncome).toBeGreaterThan(0);
+  const club = creditCareer(freshClub(), c);
+  expect(club.club.coins).toBeGreaterThan(freshClub().coins);
+});
+
+it('Erziehung macht den Unterschied: gut erzogen ≈ Profi, vernachlässigt ≈ Amateur', () => {
+  const kid = (stats: number, happiness = 60) => ({ talent: 65, stats: { fitness: stats, technique: stats, discipline: stats, school: 50, social: 50, happiness } } as never);
+  expect(ovrAt18(kid(85))).toBeGreaterThanOrEqual(65);
+  expect(ovrAt18(kid(20, 20))).toBeLessThan(56);
+});
+
+it('Ruhestand: ein Jahr vergehen lassen; Investitionen kaufen, Dividenden, verkaufen', () => {
+  let c = retire(withChild());
+  c = restYear(c);
+  expect(c.household!.year).toBe(1);
+  const flat = buyProperty(c, 'flat', 20_000);
+  expect(flat.delta).toBe(-12_000);
+  expect(buyProperty(flat.career, 'flat', 99_999).delta).toBe(0); // nur einmal
+  const club = slugify('Hannover 96');
+  const sh = buyShares(flat.career, club, 5, 1_000_000);
+  expect(sh.delta).toBe(-5 * sharePrice(c, club));
+  expect(buyShares(sh.career, club, 60, 10_000_000).career.household!.shares[0].percent).toBe(49); // max 49 %
+  const after = restYear(sh.career);
+  expect(after.household!.report!.rent).toBeGreaterThan(0);
+  expect(after.household!.report!.dividends).toBeGreaterThan(0);
+  const sold = sellShares(after, club, 5);
+  expect(sold.delta).toBeGreaterThan(0);
+  expect(sold.career.household!.shares).toHaveLength(0);
+});
+
+it('Für jedes Alter von 0 bis 17 gibt es mindestens 5 Entscheidungen', () => {
+  for (let a = 0; a <= 17; a++) expect(TEMPLATES.filter((t) => a >= t.ages[0] && a <= t.ages[1]).length, `Alter ${a}`).toBeGreaterThanOrEqual(DECISIONS_PER_YEAR);
+});

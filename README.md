@@ -33,6 +33,12 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
   Chemie (gleiche Nation, Liga, Verein; falsche Position = keine Chemie). Damit **Duelle** gegen 10 immer stärkere
   Gegner spielen (Live-Ticker, Coins als Belohnung) und **Tauschaufgaben** erledigen (Karten abgeben → Pack)
 - **Sonderkarten:** Team der Saison, Spieler des Monats, Rekordjäger, Titelheld – nach starken Saisons
+- **Familie:** Ab 22 kommt in den Pausen manchmal eine Einladung zur After-Party – manchmal mit Folgen (Kind). Pro Kind
+  gibt es jedes Jahr 5 Erziehungsentscheidungen (Schule, Training, Zocken, Essen, Freunde …), die Fitness, Technik,
+  Disziplin, Schule, Freunde und Zufriedenheit und damit den Charakter prägen. Mit 18 kann das Kind Profi werden und
+  verdient dann jedes Jahr Coins.
+- **Vermögen:** Immobilien (Miete, schwankender Wert) und Anteile an Fußballklubs (Dividenden, Preis folgt der
+  Klubstärke, bis 49 %) – alles in Coins, Einnahmen fließen nach jeder Saison in den Club.
 - **Erfolge & Hall of Fame:** Karriereziele mit Fortschritt, Rangliste aller Karrieren
 - **Einstellungen:** Schwierigkeit (Leicht/Normal/Schwer), Design, Animationen, Passwort-Sperre
 - **Passwort-Sperre:** `123` öffnet das Spiel (gilt, solange der Tab offen ist). Der Geheimcode `Larp` öffnet den

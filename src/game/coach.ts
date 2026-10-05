@@ -7,6 +7,8 @@ import { chance, clamp, normal, pick, poisson, rand, randInt, uid, weightedPick 
 import { FIRST, LAST } from './rival';
 import { addResult, applyLeagueChanges, emptyRow, goalsExpected, roundRobin, sortTable } from './season';
 import { hasTrait } from './traits';
+import { maybeFlirt } from './family';
+import { closeYear } from './household';
 import type { Career, CoachLive, CoachSeason, CoachState, CoachTactic, Position, TableRow, TransferTarget } from './types';
 
 // Trainerkarriere nach dem Karriereende: Verein wählen, in der Vorbereitung Taktik und Transfers festlegen,
@@ -364,6 +366,8 @@ function finishCoachSeason(career: Career, sackedInWinter: boolean): Career {
   coach.live = null;
   coach.year += 1;
   coach.age += 1;
+  closeYear(career); // Familie und Vermögen
+  maybeFlirt(career);
 
   const name = getClub(clubId).name;
   if (coach.age >= COACH_MAX_AGE) {

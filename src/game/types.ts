@@ -378,6 +378,89 @@ export interface Career {
   destroyed?: boolean;
   /** Trainerkarriere nach dem Karriereende. */
   coach?: CoachState | null;
+  /** Familie (Kinder) und Vermögen (Immobilien, Klub-Anteile). */
+  household?: Household;
+}
+
+// ---------- Familie & Vermögen ----------
+
+export interface ChildStats {
+  fitness: number;
+  technique: number;
+  discipline: number;
+  school: number;
+  social: number;
+  happiness: number;
+}
+
+export interface Child {
+  id: string;
+  name: string;
+  /** Familienjahr der Geburt (Alter = household.year − bornYear). */
+  bornYear: number;
+  /** Verstecktes Fußballtalent (20–95), teils vom Vater geerbt. */
+  talent: number;
+  stats: ChildStats;
+  /** Gewohnheiten, z. B. wie oft gezockt oder Fastfood gegessen wurde. */
+  habits: Record<string, number>;
+  status: 'kid' | 'pro' | 'amateur' | 'retired';
+  ovr?: number;
+  potential?: number;
+  clubId?: string;
+  /** Insgesamt verdiente Coins (als Profi). */
+  earned: number;
+  /** Letzte Meldungen zum Kind. */
+  log: string[];
+}
+
+export interface PendingChoice {
+  childId: string;
+  templateId: string;
+  /** Gewählte Option (Index) – leer, solange offen. */
+  chosen?: number;
+}
+
+export interface PropertyHolding {
+  id: string;
+  /** Aktueller Wert in Coins. */
+  value: number;
+  /** Kaufpreis. */
+  bought: number;
+}
+
+export interface ShareHolding {
+  clubId: string;
+  /** Anteil in Prozent (1–49). */
+  percent: number;
+  /** Insgesamt investierte Coins. */
+  invested: number;
+}
+
+export interface YearReport {
+  year: number;
+  kidIncome: number;
+  rent: number;
+  dividends: number;
+  notes: string[];
+}
+
+export interface Household {
+  /** Familienjahr – zählt mit jeder Saison (Spieler oder Trainer) bzw. jedem Ruhestandsjahr hoch. */
+  year: number;
+  children: Child[];
+  /** Entscheidungen für das laufende Jahr (5 pro Kind). */
+  pending: PendingChoice[];
+  properties: PropertyHolding[];
+  shares: ShareHolding[];
+  /** Alle bisher verdienten Coins aus Kindern, Mieten und Dividenden (werden dem Club gutgeschrieben). */
+  totalIncome: number;
+  report?: YearReport | null;
+  /** Offene Einladung zur After-Party (großes Pop-up). */
+  flirt?: { text: string } | null;
+  /** Gerade geborenes Kind (großes Pop-up). */
+  birth?: { childId: string } | null;
+  /** Familienjahr, in dem der Ruhestand ohne Trainerjob begann (für das Alter des Vaters). */
+  retiredYear?: number;
 }
 
 export interface CoachSeason {
