@@ -41,7 +41,7 @@ const RAW: [string, string, Position, number, number, number, string][] = [
   ['Désiré Doué', 'Frankreich', 'FL', 20, 84, 91, 'Paris Saint-Germain'],
   ['Warren Zaïre-Emery', 'Frankreich', 'ZM', 19, 80, 88, 'Paris Saint-Germain'],
   ['Kylian Mbappé', 'Frankreich', 'ST', 26, 91, 91, 'Real Madrid'],
-  ['Franco Mastantuono', 'Argentinien', 'FL', 18, 76, 89, 'Real Madrid'],
+  ['Franco Mastantuono', 'Argentinien', 'FL', 18, 76, 88, 'AC Florenz'], // 2026/27 von Real Madrid ausgeliehen
   ['Nico Paz', 'Argentinien', 'ZOM', 21, 80, 87, 'Como 1907'],
   ['Estêvão', 'Brasilien', 'FL', 18, 79, 90, 'Chelsea FC'],
   ['Endrick', 'Brasilien', 'ST', 19, 76, 88, 'Real Madrid'],
@@ -67,7 +67,7 @@ const RAW: [string, string, Position, number, number, number, string][] = [
   ['Paul Nebel', 'Deutschland', 'ZOM', 22, 76, 81, '1. FSV Mainz 05'],
   ['Angelo Stiller', 'Deutschland', 'ZM', 24, 81, 84, 'VfB Stuttgart'],
   ['Deniz Undav', 'Deutschland', 'ST', 29, 81, 81, 'VfB Stuttgart'],
-  ['Yan Diomande', 'Elfenbeinküste', 'FL', 18, 74, 87, 'RB Leipzig'],
+  ['Yan Diomande', 'Elfenbeinküste', 'FL', 18, 80, 89, 'Real Madrid'], // Sommer 2026 für 140 Mio. € aus Leipzig
   ['Antonio Nusa', 'Norwegen', 'FL', 20, 77, 86, 'RB Leipzig'],
   ['Maximilian Beier', 'Deutschland', 'ST', 22, 79, 83, 'Borussia Dortmund'],
   ['Felix Nmecha', 'Deutschland', 'ZM', 24, 80, 84, 'Borussia Dortmund'],
@@ -94,9 +94,9 @@ const RAW: [string, string, Position, number, number, number, string][] = [
   ['Vinícius Júnior', 'Brasilien', 'FL', 25, 89, 90, 'Real Madrid'],
   ['Vitinha', 'Portugal', 'ZM', 25, 88, 89, 'Paris Saint-Germain'],
   ['João Neves', 'Portugal', 'ZM', 20, 85, 90, 'Paris Saint-Germain'],
-  ['Ayyoub Bouaddi', 'Frankreich', 'ZM', 17, 70, 86, 'OSC Lille'],
+  ['Ayyoub Bouaddi', 'Marokko', 'ZM', 17, 76, 88, 'Manchester City'], // Sommer 2026 aus Lille, inzwischen Nationalspieler Marokkos
   ['Geovany Quenda', 'Portugal', 'FL', 18, 76, 88, 'Sporting Lissabon'],
-  ['Rodrigo Mora', 'Portugal', 'ZOM', 18, 74, 87, 'FC Porto'],
+  ['Rodrigo Mora', 'Portugal', 'ZOM', 18, 76, 87, 'AS Rom'], // Sommer 2026 aus Porto
   ['Kees Smit', 'Niederlande', 'ZM', 19, 72, 87, 'AZ Alkmaar'],
   // Hannover 96 – kompletter Profikader (Stand Saison 2026/27, Alter umgerechnet auf den Spielstart 2025/26).
   // Positionen und Nationen laut Vereins- und Kaderangaben; Wertungen sind eigene Schätzungen.
