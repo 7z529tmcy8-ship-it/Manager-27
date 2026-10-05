@@ -9,6 +9,7 @@ import Settings from './Settings';
 import UtCard from './UtCard';
 
 interface Props {
+  onNews: () => void;
   onNew: () => void;
   onLoad: (career: Career) => void;
   onStore: () => void;
@@ -21,7 +22,7 @@ interface Props {
 const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 
 /** Hauptmenü im Stil eines Sammelkarten-Hubs: große Kacheln, Coins oben, die eigene Karte im Mittelpunkt. */
-export default function Hub({ onNew, onLoad, onStore, onCollection, onTeam, onFame, onAchievements }: Props) {
+export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTeam, onFame, onAchievements }: Props) {
   const club = useClub();
   const [saves, setSaves] = useState(listCareers);
   const [showSaves, setShowSaves] = useState(false);
@@ -41,6 +42,7 @@ export default function Hub({ onNew, onLoad, onStore, onCollection, onTeam, onFa
       <header className="hub-top">
         <span className="hub-brand">FC KARRIERE</span>
         <span className="hub-coins" title="Coins – verdienst du im Karrieremodus">🪙 {fmtCoins(club.coins)}</span>
+        <button className="hub-icon" onClick={onNews} aria-label="Neuigkeiten" title="Neuigkeiten">📣</button>
         <button className="hub-icon" onClick={() => setSettings(true)} aria-label="Einstellungen">⚙️</button>
       </header>
 

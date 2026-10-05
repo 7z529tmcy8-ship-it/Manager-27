@@ -7,6 +7,8 @@ import HallOfFame from './components/HallOfFame';
 import Hub from './components/Hub';
 import Store from './components/Store';
 import Team from './components/Team';
+import UpdateBanner, { unseenUpdates } from './components/UpdateBanner';
+import { UPDATES, type UpdateNote } from './data/updates';
 import { creditCareer } from './game/club';
 import { saveCareer } from './game/storage';
 import type { Career } from './game/types';
@@ -33,6 +35,9 @@ export default function App() {
     return () => clearTimeout(t);
   }, [toast]);
 
+  // Update-Banner: erscheint einmal nach jedem neuen Update (und auf Wunsch über „Neuigkeiten“).
+  const [news, setNews] = useState<UpdateNote[]>(unseenUpdates);
+
   const update = (career: Career) => {
     setSaveFailed(!saveCareer(career));
     // Neue Saisons bringen Coins für den Club.
@@ -49,12 +54,14 @@ export default function App() {
 
   return (
     <div className="app">
+      {news.length > 0 && <UpdateBanner notes={news} onClose={() => setNews([])} />}
       {saveFailed && (
         <div className="banner warn">Speichern im Browser nicht möglich (z. B. privater Modus) – der Fortschritt geht beim Schließen verloren.</div>
       )}
       {toast && <div className="coin-toast" role="status">🪙 {toast}</div>}
       {screen.name === 'home' && (
         <Hub
+          onNews={() => setNews(UPDATES)}
           onNew={() => setScreen({ name: 'create' })}
           onLoad={load}
           onStore={() => setScreen({ name: 'store' })}

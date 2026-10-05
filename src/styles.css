@@ -1433,3 +1433,23 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .fam-seg button.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; font-weight: 800; }
 .fam-seg button:disabled { opacity: .4; cursor: default; }
 .fam-effect { color: var(--muted); font-size: .75rem; }
+
+/* ---------- Update-Banner ---------- */
+.upd { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; padding: 16px; overflow-y: auto; background: rgba(4, 6, 14, .82); animation: mo-in .3s ease; }
+.upd-card {
+  position: relative; width: 100%; max-width: 520px; display: grid; gap: 12px; padding: 26px 22px; border-radius: 26px;
+  background: linear-gradient(160deg, #1f1147, #0d1b3a 55%, #0b2a2a); color: #fff; border: 1px solid rgba(255, 255, 255, .14);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .55); animation: mo-rise .45s ease;
+}
+.upd-badge { justify-self: start; padding: 4px 12px; border-radius: 99px; background: rgba(255, 255, 255, .12); font-size: .78rem; font-weight: 800; letter-spacing: .03em; }
+.upd-card h2 {
+  margin: 0; font-size: clamp(1.6rem, 7vw, 2.2rem); line-height: 1.1; font-weight: 900;
+  background: linear-gradient(90deg, #ffd54d, #ff7ac6, #7ad7ff); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.upd-card h3 { margin: 0; font-size: 1.05rem; opacity: .9; }
+.upd-card ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.upd-card li { padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, .07); line-height: 1.45; font-size: .92rem; }
+.upd-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 4px; }
+.upd-count { opacity: .6; text-align: center; }
+.reduce-motion .upd, .reduce-motion .upd-card { animation: none; }
+.upd-card ul { max-height: 50vh; max-height: 50dvh; overflow-y: auto; padding-right: 2px; }
