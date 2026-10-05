@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { CLUBS, LEAGUES, getClub } from '../data/leagues';
 import { NATIONS, POSITIONS, REAL_PLAYERS, type RealPlayerTemplate } from '../data/players';
-import { FAILED_TALENTS, HANNOVER_2018, LEGENDS, type LegendTemplate } from '../data/legends';
+import { CULT_LEGENDS, FAILED_TALENTS, HANNOVER_2018, LEGENDS, type LegendTemplate } from '../data/legends';
 import { createCareer } from '../game/career';
 import { MAX_TRAITS, TRAITS, getTrait, type TraitId } from '../game/traits';
 import { pick } from '../game/random';
@@ -16,7 +16,7 @@ interface Props {
 
 
 export default function CreateCareer({ onCancel, onCreate }: Props) {
-  const [tab, setTab] = useState<'own' | 'real' | 'legends' | 'failed' | 'h96'>('own');
+  const [tab, setTab] = useState<'own' | 'real' | 'legends' | 'cult' | 'failed' | 'h96'>('own');
 
   return (
     <main className="create">
@@ -28,12 +28,14 @@ export default function CreateCareer({ onCancel, onCreate }: Props) {
         <button className={tab === 'own' ? 'active' : ''} onClick={() => setTab('own')}>Eigener Spieler</button>
         <button className={tab === 'real' ? 'active' : ''} onClick={() => setTab('real')}>Echter Spieler</button>
         <button className={tab === 'legends' ? 'active' : ''} onClick={() => setTab('legends')}>⭐ Legenden</button>
+        <button className={tab === 'cult' ? 'active' : ''} onClick={() => setTab('cult')}>🧡 Kult-Helden</button>
         <button className={tab === 'failed' ? 'active' : ''} onClick={() => setTab('failed')}>💔 Zweite Chance</button>
         <button className={tab === 'h96' ? 'active' : ''} onClick={() => setTab('h96')}>🕰️ 96 von 2018</button>
       </div>
       {tab === 'own' && <OwnPlayer onCreate={onCreate} />}
       {tab === 'real' && <RealPlayer onCreate={onCreate} />}
       {tab === 'legends' && <LegendPicker onCreate={onCreate} list={LEGENDS} intro={LEGEND_INTRO} />}
+      {tab === 'cult' && <LegendPicker onCreate={onCreate} list={CULT_LEGENDS} intro={CULT_INTRO} />}
       {tab === 'failed' && <LegendPicker onCreate={onCreate} list={FAILED_TALENTS} intro={FAILED_INTRO} secondChance />}
       {tab === 'h96' && <LegendPicker onCreate={onCreate} list={HANNOVER_2018} intro={H96_INTRO} />}
     </main>
@@ -195,6 +197,8 @@ function TraitChips({ selected, onToggle }: { selected: TraitId[]; onToggle: (id
 
 const LEGEND_INTRO =
   '„Was wäre wenn?“ – Kultfiguren starten als junge Spieler im heutigen Fußball, mit ihrem ganz eigenen Charakter. Werte und Startvereine sind frei erfunden, die Ereignisse augenzwinkernd.';
+const CULT_INTRO =
+  'Kult-Helden: Publikumslieblinge und „Forgotten Names“ wie Ailton, Okocha, Quaresma oder Podolski starten jung bei einem Verein ihrer Anfänge bzw. großen Zeit – im heutigen Fußball. Startvereine teils vereinfacht, Wertungen eigene Schätzungen.';
 const H96_INTRO =
   'Zeitreise: der Bundesliga-Kader von Hannover 96 aus der Saison 2018/19. Jeder Spieler startet mit seinem damaligen Alter bei Hannover 96 – im heutigen Fußball. Wertungen sind eigene Schätzungen.';
 const FAILED_INTRO =

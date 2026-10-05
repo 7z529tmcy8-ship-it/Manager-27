@@ -19,6 +19,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-05-kult-karriere',
+    date: '05.10.2026',
+    title: 'Kult-Helden & Wunderkinder jetzt auch im Karrieremodus',
+    items: [
+      '🧡 Neuer Tab „Kult-Helden“ bei „Neue Karriere“: Starte als junger Ailton bei Werder, Podolski in Köln, Asamoah bei Hannover 96, Okocha in Frankfurt, Quaresma bei Sporting … – 30 Kult-Helden mit eigenen Eigenschaften und Steckbrief.',
+      '🌟 Die 21 Wunderkinder 2026/27 sind unter „Echter Spieler“ spielbar – z. B. Kroupi (Bournemouth), Vušković (Brighton), Karetsas (Dortmund), Jeltsch (Stuttgart), Dowman (Arsenal).',
+    ],
+  },
+  {
     id: '2026-10-05-packs-kult',
     date: '05.10.2026',
     title: 'Härtere Packs, Kult-Helden & Wunderkinder 2026',

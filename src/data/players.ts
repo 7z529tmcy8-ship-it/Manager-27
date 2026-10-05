@@ -130,7 +130,33 @@ const RAW: [string, string, Position, number, number, number, string][] = [
   ['Yunus Ünal', 'Deutschland', 'ST', 17, 56, 77, 'Hannover 96'],
 ];
 
-export const REAL_PLAYERS: RealPlayerTemplate[] = RAW.map(
+// Wunderkinder 2026/27 (Golden-Boy-Kandidaten und Toptalente), bei ihren Vereinen nach dem Sommer-Transferfenster 2026
+// (per Websuche geprüft, Stand Oktober 2026). Alter wie oben zum Start der Saison 2025/26; Werte sind eigene Schätzungen.
+const WONDERKIDS_2026: typeof RAW = [
+  ['Thiago Pitarch', 'Spanien', 'ZDM', 18, 74, 87, 'Real Madrid'],
+  ['Marc Bernal', 'Spanien', 'ZDM', 18, 75, 87, 'FC Barcelona'],
+  ['Xavi Espart', 'Spanien', 'AV', 18, 72, 84, 'FC Barcelona'],
+  ['Jon Martín', 'Spanien', 'IV', 19, 75, 86, 'Real Sociedad'],
+  ['Junior Kroupi', 'Frankreich', 'ST', 19, 78, 89, 'AFC Bournemouth'],
+  ['Rayan', 'Brasilien', 'FL', 19, 76, 87, 'AFC Bournemouth'],
+  ['Luka Vušković', 'Kroatien', 'IV', 18, 77, 89, 'Brighton & Hove Albion'],
+  ['Charalampos Kostoulas', 'Griechenland', 'ST', 18, 73, 85, 'Brighton & Hove Albion'],
+  ['Jorrel Hato', 'Niederlande', 'AV', 19, 78, 87, 'Chelsea FC'],
+  ['Marco Palestra', 'Italien', 'AV', 20, 77, 85, 'Chelsea FC'],
+  ['Jérémy Jacquet', 'Frankreich', 'IV', 19, 77, 87, 'Liverpool FC'],
+  ['Leny Yoro', 'Frankreich', 'IV', 19, 77, 88, 'Manchester United'],
+  ['Lucas Bergvall', 'Schweden', 'ZM', 19, 77, 86, 'Tottenham Hotspur'],
+  ['Max Dowman', 'England', 'ZOM', 16, 70, 90, 'Arsenal FC'],
+  ['Konstantinos Karetsas', 'Griechenland', 'FL', 17, 75, 88, 'Borussia Dortmund'],
+  ['Joane Gadou', 'Frankreich', 'IV', 18, 74, 86, 'Borussia Dortmund'],
+  ['Finn Jeltsch', 'Deutschland', 'IV', 19, 76, 86, 'VfB Stuttgart'],
+  ['Kerim Alajbegović', 'Bosnien-Herzegowina', 'FL', 18, 75, 87, 'Juventus Turin'],
+  ['Francesco Pio Esposito', 'Italien', 'ST', 20, 77, 86, 'Inter Mailand'],
+  ['Victor Froholdt', 'Dänemark', 'ZM', 19, 77, 86, 'FC Porto'],
+  ['Gianluca Prestianni', 'Argentinien', 'FL', 19, 75, 86, 'Benfica Lissabon'],
+];
+
+export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026].map(
   ([name, nation, position, age, ovr, potential, club]) => ({
     name, nation, position, age, ovr, potential, clubId: slugify(club),
   }),

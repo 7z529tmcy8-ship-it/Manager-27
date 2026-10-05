@@ -1,6 +1,6 @@
 import { FAILED_TALENTS, LEGENDS } from '../data/legends';
 import { REAL_PLAYERS } from '../data/players';
-import { CULT_HEROES, EXTRA_ICONS, EXTRA_STARS, WONDERKIDS_2026 } from '../data/cards';
+import { CULT_HEROES, EXTRA_ICONS, EXTRA_STARS } from '../data/cards';
 import { getClub, getLeague, slugify } from '../data/leagues';
 import { summarizeCareer } from './legacy';
 import { homeClubOf } from './offers';
@@ -83,7 +83,7 @@ export const CARD_POOL: CollectCard[] = [
     variant: cardTier(p.ovr) === 'bronze' ? ('silver' as const) : (cardTier(p.ovr) as CardVariant),
   })),
   ...LEGENDS.map((l) => ({ id: cardId(l.name), name: l.name, position: l.position, nation: l.nation, club: 'Ikone', ovr: l.potential, variant: 'icon' as const, label: 'Ikone' })),
-  ...[...EXTRA_STARS, ...WONDERKIDS_2026].map(([name, nation, position, age, ovr, club, league]) => ({
+  ...EXTRA_STARS.map(([name, nation, position, age, ovr, club, league]) => ({
     id: cardId(name), name, position, nation, club, league, age, ovr,
     variant: ovr >= 85 ? ('gold-rare' as const) : ovr >= 75 ? ('gold' as const) : ('silver' as const),
   })),

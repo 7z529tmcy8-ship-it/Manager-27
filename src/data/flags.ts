@@ -5,7 +5,7 @@ const FLAGS: Record<string, string> = {
   Kroatien: '🇭🇷', Niederlande: '🇳🇱', Norwegen: '🇳🇴', Polen: '🇵🇱', Portugal: '🇵🇹', Schweden: '🇸🇪', Schweiz: '🇨🇭',
   Spanien: '🇪🇸', Südkorea: '🇰🇷', Türkei: '🇹🇷', USA: '🇺🇸', Ägypten: '🇪🇬', Österreich: '🇦🇹', Marokko: '🇲🇦',
   Mexiko: '🇲🇽', Ghana: '🇬🇭', Schottland: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', Wales: '🏴󠁧󠁢󠁷󠁬󠁳󠁿', Uruguay: '🇺🇾', Senegal: '🇸🇳', Nigeria: '🇳🇬',
-  Kamerun: '🇨🇲', Ukraine: '🇺🇦', Serbien: '🇷🇸', Georgien: '🇬🇪', Ungarn: '🇭🇺', Tschechien: '🇨🇿', Griechenland: '🇬🇷',
+  Kamerun: '🇨🇲', Ukraine: '🇺🇦', Serbien: '🇷🇸', Georgien: '🇬🇪', Ungarn: '🇭🇺', Tschechien: '🇨🇿', Griechenland: '🇬🇷', 'Bosnien-Herzegowina': '🇧🇦', Belarus: '🇧🇾', Bulgarien: '🇧🇬', Paraguay: '🇵🇾',
   Kanada: '🇨🇦', Australien: '🇦🇺', Algerien: '🇩🇿', Tunesien: '🇹🇳', Slowenien: '🇸🇮', Slowakei: '🇸🇰', Finnland: '🇫🇮', Russland: '🇷🇺',
   Rumänien: '🇷🇴', Island: '🇮🇸', Südafrika: '🇿🇦', Malawi: '🇲🇼', Kosovo: '🇽🇰', 'Sierra Leone': '🇸🇱', Libanon: '🇱🇧', Chile: '🇨🇱', Togo: '🇹🇬',
 };

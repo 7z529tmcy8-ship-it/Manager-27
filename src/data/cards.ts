@@ -55,34 +55,6 @@ export const EXTRA_ICONS: [string, string, Position, number][] = [
 ];
 
 /**
- * Wunderkinder 2026/27 (Golden-Boy-Kandidaten und Toptalente). Vereine Stand Oktober 2026 (nach dem
- * Sommer-Transferfenster 2026, per Websuche geprüft). [Name, Nation, Position, Alter 2026, Wertung, Verein, Liga]
- */
-export const WONDERKIDS_2026: [string, string, Position, number, number, string, string][] = [
-  ['Thiago Pitarch', 'Spanien', 'ZDM', 19, 76, 'Real Madrid', 'LaLiga'],
-  ['Marc Bernal', 'Spanien', 'ZDM', 19, 77, 'FC Barcelona', 'LaLiga'],
-  ['Xavi Espart', 'Spanien', 'AV', 19, 74, 'FC Barcelona', 'LaLiga'],
-  ['Jon Martín', 'Spanien', 'IV', 20, 77, 'Real Sociedad', 'LaLiga'],
-  ['Junior Kroupi', 'Frankreich', 'ST', 20, 80, 'AFC Bournemouth', 'Premier League'],
-  ['Rayan', 'Brasilien', 'FL', 20, 78, 'AFC Bournemouth', 'Premier League'],
-  ['Luka Vušković', 'Kroatien', 'IV', 19, 79, 'Brighton & Hove Albion', 'Premier League'],
-  ['Charalampos Kostoulas', 'Griechenland', 'ST', 19, 75, 'Brighton & Hove Albion', 'Premier League'],
-  ['Jorrel Hato', 'Niederlande', 'AV', 20, 80, 'Chelsea FC', 'Premier League'],
-  ['Marco Palestra', 'Italien', 'AV', 21, 79, 'Chelsea FC', 'Premier League'],
-  ['Jérémy Jacquet', 'Frankreich', 'IV', 20, 79, 'Liverpool FC', 'Premier League'],
-  ['Leny Yoro', 'Frankreich', 'IV', 20, 79, 'Manchester United', 'Premier League'],
-  ['Lucas Bergvall', 'Schweden', 'ZM', 20, 79, 'Tottenham Hotspur', 'Premier League'],
-  ['Max Dowman', 'England', 'ZOM', 16, 72, 'Arsenal FC', 'Premier League'],
-  ['Konstantinos Karetsas', 'Griechenland', 'FL', 18, 77, 'Borussia Dortmund', 'Bundesliga'],
-  ['Joane Gadou', 'Frankreich', 'IV', 19, 76, 'Borussia Dortmund', 'Bundesliga'],
-  ['Finn Jeltsch', 'Deutschland', 'IV', 20, 78, 'VfB Stuttgart', 'Bundesliga'],
-  ['Kerim Alajbegović', 'Bosnien-Herzegowina', 'FL', 19, 77, 'Juventus Turin', 'Serie A'],
-  ['Francesco Pio Esposito', 'Italien', 'ST', 21, 79, 'Inter Mailand', 'Serie A'],
-  ['Victor Froholdt', 'Dänemark', 'ZM', 20, 79, 'FC Porto', 'Liga Portugal'],
-  ['Gianluca Prestianni', 'Argentinien', 'FL', 20, 77, 'Benfica Lissabon', 'Liga Portugal'],
-];
-
-/**
  * Kult-Helden: Publikumslieblinge und „Forgotten Names“ in ihrer besten Zeit – Tricks, Tore, Geschichten.
  * [Name, Nation, Position, Wertung, Verein der besten Zeit]. Wertungen sind eigene Schätzungen.
  */
