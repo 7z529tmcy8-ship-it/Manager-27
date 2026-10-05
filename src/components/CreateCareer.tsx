@@ -15,8 +15,19 @@ interface Props {
 }
 
 
+type Tab = 'own' | 'real' | 'legends' | 'cult' | 'failed' | 'h96';
+/** Reiter: [ID, langer Name, kurzer Name fürs Handy]. */
+const TABS: [Tab, string, string][] = [
+  ['own', 'Eigener Spieler', '✏️ Eigener'],
+  ['real', 'Echter Spieler', '👤 Echter'],
+  ['legends', '⭐ Legenden', '⭐ Legenden'],
+  ['cult', '🧡 Kult-Helden', '🧡 Kult'],
+  ['failed', '💔 Zweite Chance', '💔 2. Chance'],
+  ['h96', '🕰️ 96 von 2018', '🕰️ 96 (2018)'],
+];
+
 export default function CreateCareer({ onCancel, onCreate }: Props) {
-  const [tab, setTab] = useState<'own' | 'real' | 'legends' | 'cult' | 'failed' | 'h96'>('own');
+  const [tab, setTab] = useState<Tab>('own');
 
   return (
     <main className="create">
@@ -25,12 +36,11 @@ export default function CreateCareer({ onCancel, onCreate }: Props) {
         <h1>Neue Karriere</h1>
       </div>
       <div className="tabs">
-        <button className={tab === 'own' ? 'active' : ''} onClick={() => setTab('own')}>Eigener Spieler</button>
-        <button className={tab === 'real' ? 'active' : ''} onClick={() => setTab('real')}>Echter Spieler</button>
-        <button className={tab === 'legends' ? 'active' : ''} onClick={() => setTab('legends')}>⭐ Legenden</button>
-        <button className={tab === 'cult' ? 'active' : ''} onClick={() => setTab('cult')}>🧡 Kult-Helden</button>
-        <button className={tab === 'failed' ? 'active' : ''} onClick={() => setTab('failed')}>💔 Zweite Chance</button>
-        <button className={tab === 'h96' ? 'active' : ''} onClick={() => setTab('h96')}>🕰️ 96 von 2018</button>
+        {TABS.map(([id, long, short]) => (
+          <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>
+            <span className="t-long">{long}</span><span className="t-short">{short}</span>
+          </button>
+        ))}
       </div>
       {tab === 'own' && <OwnPlayer onCreate={onCreate} />}
       {tab === 'real' && <RealPlayer onCreate={onCreate} />}

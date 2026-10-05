@@ -56,6 +56,10 @@ export interface ClubState {
   duels: { w: number; d: number; l: number };
   /** Erledigte Tauschaufgaben (ID → wie oft). */
   tasksDone: Record<string, number>;
+  /** Freundes-Teams, gegen die schon einmal gewonnen wurde (Kennungen). */
+  friendsBeaten?: string[];
+  /** Name der eigenen Elf für Freunde-Duelle. */
+  teamName?: string;
 }
 
 export const START_COINS = 3000;

@@ -4,8 +4,19 @@ import { getClubState, setClubState, useClub } from '../clubStore';
 import UtCard from './UtCard';
 import { cardById } from '../game/squad';
 
-type Filter = 'all' | 'elite' | 'icon' | 'special' | 'dupes';
-const FILTERS: [Filter, string][] = [['all', 'Alle'], ['elite', 'Elite 85+'], ['icon', 'Ikonen'], ['special', 'Sonderkarten'], ['dupes', 'Doppelte']];
+type Filter = 'all' | 'elite' | 'icon' | 'cult' | 'wonder' | 'talent' | 'special' | 'dupes';
+
+/** Filter der Sammlung; bei Kartenarten mit fester Anzahl zeigt der Chip „gesammelt/insgesamt“. */
+const FILTERS: { id: Filter; label: string; test: (c: CollectCard) => boolean; total?: boolean }[] = [
+  { id: 'all', label: 'Alle', test: () => true },
+  { id: 'elite', label: 'Elite 85+', test: (c) => c.ovr >= 85 },
+  { id: 'icon', label: 'Ikonen', test: (c) => c.variant === 'icon', total: true },
+  { id: 'cult', label: 'Kult-Helden', test: (c) => c.variant === 'cult', total: true },
+  { id: 'wonder', label: 'Wunderkinder', test: (c) => c.age !== undefined && c.age <= 21, total: true },
+  { id: 'talent', label: 'Was wäre wenn', test: (c) => c.variant === 'talent', total: true },
+  { id: 'special', label: 'Sonderkarten', test: (c) => ['tots', 'potm', 'record', 'champion'].includes(c.variant) },
+  { id: 'dupes', label: 'Doppelte', test: () => true },
+];
 
 /** Sammlung: alle gezogenen Karten und die eigenen Sonderkarten. */
 export default function Collection({ onBack, onStore }: { onBack: () => void; onStore: () => void }) {
@@ -19,13 +30,13 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
     ...Object.entries(club.cards).filter(([id]) => getCard(id)).map(([id, count]) => ({ card: withUpgrade(club, getCard(id)!), count })),
   ].sort((a, b) => rarity(b.card) - rarity(a.card));
 
-  const shown = owned.filter(({ card, count }) =>
-    filter === 'all' ? true
-      : filter === 'elite' ? card.ovr >= 85
-        : filter === 'icon' ? card.variant === 'icon'
-          : filter === 'special' ? ['tots', 'potm', 'record', 'champion'].includes(card.variant)
-            : count > 1,
-  );
+  const active = FILTERS.find((f) => f.id === filter)!;
+  const shown = owned.filter(({ card, count }) => (filter === 'dupes' ? count > 1 : active.test(card)));
+  const chipLabel = (f: (typeof FILTERS)[number]) => {
+    if (!f.total) return f.label;
+    const have = owned.filter(({ card }) => f.test(card)).length;
+    return `${f.label} ${have}/${CARD_POOL.filter(f.test).length}`;
+  };
   const dupeValue = Object.entries(club.cards).reduce((a, [id, n]) => a + (n > 1 ? (n - 1) * sellValue(getCard(id)!) : 0), 0);
 
   const sell = () => {
@@ -47,8 +58,8 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
 
       <div className="hub-row">
         <div className="chips">
-          {FILTERS.map(([id, label]) => (
-            <button key={id} className={`chip ${filter === id ? 'active' : ''}`} onClick={() => setFilter(id)}>{label}</button>
+          {FILTERS.map((f) => (
+            <button key={f.id} className={`chip ${filter === f.id ? 'active' : ''}`} onClick={() => setFilter(f.id)}>{chipLabel(f)}</button>
           ))}
         </div>
         {dupeValue > 0 && <button className="btn secondary small" onClick={sell}>Doppelte verkaufen (+{dupeValue.toLocaleString('de-DE')} 🪙)</button>}

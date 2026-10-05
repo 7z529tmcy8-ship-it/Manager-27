@@ -581,10 +581,13 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .owner h2 { margin: 6px 0 8px; }
 .owner .decision-options .btn:disabled { opacity: .45; cursor: not-allowed; }
 
-/* Karriere-Start: vier Reiter am Handy als 2 × 2-Raster statt Wischleiste */
+/* Karriere-Start: sechs Reiter – am Handy kurze Namen im 3 × 2-Raster statt drei Zeilen */
+.create > .tabs .t-short { display: none; }
 @media (max-width: 560px) {
-  .create > .tabs { display: grid; grid-template-columns: 1fr 1fr; overflow: visible; }
-  .create > .tabs button { white-space: nowrap; }
+  .create > .tabs { display: grid; grid-template-columns: repeat(3, 1fr); overflow: visible; }
+  .create > .tabs button { white-space: nowrap; justify-content: center; padding: 8px 4px; font-size: .82rem; }
+  .create > .tabs .t-long { display: none; }
+  .create > .tabs .t-short { display: inline; }
   .legend-list button > .pill { display: none; }
 }
 
@@ -1475,3 +1478,14 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .dev-panel { border: 1px dashed var(--gold); }
 .dev-group { display: grid; gap: 6px; margin: 12px 0; }
 .dev-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* Freunde-Duell */
+.friends { display: grid; gap: 4px; }
+.friends-name { display: grid; gap: 4px; font-size: .82rem; color: var(--muted); }
+.friends-name input { padding: 9px 12px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); font: inherit; }
+.friend-team { display: grid; gap: 8px; }
+.friend-head { display: grid; gap: 2px; }
+.friend-head small { color: var(--muted); font-size: .78rem; }
+.friend-players { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px 10px; font-size: .82rem; }
+.friend-players b { display: inline-block; min-width: 24px; color: var(--gold); }
+.friend-players small { color: var(--muted); }

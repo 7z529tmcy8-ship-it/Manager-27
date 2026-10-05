@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { backupText, describeBackup, parseBackup, restoreBackup, createBackup } from '../backup';
+import { storageUsedKb } from '../game/storage';
 
 const fmt = (n: number) => n.toLocaleString('de-DE');
 
@@ -66,6 +67,7 @@ export default function Backup({ onClose }: { onClose: () => void }) {
         <section className="backup-box">
           <h3>Sichern</h3>
           <small className="muted">Aktuell: {now.careers} Karriere(n) · 🪙 {fmt(now.coins)} · Sammlung & Einstellungen</small>
+          <small className="muted">Belegter Speicher: ca. {fmt(storageUsedKb())} KB (Browser erlauben meist ca. 5.000 KB)</small>
           <div className="backup-btns">
             <button className="btn primary" onClick={download}>⬇️ Als Datei herunterladen</button>
             <button className="btn secondary" onClick={copy}>📋 Als Text kopieren</button>

@@ -5,11 +5,12 @@ import {
   setSlot, taskPick, teamRating, teamStrength, type DuelResult,
 } from '../game/squad';
 import { getClubState, setClubState, useClub } from '../clubStore';
+import { FRIEND_REWARD, SLOT_LABELS, exportTeam, importTeam, playFriendDuel } from '../game/friends';
 import { motionReduced } from '../settings';
 import { PackOpening } from './Store';
 import UtCard from './UtCard';
 
-type Tab = 'squad' | 'duels' | 'tasks';
+type Tab = 'squad' | 'duels' | 'friends' | 'tasks';
 
 /** Mein Team: Aufstellung aus der Sammlung, Duelle gegen immer stärkere Gegner, Tauschaufgaben. */
 export default function Team({ onBack, onStore }: { onBack: () => void; onStore: () => void }) {
@@ -33,12 +34,13 @@ export default function Team({ onBack, onStore }: { onBack: () => void; onStore:
         <div><small>Duelle</small><strong>{club.duels.w}<em>S</em> {club.duels.d}<em>U</em> {club.duels.l}<em>N</em></strong></div>
       </div>
       <div className="segmented team-tabs" role="tablist">
-        {([['squad', 'Aufstellung'], ['duels', 'Duelle'], ['tasks', 'Tauschaufgaben']] as [Tab, string][]).map(([id, label]) => (
+        {([['squad', 'Aufstellung'], ['duels', 'Duelle'], ['friends', 'Freunde'], ['tasks', 'Tausch']] as [Tab, string][]).map(([id, label]) => (
           <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>{label}</button>
         ))}
       </div>
       {tab === 'squad' && <Squad onStore={onStore} />}
       {tab === 'duels' && <Duels full={full} onSquad={() => setTab('squad')} />}
+      {tab === 'friends' && <Friends full={full} onSquad={() => setTab('squad')} />}
       {tab === 'tasks' && <Tasks />}
     </main>
   );
@@ -163,13 +165,13 @@ function Duels({ full, onSquad }: { full: boolean; onSquad: () => void }) {
           );
         })}
       </ol>
-      {live && <DuelLive level={live.level} result={live.result} onClose={() => setLive(null)} />}
+      {live && <DuelLive name={opponent(live.level).name} result={live.result} onClose={() => setLive(null)} />}
     </>
   );
 }
 
 /** Kurzer Live-Ticker: die Minuten laufen hoch, Tore erscheinen nacheinander. */
-function DuelLive({ level, result, onClose }: { level: number; result: DuelResult; onClose: () => void }) {
+function DuelLive({ name, result, onClose }: { name: string; result: DuelResult; onClose: () => void }) {
   const [minute, setMinute] = useState(motionReduced() ? 90 : 0);
   useEffect(() => {
     if (minute >= 90) return;
@@ -180,25 +182,101 @@ function DuelLive({ level, result, onClose }: { level: number; result: DuelResul
   const own = shown.filter((g) => g.own).length;
   const opp = shown.length - own;
   const done = minute >= 90;
-  const o = opponent(level);
   return (
     <div className="pack-open" role="dialog" aria-modal="true" aria-label="Duell">
       <div className="duel-live">
         <small>{done ? 'Abpfiff' : `${minute}. Minute`}</small>
-        <div className="duel-score"><span>Dein Team</span><strong>{own} : {opp}</strong><span>{o.name}</span></div>
+        <div className="duel-score"><span>Dein Team</span><strong>{own} : {opp}</strong><span>{name}</span></div>
         <ul className="duel-goals">
           {shown.map((g, i) => <li key={i} className={g.own ? 'own' : 'opp'}>{g.minute}′ {g.own ? '⚽ Tor für dich!' : 'Gegentor'}</li>)}
         </ul>
         {done && (
           <>
             <p className={`duel-result ${result.outcome}`}>
-              {result.outcome === 'win' ? `Sieg! +${result.coins} Coins` : result.outcome === 'draw' ? `Unentschieden · +${result.coins} Coins` : 'Niederlage – stell dein Team um und versuch es nochmal.'}
+              {result.outcome === 'win' ? (result.coins ? `Sieg! +${result.coins} Coins` : 'Sieg!') : result.outcome === 'draw' ? (result.coins ? `Unentschieden · +${result.coins} Coins` : 'Unentschieden') : 'Niederlage – stell dein Team um und versuch es nochmal.'}
             </p>
             <button className="btn primary big" onClick={onClose}>Weiter</button>
           </>
         )}
         {!done && <button className="pack-skip" onClick={() => setMinute(90)}>Überspringen</button>}
       </div>
+    </div>
+  );
+}
+
+// ---------- Freunde-Duell per Code ----------
+function Friends({ full, onSquad }: { full: boolean; onSquad: () => void }) {
+  const club = useClub();
+  const [name, setName] = useState(club.teamName ?? '');
+  const [msg, setMsg] = useState('');
+  const [paste, setPaste] = useState('');
+  const [live, setLive] = useState<{ name: string; result: DuelResult } | null>(null);
+  const code = full ? exportTeam(club, name) : null;
+  const friend = paste.trim() ? importTeam(paste) : null;
+  const strength = teamStrength(club.squad.map((id) => cardById(club, id)));
+
+  const saveName = (v: string) => {
+    setName(v);
+    setClubState({ ...getClubState(), teamName: v.slice(0, 30) });
+  };
+  const copy = async () => {
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code);
+      setMsg('Code kopiert – schick ihn deinen Freunden!');
+    } catch {
+      setMsg('Kopieren ging nicht automatisch – markiere den Code im Feld und kopiere ihn selbst.');
+    }
+  };
+  const playFriend = () => {
+    if (!friend || typeof friend === 'string') return;
+    const res = playFriendDuel(getClubState(), friend);
+    if (!res) return;
+    setClubState(res.club);
+    setLive({ name: friend.name, result: res.result });
+  };
+
+  if (!full) {
+    return (
+      <div className="hub-empty">
+        <p>Für Freunde-Duelle brauchst du eine vollständige Elf (11 Spieler).</p>
+        <button className="btn primary" onClick={onSquad}>Zur Aufstellung</button>
+      </div>
+    );
+  }
+  return (
+    <div className="friends">
+      <section className="backup-box">
+        <h3>Dein Team-Code</h3>
+        <small className="muted">Schick den Code an Freunde – sie können dann gegen deine aktuelle Elf spielen.</small>
+        <label className="friends-name">
+          Teamname
+          <input value={name} onChange={(e) => saveName(e.target.value)} placeholder="z. B. Ayris Allstars" maxLength={30} />
+        </label>
+        <textarea className="backup-text" readOnly value={code ?? ''} rows={3} onFocus={(e) => e.target.select()} aria-label="Dein Team-Code" />
+        <button className="btn primary" onClick={copy}>📋 Code kopieren</button>
+        {msg && <small className="muted">{msg}</small>}
+      </section>
+
+      <section className="backup-box">
+        <h3>Gegen einen Freund spielen</h3>
+        <textarea className="backup-text" value={paste} onChange={(e) => setPaste(e.target.value)} rows={3} placeholder="Team-Code deines Freundes hier einfügen" spellCheck={false} aria-label="Team-Code eines Freundes" />
+        {typeof friend === 'string' && <p className="cs-note bad">{friend}</p>}
+        {friend && typeof friend !== 'string' && (
+          <div className="friend-team">
+            <div className="friend-head">
+              <strong>{friend.name}</strong>
+              <small>Stärke {friend.strength.toFixed(1)} · Wertung {friend.rating} · Chemie {friend.chemistry}/33 · deine Stärke {strength.toFixed(1)}</small>
+            </div>
+            <ol className="friend-players">
+              {friend.players.map((pl, i) => <li key={i}><b>{pl.ovr}</b> {pl.name} <small>{SLOT_LABELS[i]}</small></li>)}
+            </ol>
+            <button className="btn primary big" onClick={playFriend}>⚔️ Duell starten</button>
+            <small className="muted">Erster Sieg gegen dieses Team: +{FRIEND_REWARD} Coins.</small>
+          </div>
+        )}
+      </section>
+      {live && <DuelLive name={live.name} result={live.result} onClose={() => setLive(null)} />}
     </div>
   );
 }

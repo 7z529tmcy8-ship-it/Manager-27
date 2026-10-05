@@ -19,6 +19,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-05-freunde-balance',
+    date: '05.10.2026',
+    title: 'Freunde-Duelle, fairere Balance & mehr Ordnung',
+    items: [
+      '⚔️ Freunde-Duell: Unter „Mein Team → Freunde“ kopierst du deinen Team-Code und schickst ihn rum. Wer ihn einfügt, spielt gegen deine Elf. Erster Sieg gegen ein Team: +600 Coins.',
+      '⚖️ Balance: Superstars sind nicht mehr ganz so übermächtig – realistischere Torzahlen (keine 100-Tore-Saisons mehr), der Ballon d’Or gibt es nur nach einer echten Weltklasse-Saison, und Spieler wachsen höchstens knapp über ihr Potenzial (Fähigkeiten-Boni zählen extra).',
+      '🗂️ Sammlung: neue Filter für Kult-Helden, Wunderkinder und „Was wäre wenn“ – mit Zähler, wie viele du schon hast.',
+      '📱 „Neue Karriere“: Die Reiter passen am Handy jetzt in zwei Zeilen.',
+      '💾 Spielstände werden kompakter gespeichert, damit auch lange Karrieren in den Browser-Speicher passen.',
+    ],
+  },
+  {
     id: '2026-10-05-kult-karriere',
     date: '05.10.2026',
     title: 'Kult-Helden & Wunderkinder jetzt auch im Karrieremodus',
