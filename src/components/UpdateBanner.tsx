@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { GREETING, UPDATES, type UpdateNote } from '../data/updates';
+import { GREETING, RETIRED_IDS, UPDATES, type UpdateNote } from '../data/updates';
 import Confetti from './Confetti';
 
 const KEY = 'fc-seen-update';
@@ -13,6 +13,7 @@ export function unseenUpdates(): UpdateNote[] {
     return [];
   }
   if (!seen) return UPDATES.slice(0, 1);
+  if (RETIRED_IDS.includes(seen)) return [];
   const idx = UPDATES.findIndex((u) => u.id === seen);
   return idx === -1 ? UPDATES.slice(0, 1) : UPDATES.slice(0, idx);
 }
