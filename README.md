@@ -38,7 +38,10 @@ Spielerkarriere-Modus aus EA SPORTS FC. Keine Einzelspiele im Minutentakt, sonde
   Disziplin, Schule, Freunde und Zufriedenheit und damit den Charakter prägen. Mit 18 kann das Kind Profi werden und
   verdient dann jedes Jahr Coins.
 - **Vermögen:** Immobilien (Miete, schwankender Wert) und Anteile an Fußballklubs (Dividenden, Preis folgt der
-  Klubstärke, bis 49 %) – alles in Coins, Einnahmen fließen nach jeder Saison in den Club.
+  Klubstärke, bis 49 %) – alles in Coins, Einnahmen fließen nach jeder Saison in den Club. Als Anteilseigner kann man
+  zusätzlich Geld in einen Klub stecken; das stärkt ihn still und zufällig ein wenig (begrenzt, ab dem nächsten Saisonende).
+- **Große Momente:** Animationen für Torschützenkönig, Titel, Ballon d’Or, Auszeichnungen, Vereinswechsel und drastische
+  Wertungssprünge nach oben (Durchbruch) wie nach unten (Formkrise).
 - **Erfolge & Hall of Fame:** Karriereziele mit Fortschritt, Rangliste aller Karrieren
 - **Einstellungen:** Schwierigkeit (Leicht/Normal/Schwer), Design, Animationen, Passwort-Sperre
 - **Passwort-Sperre:** `123` öffnet das Spiel (gilt, solange der Tab offen ist). Der Geheimcode `Larp` öffnet den

@@ -5,6 +5,8 @@ import VicePanel from './VicePanel';
 import FamilyPanel from './FamilyPanel';
 import InvestPanel from './InvestPanel';
 import LifePopups from './LifePopups';
+import MomentOverlay from './MomentOverlay';
+import { detectMoments, type Moment } from '../game/moments';
 import { canDecide, openDecisions } from '../game/family';
 import SkillTree, { ArchetypePicker, LevelChip } from './SkillTree';
 import { flagOf, nationCode } from '../data/flags';
@@ -33,7 +35,14 @@ const money = (v: number) => (v >= 1e6 ? `€${Math.round(v / 1e6)}M` : `€${Ma
  * Karriere als Zeitleiste: eine Zeile pro Saison (Alter, Verein, Wertung, Spiele, Tore, Vorlagen).
  * Ein Knopf simuliert bis zur nächsten Pause; am Saisonende gibt es drei Möglichkeiten.
  */
-export default function CareerScreen({ career, onChange, onExit }: Props) {
+export default function CareerScreen({ career, onChange: commit, onExit }: Props) {
+  // Jede Änderung läuft hier durch: große Momente (Titel, Wechsel, Wertungssprünge) werden gefeiert.
+  const [moments, setMoments] = useState<Moment[]>([]);
+  const onChange = (next: Career) => {
+    const found = detectMoments(career, next);
+    if (found.length) setMoments(found);
+    commit(next);
+  };
   const p = career.player;
   const clubId = currentClubId(p);
   const [picked, setPicked] = useState<number | null>(null);
@@ -81,7 +90,11 @@ export default function CareerScreen({ career, onChange, onExit }: Props) {
       {tree && p.skills && <SkillTree career={career} onChange={onChange} onClose={() => setTree(false)} />}
       {panel === 'family' && <FamilyPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {panel === 'invest' && <InvestPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
-      <LifePopups career={career} onChange={onChange} onFamily={() => setPanel('family')} />
+      {moments.length > 0 ? (
+        <MomentOverlay key={moments.map((m) => m.title).join('|')} moments={moments} onDone={() => setMoments([])} />
+      ) : (
+        <LifePopups career={career} onChange={onChange} onFamily={() => setPanel('family')} />
+      )}
 
       {/* Kopf: Wertung, Nation, Position, Alter, Verein, Marktwert */}
       <header className="cs-head">

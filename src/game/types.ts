@@ -434,6 +434,12 @@ export interface ShareHolding {
   percent: number;
   /** Insgesamt investierte Coins. */
   invested: number;
+  /** Zusätzlich in den Klub gestecktes Geld (Kader, Infrastruktur) – Wirkung bleibt verborgen. */
+  injected?: number;
+  /** Bisherige (verborgene) Stärkung durch eingestecktes Geld – begrenzt. */
+  injectedBoost?: number;
+  /** Stärkung, die erst beim nächsten Saisonabschluss wirkt (damit man sie nicht direkt sieht). */
+  pendingBoost?: number;
 }
 
 export interface YearReport {

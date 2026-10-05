@@ -8,6 +8,8 @@ import {
   buyProperty,
   buyShares,
   expectedIncome,
+  INJECT_AMOUNTS,
+  injectMoney,
   portfolioValue,
   sellProperty,
   sellShares,
@@ -141,6 +143,20 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
                         {stakeLabel(s.percent)} · {getLeague(clubLeagueId(career, s.clubId)).name} · Wert 🪙 {fmt(value)}{' '}
                         <b className={diff >= 0 ? 'up' : 'down'}>({diff >= 0 ? '+' : '−'}{fmt(Math.abs(diff))})</b>
                       </small>
+                    </span>
+                    {(s.injected ?? 0) > 0 && <small className="inv-injected">Schon investiert: 🪙 {fmt(s.injected!)}</small>}
+                    <span className="inv-inject">
+                      <small>In den Klub investieren:</small>
+                      {INJECT_AMOUNTS.map((a) => (
+                        <button
+                          key={a}
+                          className="btn secondary small"
+                          disabled={club.coins < a}
+                          onClick={() => window.confirm(`${fmt(a)} Coins in ${getClub(s.clubId).name} stecken? Das Geld ist weg – ob es dem Klub hilft, zeigt sich erst auf dem Platz.`) && apply(injectMoney(career, s.clubId, a, getClubState().coins))}
+                        >
+                          🪙 {fmt(a)}
+                        </button>
+                      ))}
                     </span>
                     <span className="inv-btns">
                       <button className="btn secondary small" onClick={() => apply(sellShares(career, s.clubId, 1))}>−1 %</button>

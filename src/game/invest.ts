@@ -1,7 +1,7 @@
 import { getClub } from '../data/leagues';
 import { householdOf } from './family';
 import { clubStrength } from './player';
-import { clamp, normal } from './random';
+import { clamp, normal, rand } from './random';
 import type { Career } from './types';
 
 // Investitionen (in Coins): Immobilien bringen Miete und schwanken im Wert, Anteile an Fußballklubs bringen
@@ -135,6 +135,13 @@ export function investYear(career: Career): { rent: number; dividends: number; n
     if (change <= -0.12) notes.push(`📉 ${prop.name}: Der Markt bricht ein (${Math.round(change * 100)} %).`);
     if (change >= 0.15) notes.push(`📈 ${prop.name}: starke Wertsteigerung (+${Math.round(change * 100)} %).`);
   }
+  // Eingestecktes Geld wirkt jetzt (still) auf die Stärke der Klubs.
+  for (const s of h.shares) {
+    if (s.pendingBoost) {
+      career.clubDrift[s.clubId] = (career.clubDrift[s.clubId] ?? 0) + s.pendingBoost;
+      s.pendingBoost = 0;
+    }
+  }
   let dividends = 0;
   for (const s of h.shares) {
     const d = Math.round(s.percent * sharePrice(career, s.clubId) * dividendRate(career, s.clubId));
@@ -142,4 +149,32 @@ export function investYear(career: Career): { rent: number; dividends: number; n
     if (career.europeSlots[s.clubId]) notes.push(`🏆 ${getClub(s.clubId).name} spielt europäisch – Extra-Dividende.`);
   }
   return { rent, dividends, notes };
+}
+
+// ---------- Geld in einen Klub stecken (nur als Anteilseigner) ----------
+// Das Geld fließt in Kader und Infrastruktur. Die Wirkung ist klein, zufällig und wird nicht angezeigt:
+// im Schnitt ca. +0,3 Stärke für den zehnfachen Preis eines Prozents, höchstens +2 insgesamt pro Klub.
+// Sie wirkt erst beim nächsten Saisonabschluss und klingt wie jede Vereinsstärke über die Saisons wieder ab. Der Anteilswert steigt dadurch
+// immer weniger als das eingesetzte Geld – ein Trick zum Geldverdienen ist es also nicht.
+
+export const INJECT_AMOUNTS = [5_000, 25_000, 100_000];
+export const MAX_INJECT_BOOST = 2;
+
+export function canInject(career: Career, clubId: string): boolean {
+  return (career.household?.shares.find((s) => s.clubId === clubId)?.percent ?? 0) > 0;
+}
+
+export function injectMoney(prev: Career, clubId: string, amount: number, coins: number): { career: Career; delta: number } {
+  if (!canInject(prev, clubId) || amount <= 0 || coins < amount) return { career: prev, delta: 0 };
+  const career: Career = structuredClone(prev);
+  const holding = householdOf(career).shares.find((s) => s.clubId === clubId)!;
+  const price = sharePrice(career, clubId);
+  const room = Math.max(0, MAX_INJECT_BOOST - (holding.injectedBoost ?? 0));
+  const gain = Math.min(room, (amount / (10 * price)) * 0.3 * rand(0, 1.6));
+  holding.injected = (holding.injected ?? 0) + amount;
+  holding.injectedBoost = (holding.injectedBoost ?? 0) + gain;
+  // Wirkt erst beim nächsten Saisonabschluss – vermischt mit allem anderen, was dann passiert.
+  holding.pendingBoost = (holding.pendingBoost ?? 0) + gain;
+  career.updatedAt = Date.now();
+  return { career, delta: -amount };
 }
