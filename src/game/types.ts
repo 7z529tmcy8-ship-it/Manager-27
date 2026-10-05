@@ -56,6 +56,8 @@ export interface PlayerState {
   ovr: number;
   /** Echtes Potenzial, wird im Spiel nur als Spanne angezeigt. */
   potential: number;
+  /** Potenzial beim ersten Saisonabschluss – natürliches Wachstum endet 2 Punkte darüber. */
+  potentialStart?: number;
   /** Individuelles Attributprofil (Abweichung je Attribut vom Gesamtwert). */
   profile: number[];
   contract: Contract;

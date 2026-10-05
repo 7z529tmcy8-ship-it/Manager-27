@@ -213,8 +213,14 @@ export function skillMods(p: Pick<PlayerState, 'skills'>): SkillMods {
       out[k] = MULT.includes(k) ? out[k] * v : out[k] + v;
     }
   }
+  // Viele Tor-/Vorlagen-Boni zusammen wirken abgeschwächt (sonst schießt ein Stürmer mit vollem Baum 80 Tore pro Saison).
+  out.goal = softBoost(out.goal);
+  out.assist = softBoost(out.assist);
   return out;
 }
+
+/** Bis +20 % voll, darüber nur noch zu einem Fünftel. */
+export const softBoost = (m: number) => (m <= 1.2 ? m : 1.2 + (m - 1.2) * 0.2);
 
 // ---------- Erfahrung und Level ----------
 

@@ -322,6 +322,7 @@ function winterTransition(career: Career, quick: boolean): Career {
   const stats = halfStats(prog.matches);
   const strength = clubStrength(career, clubId);
   const ovrBefore = p.ovr;
+  p.potentialStart ??= p.potential;
   const dev = developPlayer(p, stats, strength, { weight: 0.5 });
   p.ovr = adjustGrowth(career, ovrBefore, dev.ovr, dev.potential);
   p.potential = dev.potential;
@@ -422,6 +423,7 @@ function finishSecondHalf(career: Career): Career {
   const second = halfStats(prog.matches.filter((m) => m.half === 2));
   const strength = clubStrength(career, clubId);
   const ovrBefore = p.ovr;
+  p.potentialStart ??= p.potential;
   const dev = developPlayer(p, second, strength, {
     weight: 0.5,
     potentialStats: halfStats(prog.matches),

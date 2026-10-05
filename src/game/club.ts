@@ -154,7 +154,7 @@ export const PACKS: PackDef[] = [
     odds: { gold: 88, rare: 10, elite: 1.5, special: 0.4, icon: 0.1 },
   },
   {
-    id: 'premium', name: 'Premium-Pack', price: 20000, size: 4, text: '4 Karten ab 75, die beste garantiert ab 83.',
+    id: 'premium', name: 'Premium-Pack', price: 20000, size: 4, text: '4 Karten ab 75, die beste garantiert ab 83 oder eine Spezialkarte.',
     odds: { gold: 85, rare: 12, elite: 2.5, special: 0.4, icon: 0.1 },
     first: { odds: { rare: 80, elite: 15, special: 3.5, icon: 1.5 } },
   },
@@ -179,7 +179,7 @@ export const PACKS: PackDef[] = [
     odds: GOLD_FILL, first: { odds: { special: 100 }, filter: (c) => c.variant === 'cult' },
   },
   {
-    id: 'worldstar', name: 'Weltstar-Pack', price: 30000, size: 2, text: '2 Karten, die beste ab 83 – gute Chance auf einen Weltstar ab 87.',
+    id: 'worldstar', name: 'Weltstar-Pack', price: 30000, size: 2, text: '2 Karten, die beste ab 83 oder Ikone – gute Chance auf einen Weltstar ab 87.',
     odds: { gold: 70, rare: 27, elite: 3 }, first: { odds: { rare: 65, elite: 32, icon: 3 } },
   },
   {

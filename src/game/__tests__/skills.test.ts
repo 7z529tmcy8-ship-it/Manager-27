@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { slugify } from '../../data/leagues';
 import { createCareer } from '../career';
 import { simulateToBreak } from '../simple';
-import { ARCHETYPES, archetypesFor, canUnlock, chooseArchetype, freePoints, levelInfo, skillMods, unlockSkill } from '../skills';
+import { ARCHETYPES, archetypesFor, canUnlock, chooseArchetype, freePoints, levelInfo, skillMods, softBoost, unlockSkill } from '../skills';
 
 const base = () => createCareer({ name: 'Skill', nation: 'Deutschland', position: 'ST', age: 22, ovr: 78, potential: 88, clubId: slugify('SC Freiburg') });
 
@@ -49,7 +49,7 @@ it('Fähigkeiten freischalten: Kosten, Stufen-Voraussetzung, Wirkung', () => {
   expect(canUnlock(c.player, 'st_poacher')).toBe(true);
   expect(skillMods(c.player).goal).toBeCloseTo(1.12);
   c = unlockSkill(c, 'st_poacher');
-  expect(skillMods(c.player).goal).toBeCloseTo(1.12 * 1.1);
+  expect(skillMods(c.player).goal).toBeCloseTo(softBoost(1.12 * 1.1)); // über +20 % abgeschwächt
   const ovr = c.player.ovr;
   c = unlockSkill(c, 'st_complete');
   expect(c.player.ovr).toBe(ovr + 1);

@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { slugify } from '../../data/leagues';
 import { createCareer, playSeason } from '../career';
-import { CARD_POOL, PACKS, type CollectCard, applyItem, canUseItem, creditCareer, freshClub, openPack, sellDuplicates } from '../club';
+import { CARD_POOL, PACKS, packTier, type CollectCard, applyItem, canUseItem, creditCareer, freshClub, openPack, sellDuplicates } from '../club';
 import { specialsFor } from '../specials';
 import type { SeasonRecord } from '../types';
 
@@ -24,14 +24,15 @@ it('Packs: Preis, Größe, Garantien, keine Karte doppelt im selben Pack', () =>
       expect(res.result.cards).toHaveLength(pack.size);
       expect(new Set(res.result.cards.map((c) => c.card.id)).size).toBe(pack.size);
       const cards = res.result.cards.map((c) => c.card);
-      if (pack.id === 'premium') expect(cards.some((c) => c.ovr >= 83)).toBe(true);
+      const top = (c: CollectCard) => ['rare', 'elite', 'special', 'icon'].includes(packTier(c));
+      if (pack.id === 'premium') expect(cards.some(top)).toBe(true);
       if (pack.id === 'icon') expect(cards.some((c) => c.variant === 'icon')).toBe(true);
       if (pack.id === 'cult') expect(cards.some((c) => c.variant === 'cult')).toBe(true);
       if (pack.id === 'gold') expect(cards.every((c) => c.ovr >= 75)).toBe(true);
       if (pack.id === 'germany') expect(cards.every((c) => c.nation === 'Deutschland')).toBe(true);
       if (pack.id === 'bundesliga') expect(cards.every((c) => c.league === 'Bundesliga')).toBe(true);
       if (pack.id === 'wonder') expect(cards.every((c) => (c.age ?? 99) <= 21)).toBe(true);
-      if (pack.id === 'worldstar') expect(cards.some((c) => c.ovr >= 83)).toBe(true);
+      if (pack.id === 'worldstar') expect(cards.some(top)).toBe(true);
       if (pack.id === 'goat') expect(cards.every((c) => c.variant === 'icon' && c.ovr >= 94)).toBe(true);
       club = { ...res.club, coins: 1_000_000 };
     }

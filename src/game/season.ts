@@ -34,7 +34,7 @@ import type {
 
 // Anteil an den Toren bzw. Vorlagen der Mannschaft, wenn der Spieler 90 Minuten spielt.
 const GOAL_SHARE: Record<Position, number> = {
-  TW: 0, IV: 0.04, AV: 0.03, ZDM: 0.04, ZM: 0.07, ZOM: 0.13, FL: 0.16, ST: 0.24,
+  TW: 0, IV: 0.04, AV: 0.03, ZDM: 0.04, ZM: 0.06, ZOM: 0.11, FL: 0.13, ST: 0.185,
 };
 const ASSIST_SHARE: Record<Position, number> = {
   TW: 0.005, IV: 0.03, AV: 0.1, ZDM: 0.06, ZM: 0.12, ZOM: 0.2, FL: 0.18, ST: 0.12,
@@ -62,7 +62,8 @@ interface SeasonContext {
 
 export function goalsExpected(att: number, def: number, home: boolean, leagueGoals: number): number {
   const base = leagueGoals / 2 + (home ? 0.18 : -0.18);
-  return Math.max(0.15, base * Math.exp(0.065 * (att - def)));
+  // Klassenunterschied begrenzt: auch gegen einen Fünftligisten fallen im Schnitt keine zehn Tore.
+  return Math.max(0.15, base * Math.exp(0.065 * clamp(att - def, -18, 18)));
 }
 
 export function playMatch(sHome: number, sAway: number, goals: number): [number, number] {
@@ -181,10 +182,15 @@ function playerMatch(
   let rating: number | null = null;
   if (minutes > 0) {
     const penalties = (player.penaltyTakerOf === ctx.clubId ? 1.15 : 1) * (hasTrait(player, 'showman') ? 1.05 : 1);
-    const pGoal = Math.min(0.8, GOAL_SHARE[player.position] * penalties * mods.goal * Math.exp(rel * 0.04) * share);
-    const pAssist = Math.min(0.6, ASSIST_SHARE[player.position] * mods.assist * Math.exp(rel * 0.04) * share);
+    // Klassenunterschied zum eigenen Team wirkt, aber begrenzt – auch ein Weltstar trifft nicht bei jedem Teamtor.
+    const relFactor = Math.exp(clamp(rel, -15, 12) * 0.03);
+    const pGoal = Math.min(0.3, GOAL_SHARE[player.position] * penalties * mods.goal * relFactor * share);
+    const pAssist = Math.min(0.3, ASSIST_SHARE[player.position] * mods.assist * relFactor * share);
+    // Bei Kantersiegen verteilen sich die Tore auf mehr Schultern.
+    const spread = gf > 3 ? 3 / gf : 1;
     for (let g = 0; g < gf; g++) {
-      if (chance(pGoal)) goals++;
+      // Mehr als vier eigene Tore in einem Spiel gibt es (fast) nie.
+      if (goals < 4 && chance(pGoal * spread)) goals++;
       else if (chance(pAssist / (1 - pGoal))) assists++;
     }
     let r = 6.5 + rel * 0.03 + (gf > ga ? 0.35 : gf < ga ? -0.35 : 0) + goals * 0.9 + assists * 0.6;
@@ -651,7 +657,12 @@ export function finishSeason(career: Career, prog: SeasonProgress): SeasonOutcom
     awards.push('Golden Boy');
   }
   const bigTitle = allTrophies.some((t) => t.startsWith('Meister')) || allTrophies.includes('Champions League');
-  if (player.ovr >= 88 && avgRating !== null && avgRating >= 7.5 && bigTitle && chance(allTrophies.includes('Champions League') ? 0.6 : 0.3)) {
+  // Ballon d’Or: nur nach einer echten Weltklasse-Saison – großer Titel plus herausragende Werte.
+  const standout = awards.some((a) => a.startsWith('Torschützenkönig') || a.startsWith('Spieler der Saison'));
+  if (
+    player.ovr >= 91 && avgRating !== null && avgRating >= 7.7 && bigTitle && league.tier === 1 &&
+    chance(allTrophies.includes('Champions League') ? (standout ? 0.3 : 0.12) : standout ? 0.08 : 0.02)
+  ) {
     awards.push('Ballon d’Or');
   }
 

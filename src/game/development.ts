@@ -101,7 +101,9 @@ export function developPlayer(
   const rel = p.ovr - teamStrength;
   const relPerf = relativePerformance(stats, p.position, rel, teamStrength);
   // Je besser ein Spieler schon ist, desto schwerer fällt jeder weitere Punkt.
-  const eliteBrake = clamp((95 - p.ovr) / 15, 0, 1);
+  const eliteBrake = clamp((92 - p.ovr) / 12, 0, 1);
+  // Natürliche Obergrenze: höchstens 2 Punkte über dem Start-Potenzial (Fähigkeiten-Boni kommen extra dazu).
+  const ceiling = Math.min(99, (p.potentialStart ?? p.potential) + 2);
   const reasons: string[] = [];
 
   const ptFactor = 0.35 + 0.95 * Math.min(1, share / 0.75);
@@ -115,8 +117,8 @@ export function developPlayer(
   if (potentialStats) {
     const seasonShare = shareOf(potentialStats);
     const seasonRel = relativePerformance(potentialStats, p.position, rel, teamStrength);
-    if (p.age <= 24 && seasonShare >= 0.5 && seasonRel >= 1 && p.ovr < 92) {
-      potential = Math.min(99, potential + (p.ovr >= 85 ? 1 : randInt(1, 2)));
+    if (p.age <= 24 && seasonShare >= 0.5 && seasonRel >= 1 && p.ovr < 90 && potential < ceiling) {
+      potential = Math.min(ceiling, potential + (p.ovr >= 85 ? 1 : randInt(1, 2)));
       reasons.push('Besser gespielt als erwartet – das Potenzial ist gestiegen.');
     } else if (p.age <= 23 && seasonShare < 0.25) {
       const down = randInt(0, 2);
@@ -165,6 +167,7 @@ export function developPlayer(
   let ovr = p.ovr + whole + (chance(change - whole) ? 1 : 0);
   // Ohne Leistung über den Erwartungen bleibt das Potenzial die Obergrenze.
   if (relPerf < 0.8 && change > 0) ovr = Math.min(ovr, Math.max(potential, p.ovr));
+  if (change > 0) ovr = Math.min(ovr, Math.max(ceiling, p.ovr));
   ovr = clamp(ovr, 40, 99);
   // Wer über sein Potenzial wächst, hebt es mit an.
   potential = Math.max(potential, ovr);
