@@ -1,4 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { getClubState, setClubState, useClub } from '../clubStore';
+import { INFINITE_COINS, devAllCards, devCoins, devLevels, devMaxCards, devOvr, isDevCode } from '../game/dev';
 import { DIFFICULTIES, setCareerSettings, settingsOf } from '../game/difficulty';
 import type { Career, Difficulty } from '../game/types';
 import { UNLOCK_KEY } from './PasswordGate';
@@ -102,12 +104,94 @@ export default function Settings({ career, onChange, onClose }: Props) {
               onPick={(v) => { set({ volume: Number(v) }); setTimeout(() => play('coin'), 30); }}
             />
           )}
+          {!app.dev && <CodeInput onUnlock={() => set({ dev: true })} />}
           <div className="setting setting-row">
             <span className="grow"><span className="setting-label">Passwort-Sperre</span></span>
             <button className="btn secondary small" onClick={lock}>Wieder sperren</button>
           </div>
         </section>
+
+        {app.dev && <DevPanel career={career} onChange={onChange} onLock={() => set({ dev: false })} />}
       </div>
     </div>
+  );
+}
+
+/** Code-Feld: Der richtige Code schaltet den Entwickler-Bereich frei. */
+function CodeInput({ onUnlock }: { onUnlock: () => void }) {
+  const [code, setCode] = useState('');
+  const [wrong, setWrong] = useState(false);
+  const submit = () => {
+    if (isDevCode(code)) {
+      onUnlock();
+      play('levelUp');
+    } else {
+      setWrong(true);
+      play('error');
+    }
+    setCode('');
+  };
+  return (
+    <div className="setting">
+      <span className="setting-label">Code eingeben</span>
+      <form className="dev-code" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <input value={code} onChange={(e) => { setCode(e.target.value); setWrong(false); }} placeholder="Geheimcode" autoCapitalize="none" autoComplete="off" aria-label="Code" />
+        <button className="btn secondary small" disabled={!code.trim()}>OK</button>
+      </form>
+      {wrong && <p className="hint">Falscher Code.</p>}
+    </div>
+  );
+}
+
+/** Entwickler-Bereich: Coins, alle Karten, Karriere-Abkürzungen. */
+function DevPanel({ career, onChange, onLock }: { career?: Career; onChange?: (c: Career) => void; onLock: () => void }) {
+  const club = useClub();
+  const [msg, setMsg] = useState('');
+  const club$ = (fn: (c: ReturnType<typeof getClubState>) => ReturnType<typeof getClubState>, text: string) => {
+    setClubState(fn(getClubState()));
+    setMsg(text);
+  };
+  const career$ = (next: Career, text: string) => {
+    onChange?.(next);
+    setMsg(text);
+  };
+  return (
+    <section className="panel dev-panel">
+      <h2>🛠️ Entwickler</h2>
+      <p className="hint">Wirkt sofort auf deinen Spielstand in diesem Browser. Tipp: vorher unter „Sichern & Laden“ eine Sicherung machen.</p>
+
+      <div className="dev-group">
+        <span className="setting-label">Coins · aktuell 🪙 {club.coins.toLocaleString('de-DE')}</span>
+        <div className="dev-btns">
+          <button className="btn secondary small" onClick={() => club$((c) => devCoins(c, c.coins + 100_000), '+100.000 Coins')}>+100.000</button>
+          <button className="btn secondary small" onClick={() => club$((c) => devCoins(c, c.coins + 1_000_000), '+1 Mio. Coins')}>+1 Mio.</button>
+          <button className="btn primary small" onClick={() => club$((c) => devCoins(c, INFINITE_COINS), 'Unendlich Coins ♾️')}>♾️ Unendlich</button>
+          <button className="btn ghost small" onClick={() => club$((c) => devCoins(c, 0), 'Coins auf 0')}>Auf 0</button>
+        </div>
+      </div>
+
+      <div className="dev-group">
+        <span className="setting-label">Sammlung</span>
+        <div className="dev-btns">
+          <button className="btn primary small" onClick={() => club$(devAllCards, 'Alle Karten freigeschaltet')}>Alle Spieler/Karten</button>
+          <button className="btn secondary small" onClick={() => club$(devMaxCards, 'Alle Karten auf 99')}>Alle Karten auf 99</button>
+        </div>
+      </div>
+
+      {career && onChange && (
+        <div className="dev-group">
+          <span className="setting-label">Diese Karriere · {career.player.name} ({career.player.ovr})</span>
+          <div className="dev-btns">
+            <button className="btn secondary small" onClick={() => career$(devOvr(career, career.player.ovr + 5), 'Wertung +5')}>Wertung +5</button>
+            <button className="btn secondary small" onClick={() => career$(devOvr(career, 99), 'Wertung 99')}>Wertung 99</button>
+            <button className="btn secondary small" disabled={!career.player.skills} onClick={() => career$(devLevels(career, 10), '+10 Level')}>+10 Level</button>
+          </div>
+          {!career.player.skills && <p className="hint">Level gibt es, sobald du einen Spielertyp gewählt hast.</p>}
+        </div>
+      )}
+
+      {msg && <p className="cs-note good" role="status">✓ {msg}</p>}
+      <button className="btn ghost small" onClick={onLock}>Entwickler-Bereich ausblenden</button>
+    </section>
   );
 }

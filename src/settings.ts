@@ -9,6 +9,8 @@ export interface AppSettings {
   sound: boolean;
   /** Lautstärke 0–1. */
   volume: number;
+  /** Entwickler-Bereich freigeschaltet (Code in den Einstellungen). */
+  dev?: boolean;
 }
 
 const KEY = 'fc-manager-settings';
