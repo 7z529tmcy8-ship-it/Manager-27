@@ -328,6 +328,8 @@ export interface Career {
   requestsLeft: number;
   /** Vereinsstärken können sich über die Jahre leicht verändern. */
   clubDrift: Record<string, number>;
+  /** Dauerhafte Stärkung durch Investoren-Geld (Vereins-ID → Stärkepunkte). Klingt ohne neues Geld langsam ab. */
+  clubBacking?: Record<string, number>;
   /** Europapokal-Startplätze aus der Vorsaison (Vereins-ID → Wettbewerb). */
   europeSlots: Record<string, Competition>;
   /** Aktuelle Ligazugehörigkeit (ändert sich durch Auf- und Abstieg). */
@@ -436,12 +438,16 @@ export interface ShareHolding {
   percent: number;
   /** Insgesamt investierte Coins. */
   invested: number;
-  /** Zusätzlich in den Klub gestecktes Geld (Kader, Infrastruktur) – Wirkung bleibt verborgen. */
+  /** Insgesamt zusätzlich in den Klub gestecktes Geld (Kader, Infrastruktur). */
   injected?: number;
-  /** Bisherige (verborgene) Stärkung durch eingestecktes Geld – begrenzt. */
+  /** Alt (frühere Version): verborgene Stärkung durch eingestecktes Geld. */
   injectedBoost?: number;
-  /** Stärkung, die erst beim nächsten Saisonabschluss wirkt (damit man sie nicht direkt sieht). */
+  /** Alt (frühere Version): Stärkung, die beim nächsten Saisonabschluss wirkt. */
   pendingBoost?: number;
+  /** Ausbau-Budget: eingestecktes Geld, das der Klub über die nächsten Jahre verbaut. */
+  fund?: number;
+  /** Liga beim letzten Jahresabschluss (für Aufstiegs-Meldungen). */
+  lastLeague?: string;
 }
 
 export interface YearReport {
@@ -452,6 +458,8 @@ export interface YearReport {
   rent: number;
   dividends: number;
   notes: string[];
+  /** Meldungen zu Immobilien und Klub-Anteilen (ältere Spielstände: in notes). */
+  investNotes?: string[];
 }
 
 export interface Household {

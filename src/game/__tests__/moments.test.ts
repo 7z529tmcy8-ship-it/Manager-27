@@ -1,9 +1,10 @@
 import { expect, it } from 'vitest';
 import { slugify } from '../../data/leagues';
 import { createCareer } from '../career';
-import { buyShares, injectMoney, MAX_INJECT_BOOST, sharePrice } from '../invest';
+import { buyShares, injectMoney, MAX_BACKING, MAX_GAIN_PER_YEAR, sharePrice } from '../invest';
 import { detectMoments } from '../moments';
-import { closeYear } from '../household';
+import { backgroundSeason, closeYear } from '../household';
+import { clubLeagueId, clubStrength } from '../player';
 import { applyChoice, seasonChoices, simulateToBreak } from '../simple';
 import type { Career, SeasonRecord } from '../types';
 
@@ -40,21 +41,32 @@ it('Vereinswechsel wird erkannt', () => {
   c = next;
 });
 
-it('Geld in einen Klub stecken: nur als Anteilseigner, Wirkung begrenzt und unter dem Einsatz', () => {
+it('Leipzig-Projekt: Geld macht einen Landesligisten über Jahre stärker, nicht sofort', () => {
   const c = base();
-  const club = slugify('Hannover 96');
+  const club = slugify('OSV Hannover');
   expect(injectMoney(c, club, 5000, 1e9).delta).toBe(0); // keine Anteile
-  const owner = buyShares(c, club, 10, 1e9).career;
-  let x = owner;
-  for (let i = 0; i < 40; i++) x = injectMoney(x, club, 100_000, 1e9).career;
-  // Direkt nach dem Investieren ändert sich nichts Sichtbares …
-  expect(sharePrice(x, club)).toBe(sharePrice(owner, club));
-  // … erst beim nächsten Saisonabschluss.
-  closeYear(x);
-  const holding = x.household!.shares[0];
-  expect(holding.injectedBoost!).toBeLessThanOrEqual(MAX_INJECT_BOOST + 1e-9);
-  expect(holding.injected).toBe(4_000_000);
-  // Wertzuwachs der eigenen Anteile bleibt weit unter dem eingesetzten Geld.
-  const gain = 10 * (sharePrice(x, club) - sharePrice(owner, club));
-  expect(gain).toBeLessThan(holding.injected!);
+  const owner = buyShares(c, club, 49, 1e9).career;
+  const start = clubStrength(owner, club);
+  const x = injectMoney(owner, club, 500_000, 1e9).career;
+  // Direkt nach dem Investieren ändert sich nichts.
+  expect(clubStrength(x, club)).toBe(start);
+  expect(x.household!.shares[0].fund).toBe(500_000);
+  // Pro Jahr höchstens +6 (plus Zufall) – der Ausbau dauert mehrere Saisons.
+  let prev = start;
+  const leagues: string[] = [];
+  for (let year = 0; year < 12; year++) {
+    backgroundSeason(x);
+    closeYear(x);
+    const now = clubStrength(x, club);
+    expect((x.clubBacking?.[club] ?? 0)).toBeLessThanOrEqual(MAX_BACKING * 1.2);
+    expect(now - prev).toBeLessThan(MAX_GAIN_PER_YEAR * 1.2 + 4); // + Vereinsform (Drift)
+    prev = now;
+    leagues.push(clubLeagueId(x, club));
+  }
+  const backing = x.clubBacking![club];
+  expect(backing).toBeGreaterThan(20);
+  expect(leagues[0]).not.toBe('bl1');
+  expect(leagues.some((l) => l !== 'llh')).toBe(true); // mindestens ein Aufstieg
+  // Wertzuwachs der eigenen Anteile bleibt unter dem eingesetzten Geld.
+  expect(49 * (sharePrice(x, club) - sharePrice(owner, club))).toBeLessThan(500_000);
 });

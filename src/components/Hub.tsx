@@ -5,6 +5,7 @@ import { currentClubId, seasonLabel } from '../game/player';
 import { deleteCareer, listCareers } from '../game/storage';
 import type { Career } from '../game/types';
 import { useClub } from '../clubStore';
+import Backup from './Backup';
 import Settings from './Settings';
 import UtCard from './UtCard';
 
@@ -27,6 +28,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   const [saves, setSaves] = useState(listCareers);
   const [showSaves, setShowSaves] = useState(false);
   const [settings, setSettings] = useState(false);
+  const [backup, setBackup] = useState(false);
   const latest = [...saves].sort((a, b) => b.updatedAt - a.updatedAt)[0];
   const owned = Object.keys(club.cards).length + club.specials.length;
   const hasHistory = saves.some((c) => c.history.length > 0);
@@ -80,6 +82,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
         <Tile icon="🏠" title="Spielstände" sub={`${saves.length} gespeichert`} onClick={() => setShowSaves(true)} disabled={!saves.length} />
         <Tile icon="🏆" title="Erfolge" sub="Karriereziele" onClick={onAchievements} disabled={!saves.length} />
         <Tile icon="🏛️" title="Hall of Fame" sub="Deine besten Karrieren" onClick={onFame} disabled={!hasHistory} />
+        <Tile icon="💾" title="Sichern & Laden" sub="Spielstände exportieren und wieder einspielen" onClick={() => setBackup(true)} />
       </div>
 
       <p className="disclaimer hub-disc">
@@ -110,6 +113,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
         </div>
       )}
       {settings && <Settings onClose={() => setSettings(false)} />}
+      {backup && <Backup onClose={() => setBackup(false)} />}
     </main>
   );
 }

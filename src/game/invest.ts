@@ -1,6 +1,6 @@
-import { getClub } from '../data/leagues';
+import { getClub, getLeague } from '../data/leagues';
 import { householdOf } from './family';
-import { clubStrength } from './player';
+import { clubLeagueId, clubStrength } from './player';
 import { clamp, normal, rand } from './random';
 import type { Career } from './types';
 
@@ -100,7 +100,7 @@ export function buyShares(prev: Career, clubId: string, percent: number, coins: 
   if (holding) {
     holding.percent += amount;
     holding.invested += cost;
-  } else h.shares.push({ clubId, percent: amount, invested: cost });
+  } else h.shares.push({ clubId, percent: amount, invested: cost, lastLeague: clubLeagueId(career, clubId) });
   career.updatedAt = Date.now();
   return { career, delta: -cost };
 }
@@ -135,7 +135,8 @@ export function investYear(career: Career): { rent: number; dividends: number; n
     if (change <= -0.12) notes.push(`📉 ${prop.name}: Der Markt bricht ein (${Math.round(change * 100)} %).`);
     if (change >= 0.15) notes.push(`📈 ${prop.name}: starke Wertsteigerung (+${Math.round(change * 100)} %).`);
   }
-  // Eingestecktes Geld wirkt jetzt (still) auf die Stärke der Klubs.
+  backingYear(career, notes);
+  // Alte Spielstände: früher eingestecktes Geld wirkt noch einmal auf die Vereinsstärke.
   for (const s of h.shares) {
     if (s.pendingBoost) {
       career.clubDrift[s.clubId] = (career.clubDrift[s.clubId] ?? 0) + s.pendingBoost;
@@ -151,14 +152,22 @@ export function investYear(career: Career): { rent: number; dividends: number; n
   return { rent, dividends, notes };
 }
 
-// ---------- Geld in einen Klub stecken (nur als Anteilseigner) ----------
-// Das Geld fließt in Kader und Infrastruktur. Die Wirkung ist klein, zufällig und wird nicht angezeigt:
-// im Schnitt ca. +0,3 Stärke für den zehnfachen Preis eines Prozents, höchstens +2 insgesamt pro Klub.
-// Sie wirkt erst beim nächsten Saisonabschluss und klingt wie jede Vereinsstärke über die Saisons wieder ab. Der Anteilswert steigt dadurch
-// immer weniger als das eingesetzte Geld – ein Trick zum Geldverdienen ist es also nicht.
+// ---------- Geld in einen Klub stecken (nur als Anteilseigner) – das „Leipzig-Projekt“ ----------
+// Eingestecktes Geld landet im Ausbau-Budget des Klubs. Bei jedem Saisonabschluss verbaut der Klub davon
+// so viel, wie er sinnvoll umsetzen kann (Kader, Trainer, Nachwuchs, Stadion): höchstens +6 Stärke pro Jahr.
+// Jeder weitere Stärkepunkt wird teurer – ein Landesligist wird für wenig Geld ein Oberligist, aber bis zur
+// Bundesliga braucht es Jahre und rund eine halbe Million Coins. Ohne neues Geld bröckelt die Stärke langsam ab.
 
-export const INJECT_AMOUNTS = [5_000, 25_000, 100_000];
-export const MAX_INJECT_BOOST = 2;
+export const INJECT_AMOUNTS = [5_000, 25_000, 100_000, 500_000];
+/** Höchstens so viel Stärke kann ein Klub pro Jahr durch Geld dazugewinnen. */
+export const MAX_GAIN_PER_YEAR = 6;
+/** Obergrenze der gesamten Stärkung durch Investoren-Geld. */
+export const MAX_BACKING = 45;
+/** Ohne neues Geld bleibt pro Jahr nur dieser Anteil der Stärkung erhalten. */
+export const BACKING_KEEP = 0.96;
+
+/** Coins für den nächsten Stärkepunkt – steigt steil mit der aktuellen Stärke. */
+export const costPerPoint = (strength: number) => Math.round(1500 * 1.09 ** Math.max(0, strength - 36));
 
 export function canInject(career: Career, clubId: string): boolean {
   return (career.household?.shares.find((s) => s.clubId === clubId)?.percent ?? 0) > 0;
@@ -168,13 +177,62 @@ export function injectMoney(prev: Career, clubId: string, amount: number, coins:
   if (!canInject(prev, clubId) || amount <= 0 || coins < amount) return { career: prev, delta: 0 };
   const career: Career = structuredClone(prev);
   const holding = householdOf(career).shares.find((s) => s.clubId === clubId)!;
-  const price = sharePrice(career, clubId);
-  const room = Math.max(0, MAX_INJECT_BOOST - (holding.injectedBoost ?? 0));
-  const gain = Math.min(room, (amount / (10 * price)) * 0.3 * rand(0, 1.6));
   holding.injected = (holding.injected ?? 0) + amount;
-  holding.injectedBoost = (holding.injectedBoost ?? 0) + gain;
-  // Wirkt erst beim nächsten Saisonabschluss – vermischt mit allem anderen, was dann passiert.
-  holding.pendingBoost = (holding.pendingBoost ?? 0) + gain;
+  holding.fund = (holding.fund ?? 0) + amount;
   career.updatedAt = Date.now();
   return { career, delta: -amount };
+}
+
+/** Grobe Vorschau: Wie viele Stärkepunkte bringt das Budget insgesamt (ohne Zufall und Abbau)? */
+export function fundPreview(career: Career, clubId: string, fund: number): number {
+  let s = clubStrength(career, clubId);
+  let room = MAX_BACKING - (career.clubBacking?.[clubId] ?? 0);
+  let gain = 0;
+  while (fund > 0 && room > 0) {
+    const cost = costPerPoint(s);
+    const step = Math.min(1, room, fund / cost);
+    fund -= step * cost;
+    gain += step;
+    room -= step;
+    s += step;
+  }
+  return gain;
+}
+
+/** Jahresabschluss: Stärkung klingt ab, dann verbaut jeder Klub einen Teil seines Ausbau-Budgets. */
+function backingYear(career: Career, notes: string[]): void {
+  for (const s of householdOf(career).shares) {
+    const now = clubLeagueId(career, s.clubId);
+    if (s.lastLeague && s.lastLeague !== now) {
+      const up = getLeague(now).tier < getLeague(s.lastLeague).tier;
+      notes.push(up ? `🚀 ${getClub(s.clubId).name} steigt auf – jetzt in der ${getLeague(now).name}!` : `📉 ${getClub(s.clubId).name} steigt ab in die ${getLeague(now).name}.`);
+    }
+    s.lastLeague = now;
+  }
+  const backing = (career.clubBacking ??= {});
+  for (const id of Object.keys(backing)) {
+    backing[id] *= BACKING_KEEP;
+    if (backing[id] < 0.05) delete backing[id];
+  }
+  for (const s of householdOf(career).shares) {
+    if (!s.fund) continue;
+    let strength = clubStrength(career, s.clubId);
+    let room = Math.min(MAX_GAIN_PER_YEAR, MAX_BACKING - (backing[s.clubId] ?? 0));
+    let gain = 0;
+    while (s.fund > 0 && room > 0) {
+      const cost = costPerPoint(strength);
+      const step = Math.min(1, room, s.fund / cost);
+      s.fund -= step * cost;
+      gain += step;
+      room -= step;
+      strength += step;
+    }
+    s.fund = Math.round(s.fund);
+    // Nicht jeder Euro trifft: Fehleinkäufe und Glücksgriffe.
+    gain *= rand(0.75, 1.2);
+    if (gain > 0) backing[s.clubId] = (backing[s.clubId] ?? 0) + gain;
+    if (gain >= 1) {
+      notes.push(`🏗️ ${getClub(s.clubId).name}: Dein Geld wirkt – neue Spieler und Trainer, Stärke +${gain.toFixed(1).replace('.', ',')}.`);
+    }
+  }
 }

@@ -13,6 +13,17 @@ export const GREETING = 'An Alle Ayris die das spielen!';
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-05-backup-projekt',
+    date: '05.10.2026',
+    title: 'Sichern & Laden + das Leipzig-Projekt',
+    items: [
+      '💾 Neu im Hauptmenü: „Sichern & Laden“. Exportier deine Karrieren, Coins und Karten als Datei oder Text und spiel sie jederzeit wieder ein – auch auf einem anderen Gerät. Mach das ab und zu, falls der Browser seine Daten löscht!',
+      '🏗️ Investieren lohnt sich jetzt richtig: Steckst du viel Geld in einen Klub, an dem du Anteile hast, baut er Saison für Saison Kader und Umfeld aus (max. +6 Stärke pro Jahr).',
+      '🚀 Mit genug Coins wird aus einem Landesligisten über die Jahre ein Bundesligist – etwa 500.000 Coins und 6–8 Saisons. Hörst du auf zu zahlen, bröckelt es langsam wieder.',
+      '⚽ Auch im Ruhestand läuft der Fußball weiter: Ligen spielen im Hintergrund, deine Klubs können auf- und absteigen.',
+    ],
+  },
+  {
     id: '2026-10-05-skilltree-xl',
     date: '05.10.2026',
     title: 'Fähigkeitenbaum XL – schwer zu holen, stark wenn man es schafft',

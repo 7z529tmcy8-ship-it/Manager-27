@@ -8,7 +8,9 @@ import {
   buyProperty,
   buyShares,
   expectedIncome,
+  fundPreview,
   INJECT_AMOUNTS,
+  MAX_GAIN_PER_YEAR,
   injectMoney,
   portfolioValue,
   sellProperty,
@@ -16,7 +18,7 @@ import {
   sharePrice,
   stakeLabel,
 } from '../game/invest';
-import { clubLeagueId } from '../game/player';
+import { clubLeagueId, clubStrength } from '../game/player';
 import type { Career } from '../game/types';
 
 const fmt = (n: number) => Math.round(n).toLocaleString('de-DE');
@@ -29,6 +31,7 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
   const [leagueId, setLeagueId] = useState('bl1');
   const [clubId, setClubId] = useState('');
   const report = h?.report;
+  const investNotes = report?.investNotes ?? report?.notes.filter((n) => /^[📉📈🏆]/u.test(n)) ?? [];
 
   const apply = (res: { career: Career; delta: number }) => {
     if (!res.delta) return;
@@ -58,11 +61,11 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
           <div><small>Wert</small><strong>🪙 {fmt(portfolioValue(career))}</strong></div>
           <div><small>Einnahmen/Jahr</small><strong>~ 🪙 {fmt(expectedIncome(career))}</strong></div>
         </div>
-        {report && (report.rent > 0 || report.dividends > 0) && (
+        {report && (report.rent > 0 || report.dividends > 0 || investNotes.length > 0) && (
           <div className="fam-report">
             <strong>Letztes Jahr</strong>
             <span>Miete +{fmt(report.rent)} 🪙 · Dividenden +{fmt(report.dividends)} 🪙</span>
-            {report.notes.filter((n) => n.startsWith('📉') || n.startsWith('📈') || n.startsWith('🏆')).map((n) => <span key={n}>{n}</span>)}
+            {investNotes.map((n) => <span key={n}>{n}</span>)}
           </div>
         )}
         <p className="muted">Einnahmen werden am Ende jeder Saison (bzw. jedes Ruhestandsjahres) in deinen Club gezahlt. Beim Verkauf fallen {SELL_FEE * 100} % Gebühren an.</p>
@@ -144,7 +147,18 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
                         <b className={diff >= 0 ? 'up' : 'down'}>({diff >= 0 ? '+' : '−'}{fmt(Math.abs(diff))})</b>
                       </small>
                     </span>
-                    {(s.injected ?? 0) > 0 && <small className="inv-injected">Schon investiert: 🪙 {fmt(s.injected!)}</small>}
+                    <span className="inv-project">
+                      <small>
+                        🏗️ Stärke <b>{Math.round(clubStrength(career, s.clubId))}</b>
+                        {(career.clubBacking?.[s.clubId] ?? 0) >= 0.5 && <> (davon +{Math.round(career.clubBacking![s.clubId])} durch dein Geld)</>}
+                        {(s.injected ?? 0) > 0 && <> · insgesamt investiert 🪙 {fmt(s.injected!)}</>}
+                      </small>
+                      {(s.fund ?? 0) > 0 && (
+                        <small>
+                          Ausbau-Budget 🪙 {fmt(s.fund!)} – reicht für ca. +{Math.max(1, Math.round(fundPreview(career, s.clubId, s.fund!)))} Stärke, verbaut über die nächsten Saisons (max. +{MAX_GAIN_PER_YEAR} pro Jahr).
+                        </small>
+                      )}
+                    </span>
                     <span className="inv-inject">
                       <small>In den Klub investieren:</small>
                       {INJECT_AMOUNTS.map((a) => (
@@ -152,7 +166,7 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
                           key={a}
                           className="btn secondary small"
                           disabled={club.coins < a}
-                          onClick={() => window.confirm(`${fmt(a)} Coins in ${getClub(s.clubId).name} stecken? Das Geld ist weg – ob es dem Klub hilft, zeigt sich erst auf dem Platz.`) && apply(injectMoney(career, s.clubId, a, getClubState().coins))}
+                          onClick={() => window.confirm(`${fmt(a)} Coins in ${getClub(s.clubId).name} stecken? Das Geld ist weg – der Klub baut damit Saison für Saison Kader und Umfeld aus (ca. +${Math.max(0.1, fundPreview(career, s.clubId, (s.fund ?? 0) + a) - fundPreview(career, s.clubId, s.fund ?? 0)).toFixed(1).replace('.', ',')} Stärke). Ohne weiteres Geld bröckelt es langsam wieder ab.`) && apply(injectMoney(career, s.clubId, a, getClubState().coins))}
                         >
                           🪙 {fmt(a)}
                         </button>

@@ -1364,7 +1364,9 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 
 .inv-inject { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; width: 100%; }
 .inv-inject small { color: var(--muted); font-size: .76rem; }
-.inv-injected { width: 100%; color: var(--muted); font-size: .74rem; }
+.inv-project { display: grid; gap: 2px; width: 100%; }
+.inv-project small { color: var(--muted); font-size: .76rem; line-height: 1.35; }
+.inv-project b { color: var(--text); }
 .inv-list li.owned { flex-wrap: wrap; }
 
 /* ---------- Große Momente (Titel, Wechsel, Wertungssprünge) ---------- */
@@ -1457,3 +1459,9 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .upd-count { opacity: .6; text-align: center; }
 .reduce-motion .upd, .reduce-motion .upd-card { animation: none; }
 .upd-card ul { max-height: 50vh; max-height: 50dvh; overflow-y: auto; padding-right: 2px; }
+
+/* Sichern & Laden */
+.backup-box { display: grid; gap: 8px; margin-top: 14px; padding: 14px; border-radius: 16px; border: 1px solid var(--hairline); background: var(--surface); }
+.backup-box h3 { margin: 0; font-size: 1rem; }
+.backup-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.backup-text { width: 100%; box-sizing: border-box; min-height: 84px; padding: 10px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--bg, transparent); color: var(--text); font: .78rem/1.4 ui-monospace, monospace; resize: vertical; }

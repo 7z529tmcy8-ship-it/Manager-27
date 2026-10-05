@@ -1,6 +1,10 @@
+import { CLUBS, LEAGUES } from '../data/leagues';
 import { familyYear, householdOf, maybeFlirt } from './family';
 import { investYear } from './invest';
-import type { Career } from './types';
+import { clubLeagueId, clubStrength } from './player';
+import { normal, poisson } from './random';
+import { addResult, applyLeagueChanges, emptyRow, goalsExpected, roundRobin, sortTable } from './season';
+import type { Career, TableRow } from './types';
 
 // Jahresabschluss für Familie und Vermögen. Wird nach jeder Spieler-Saison, jeder Trainer-Saison und
 // im Ruhestand per Knopf („Ein Jahr vergeht“) aufgerufen. Verändert den übergebenen Spielstand direkt.
@@ -18,7 +22,8 @@ export function closeYear(career: Career): void {
     kidCosts: kids.costs,
     rent: inv.rent,
     dividends: inv.dividends,
-    notes: [...kids.notes, ...inv.notes],
+    notes: kids.notes,
+    investNotes: inv.notes,
   };
 }
 
@@ -28,8 +33,30 @@ export function restYear(prev: Career): Career {
   const career: Career = structuredClone(prev);
   const h = householdOf(career);
   if (h.retiredYear === undefined) h.retiredYear = h.year;
+  backgroundSeason(career);
   closeYear(career);
   maybeFlirt(career);
   career.updatedAt = Date.now();
   return career;
+}
+
+/** Im Ruhestand läuft der Fußball weiter: alle Ligen im Hintergrund durchspielen, mit Auf- und Abstieg. */
+export function backgroundSeason(career: Career): void {
+  const strength: Record<string, number> = {};
+  for (const c of CLUBS) strength[c.id] = clubStrength(career, c.id) + normal(0, 1.2);
+  const tables: Record<string, TableRow[]> = {};
+  for (const l of LEAGUES) {
+    const ids = CLUBS.filter((c) => clubLeagueId(career, c.id) === l.id).map((c) => c.id);
+    const rows = new Map(ids.map((id) => [id, emptyRow(id)]));
+    for (const round of roundRobin([...ids].sort())) {
+      for (const [home, away] of round) {
+        const gh = poisson(goalsExpected(strength[home], strength[away], true, l.goalsPerGame));
+        const ga = poisson(goalsExpected(strength[away], strength[home], false, l.goalsPerGame));
+        addResult(rows.get(home)!, gh, ga);
+        addResult(rows.get(away)!, ga, gh);
+      }
+    }
+    tables[l.id] = sortTable([...rows.values()]);
+  }
+  applyLeagueChanges(career, tables);
 }
