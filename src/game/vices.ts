@@ -175,6 +175,7 @@ export function doVice(prev: Career, id: ViceId, roll: () => number = Math.rando
     }
     case 'drugs': {
       coins = -DRUG_PRICE;
+      career.squandered = (career.squandered ?? 0) + DRUG_PRICE;
       p.morale = Math.min(3, (p.morale ?? 0) + 1);
       career.drugUses = (career.drugUses ?? 0) + 1;
       // Verborgen: Abhängigkeit – wird dem Spieler nie direkt gesagt.

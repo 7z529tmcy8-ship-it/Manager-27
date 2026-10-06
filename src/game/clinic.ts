@@ -91,12 +91,13 @@ export function treat(prev: Career, id: ClinicId, coins: number, roll: () => num
 
   if (id === 'rehab') {
     if (career.phase !== 'retired') p.carryInjuryWeeks = (p.carryInjuryWeeks ?? 0) + 8;
-    if (p.hooked && roll() < 0.7) {
+    if ((p.hooked || p.gambler) && roll() < 0.7) {
       p.hooked = false;
+      p.gambler = false;
       p.morale = Math.min(3, (p.morale ?? 0) + 1);
       note = { title: '🏥 Klarer Kopf', text: 'Nach Wochen in der Reha bist du zum ersten Mal seit Langem wirklich klar. Ab jetzt bleibt dein Geld, wo es hingehört.', tone: 'good' };
-    } else if (p.hooked) {
-      note = { title: '🏥 Fast geschafft', text: 'Du hast durchgehalten – fast. Kaum draußen, hast du die alte Nummer wieder gewählt.', tone: 'bad' };
+    } else if (p.hooked || p.gambler) {
+      note = { title: '🏥 Fast geschafft', text: 'Du hast durchgehalten – fast. Kaum draußen, hast du wieder angefangen.', tone: 'bad' };
     } else {
       p.morale = Math.min(3, (p.morale ?? 0) + 1);
       note = { title: '🏥 Erholt', text: 'Ein paar Wochen Ruhe haben gutgetan. Du startest mit frischem Kopf.', tone: 'good' };

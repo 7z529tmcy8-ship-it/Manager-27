@@ -50,7 +50,7 @@ function withXp(c: Career): Career {
 
 /** Verborgene Abhängigkeit: In jeder Pause verschwindet das Geld, Stimmung und Form leiden. */
 export function addictionTick(career: Career): void {
-  if (!career.player.hooked) return;
+  if (!career.player.hooked && !career.player.gambler) return;
   career.drainPending = (career.drainPending ?? 0) + 1;
   career.player.morale = Math.max(-3, (career.player.morale ?? 0) - 0.8);
 }

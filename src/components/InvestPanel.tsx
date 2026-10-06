@@ -20,6 +20,7 @@ import {
 } from '../game/invest';
 import { clubLeagueId, clubStrength } from '../game/player';
 import type { Career } from '../game/types';
+import CasinoTab from './CasinoTab';
 
 const fmt = (n: number) => Math.round(n).toLocaleString('de-DE');
 
@@ -27,7 +28,7 @@ const fmt = (n: number) => Math.round(n).toLocaleString('de-DE');
 export default function InvestPanel({ career, onChange, onClose }: { career: Career; onChange: (c: Career) => void; onClose: () => void }) {
   const club = useClub();
   const h = career.household;
-  const [tab, setTab] = useState<'home' | 'clubs'>('home');
+  const [tab, setTab] = useState<'home' | 'clubs' | 'casino'>('home');
   const [leagueId, setLeagueId] = useState('bl1');
   const [clubId, setClubId] = useState('');
   const report = h?.report;
@@ -73,8 +74,10 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
         <div className="chips inv-tabs">
           <button className={`chip ${tab === 'home' ? 'active' : ''}`} onClick={() => setTab('home')}>🏠 Immobilien</button>
           <button className={`chip ${tab === 'clubs' ? 'active' : ''}`} onClick={() => setTab('clubs')}>📈 Klub-Anteile</button>
+          <button className={`chip ${tab === 'casino' ? 'active' : ''}`} onClick={() => setTab('casino')}>🎰 Casino</button>
         </div>
 
+        {tab === 'casino' && <CasinoTab career={career} onChange={onChange} />}
         {tab === 'home' && (
           <ul className="inv-list">
             {PROPERTIES.map((p) => {

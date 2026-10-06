@@ -81,6 +81,8 @@ export interface PlayerState {
   burnout?: number;
   /** Verborgen: abhängig von Drogen (wird nirgends angezeigt). */
   hooked?: boolean;
+  /** Verborgen: spielsüchtig (wird nirgends angezeigt). */
+  gambler?: boolean;
   /** Herkunft aus dem Spieler-Baukasten. */
   origin?: OriginId;
   /** Aussehen (nur eigene Spieler). */
@@ -387,6 +389,12 @@ export interface Career {
   drugUses?: number;
   /** Verborgen: Pausen, in denen das Geld noch „verschwinden“ muss (wird beim Speichern verrechnet). */
   drainPending?: number;
+  /** Casino-Statistik dieser Karriere. */
+  gambling?: { bets: number; won: number; lost: number; streak: number };
+  /** Insgesamt verzockt bzw. verprasst (Casino-Verluste, Drogen, verschwundenes Geld). */
+  squandered?: number;
+  /** Erledigte Trash-TV-Auftritte nach der Pleite. */
+  brokeDone?: import('./gambling').BrokeId[];
   /** Pause, in der schon eine Aktion abseits des Platzes gemacht wurde (eine pro Pause). */
   viceBreak?: string;
   /** Pause, in der zuletzt eine Behandlung in der Klinik war (eine pro Pause). */

@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-06-casino',
+    date: '06.10.2026',
+    title: 'Das Casino hat geöffnet 🎰',
+    items: [
+      '🎡 Unter „Vermögen → Casino“: Roulette (Rot, Schwarz, Gerade, Ungerade oder alles auf die Null ×36) und Pferdewetten mit Quoten bis 30.',
+      '🔥 Einsätze von 1.000 bis 100.000 Coins – oder einfach alles setzen.',
+      '💸 Wer nach der Karriere pleite ist, bekommt Anrufe vom Fernsehen: Dschungelcamp, Promi-Boxkampf oder die Doku „Pleite & prominent“.',
+    ],
+  },
+  {
     id: '2026-10-06-freundesliste',
     date: '06.10.2026',
     title: 'Freundesliste & Duell-Verlauf',

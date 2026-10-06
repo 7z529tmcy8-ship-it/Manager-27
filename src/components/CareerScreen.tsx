@@ -15,6 +15,8 @@ import { clubLeagueId, currentClubId, formatMoney, playerValue } from '../game/p
 import { halfStats } from '../game/season';
 import { freePoints, levelInfo } from '../game/skills';
 import { play } from '../sound';
+import { isBroke } from '../game/gambling';
+import { useClub } from '../clubStore';
 import { applyChoice, applyWinterChoice, choiceClub, seasonChoices, simulateToBreak, winterChoices, type Choice } from '../game/simple';
 import { STAGES_PER_HALF } from '../game/season';
 import type { Career, SeasonRecord } from '../game/types';
@@ -73,6 +75,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   const note = career.decisionResult;
   const totals = career.history.reduce((a, r) => ({ apps: a.apps + r.apps, goals: a.goals + r.goals, assists: a.assists + r.assists }), { apps: 0, goals: 0, assists: 0 });
   const retired = career.phase === 'retired';
+  const coins = useClub().coins;
 
   const run = () => {
     setPicked(null);
@@ -198,6 +201,9 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         </section>
       )}
 
+      {retired && isBroke(career, coins) && (
+        <button className="cs-note bad sk-note" onClick={() => setPanel('invest')}>💸 Du bist pleite. Das Fernsehen hat angerufen … → Vermögen öffnen</button>
+      )}
       {retired && <CoachPanel career={career} onChange={onChange} onExit={onExit} />}
 
       {/* Zeitleiste: standardmäßig nur die letzten Saisons, damit Entscheidungen oben bleiben */}

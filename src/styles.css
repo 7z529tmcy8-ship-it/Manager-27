@@ -1545,3 +1545,30 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .friend-rank li { display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; padding: 6px 10px; border-radius: 10px; background: var(--surface-3, rgba(255,255,255,.04)); }
 .friend-rank li.me { outline: 1px solid var(--accent); }
 .friend-rank b { color: var(--gold); }
+
+/* Casino */
+.casino { display: grid; gap: 12px; margin-top: 8px; }
+.casino-choices { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+.casino-pick { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; padding: 12px; border-radius: 14px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); font: inherit; font-weight: 700; cursor: pointer; }
+.casino-pick small { color: var(--muted); font-weight: 600; }
+.casino-pick.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+.casino-pick.r-red.on { background: rgba(229, 72, 77, .2); }
+.casino-pick.r-green.on { background: rgba(48, 164, 108, .2); }
+.horse-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.casino-stakes { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.casino-result { display: grid; gap: 10px; justify-items: center; }
+.roulette-ball { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; font-size: 2rem; font-weight: 900; color: #fff; background: #222; border: 4px solid var(--gold); }
+.roulette-ball.spin { animation: rspin .25s linear infinite; background: conic-gradient(#e5484d 0 25%, #111 0 50%, #e5484d 0 75%, #111 0); }
+.roulette-ball.c-red { background: #e5484d; }
+.roulette-ball.c-black { background: #111; }
+.roulette-ball.c-green { background: #30a46c; }
+@keyframes rspin { to { transform: rotate(360deg); } }
+.race { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 6px; }
+.race li { display: grid; grid-template-columns: 130px 1fr; gap: 8px; align-items: center; font-size: .78rem; }
+.race li.mine span { color: var(--gold); font-weight: 800; }
+.race-bar { display: block; height: 12px; border-radius: 6px; background: linear-gradient(90deg, transparent, var(--accent)); width: 0; animation: race ease-out forwards; }
+.race li.mine .race-bar { background: linear-gradient(90deg, transparent, var(--gold)); }
+@keyframes race { to { width: var(--to); } }
+.broke { padding: 12px; border-radius: 16px; border: 1px dashed #ff7b7b; }
+.broke h3 { margin: 0; }
+.reduce-motion .roulette-ball.spin { animation: none; }

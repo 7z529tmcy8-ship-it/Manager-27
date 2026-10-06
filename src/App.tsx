@@ -65,7 +65,7 @@ export default function App() {
         setClubState({ ...getClubState(), coins: 0 });
         setToast(`💸 Dein Konto ist leer (−${lost.toLocaleString('de-DE')} Coins). Wo ist das ganze Geld nur hin …?`);
       }
-      career = { ...career, drainPending: 0 };
+      career = { ...career, drainPending: 0, squandered: (career.squandered ?? 0) + lost };
     }
     setSaveFailed(!saveCareer(career));
     setScreen({ name: 'game', career });
