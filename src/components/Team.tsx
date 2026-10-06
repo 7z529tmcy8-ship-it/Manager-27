@@ -5,7 +5,7 @@ import {
   setSlot, taskPick, teamRating, teamStrength, type DuelResult,
 } from '../game/squad';
 import { getClubState, setClubState, useClub } from '../clubStore';
-import { FRIEND_REWARD, SLOT_LABELS, exportTeam, importTeam, playFriendDuel } from '../game/friends';
+import { FRIEND_REWARD, SLOT_LABELS, exportTeam, importTeam, playFriendDuel, record, removeFriend, resultText, saveFriend, withOwnerId, type FriendTeam } from '../game/friends';
 import { motionReduced } from '../settings';
 import { PackOpening } from './Store';
 import UtCard from './UtCard';
@@ -171,7 +171,7 @@ function Duels({ full, onSquad }: { full: boolean; onSquad: () => void }) {
 }
 
 /** Kurzer Live-Ticker: die Minuten laufen hoch, Tore erscheinen nacheinander. */
-function DuelLive({ name, result, onClose }: { name: string; result: DuelResult; onClose: () => void }) {
+function DuelLive({ name, result, onClose, onShare }: { name: string; result: DuelResult; onClose: () => void; onShare?: () => void }) {
   const [minute, setMinute] = useState(motionReduced() ? 90 : 0);
   useEffect(() => {
     if (minute >= 90) return;
@@ -195,6 +195,7 @@ function DuelLive({ name, result, onClose }: { name: string; result: DuelResult;
             <p className={`duel-result ${result.outcome}`}>
               {result.outcome === 'win' ? (result.coins ? `Sieg! +${result.coins} Coins` : 'Sieg!') : result.outcome === 'draw' ? (result.coins ? `Unentschieden · +${result.coins} Coins` : 'Unentschieden') : 'Niederlage – stell dein Team um und versuch es nochmal.'}
             </p>
+            {onShare && <button className="btn secondary big" onClick={onShare}>📤 Ergebnis teilen</button>}
             <button className="btn primary big" onClick={onClose}>Weiter</button>
           </>
         )}
@@ -205,35 +206,65 @@ function DuelLive({ name, result, onClose }: { name: string; result: DuelResult;
 }
 
 // ---------- Freunde-Duell per Code ----------
+const fmtDate = (t: number) => new Date(t).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+const OUT: Record<DuelResult['outcome'], string> = { win: 'S', draw: 'U', loss: 'N' };
+
+/** Text teilen (Handy: Teilen-Menü, z. B. WhatsApp) – sonst in die Zwischenablage. */
+async function shareText(text: string): Promise<string> {
+  try {
+    if (navigator.share) {
+      await navigator.share({ text });
+      return 'Geteilt!';
+    }
+  } catch {
+    // abgebrochen oder nicht möglich – dann kopieren
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    return 'Kopiert – jetzt einfügen und abschicken.';
+  } catch {
+    return 'Teilen ging nicht automatisch – markiere den Text und kopiere ihn selbst.';
+  }
+}
+
 function Friends({ full, onSquad }: { full: boolean; onSquad: () => void }) {
   const club = useClub();
   const [name, setName] = useState(club.teamName ?? '');
   const [msg, setMsg] = useState('');
   const [paste, setPaste] = useState('');
-  const [live, setLive] = useState<{ name: string; result: DuelResult } | null>(null);
+  const [open, setOpen] = useState<string | null>(null);
+  const [live, setLive] = useState<{ team: FriendTeam; result: DuelResult } | null>(null);
   const code = full ? exportTeam(club, name) : null;
-  const friend = paste.trim() ? importTeam(paste) : null;
-  const strength = teamStrength(club.squad.map((id) => cardById(club, id)));
+  const pasted = paste.trim() ? importTeam(paste) : null;
+  const ownStrength = teamStrength(club.squad.map((id) => cardById(club, id)));
+  const friends = [...(club.friends ?? [])].sort((a, b) => b.updatedAt - a.updatedAt);
+
+  // Eigene Kennung anlegen, damit Freunde dich beim nächsten Code wiedererkennen.
+  useEffect(() => {
+    if (!getClubState().ownerId) setClubState(withOwnerId(getClubState()));
+  }, []);
 
   const saveName = (v: string) => {
     setName(v);
     setClubState({ ...getClubState(), teamName: v.slice(0, 30) });
   };
-  const copy = async () => {
-    if (!code) return;
-    try {
-      await navigator.clipboard.writeText(code);
-      setMsg('Code kopiert – schick ihn deinen Freunden!');
-    } catch {
-      setMsg('Kopieren ging nicht automatisch – markiere den Code im Feld und kopiere ihn selbst.');
+  const add = (andPlay: boolean) => {
+    if (!pasted || typeof pasted === 'string') return;
+    const res = saveFriend(getClubState(), pasted);
+    if (res.status === 'self') {
+      setMsg('Das ist dein eigener Code 😄');
+      return;
     }
+    setClubState(res.club);
+    setMsg(res.status === 'new' ? `${pasted.name} ist jetzt in deiner Freundesliste.` : res.status === 'updated' ? `Team von ${pasted.name} aktualisiert.` : `${pasted.name} ist schon gespeichert.`);
+    setPaste('');
+    if (andPlay) play(pasted);
   };
-  const playFriend = () => {
-    if (!friend || typeof friend === 'string') return;
-    const res = playFriendDuel(getClubState(), friend);
+  const play = (team: FriendTeam) => {
+    const res = playFriendDuel(getClubState(), team);
     if (!res) return;
     setClubState(res.club);
-    setLive({ name: friend.name, result: res.result });
+    setLive({ team, result: res.result });
   };
 
   if (!full) {
@@ -244,39 +275,115 @@ function Friends({ full, onSquad }: { full: boolean; onSquad: () => void }) {
       </div>
     );
   }
+
+  const ranking = [
+    { id: 'me', name: name.trim() || 'Deine Elf', strength: ownStrength, me: true },
+    ...friends.map((f) => ({ id: f.id, name: f.team.name, strength: f.team.strength, me: false })),
+  ].sort((a, b) => b.strength - a.strength);
+
   return (
     <div className="friends">
       <section className="backup-box">
-        <h3>Dein Team-Code</h3>
-        <small className="muted">Schick den Code an Freunde – sie können dann gegen deine aktuelle Elf spielen.</small>
+        <h3>📤 Dein Team-Code</h3>
         <label className="friends-name">
           Teamname
           <input value={name} onChange={(e) => saveName(e.target.value)} placeholder="z. B. Ayris Allstars" maxLength={30} />
         </label>
-        <textarea className="backup-text" readOnly value={code ?? ''} rows={3} onFocus={(e) => e.target.select()} aria-label="Dein Team-Code" />
-        <button className="btn primary" onClick={copy}>📋 Code kopieren</button>
-        {msg && <small className="muted">{msg}</small>}
+        <small className="muted">Stärke {ownStrength.toFixed(1)} · Schick deinen Code nach jeder Änderung neu – Freunde sehen dann dein aktuelles Team.</small>
+        <div className="dev-btns">
+          <button className="btn primary" disabled={!code} onClick={async () => setMsg(await shareText(code!))}>📤 Teilen</button>
+          <button className="btn secondary" disabled={!code} onClick={async () => { try { await navigator.clipboard.writeText(code!); setMsg('Code kopiert.'); } catch { setMsg('Markiere den Code unten und kopiere ihn selbst.'); } }}>📋 Kopieren</button>
+        </div>
+        <details>
+          <summary className="muted">Code anzeigen</summary>
+          <textarea className="backup-text" readOnly value={code ?? ''} rows={3} onFocus={(e) => e.target.select()} aria-label="Dein Team-Code" />
+        </details>
       </section>
 
       <section className="backup-box">
-        <h3>Gegen einen Freund spielen</h3>
-        <textarea className="backup-text" value={paste} onChange={(e) => setPaste(e.target.value)} rows={3} placeholder="Team-Code deines Freundes hier einfügen" spellCheck={false} aria-label="Team-Code eines Freundes" />
-        {typeof friend === 'string' && <p className="cs-note bad">{friend}</p>}
-        {friend && typeof friend !== 'string' && (
+        <h3>➕ Freund hinzufügen</h3>
+        <textarea className="backup-text" value={paste} onChange={(e) => setPaste(e.target.value)} rows={2} placeholder="Team-Code deines Freundes hier einfügen" spellCheck={false} aria-label="Team-Code eines Freundes" />
+        {typeof pasted === 'string' && <p className="cs-note bad">{pasted}</p>}
+        {pasted && typeof pasted !== 'string' && (
           <div className="friend-team">
             <div className="friend-head">
-              <strong>{friend.name}</strong>
-              <small>Stärke {friend.strength.toFixed(1)} · Wertung {friend.rating} · Chemie {friend.chemistry}/33 · deine Stärke {strength.toFixed(1)}</small>
+              <strong>{pasted.name}</strong>
+              <small>Stärke {pasted.strength.toFixed(1)} · Wertung {pasted.rating} · Chemie {pasted.chemistry}/33</small>
             </div>
             <ol className="friend-players">
-              {friend.players.map((pl, i) => <li key={i}><b>{pl.ovr}</b> {pl.name} <small>{SLOT_LABELS[i]}</small></li>)}
+              {pasted.players.map((pl, i) => <li key={i}><b>{pl.ovr}</b> {pl.name} <small>{SLOT_LABELS[i]}</small></li>)}
             </ol>
-            <button className="btn primary big" onClick={playFriend}>⚔️ Duell starten</button>
-            <small className="muted">Erster Sieg gegen dieses Team: +{FRIEND_REWARD} Coins.</small>
+            <div className="dev-btns">
+              <button className="btn primary" onClick={() => add(true)}>💾 Speichern & spielen</button>
+              <button className="btn secondary" onClick={() => add(false)}>💾 Nur speichern</button>
+            </div>
           </div>
         )}
+        {msg && <small className="muted" role="status">{msg}</small>}
       </section>
-      {live && <DuelLive name={live.name} result={live.result} onClose={() => setLive(null)} />}
+
+      {friends.length > 0 && (
+        <section className="backup-box">
+          <h3>👥 Deine Freunde ({friends.length})</h3>
+          <ul className="friend-list">
+            {friends.map((f) => {
+              const r = record(f);
+              const diff = f.team.strength - ownStrength;
+              return (
+                <li key={f.id} className="friend-entry">
+                  <div className="friend-row">
+                    <span className="grow">
+                      <strong>{f.team.name}</strong>
+                      <small>
+                        Stärke {f.team.strength.toFixed(1)} {diff > 1 ? '▲ stärker' : diff < -1 ? '▼ schwächer' : '≈ gleich'} · Team vom {fmtDate(f.updatedAt)}
+                      </small>
+                      <small>Bilanz {r.w}S {r.d}U {r.l}N · Tore {r.goalsFor}:{r.goalsAgainst}</small>
+                    </span>
+                    <span className="friend-form" aria-label="Letzte Ergebnisse">
+                      {f.results.slice(0, 5).map((x, i) => <i key={i} className={`f-${OUT[x.outcome]}`}>{OUT[x.outcome]}</i>)}
+                    </span>
+                  </div>
+                  <div className="dev-btns">
+                    <button className="btn primary small" onClick={() => play(f.team)}>⚔️ Spielen</button>
+                    {f.results.length > 0 && <button className="btn secondary small" onClick={() => setOpen(open === f.id ? null : f.id)}>📜 Verlauf</button>}
+                    <button className="btn ghost small" onClick={() => window.confirm(`${f.team.name} aus der Freundesliste entfernen?`) && setClubState(removeFriend(getClubState(), f.id))}>Entfernen</button>
+                  </div>
+                  {open === f.id && (
+                    <ol className="friend-history">
+                      {f.results.map((x, i) => (
+                        <li key={i} className={`f-${OUT[x.outcome]}`}>
+                          <span>{fmtDate(x.date)}</span><b>{x.own}:{x.opp}</b><small>{x.ownStrength.toFixed(1)} vs. {x.oppStrength.toFixed(1)}</small>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      {friends.length > 0 && (
+        <section className="backup-box">
+          <h3>🏆 Rangliste (Teamstärke)</h3>
+          <ol className="friend-rank">
+            {ranking.map((x, i) => (
+              <li key={x.id} className={x.me ? 'me' : ''}><span>{i + 1}.</span><strong>{x.name}</strong><b>{x.strength.toFixed(1)}</b></li>
+            ))}
+          </ol>
+          <small className="muted">Erster Sieg gegen jedes Team: +{FRIEND_REWARD} Coins.</small>
+        </section>
+      )}
+
+      {live && (
+        <DuelLive
+          name={live.team.name}
+          result={live.result}
+          onClose={() => setLive(null)}
+          onShare={async () => setMsg(await shareText(resultText(name, live.team, live.result)))}
+        />
+      )}
     </div>
   );
 }

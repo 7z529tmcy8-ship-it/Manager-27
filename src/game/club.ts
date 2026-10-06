@@ -63,6 +63,10 @@ export interface ClubState {
   friendsBeaten?: string[];
   /** Name der eigenen Elf für Freunde-Duelle. */
   teamName?: string;
+  /** Zufällige Kennung für Team-Codes (damit Freunde dich wiedererkennen). */
+  ownerId?: string;
+  /** Gespeicherte Freunde mit Team und Duell-Verlauf. */
+  friends?: import('./friends').FriendEntry[];
 }
 
 export const START_COINS = 3000;

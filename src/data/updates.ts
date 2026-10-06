@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-06-freundesliste',
+    date: '06.10.2026',
+    title: 'Freundesliste & Duell-Verlauf',
+    items: [
+      '👥 Freunde speichern: Team-Code einfügen → „Speichern“. Schickt dein Freund später einen neuen Code, wird sein Team automatisch aktualisiert.',
+      '📜 Verlauf und Bilanz gegen jeden Freund: Siege, Unentschieden, Niederlagen, Tore und die letzten Ergebnisse.',
+      '🏆 Rangliste: Wer hat die stärkste Elf in eurer Runde?',
+      '📤 Teilen per Knopf (z. B. WhatsApp): deinen Team-Code und nach dem Spiel das Ergebnis – „2:1 gegen dich, Revanche?“',
+    ],
+  },
+  {
     id: '2026-10-06-creator',
     date: '06.10.2026',
     title: 'Dein Spieler, dein Look',

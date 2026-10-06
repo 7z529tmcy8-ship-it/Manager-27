@@ -1528,3 +1528,20 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .wheel-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; }
 .wheel-legend small { color: var(--muted); }
 @media (max-width: 420px) { .wheel-box { width: 140px; height: 140px; } }
+
+.friend-list, .friend-history, .friend-rank { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.friend-entry { display: grid; gap: 8px; padding: 10px 0; border-top: 1px solid var(--hairline); }
+.friend-entry:first-child { border-top: 0; }
+.friend-row { display: flex; gap: 10px; align-items: center; }
+.friend-row .grow { display: grid; gap: 2px; min-width: 0; }
+.friend-row small { color: var(--muted); font-size: .76rem; }
+.friend-form { display: flex; gap: 3px; flex: none; }
+.friend-form i { font-style: normal; font-size: .7rem; font-weight: 800; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 6px; }
+.f-S { background: rgba(48, 164, 108, .25); color: #3ddc97; }
+.f-U { background: rgba(245, 179, 1, .2); color: #f5c542; }
+.f-N { background: rgba(229, 72, 77, .22); color: #ff7b7b; }
+.friend-history li { display: grid; grid-template-columns: 52px 46px 1fr; gap: 8px; align-items: center; padding: 6px 10px; border-radius: 10px; font-size: .82rem; }
+.friend-history small { opacity: .8; }
+.friend-rank li { display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; padding: 6px 10px; border-radius: 10px; background: var(--surface-3, rgba(255,255,255,.04)); }
+.friend-rank li.me { outline: 1px solid var(--accent); }
+.friend-rank b { color: var(--gold); }
