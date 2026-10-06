@@ -202,3 +202,35 @@ export function randomBody(position: Position): { height: number; weight: number
   const bmi = 21 + Math.random() * 3.5;
   return { height, weight: clamp(Math.round(bmi * (height / 100) ** 2), WEIGHT_RANGE[0], WEIGHT_RANGE[1]) };
 }
+
+/** Glücksrad: Wahrscheinlichkeit jeder Herkunft (Summe 100). */
+export const ORIGIN_ODDS: Record<OriginId, number> = { academy: 35, street: 25, late: 20, family: 20 };
+
+/** Herkunft auslosen. */
+export function spinOrigin(rand = Math.random): OriginId {
+  let r = rand() * 100;
+  for (const o of ORIGINS) {
+    r -= ORIGIN_ODDS[o.id];
+    if (r < 0) return o.id;
+  }
+  return 'academy';
+}
+
+const SPIN_KEY = 'fc-origin-spin';
+/** Gedrehte, aber noch nicht verbrauchte Herkunft (übersteht Tab-Wechsel und Neuladen). */
+export function storedSpin(): OriginId | null {
+  try {
+    const v = localStorage.getItem(SPIN_KEY) as OriginId | null;
+    return v && ORIGINS.some((o) => o.id === v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+export function storeSpin(id: OriginId | null): void {
+  try {
+    if (id) localStorage.setItem(SPIN_KEY, id);
+    else localStorage.removeItem(SPIN_KEY);
+  } catch {
+    // ohne Speicher: dann eben nur für diese Sitzung
+  }
+}

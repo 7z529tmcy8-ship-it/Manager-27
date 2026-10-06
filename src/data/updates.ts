@@ -25,7 +25,7 @@ export const UPDATES: UpdateNote[] = [
     items: [
       '🪪 Live-Vorschau: Beim Erstellen siehst du deine Karte sofort – mit Wertung, Potenzial und Gesicht.',
       '🎨 Aussehen: Hautton, Frisur (vom Buzzcut bis zum Man-Bun), Haarfarbe, Bart und Stirnband. Dein Gesicht erscheint auf deiner Karte und später auf deiner Ikonen-Karte.',
-      '🏙️ Herkunft: Nachwuchsleistungszentrum, Straßenfußballer, Spätstarter aus der Kreisliga oder Fußballer-Familie – jede verändert Startwertung, Potenzial und Entwicklung.',
+      '🎡 Herkunft per Glücksrad: Nachwuchsleistungszentrum, Straßenfußballer, Spätstarter aus der Kreisliga oder Fußballer-Familie – aussuchen geht nicht, jede verändert Startwertung, Potenzial und Entwicklung.',
       '🎲 Zufallsspieler: ein Knopf, komplett ausgewürfelt – für schnelle Karrieren.',
     ],
   },

@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { play } from '../sound';
+import { motionReduced } from '../settings';
 import { CLUBS, LEAGUES, getClub } from '../data/leagues';
 import { NATIONS, POSITIONS, REAL_PLAYERS, type RealPlayerTemplate } from '../data/players';
 import { CULT_LEGENDS, FAILED_TALENTS, HANNOVER_2018, LEGENDS, type LegendTemplate } from '../data/legends';
@@ -7,7 +9,8 @@ import { MAX_TRAITS, TRAITS, getTrait, type TraitId } from '../game/traits';
 import { pick } from '../game/random';
 import {
   ATTR_WEIGHTS, BEARDS, DEFAULT_AVATAR, HAIR_COLORS, HAIR_STYLES, HEIGHT_RANGE, IDEAL_HEIGHT, MAX_PER_ATTR, ORIGINS, POINT_POOL, SKIN_TONES,
-  WEIGHT_RANGE, applyOrigin, evaluateBuild, getOrigin, randomAvatar, randomBody, randomPoints, rollBuild, scoutLabel,
+  WEIGHT_RANGE, ORIGIN_ODDS, applyOrigin, evaluateBuild, getOrigin, randomAvatar, randomBody, randomPoints, rollBuild, scoutLabel,
+  spinOrigin, storeSpin, storedSpin,
   type Avatar, type OriginId,
 } from '../game/creator';
 import { FIRST, LAST } from '../game/rival';
@@ -70,11 +73,13 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
   const [leagueId, setLeagueId] = useState('bl1');
   const [clubId, setClubId] = useState('');
   const [traits, setTraits] = useState<TraitId[]>([]);
-  const [origin, setOrigin] = useState<OriginId>('academy');
+  // Herkunft wird per Glücksrad ausgelost – einmal, nicht wählbar.
+  const [origin, setOrigin] = useState<OriginId | null>(storedSpin);
   const [avatar, setAvatar] = useState<Avatar>(DEFAULT_AVATAR);
 
   // Live-Vorschau: so sieht die Karte zum Start ungefähr aus.
-  const preview = applyOrigin(evaluateBuild({ position, age, height, weight, points }), origin, position === 'TW');
+  const built = evaluateBuild({ position, age, height, weight, points });
+  const preview = origin ? applyOrigin(built, origin, position === 'TW') : built;
   const tier = cardTier(preview.ovr);
   const previewCard = {
     id: 'preview', name: name.trim() || 'Dein Spieler', position, nation, ovr: preview.ovr, avatar,
@@ -92,7 +97,6 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
     setWeight(body.weight);
     setPoints(randomPoints(pos));
     setTraits(TRAITS.filter(() => Math.random() < 0.15).slice(0, 2).map((t) => t.id));
-    setOrigin(pick(ORIGINS).id);
     setAvatar(randomAvatar());
     setClubId('');
   };
@@ -103,6 +107,8 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
   );
 
   const start = () => {
+    if (!origin) return;
+    storeSpin(null);
     const rolled = rollBuild({ position, age, height, weight, points });
     const o = getOrigin(origin);
     const ovr = rolled.ovr + o.ovr;
@@ -124,7 +130,7 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
         <div className="create-preview-info">
           <strong>{previewCard.name}</strong>
           <small>Start ca. {preview.ovr} · Potenzial ~{preview.potential} ({scoutLabel(preview.potential)})</small>
-          <small>{getOrigin(origin).icon} {getOrigin(origin).name}</small>
+          <small>{origin ? `${getOrigin(origin).icon} ${getOrigin(origin).name}` : '🎡 Herkunft noch nicht ausgelost'}</small>
           <button type="button" className="btn secondary small" onClick={randomize}>🎲 Zufallsspieler</button>
         </div>
       </div>
@@ -155,14 +161,7 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
 
       <fieldset>
         <legend>Herkunft</legend>
-        <div className="origin-grid">
-          {ORIGINS.map((o) => (
-            <button key={o.id} type="button" className={`origin ${origin === o.id ? 'active' : ''}`} aria-pressed={origin === o.id} onClick={() => setOrigin(o.id)}>
-              <strong>{o.icon} {o.name}</strong>
-              <small>{o.text}</small>
-            </button>
-          ))}
-        </div>
+        <OriginWheel result={origin} onResult={(id) => { setOrigin(id); storeSpin(id); }} />
       </fieldset>
 
       <AvatarEditor avatar={avatar} onChange={setAvatar} />
@@ -192,8 +191,99 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
         </label>
       </div>
 
-      <button className="btn primary big" onClick={start}>Karriere starten</button>
+      <button className="btn primary big" onClick={start} disabled={!origin}>{origin ? 'Karriere starten' : 'Erst das Glücksrad drehen'}</button>
     </section>
+  );
+}
+
+const WHEEL_COLORS: Record<OriginId, string> = { academy: '#2f7cf6', street: '#e5484d', late: '#30a46c', family: '#f5b301' };
+
+/** Glücksrad für die Herkunft: Segmentgröße = Wahrscheinlichkeit. Ergebnis steht vor dem Drehen fest. */
+function OriginWheel({ result, onResult }: { result: OriginId | null; onResult: (id: OriginId) => void }) {
+  const [spinning, setSpinning] = useState<OriginId | null>(null);
+  const done = useRef(onResult);
+  done.current = onResult;
+  // Segmente: Startwinkel je Herkunft (im Uhrzeigersinn ab oben).
+  let acc = 0;
+  const segments = ORIGINS.map((o) => {
+    const from = acc;
+    acc += (ORIGIN_ODDS[o.id] / 100) * 360;
+    return { o, from, to: acc };
+  });
+  const middle = (id: OriginId) => {
+    const s = segments.find((x) => x.o.id === id)!;
+    return (s.from + s.to) / 2;
+  };
+  const [angle, setAngle] = useState(() => (result ? 360 * 6 - middle(result) : 0));
+  const arc = (from: number, to: number) => {
+    const r = 48;
+    const p = (deg: number) => [50 + r * Math.sin((deg * Math.PI) / 180), 50 - r * Math.cos((deg * Math.PI) / 180)];
+    const [x1, y1] = p(from);
+    const [x2, y2] = p(to);
+    return `M50 50 L${x1} ${y1} A${r} ${r} 0 ${to - from > 180 ? 1 : 0} 1 ${x2} ${y2}Z`;
+  };
+
+  useEffect(() => {
+    if (!spinning) return;
+    const t = setTimeout(() => {
+      done.current(spinning);
+      setSpinning(null);
+      play('reveal');
+    }, motionReduced() ? 50 : 3200);
+    return () => clearTimeout(t);
+  }, [spinning]);
+
+  const spin = () => {
+    if (result || spinning) return;
+    const id = spinOrigin();
+    const seg = segments.find((s) => s.o.id === id)!;
+    // Zeiger steht oben: das Rad so drehen, dass ein zufälliger Punkt im Segment oben landet.
+    const target = seg.from + (seg.to - seg.from) * (0.15 + Math.random() * 0.7);
+    setAngle(360 * 6 - target);
+    setSpinning(id);
+    play('packShake');
+  };
+
+  const shown = result ? getOrigin(result) : null;
+  return (
+    <div className="wheel-wrap">
+      <div className="wheel-box">
+        <span className="wheel-pointer" aria-hidden="true">▼</span>
+        <svg viewBox="0 0 100 100" className="wheel" style={{ transform: `rotate(${angle}deg)` }} aria-hidden="true">
+          {segments.map(({ o, from, to }) => (
+            <g key={o.id}>
+              <path d={arc(from, to)} fill={WHEEL_COLORS[o.id]} stroke="#0b1020" strokeWidth=".8" />
+              <text
+                x={50 + 30 * Math.sin((((from + to) / 2) * Math.PI) / 180)}
+                y={50 - 30 * Math.cos((((from + to) / 2) * Math.PI) / 180) + 3}
+                textAnchor="middle" fontSize="9"
+              >
+                {o.icon}
+              </text>
+            </g>
+          ))}
+          <circle cx="50" cy="50" r="7" fill="#0b1020" />
+        </svg>
+      </div>
+      <div className="wheel-info">
+        {shown ? (
+          <div className="origin active">
+            <strong>{shown.icon} {shown.name}</strong>
+            <small>{shown.text}</small>
+            <small className="muted">Ausgelost – das bleibt so.</small>
+          </div>
+        ) : (
+          <>
+            <button type="button" className="btn primary" onClick={spin} disabled={!!spinning}>{spinning ? 'Dreht …' : '🎡 Glücksrad drehen'}</button>
+            <ul className="wheel-legend">
+              {ORIGINS.map((o) => (
+                <li key={o.id}><i style={{ background: WHEEL_COLORS[o.id] }} /> {o.icon} {o.name} <small>{ORIGIN_ODDS[o.id]} %</small></li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -311,12 +401,12 @@ const ATTR_NAMES: Record<string, string> = {
 
 /** Spieler-Baukasten: Körperbau und Attributpunkte bestimmen Startwertung und Potenzial. */
 function Builder(props: {
-  position: Position; age: number; height: number; weight: number; points: number[]; origin: OriginId;
+  position: Position; age: number; height: number; weight: number; points: number[]; origin: OriginId | null;
   onHeight: (v: number) => void; onWeight: (v: number) => void; onPoints: (v: number[]) => void;
 }) {
   const { position, age, height, weight, points } = props;
   const base = evaluateBuild({ position, age, height, weight, points });
-  const r = { ...base, ...applyOrigin(base, props.origin, position === 'TW') };
+  const r = { ...base, ...(props.origin ? applyOrigin(base, props.origin, position === 'TW') : {}) };
   const left = POINT_POOL - points.reduce((a, b) => a + b, 0);
   const labels = attributeLabels(position);
   const weights = ATTR_WEIGHTS[position];

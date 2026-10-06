@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { slugify } from '../../data/leagues';
 import { createCareer } from '../career';
 import { careerCard } from '../club';
-import { applyOrigin, evaluateBuild, randomAvatar, randomPoints, POINT_POOL, MAX_PER_ATTR } from '../creator';
+import { ORIGIN_ODDS, spinOrigin, applyOrigin, evaluateBuild, randomAvatar, randomPoints, POINT_POOL, MAX_PER_ATTR } from '../creator';
 import { developPlayer } from '../development';
 
 it('Herkunft, Avatar und Zufall', () => {
@@ -25,4 +25,11 @@ it('Herkunft, Avatar und Zufall', () => {
     normal += developPlayer({ ...p, origin: 'academy' }, stats, 75).ovr - 75;
   }
   expect(late).toBeGreaterThan(normal);
+});
+
+it('Glücksrad: Verteilung passt grob zu den Chancen', () => {
+  const n = 4000;
+  const count: Record<string, number> = {};
+  for (let i = 0; i < n; i++) { const o = spinOrigin(); count[o] = (count[o] ?? 0) + 1; }
+  for (const [id, pct] of Object.entries(ORIGIN_ODDS)) expect(Math.abs((count[id] / n) * 100 - pct)).toBeLessThan(4);
 });
