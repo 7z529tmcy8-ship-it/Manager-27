@@ -130,7 +130,8 @@ export function developPlayer(
   let change: number;
   if (age < 30) {
     const gap = Math.max(0, potential - p.ovr);
-    let growth = gap * growthRate(age) * ptFactor * perfFactor * trainingFactor;
+    // Spätstarter entwickeln sich zwei Jahre länger.
+    let growth = gap * growthRate(p.origin === 'late' ? age - 2 : age) * ptFactor * perfFactor * trainingFactor;
     // Über sich hinauswachsen: nur wer klar über den Erwartungen spielt (bis 27).
     if (age <= 27 && share >= 0.4 && relPerf >= 0.8) growth += 0.5 * relPerf * eliteBrake;
     // Zufall schwankt nur das Wachstum – ein Minus gibt es vor 30 nur aus echten Gründen.
@@ -139,7 +140,7 @@ export function developPlayer(
     // Stillstand: Spieler ab 23 ohne Spielpraxis verlieren Rhythmus.
     if (share < 0.2 && age >= 23) setback += 0.8;
     // Deutlich unter den Erwartungen gespielt.
-    if (relPerf <= -1 && share >= 0.3) setback += 0.5;
+    if (relPerf <= -1 && share >= 0.3) setback += p.origin === 'family' ? 0.7 : 0.5; // Fußballer-Familie: mehr Druck
     // Partylöwen und Spieler mit Nebenprojekt verschenken Entwicklung.
     if (hasTrait(p, 'party')) growth *= 0.9;
     if (p.sideProject) growth *= 0.92;

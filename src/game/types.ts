@@ -1,3 +1,4 @@
+import type { Avatar, OriginId } from './creator';
 import type { TraitId } from './traits';
 
 export type Position = 'TW' | 'IV' | 'AV' | 'ZDM' | 'ZM' | 'ZOM' | 'FL' | 'ST';
@@ -80,6 +81,10 @@ export interface PlayerState {
   burnout?: number;
   /** Verborgen: abhängig von Drogen (wird nirgends angezeigt). */
   hooked?: boolean;
+  /** Herkunft aus dem Spieler-Baukasten. */
+  origin?: OriginId;
+  /** Aussehen (nur eigene Spieler). */
+  avatar?: Avatar;
   /** Hat heimlich Geld von Wettbetrügern angenommen – kann auffliegen. */
   bettingSecret?: boolean;
   /** Spiele Sperre, die zum Start der nächsten Halbserie anfallen. */

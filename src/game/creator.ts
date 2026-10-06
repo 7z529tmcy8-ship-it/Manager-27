@@ -112,3 +112,93 @@ export function rollBuild(b: Build): { ovr: number; potential: number; profile: 
 export function scoutLabel(potential: number): string {
   return potential >= 89 ? 'Wunderkind' : potential >= 84 ? 'Top-Talent' : potential >= 78 ? 'Talent' : 'Solide';
 }
+
+// ---------- Herkunft ----------
+// Wo der Spieler herkommt, verändert Startwertung, Potenzial, Attribute und die Entwicklung.
+
+export type OriginId = 'academy' | 'street' | 'late' | 'family';
+
+export interface Origin {
+  id: OriginId;
+  icon: string;
+  name: string;
+  text: string;
+  /** Änderung der Startwertung. */
+  ovr: number;
+  /** Änderung des Potenzials. */
+  potential: number;
+  /** Zusätzliche Attribut-Abweichungen (Feldspieler-Reihenfolge TEM, SCH, PAS, DRI, DEF, PHY). */
+  attrs: number[];
+}
+
+export const ORIGINS: Origin[] = [
+  { id: 'academy', icon: '🏫', name: 'Nachwuchsleistungszentrum', text: 'Solide ausgebildet: +1 Startwertung, ausgewogene Werte.', ovr: 1, potential: 0, attrs: [0, 0, 1, 0, 1, 0] },
+  { id: 'street', icon: '🏙️', name: 'Straßenfußballer', text: 'Käfig und Bolzplatz: viel Dribbling und Kreativität (+2 Potenzial), aber wenig Taktik (−1 Startwertung, weniger Defensive).', ovr: -1, potential: 2, attrs: [1, 1, 0, 5, -3, 0] },
+  { id: 'late', icon: '🌱', name: 'Spätstarter aus der Kreisliga', text: 'Lange übersehen: −4 Startwertung, +3 Potenzial, und du entwickelst dich zwei Jahre länger (bis 29).', ovr: -4, potential: 3, attrs: [0, 0, 0, 0, 0, 2] },
+  { id: 'family', icon: '👨‍👦', name: 'Fußballer-Familie', text: 'Vater war Profi: +1 Startwertung, +1 Potenzial, mehr Selbstvertrauen – aber alle erwarten viel von dir (mehr Druck in Krisen).', ovr: 1, potential: 1, attrs: [0, 0, 1, 1, 0, 0] },
+];
+
+export const getOrigin = (id: OriginId | undefined) => ORIGINS.find((o) => o.id === id) ?? ORIGINS[0];
+
+/** Herkunft auf das Ergebnis des Baukastens anwenden. */
+export function applyOrigin(r: { ovr: number; potential: number; offsets: number[] }, id: OriginId, keeper: boolean) {
+  const o = getOrigin(id);
+  return {
+    ovr: r.ovr + o.ovr,
+    potential: Math.min(94, r.potential + o.potential),
+    offsets: keeper ? r.offsets : r.offsets.map((v, i) => v + o.attrs[i]),
+  };
+}
+
+// ---------- Avatar ----------
+
+export interface Avatar {
+  skin: number;
+  hair: 'buzz' | 'short' | 'curls' | 'afro' | 'long' | 'bun' | 'mohawk' | 'bald';
+  hairColor: number;
+  beard: 'none' | 'stubble' | 'goatee' | 'full';
+  headband: boolean;
+}
+
+export const SKIN_TONES = ['#f6d7c0', '#e8b896', '#c98e66', '#a76a45', '#7c4a2d', '#4e2e1c'];
+export const HAIR_COLORS = ['#1b1410', '#4a2e1c', '#8a5a2b', '#d9b26a', '#b4441d', '#e9e4dc', '#2a6bd8'];
+export const HAIR_STYLES: [Avatar['hair'], string][] = [
+  ['buzz', 'Buzzcut'], ['short', 'Kurz'], ['curls', 'Locken'], ['afro', 'Afro'], ['long', 'Lang'], ['bun', 'Man-Bun'], ['mohawk', 'Iro'], ['bald', 'Glatze'],
+];
+export const BEARDS: [Avatar['beard'], string][] = [['none', 'Kein Bart'], ['stubble', 'Dreitage'], ['goatee', 'Kinnbart'], ['full', 'Vollbart']];
+
+export const DEFAULT_AVATAR: Avatar = { skin: 1, hair: 'short', hairColor: 1, beard: 'none', headband: false };
+
+const pickOf = <T,>(list: readonly T[]) => list[randInt(0, list.length - 1)];
+
+export function randomAvatar(): Avatar {
+  return {
+    skin: randInt(0, SKIN_TONES.length - 1),
+    hair: pickOf(HAIR_STYLES)[0],
+    hairColor: randInt(0, HAIR_COLORS.length - 2), // Blau nur selten per Hand
+    beard: pickOf(BEARDS)[0],
+    headband: randInt(0, 4) === 0,
+  };
+}
+
+/** Zufällige Punkteverteilung: meist sinnvoll für die Position, mit etwas Chaos. */
+export function randomPoints(position: Position): number[] {
+  const weights = ATTR_WEIGHTS[position].map((w) => w + 0.6 + Math.random() * 1.5);
+  const points = [0, 0, 0, 0, 0, 0];
+  for (let k = 0; k < POINT_POOL; k++) {
+    const open = points.map((p, i) => (p < MAX_PER_ATTR ? weights[i] : 0));
+    const total = open.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    const i = open.findIndex((w) => (r -= w) < 0);
+    points[i < 0 ? 0 : i]++;
+  }
+  return points;
+}
+
+/** Körpermaße passend (meist) zur Position. */
+export function randomBody(position: Position): { height: number; weight: number } {
+  const [lo, hi] = IDEAL_HEIGHT[position];
+  const height = clamp(randInt(lo - 4, hi + 3), HEIGHT_RANGE[0], HEIGHT_RANGE[1]);
+  const bmi = 21 + Math.random() * 3.5;
+  return { height, weight: clamp(Math.round(bmi * (height / 100) ** 2), WEIGHT_RANGE[0], WEIGHT_RANGE[1]) };
+}

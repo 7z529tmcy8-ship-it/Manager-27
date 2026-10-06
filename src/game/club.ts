@@ -1,3 +1,4 @@
+import type { Avatar } from './creator';
 import { FAILED_TALENTS, LEGENDS } from '../data/legends';
 import { REAL_PLAYERS } from '../data/players';
 import { CULT_HEROES, EXTRA_ICONS, EXTRA_STARS } from '../data/cards';
@@ -27,6 +28,8 @@ export interface CollectCard {
   label?: string;
   /** Durch Coins verbessert: so viele Punkte über dem Grundwert. */
   boost?: number;
+  /** Gezeichnetes Gesicht (eigene Spieler) statt Initialen. */
+  avatar?: Avatar;
 }
 
 export type ItemKind = 'fitness' | 'training';
@@ -361,6 +364,7 @@ export function careerIcon(career: Career): CollectCard {
     ovr: Math.min(99, s.peak + bonus),
     variant: 'icon',
     label: career.destroyed ? 'Gefallener Star' : atHome ? 'Heimkehr-Ikone' : 'Karriere-Ikone',
+    avatar: p.avatar,
   };
 }
 
@@ -414,6 +418,7 @@ export function careerCard(career: Career): CollectCard {
     club: getClub(p.loan ? p.loan.clubId : p.contract.clubId).name,
     ovr: p.ovr,
     variant: tier === 'bronze' ? 'silver' : tier,
+    avatar: p.avatar,
   };
 }
 

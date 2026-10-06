@@ -1495,3 +1495,24 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .clinic-glam small { grid-column: 1 / -1; color: var(--muted); font-size: .78rem; }
 .clinic-glam .clinic-burn { color: #ff7b7b; }
 .clinic-price { font-weight: 800; color: var(--gold); font-size: .85rem; }
+
+/* Avatar */
+.ucard-art.face { overflow: hidden; }
+.ucard-art.face svg { color: var(--ink, #222); margin-top: 6px; }
+
+/* Spieler erstellen: Vorschau, Herkunft, Aussehen */
+.create-preview { display: flex; gap: 16px; align-items: center; margin-bottom: 8px; }
+.create-preview .ucard { flex: none; }
+.create-preview-info { display: grid; gap: 4px; min-width: 0; }
+.create-preview-info strong { font-size: 1.1rem; overflow-wrap: anywhere; }
+.create-preview-info small { color: var(--muted); font-size: .8rem; }
+.create-preview-info .btn { justify-self: start; margin-top: 6px; }
+.origin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.origin { display: grid; gap: 3px; text-align: left; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); font: inherit; cursor: pointer; }
+.origin small { color: var(--muted); font-size: .76rem; line-height: 1.35; }
+.origin.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.avatar-editor { display: grid; gap: 10px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--hairline); cursor: pointer; padding: 0; }
+.swatch.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+@media (max-width: 480px) { .create-preview { gap: 12px; } }

@@ -1,3 +1,4 @@
+import AvatarFace from './AvatarFace';
 import { flagOf } from '../data/flags';
 import type { CollectCard } from '../game/club';
 import { cardAttrs } from '../game/squad';
@@ -56,7 +57,11 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick 
         <span className="ucard-pos">{card.position}</span>
         <span className="ucard-flag" aria-hidden="true">{flagOf(card.nation)}</span>
       </div>
-      {big && <div className="ucard-art" aria-hidden="true"><span>{initials(card.name)}</span></div>}
+      {big && (
+        <div className={`ucard-art ${card.avatar ? 'face' : ''}`} aria-hidden="true">
+          {card.avatar ? <AvatarFace avatar={card.avatar} size={size === 'lg' ? 104 : 72} /> : <span>{initials(card.name)}</span>}
+        </div>
+      )}
       {big && <div className="ucard-badge">{VARIANT_LABEL[card.variant] ?? (card.variant === 'gold' ? 'Gold' : 'Silber')}</div>}
       <div className="ucard-name">{big ? card.name : lastName}</div>
       {big && (

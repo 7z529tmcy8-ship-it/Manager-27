@@ -5,7 +5,14 @@ import { CULT_LEGENDS, FAILED_TALENTS, HANNOVER_2018, LEGENDS, type LegendTempla
 import { createCareer } from '../game/career';
 import { MAX_TRAITS, TRAITS, getTrait, type TraitId } from '../game/traits';
 import { pick } from '../game/random';
-import { HEIGHT_RANGE, IDEAL_HEIGHT, MAX_PER_ATTR, POINT_POOL, ATTR_WEIGHTS, WEIGHT_RANGE, evaluateBuild, rollBuild, scoutLabel } from '../game/creator';
+import {
+  ATTR_WEIGHTS, BEARDS, DEFAULT_AVATAR, HAIR_COLORS, HAIR_STYLES, HEIGHT_RANGE, IDEAL_HEIGHT, MAX_PER_ATTR, ORIGINS, POINT_POOL, SKIN_TONES,
+  WEIGHT_RANGE, applyOrigin, evaluateBuild, getOrigin, randomAvatar, randomBody, randomPoints, rollBuild, scoutLabel,
+  type Avatar, type OriginId,
+} from '../game/creator';
+import { FIRST, LAST } from '../game/rival';
+import { cardTier } from '../game/player';
+import UtCard from './UtCard';
 import { attributeLabels } from '../game/player';
 import type { Career, Position } from '../game/types';
 
@@ -63,6 +70,32 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
   const [leagueId, setLeagueId] = useState('bl1');
   const [clubId, setClubId] = useState('');
   const [traits, setTraits] = useState<TraitId[]>([]);
+  const [origin, setOrigin] = useState<OriginId>('academy');
+  const [avatar, setAvatar] = useState<Avatar>(DEFAULT_AVATAR);
+
+  // Live-Vorschau: so sieht die Karte zum Start ungefähr aus.
+  const preview = applyOrigin(evaluateBuild({ position, age, height, weight, points }), origin, position === 'TW');
+  const tier = cardTier(preview.ovr);
+  const previewCard = {
+    id: 'preview', name: name.trim() || 'Dein Spieler', position, nation, ovr: preview.ovr, avatar,
+    club: clubId ? getClub(clubId).name : 'Startverein offen', variant: tier === 'bronze' ? ('silver' as const) : tier,
+  };
+
+  const randomize = () => {
+    const pos = pick(POSITIONS).id;
+    const body = randomBody(pos);
+    setName(`${pick(FIRST)} ${pick(LAST)}`);
+    setNation(pick(NATIONS).name);
+    setPosition(pos);
+    setAge(pick([16, 17, 17, 18, 18, 19, 20]));
+    setHeight(body.height);
+    setWeight(body.weight);
+    setPoints(randomPoints(pos));
+    setTraits(TRAITS.filter(() => Math.random() < 0.15).slice(0, 2).map((t) => t.id));
+    setOrigin(pick(ORIGINS).id);
+    setAvatar(randomAvatar());
+    setClubId('');
+  };
 
   const clubs = useMemo(
     () => CLUBS.filter((c) => c.leagueId === leagueId).sort((a, b) => a.name.localeCompare(b.name, 'de')),
@@ -70,18 +103,31 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
   );
 
   const start = () => {
-    const { ovr, potential, profile } = rollBuild({ position, age, height, weight, points });
+    const rolled = rollBuild({ position, age, height, weight, points });
+    const o = getOrigin(origin);
+    const ovr = rolled.ovr + o.ovr;
+    const potential = Math.max(ovr + 4, Math.min(94, rolled.potential + o.potential));
+    const profile = applyOrigin({ ovr, potential, offsets: rolled.profile }, origin, position === 'TW').offsets;
     // Zufälliger Verein: einer, bei dem der Spieler realistische Chancen auf Einsätze hat.
     const club = clubId
       ? getClub(clubId)
       : pick(CLUBS.filter((c) => c.strength >= ovr + 2 && c.strength <= ovr + 9));
     onCreate(
-      createCareer({ name: name.trim() || 'Namenloser Held', nation, position, age, ovr, potential, clubId: club.id, traits, profile, height, weight }),
+      createCareer({ name: name.trim() || 'Namenloser Held', nation, position, age, ovr, potential, clubId: club.id, traits, profile, height, weight, origin, avatar }),
     );
   };
 
   return (
     <section className="panel form">
+      <div className="create-preview">
+        <UtCard card={previewCard} size="md" />
+        <div className="create-preview-info">
+          <strong>{previewCard.name}</strong>
+          <small>Start ca. {preview.ovr} · Potenzial ~{preview.potential} ({scoutLabel(preview.potential)})</small>
+          <small>{getOrigin(origin).icon} {getOrigin(origin).name}</small>
+          <button type="button" className="btn secondary small" onClick={randomize}>🎲 Zufallsspieler</button>
+        </div>
+      </div>
       <label>
         Name
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="z. B. Max Mustermann" maxLength={40} />
@@ -108,12 +154,26 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
       </div>
 
       <fieldset>
+        <legend>Herkunft</legend>
+        <div className="origin-grid">
+          {ORIGINS.map((o) => (
+            <button key={o.id} type="button" className={`origin ${origin === o.id ? 'active' : ''}`} aria-pressed={origin === o.id} onClick={() => setOrigin(o.id)}>
+              <strong>{o.icon} {o.name}</strong>
+              <small>{o.text}</small>
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
+      <AvatarEditor avatar={avatar} onChange={setAvatar} />
+
+      <fieldset>
         <legend>Charakter (optional, bis zu {MAX_TRAITS})</legend>
         <TraitChips selected={traits} onToggle={(id) =>
           setTraits((t) => (t.includes(id) ? t.filter((x) => x !== id) : t.length < MAX_TRAITS ? [...t, id] : t))} />
       </fieldset>
 
-      <Builder position={position} age={age} height={height} weight={weight} points={points}
+      <Builder position={position} age={age} height={height} weight={weight} points={points} origin={origin}
         onHeight={setHeight} onWeight={setWeight} onPoints={setPoints} />
 
       <div className="row">
@@ -251,11 +311,12 @@ const ATTR_NAMES: Record<string, string> = {
 
 /** Spieler-Baukasten: Körperbau und Attributpunkte bestimmen Startwertung und Potenzial. */
 function Builder(props: {
-  position: Position; age: number; height: number; weight: number; points: number[];
+  position: Position; age: number; height: number; weight: number; points: number[]; origin: OriginId;
   onHeight: (v: number) => void; onWeight: (v: number) => void; onPoints: (v: number[]) => void;
 }) {
   const { position, age, height, weight, points } = props;
-  const r = evaluateBuild({ position, age, height, weight, points });
+  const base = evaluateBuild({ position, age, height, weight, points });
+  const r = { ...base, ...applyOrigin(base, props.origin, position === 'TW') };
   const left = POINT_POOL - points.reduce((a, b) => a + b, 0);
   const labels = attributeLabels(position);
   const weights = ATTR_WEIGHTS[position];
@@ -309,6 +370,37 @@ function Builder(props: {
           <span>Körper passt <b>{Math.round(r.bodyFit * 100)} %</b></span>
           <span>Attribute passen <b>{Math.round(r.attrFit * 100)} %</b></span>
         </div>
+      </div>
+    </fieldset>
+  );
+}
+
+/** Avatar-Baukasten: Hautton, Frisur, Haarfarbe, Bart, Stirnband. */
+function AvatarEditor({ avatar, onChange }: { avatar: Avatar; onChange: (a: Avatar) => void }) {
+  const set = (patch: Partial<Avatar>) => onChange({ ...avatar, ...patch });
+  return (
+    <fieldset className="avatar-editor">
+      <legend>Aussehen</legend>
+      <div className="swatches" role="radiogroup" aria-label="Hautton">
+        {SKIN_TONES.map((c, i) => (
+          <button key={c} type="button" role="radio" aria-checked={avatar.skin === i} aria-label={`Hautton ${i + 1}`} className={`swatch ${avatar.skin === i ? 'on' : ''}`} style={{ background: c }} onClick={() => set({ skin: i })} />
+        ))}
+      </div>
+      <div className="chips">
+        {HAIR_STYLES.map(([id, label]) => (
+          <button key={id} type="button" className={`chip ${avatar.hair === id ? 'active' : ''}`} onClick={() => set({ hair: id })}>{label}</button>
+        ))}
+      </div>
+      <div className="swatches" role="radiogroup" aria-label="Haarfarbe">
+        {HAIR_COLORS.map((c, i) => (
+          <button key={c} type="button" role="radio" aria-checked={avatar.hairColor === i} aria-label={`Haarfarbe ${i + 1}`} className={`swatch ${avatar.hairColor === i ? 'on' : ''}`} style={{ background: c }} onClick={() => set({ hairColor: i })} />
+        ))}
+      </div>
+      <div className="chips">
+        {BEARDS.map(([id, label]) => (
+          <button key={id} type="button" className={`chip ${avatar.beard === id ? 'active' : ''}`} onClick={() => set({ beard: id })}>{label}</button>
+        ))}
+        <button type="button" className={`chip ${avatar.headband ? 'active' : ''}`} aria-pressed={avatar.headband} onClick={() => set({ headband: !avatar.headband })}>Stirnband</button>
       </div>
     </fieldset>
   );

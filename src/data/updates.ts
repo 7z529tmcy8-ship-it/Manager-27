@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-06-creator',
+    date: '06.10.2026',
+    title: 'Dein Spieler, dein Look',
+    items: [
+      '🪪 Live-Vorschau: Beim Erstellen siehst du deine Karte sofort – mit Wertung, Potenzial und Gesicht.',
+      '🎨 Aussehen: Hautton, Frisur (vom Buzzcut bis zum Man-Bun), Haarfarbe, Bart und Stirnband. Dein Gesicht erscheint auf deiner Karte und später auf deiner Ikonen-Karte.',
+      '🏙️ Herkunft: Nachwuchsleistungszentrum, Straßenfußballer, Spätstarter aus der Kreisliga oder Fußballer-Familie – jede verändert Startwertung, Potenzial und Entwicklung.',
+      '🎲 Zufallsspieler: ein Knopf, komplett ausgewürfelt – für schnelle Karrieren.',
+    ],
+  },
+  {
     id: '2026-10-06-klinik',
     date: '06.10.2026',
     title: 'Neu: die Klinik 💎',

@@ -1,3 +1,4 @@
+import type { Avatar, OriginId } from './creator';
 import { getClub, getLeague, initialClubLeague } from '../data/leagues';
 import { developPlayer, performanceIndex } from './development';
 import { rollEvents } from './events';
@@ -50,6 +51,8 @@ export interface NewPlayer {
   profile?: number[];
   height?: number;
   weight?: number;
+  origin?: OriginId;
+  avatar?: Avatar;
 }
 
 export function createCareer(np: NewPlayer): Career {
@@ -82,6 +85,9 @@ export function createCareer(np: NewPlayer): Career {
       internationalGoals: 0,
       traits: np.traits ?? [],
       leadership: np.traits?.includes('leader') ? 1 : 0,
+      origin: np.origin,
+      avatar: np.avatar,
+      morale: np.origin === 'family' ? 1 : undefined,
     },
     history: [],
     offers: [],
