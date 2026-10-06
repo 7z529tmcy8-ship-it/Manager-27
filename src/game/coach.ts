@@ -368,6 +368,7 @@ function finishCoachSeason(career: Career, sackedInWinter: boolean): Career {
   coach.year += 1;
   coach.age += 1;
   closeYear(career); // Familie und Vermögen
+  if (career.player.hooked) career.drainPending = (career.drainPending ?? 0) + 1;
   maybeFlirt(career);
 
   const name = getClub(clubId).name;

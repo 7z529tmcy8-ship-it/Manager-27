@@ -38,6 +38,7 @@ export function restYear(prev: Career): Career {
   if (h.retiredYear === undefined) h.retiredYear = h.year;
   backgroundSeason(career);
   closeYear(career);
+  if (career.player.hooked) career.drainPending = (career.drainPending ?? 0) + 1;
   maybeFlirt(career);
   career.updatedAt = Date.now();
   return career;

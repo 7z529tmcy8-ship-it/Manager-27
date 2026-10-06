@@ -9,7 +9,7 @@ import type { Career, DecisionResult } from './types';
 // kann aber einen Skandal auslösen. Der Skandal-Zähler führt über Abmahnung und Suspendierung bis zur
 // Vertragsauflösung – beim zweiten Rauswurf (oder einem Wiederholungstäter bei Wetten/Doping) ist die Karriere vorbei.
 
-export type ViceId = 'party' | 'rant' | 'skip' | 'bet' | 'doping';
+export type ViceId = 'party' | 'rant' | 'skip' | 'bet' | 'doping' | 'drugs';
 
 export interface Vice {
   id: ViceId;
@@ -21,7 +21,12 @@ export interface Vice {
   summerOnly?: boolean;
   /** Vor dem Ausführen nachfragen. */
   confirm?: string;
+  /** Kostet so viele Coins aus dem Club. */
+  price?: number;
 }
+
+/** Preis beim Dealer. */
+export const DRUG_PRICE = 5_000;
 
 export const VICES: Vice[] = [
   { id: 'party', icon: '🎉', name: 'Partynacht', reward: 'Mannschaft wächst zusammen: mehr Trainervertrauen', risk: 'Erwischt: Vertrauen sinkt, Skandal' },
@@ -31,6 +36,12 @@ export const VICES: Vice[] = [
     id: 'bet', icon: '🎲', name: 'Auf Spiele wetten', reward: '+2.000 bis 8.000 Coins für den Club',
     risk: '25 %: eine Saison gesperrt, Riesenskandal. Beim zweiten Mal lebenslang.',
     confirm: 'Sportwetten sind für Profis verboten. Wirklich wetten?',
+  },
+  {
+    id: 'drugs', icon: '💊', name: 'Beim Dealer einkaufen', price: DRUG_PRICE,
+    reward: 'Bester Laune: mehr Selbstvertrauen, Partystimmung',
+    risk: '25 %: Ein Foto taucht auf – Skandal.',
+    confirm: 'Drogen sind illegal und gefährlich. Wirklich kaufen?',
   },
   {
     id: 'doping', icon: '💉', name: 'Verbotene Mittel', reward: '+3 Gesamtwertung sofort',
@@ -159,6 +170,21 @@ export function doVice(prev: Career, id: ViceId, roll: () => number = Math.rando
         coins = randInt(20, 80) * 100;
         career.scandal = Math.min(SCANDAL_FIRED, (career.scandal ?? 0) + 5);
         note = { title: '🎲 Gewonnen', text: `Die Wette ging auf: +${coins.toLocaleString('de-DE')} Coins. Noch hat niemand etwas gemerkt …`, tone: 'neutral' };
+      }
+      break;
+    }
+    case 'drugs': {
+      coins = -DRUG_PRICE;
+      p.morale = Math.min(3, (p.morale ?? 0) + 1);
+      career.drugUses = (career.drugUses ?? 0) + 1;
+      // Verborgen: Abhängigkeit – wird dem Spieler nie direkt gesagt.
+      if (!career.player.hooked && roll() < 0.35 + 0.2 * (career.drugUses - 1)) career.player.hooked = true;
+      if (roll() < 0.25) {
+        p.morale = Math.max(-3, p.morale - 1.5);
+        note = { title: '💊 Foto aufgetaucht', text: `Ein Bild von dir mit „verdächtigem Pulver“ geht rum. Dein Verein ist not amused.${addScandal(career, 16)}`, tone: 'bad' };
+      } else {
+        career.scandal = Math.min(SCANDAL_FIRED, (career.scandal ?? 0) + 4);
+        note = { title: '💊 Gute Zeit', text: 'Die Nacht war der Wahnsinn. Du fühlst dich unbesiegbar – zumindest bis morgen.', tone: 'neutral' };
       }
       break;
     }

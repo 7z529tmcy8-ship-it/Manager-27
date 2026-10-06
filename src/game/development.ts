@@ -143,6 +143,7 @@ export function developPlayer(
     // Partylöwen und Spieler mit Nebenprojekt verschenken Entwicklung.
     if (hasTrait(p, 'party')) growth *= 0.9;
     if (p.sideProject) growth *= 0.92;
+    if (p.hooked) growth *= 0.8;
     growth *= skillMods(p).growth;
     change = growth - setback;
   } else {
@@ -153,7 +154,7 @@ export function developPlayer(
       1 - 0.15 * Math.max(0, perf) - 0.15 * Math.max(0, relPerf) - 0.1 * Math.min(1, share / 0.75),
     );
     const penalty = perf < 0 ? 1 + 0.15 * -perf : 1;
-    const lifestyle = (hasTrait(p, 'professional') ? 0.85 : hasTrait(p, 'party') ? 1.15 : 1) * skillMods(p).decline * (1 + 0.3 * (p.burnout ?? 0));
+    const lifestyle = (hasTrait(p, 'professional') ? 0.85 : hasTrait(p, 'party') ? 1.15 : 1) * skillMods(p).decline * (1 + 0.3 * (p.burnout ?? 0)) * (p.hooked ? 1.25 : 1);
     change = -Math.max(0, base * mitigation * penalty * lifestyle + normal(0, 0.4));
   }
   change *= weight;

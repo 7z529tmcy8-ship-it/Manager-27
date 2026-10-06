@@ -14,9 +14,9 @@ export default function ClinicPanel({ career, onChange, onClose }: { career: Car
 
   const run = (id: ClinicId) => {
     const t = TREATMENTS.find((x) => x.id === id)!;
-    if (!window.confirm(t.confirm ?? `${t.name} für ${fmt(t.price)} Coins machen?`)) return;
+    if (!window.confirm(t.confirm ?? (t.price ? `${t.name} für ${fmt(t.price)} Coins machen?` : `${t.name} beginnen?`))) return;
     const res = treat(career, id, getClubState().coins);
-    if (!res.cost) return;
+    if (res.career === career) return;
     const c = getClubState();
     setClubState({ ...c, coins: c.coins - res.cost });
     onChange(res.career);
@@ -44,16 +44,16 @@ export default function ClinicPanel({ career, onChange, onClose }: { career: Car
         </div>
 
         {note && <p className={`cs-note ${note.tone}`}><b>{note.title}:</b> {note.text}</p>}
-        {!inBreak && <p className="cs-note neutral">Die Klinik hat nur in der Winterpause und im Sommer Termine frei.</p>}
+        {!inBreak && <p className="cs-note neutral">Behandlungen gibt es nur in der Winterpause und im Sommer{career.phase === 'retired' ? ' – die Reha geht immer' : ''}.</p>}
 
         <div className="vice-grid">
           {TREATMENTS.map((t) => {
             const ok = canTreat(career, t.id, club.coins);
-            const why = !inBreak ? 'Nur in Pausen' : used ? 'Erst in der nächsten Pause' : t.summerOnly && career.phase !== 'window' ? 'Nur im Sommer' : club.coins < t.price ? `Fehlen ${fmt(t.price - club.coins)} 🪙` : '';
+            const why = !inBreak && !(t.id === 'rehab' && career.phase === 'retired') ? 'Nur in Pausen' : used ? 'Erst in der nächsten Pause' : t.summerOnly && career.phase !== 'window' ? 'Nur im Sommer' : club.coins < t.price ? `Fehlen ${fmt(t.price - club.coins)} 🪙` : '';
             return (
               <button key={t.id} className={`vice-card ${t.id === 'fullkur' || t.id === 'bbl' ? 'danger' : ''}`} disabled={!ok} onClick={() => run(t.id)}>
                 <strong>{t.icon} {t.name}</strong>
-                <span className="clinic-price">🪙 {fmt(t.price)}</span>
+                <span className="clinic-price">{t.price ? `🪙 ${fmt(t.price)}` : 'kostenlos'}</span>
                 <small className="vice-reward">✓ {t.reward}</small>
                 <small className="vice-risk">⚠ {t.risk}</small>
                 {!ok && why && <em>{why}</em>}

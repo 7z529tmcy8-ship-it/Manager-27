@@ -32,6 +32,7 @@ function withXp(c: Career): Career {
   const career: Career = structuredClone(c);
   coolDownScandal(career);
   career.viceNote = null;
+  addictionTick(career);
   const winter = career.phase === 'winter' && career.progress;
   // Familie und Vermögen: Jahresabschluss nach jeder Saison, in jeder Pause evtl. eine Einladung.
   if (!winter) closeYear(career);
@@ -45,6 +46,13 @@ function withXp(c: Career): Career {
     ? `+${gained} EP${levels > 0 ? ` · Level ${levelInfo(p.skills!.xp).level} erreicht – ${levels === 1 ? 'ein neuer Fähigkeitspunkt' : `${levels} neue Fähigkeitspunkte`}!` : ''}`
     : undefined;
   return career;
+}
+
+/** Verborgene Abhängigkeit: In jeder Pause verschwindet das Geld, Stimmung und Form leiden. */
+export function addictionTick(career: Career): void {
+  if (!career.player.hooked) return;
+  career.drainPending = (career.drainPending ?? 0) + 1;
+  career.player.morale = Math.max(-3, (career.player.morale ?? 0) - 0.8);
 }
 
 /** Damit es im Sommer immer echte Alternativen gibt, werden bei Bedarf zusätzliche Angebote eingeholt. */

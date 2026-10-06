@@ -6,7 +6,7 @@ import type { Career, DecisionResult } from './types';
 // Schönheits-OPs bringen Glamour: Mehr Glamour heißt mehr Werbedeals (Coins bei jedem Jahresabschluss).
 // Satire im Spiel – Komplikationen, Spott im Netz und Sperren gehören dazu.
 
-export type ClinicId = 'hair' | 'veneers' | 'nose' | 'abs' | 'bbl' | 'fullkur';
+export type ClinicId = 'rehab' | 'hair' | 'veneers' | 'nose' | 'abs' | 'bbl' | 'fullkur';
 
 export interface Treatment {
   id: ClinicId;
@@ -25,6 +25,9 @@ export interface Treatment {
 }
 
 export const TREATMENTS: Treatment[] = [
+  { id: 'rehab', icon: '🏥', name: 'Reha & Auszeit', price: 0,
+    reward: 'Kostenlos. Abstand von allem – hilft, wenn im Leben etwas aus dem Ruder läuft (zum Beispiel, wenn ständig Geld verschwindet).',
+    risk: '8 Wochen kein Fußball. Nicht jede Reha hält.' },
   { id: 'veneers', icon: '😁', name: 'Hollywood-Lächeln', price: 12_000, glam: 1, fail: 0.08,
     reward: 'Strahlende Zähne: +1 Glamour, Werbedeals', risk: '8 %: zu weiß – das Netz lacht (Skandal, kein Glamour)' },
   { id: 'hair', icon: '💇', name: 'Haartransplantation', price: 18_000, glam: 1, fail: 0.12,
@@ -52,7 +55,8 @@ const breakKey = (c: Career) => `${c.year}-${c.phase}`;
 export const clinicUsedThisBreak = (c: Career) => c.clinicBreak === breakKey(c);
 
 export function canTreat(career: Career, id: ClinicId, coins: number): boolean {
-  if (career.phase !== 'winter' && career.phase !== 'window') return false;
+  const anytime = id === 'rehab' && career.phase === 'retired';
+  if (career.phase !== 'winter' && career.phase !== 'window' && !anytime) return false;
   if (clinicUsedThisBreak(career)) return false;
   const t = TREATMENTS.find((x) => x.id === id);
   if (!t || coins < t.price) return false;
@@ -85,7 +89,19 @@ export function treat(prev: Career, id: ClinicId, coins: number, roll: () => num
   const p = career.player;
   let note: DecisionResult;
 
-  if (id === 'fullkur') {
+  if (id === 'rehab') {
+    if (career.phase !== 'retired') p.carryInjuryWeeks = (p.carryInjuryWeeks ?? 0) + 8;
+    if (p.hooked && roll() < 0.7) {
+      p.hooked = false;
+      p.morale = Math.min(3, (p.morale ?? 0) + 1);
+      note = { title: '🏥 Klarer Kopf', text: 'Nach Wochen in der Reha bist du zum ersten Mal seit Langem wirklich klar. Ab jetzt bleibt dein Geld, wo es hingehört.', tone: 'good' };
+    } else if (p.hooked) {
+      note = { title: '🏥 Fast geschafft', text: 'Du hast durchgehalten – fast. Kaum draußen, hast du die alte Nummer wieder gewählt.', tone: 'bad' };
+    } else {
+      p.morale = Math.min(3, (p.morale ?? 0) + 1);
+      note = { title: '🏥 Erholt', text: 'Ein paar Wochen Ruhe haben gutgetan. Du startest mit frischem Kopf.', tone: 'good' };
+    }
+  } else if (id === 'fullkur') {
     p.ovr = Math.min(99, p.ovr + 6);
     p.potential = Math.max(p.potential, p.ovr);
     // Der Körper zahlt immer.

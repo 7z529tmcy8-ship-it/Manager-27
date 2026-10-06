@@ -49,8 +49,8 @@ export default function App() {
   // Update-Banner: erscheint einmal nach jedem neuen Update (und auf Wunsch über „Neuigkeiten“).
   const [news, setNews] = useState<UpdateNote[]>(unseenUpdates);
 
-  const update = (career: Career) => {
-    setSaveFailed(!saveCareer(career));
+  const update = (next: Career) => {
+    let career = next;
     // Neue Saisons bringen Coins für den Club.
     const res = creditCareer(getClubState(), career);
     if (res.gained > 0 || res.icon) {
@@ -58,6 +58,16 @@ export default function App() {
       const coins = res.gained > 0 ? `+${res.gained.toLocaleString('de-DE')} Coins ${res.seasons === 0 ? 'aus Familie & Vermögen' : res.seasons === 1 ? 'für die Saison' : `für ${res.seasons} Saisons`}` : '';
       setToast(res.icon ? `👑 Deine Ikonen-Karte (${res.icon.ovr}) liegt in der Sammlung!${coins ? ` ${coins}` : ''}` : coins);
     }
+    // Verborgene Abhängigkeit: Das ganze Geld ist weg – ohne Erklärung.
+    if (career.drainPending) {
+      const lost = getClubState().coins;
+      if (lost > 0) {
+        setClubState({ ...getClubState(), coins: 0 });
+        setToast(`💸 Dein Konto ist leer (−${lost.toLocaleString('de-DE')} Coins). Wo ist das ganze Geld nur hin …?`);
+      }
+      career = { ...career, drainPending: 0 };
+    }
+    setSaveFailed(!saveCareer(career));
     setScreen({ name: 'game', career });
   };
   const home = () => setScreen({ name: 'home' });
