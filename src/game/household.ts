@@ -1,5 +1,6 @@
 import { CLUBS, LEAGUES } from '../data/leagues';
 import { familyYear, householdOf, maybeFlirt } from './family';
+import { glamIncome } from './clinic';
 import { investYear } from './invest';
 import { clubLeagueId, clubStrength } from './player';
 import { normal, poisson } from './random';
@@ -14,7 +15,9 @@ export function closeYear(career: Career): void {
   const kids = familyYear(career);
   const inv = investYear(career);
   // Netto: Einnahmen minus Erziehungskosten (kann auch negativ sein).
-  const total = kids.income + inv.rent + inv.dividends - kids.costs;
+  const sponsor = glamIncome(career);
+  if (sponsor) inv.notes.push(`📸 Werbedeals dank Glamour: +${sponsor.toLocaleString('de-DE')} Coins.`);
+  const total = kids.income + inv.rent + inv.dividends + sponsor - kids.costs;
   h.totalIncome += total;
   h.report = {
     year: h.year,

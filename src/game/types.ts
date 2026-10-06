@@ -76,6 +76,8 @@ export interface PlayerState {
   penaltyTakerOf?: string | null;
   /** Verletzungswochen, die zum Start der nächsten Halbserie anfallen (z. B. nach einer Entscheidung). */
   carryInjuryWeeks?: number;
+  /** Wie oft der Körper durch die „volle Kur“ gelitten hat – beschleunigt den Abbau. */
+  burnout?: number;
   /** Hat heimlich Geld von Wettbetrügern angenommen – kann auffliegen. */
   bettingSecret?: boolean;
   /** Spiele Sperre, die zum Start der nächsten Halbserie anfallen. */
@@ -376,6 +378,12 @@ export interface Career {
   caughtDoping?: boolean;
   /** Pause, in der schon eine Aktion abseits des Platzes gemacht wurde (eine pro Pause). */
   viceBreak?: string;
+  /** Pause, in der zuletzt eine Behandlung in der Klinik war (eine pro Pause). */
+  clinicBreak?: string;
+  /** Ergebnis der letzten Behandlung. */
+  clinicNote?: DecisionResult | null;
+  /** Glamour durch Schönheits-OPs – bringt Werbedeals. */
+  glam?: number;
   /** Ergebnis der letzten Aktion abseits des Platzes. */
   viceNote?: DecisionResult | null;
   /** Karriere durch Skandale beendet. */

@@ -1296,7 +1296,7 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 @media (max-width: 480px) { .cs-choice small { letter-spacing: .03em; font-size: .6rem; } }
 
 /* ---------- Familie & Vermögen ---------- */
-.cs-life { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0 0; }
+.cs-life { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; margin: 12px 0 0; }
 .cs-life-btn {
   display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 8px 12px;
   border-radius: 14px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); font: inherit; font-weight: 700; cursor: pointer;
@@ -1489,3 +1489,9 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .friend-players { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px 10px; font-size: .82rem; }
 .friend-players b { display: inline-block; min-width: 24px; color: var(--gold); }
 .friend-players small { color: var(--muted); }
+
+/* Klinik */
+.clinic-glam { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 10px; margin: 10px 0; padding: 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--hairline); }
+.clinic-glam small { grid-column: 1 / -1; color: var(--muted); font-size: .78rem; }
+.clinic-glam .clinic-burn { color: #ff7b7b; }
+.clinic-price { font-weight: 800; color: var(--gold); font-size: .85rem; }

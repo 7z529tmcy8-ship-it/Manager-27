@@ -4,6 +4,7 @@ import ScorerRace from './ScorerRace';
 import VicePanel from './VicePanel';
 import FamilyPanel from './FamilyPanel';
 import InvestPanel from './InvestPanel';
+import ClinicPanel from './ClinicPanel';
 import LifePopups from './LifePopups';
 import MomentOverlay from './MomentOverlay';
 import { detectMoments, type Moment } from '../game/moments';
@@ -55,7 +56,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   const [open, setOpen] = useState<string | null>(null);
   const [tree, setTree] = useState(false);
   const [full, setFull] = useState(false);
-  const [panel, setPanel] = useState<'family' | 'invest' | null>(null);
+  const [panel, setPanel] = useState<'family' | 'invest' | 'clinic' | null>(null);
   const kids = career.household?.children.length ?? 0;
   const shown = full ? career.history : career.history.slice(-COLLAPSED);
   const hidden = career.history.length - shown.length;
@@ -95,6 +96,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       {tree && p.skills && <SkillTree career={career} onChange={onChange} onClose={() => setTree(false)} />}
       {panel === 'family' && <FamilyPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {panel === 'invest' && <InvestPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
+      {panel === 'clinic' && <ClinicPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {moments.length > 0 ? (
         <MomentOverlay key={moments.map((m) => m.title).join('|')} moments={moments} onDone={() => setMoments([])} />
       ) : (
@@ -127,6 +129,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           👨‍👧 Familie{kids ? ` (${kids})` : ''}
         </button>
         <button className="cs-life-btn" onClick={() => setPanel('invest')}>💼 Vermögen</button>
+        {!retired && <button className="cs-life-btn" onClick={() => setPanel('clinic')}>💎 Klinik{career.glam ? ` ✨${career.glam}` : ''}</button>}
       </div>
 
       {/* Aktion */}
