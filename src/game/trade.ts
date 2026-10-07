@@ -12,14 +12,14 @@ export interface Trader {
   trades: number;
 }
 
-const NAMES = ['Alex der Yogi', 'Hamudi California', 'Rene Dost', 'Dore65', 'Karsten Boss', 'Alpha67', 'Yo Olli', 'Barello'];
+const NAMES = ['Alex der Yogi', 'Hamudi California', 'Rene Dost', 'Dore65', 'Karsten Boss', 'Alpha67', 'Yo Olli', 'Barello', 'Arafat', 'Paulm67', 'Leontin-296', 'Masi'];
 let lastName = '';
 const AVATARS = ['😎', '🤠', '🧢', '🐸', '🦊', '🤑', '🥸', '👽', '🐒', '🧌'];
 
 export const TRADER_LINES = {
-  hello: ['jo bro 👋', 'GiG!', 'sei mal leise ya ayri', 'servus, fairer tausch?', 'hab genau was du brauchst 🔥', 'ehrenmann am start 🤝', 'na, tauschen? 😏'],
-  adding: ['moment, such was richtig gutes raus', 'warte, die hier ist SELTEN', 'die ist mega wertvoll, glaub mir', 'hab extra für dich die besten genommen', 'pass auf, jetzt kommt die beste', 'sei mal leise ya ayri, ich such noch', 'GiG! die hier ist krank'],
-  done: ['Anik Achu Sharmuta 😂', 'GiG!', 'sei mal leise ya ayri', 'fairer deal 🤝', 'gg ez', 'war mir eine ehre 😇', 'nicht weitersagen 🤫', 'beste trade deines lebens'],
+  hello: ['jo', 'GiG!', 'sei mal leise ya ayri', 'du piç', 'fairer tausch?', 'na'],
+  adding: ['die ist selten', 'warte', 'sei mal leise ya ayri', 'GiG!', 'du piç', 'beste karte'],
+  done: ['Anik Achu Sharmuta 😂', 'GiG!', 'sei mal leise ya ayri', 'du piç', 'gg ez', 'fair 🤝'],
 };
 
 /** Kennzahlen – frei erfunden. Die Bewertung ist immer mies (1,0–2,3 Sterne). */

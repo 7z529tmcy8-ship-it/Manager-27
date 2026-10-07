@@ -51,6 +51,8 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
   const [attempt, setAttempt] = useState(0);
   const [errCode, setErrCode] = useState('');
   const [online, setOnline] = useState(5);
+  /** Wann der Partner überhaupt etwas schreibt (meist gar nicht oder nur einmal). */
+  const [talk, setTalk] = useState({ hello: false, adding: -1, done: false });
   const [hover, setHover] = useState(0);
   const [left, setLeft] = useState(AUTO_ACCEPT);
   const quick = motionReduced();
@@ -78,6 +80,8 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
     setLeft(AUTO_ACCEPT);
     setDrop(rollDrop());
     setOnline(3 + Math.floor(Math.random() * 5));
+    const r = Math.random();
+    setTalk({ hello: r < 0.35, adding: r >= 0.35 && r < 0.6 ? Math.floor(Math.random() * TRADE_SIZE) : -1, done: Math.random() < 0.5 });
     setAttempt(0);
     setErrCode(`TRD-${Math.floor(400 + Math.random() * 200)}-${Math.random().toString(16).slice(2, 6).toUpperCase()}`);
     setPhase('search');
@@ -95,14 +99,15 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
     }
     if (phase === 'found') {
       play('notify');
-      setChat([pickLine(TRADER_LINES.hello)]);
+      // Echte Tauschpartner schreiben wenig: höchstens ein, zwei kurze Nachrichten pro Trade.
+      if (talk.hello) setChat([pickLine(TRADER_LINES.hello)]);
       const t = setTimeout(() => setPhase('adding'), 1500 * speed);
       return () => clearTimeout(t);
     }
     if (phase === 'confirm') {
-      setChat((c) => [...c, pickLine(TRADER_LINES.done)]);
+      if (talk.done) setChat((c) => [...c, pickLine(TRADER_LINES.done)]);
     }
-  }, [phase, speed, drop]);
+  }, [phase, speed, drop, talk]);
 
   useEffect(() => {
     if (phase !== 'adding') return;
@@ -114,15 +119,16 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
       const t = setTimeout(() => setPhase('confirm'), 700 * speed);
       return () => clearTimeout(t);
     }
-    setTyping(true);
-    setChat((c) => [...c, pickLine(TRADER_LINES.adding)]);
+    const writes = talk.adding === shown;
+    setTyping(writes);
+    if (writes) setChat((c) => [...c, pickLine(TRADER_LINES.adding)]);
     const t = setTimeout(() => {
       setTyping(false);
       setShown((s) => s + 1);
       play('tap');
     }, 1400 * speed);
     return () => clearTimeout(t);
-  }, [phase, shown, speed, drop]);
+  }, [phase, shown, speed, drop, talk]);
 
   // Verbindungsabbruch: ein paar Wiederverbindungsversuche, dann fliegt man raus.
   useEffect(() => {
