@@ -1,4 +1,4 @@
-import { CLUBS, getClub } from '../data/leagues';
+import { CLUBS, getClub, getLeague } from '../data/leagues';
 import { summarizeCareer } from './legacy';
 import { clubStrength } from './player';
 import { chance, clamp, normal, pick, rand, randInt, uid, weightedPick } from './random';
@@ -109,7 +109,7 @@ export function ruleOption(c: Child, rule: Rule): RuleOption {
 export function yearlyCost(h: Household, c: Child): number {
   const age = childAge(h, c);
   if (c.status !== 'kid') return 0;
-  return RULES.filter((r) => age >= r.minAge && age <= (r.maxAge ?? 17)).reduce((a, r) => a + (ruleOption(c, r).cost ?? 0), 0);
+  return RULES.filter((r) => age >= r.minAge && age <= (r.maxAge ?? 17)).reduce((a, r) => a + (ruleOption(c, r).cost ?? 0), 0) + (age >= 4 ? youthClubCost(c) : 0);
 }
 
 /** Regel ändern – geht jederzeit. */
@@ -121,6 +121,49 @@ export function setRule(prev: Career, childId: string, ruleId: RuleId, optionId:
   const career: Career = structuredClone(prev);
   const c = career.household!.children.find((x) => x.id === childId)!;
   c.rules = { ...(c.rules ?? {}), [ruleId]: optionId };
+  if (ruleId === 'club') {
+    const list = youthClubs(optionId);
+    if (optionId === 'none') c.youthClubId = undefined;
+    else if (!c.youthClubId || !list.includes(c.youthClubId)) c.youthClubId = optionId === 'village' ? pick(list) : list.find((id) => getClub(id).name === 'Hannover 96') ?? list[list.length - 1];
+  }
+  career.updatedAt = Date.now();
+  return career;
+}
+
+// ---------- Jugendverein ----------
+// Wer das Kind im Verein anmeldet, wählt den konkreten Klub: Dorfvereine kosten nichts, die Jugend großer
+// Profiklubs ist teurer, fördert aber mehr – und dein Jugendverein bietet mit 18 bevorzugt den ersten Vertrag an.
+
+/** Vereine, die für die gewählte Vereinsart in Frage kommen. */
+export function youthClubs(kind: string): string[] {
+  if (kind === 'village') return CLUBS.filter((c) => c.leagueId === 'llh' || c.leagueId === 'ondn').map((c) => c.id);
+  return CLUBS.filter((c) => !c.name.endsWith(' II') && getLeague(c.leagueId).tier <= 2 && c.strength >= 66)
+    .sort((a, b) => b.strength - a.strength)
+    .map((c) => c.id);
+}
+
+/** Jahreskosten des konkreten Jugendvereins. */
+export function youthClubCost(c: Child): number {
+  const kind = c.rules?.club ?? 'none';
+  if (kind === 'none' || kind === 'village' || !c.youthClubId) return 0;
+  const strength = getClub(c.youthClubId).strength;
+  return Math.round((Math.max(0, strength - 60) * 40) * (kind === 'boarding' ? 1.6 : 1) / 50) * 50;
+}
+
+/** Zusätzliche Förderung durch einen starken Jugendverein (Technik/Disziplin pro Jahr). */
+function youthClubBonus(c: Child): Partial<ChildStats> {
+  const kind = c.rules?.club ?? 'none';
+  if (kind === 'none' || !c.youthClubId) return {};
+  const strength = getClub(c.youthClubId).strength;
+  const b = clamp((strength - 70) / 8, 0, 2);
+  return b > 0 ? { technique: b, discipline: b / 2 } : {};
+}
+
+export function setYouthClub(prev: Career, childId: string, clubId: string): Career {
+  const child = prev.household?.children.find((c) => c.id === childId);
+  if (!child || child.status !== 'kid') return prev;
+  const career: Career = structuredClone(prev);
+  career.household!.children.find((x) => x.id === childId)!.youthClubId = clubId;
   career.updatedAt = Date.now();
   return career;
 }
@@ -293,6 +336,10 @@ export function familyYear(career: Career): { income: number; costs: number; not
       if (opt.habit) c.habits[opt.habit] = (c.habits[opt.habit] ?? 0) + 1;
       costs += opt.cost ?? 0;
     }
+    if (age >= 4) {
+      for (const [k, v] of Object.entries(youthClubBonus(c)) as [StatKey, number][]) bump(c, k, v);
+      costs += youthClubCost(c);
+    }
     const changes = (Object.keys(STAT_LABELS) as StatKey[])
       .map((k) => [k, Math.round(c.stats[k] - before[k])] as const)
       .filter(([, d]) => d !== 0)
@@ -317,12 +364,15 @@ export function familyYear(career: Career): { income: number; costs: number; not
       } else if (age >= 18) {
         const ovr = ovrAt18(c);
         if (ovr >= PRO_MIN_OVR) {
-          c.status = 'pro';
+          // Vertragsangebot – du verhandelst für dein Kind. Der eigene Jugendverein bietet bevorzugt an.
+          c.status = 'offer';
           c.ovr = ovr;
           c.potential = Math.round(clamp(ovr + 3 + c.talent * 0.1 + c.stats.discipline * 0.03, ovr, 92));
-          c.clubId = pickClub(career, ovr);
-          note(c, `Profivertrag bei ${getClub(c.clubId).name} – Startwertung ${ovr}!`);
-          notes.push(`🎉 ${c.name} wird Profi bei ${getClub(c.clubId).name} (Wertung ${ovr}).`);
+          const youth = c.youthClubId && clubStrength(career, c.youthClubId) <= ovr + 12 ? c.youthClubId : null;
+          const clubId = youth ?? pickClub(career, ovr);
+          c.offer = { clubId, base: kidWage(ovr), round: 1 };
+          note(c, `Vertragsangebot von ${getClub(clubId).name}${youth ? ' (eigener Jugendverein)' : ''} – Wertung ${ovr}.`);
+          notes.push(`📝 ${c.name} hat ein Profi-Angebot von ${getClub(clubId).name} – jetzt verhandeln!`);
         } else {
           c.status = 'amateur';
           note(c, `Mit Wertung ${ovr} hat es nicht zum Profi gereicht.`);
@@ -338,10 +388,10 @@ export function familyYear(career: Career): { income: number; costs: number; not
         c.clubId = pickClub(career, c.ovr);
         note(c, `Wechsel zu ${getClub(c.clubId).name}.`);
       }
-      const wage = kidWage(c.ovr);
+      const wage = c.angry ? 0 : Math.round(kidWage(c.ovr) * (c.wageFactor ?? 1));
       c.earned += wage;
       income += wage;
-      if (c.ovr !== before) note(c, `Wertung ${before} → ${c.ovr}, verdient ${wage.toLocaleString('de-DE')} Coins.`);
+      if (c.ovr !== before) note(c, c.angry ? `Wertung ${before} → ${c.ovr} – vom Gehalt siehst du keinen Cent.` : `Wertung ${before} → ${c.ovr}, verdient ${wage.toLocaleString('de-DE')} Coins.`);
       if (age >= 35) {
         c.status = 'retired';
         note(c, 'Beendet die Profikarriere.');
@@ -350,5 +400,140 @@ export function familyYear(career: Career): { income: number; costs: number; not
     }
   }
   h.pending = [];
+  // Neues Ereignis rund um ein Kind (ein offenes altes verfällt).
+  h.kidEvent = null;
+  const kids = h.children.filter((c) => c.status === 'kid' && childAge(h, c) >= 6);
+  if (kids.length && chance(0.65)) {
+    const child = pick(kids);
+    const options = KID_EVENTS.filter((e) => childAge(h, child) >= e.minAge);
+    if (options.length) h.kidEvent = { childId: child.id, id: pick(options).id };
+  }
   return { income, costs, notes };
+}
+
+// ---------- Ereignisse rund ums Kind ----------
+
+export interface KidEvent {
+  id: string;
+  minAge: number;
+  icon: string;
+  title: string;
+  text: (name: string) => string;
+  options: { label: string; effects: Partial<ChildStats>; cost?: number; note: string; risk?: { chance: number; effects: Partial<ChildStats>; note: string } }[];
+}
+
+export const KID_EVENTS: KidEvent[] = [
+  { id: 'tournament', minAge: 6, icon: '🏆', title: 'Turniersieg!', text: (n) => `${n} hat mit der Jugend ein Turnier gewonnen und wurde zum besten Spieler gewählt.`, options: [
+    { label: 'Große Party schmeißen (500 🪙)', cost: 500, effects: { happiness: 6, social: 3 }, note: 'Feier mit der ganzen Mannschaft.' },
+    { label: 'Loben – und weiter trainieren', effects: { discipline: 3, technique: 1 }, note: 'Bleibt am Boden.' },
+  ] },
+  { id: 'coachfight', minAge: 8, icon: '😤', title: 'Streit mit dem Jugendtrainer', text: (n) => `${n} kommt weinend nach Hause: Der Jugendtrainer hat ${n} auf die Bank gesetzt.`, options: [
+    { label: 'Trainer unterstützen', effects: { discipline: 4, happiness: -3 }, note: 'Lernt, sich durchzubeißen.' },
+    { label: 'Mit dem Trainer reden', effects: { happiness: 3, discipline: -1 }, note: 'Spielt wieder – aber die Teamkollegen tuscheln.' },
+    { label: 'Verein wechseln', effects: { happiness: 4, technique: -2, social: -2 }, note: 'Neuer Verein, neue Freunde suchen.' },
+  ] },
+  { id: 'scout', minAge: 11, icon: '🔭', title: 'Ein Scout ist da', text: (n) => `Ein Scout eines großen Klubs hat ${n} beim Spiel beobachtet und lädt zum Probetraining ein.`, options: [
+    { label: 'Probetraining zusagen', effects: { technique: 2 }, note: 'Probetraining bei einem Topklub.', risk: { chance: 0.45, effects: { happiness: -6, discipline: 2 }, note: 'Abgelehnt – „noch nicht so weit“. Hart für die Psyche.' } },
+    { label: 'Lieber noch abwarten', effects: { happiness: 2 }, note: 'Kein Druck – noch nicht.' },
+  ] },
+  { id: 'grades', minAge: 8, icon: '📉', title: 'Schlechtes Zeugnis', text: (n) => `${n}s Zeugnis ist eine Katastrophe: drei Fünfen.`, options: [
+    { label: 'Handyverbot', effects: { school: 5, happiness: -5, discipline: 2 }, note: 'Handy weg, Bücher raus.' },
+    { label: 'Nachhilfe (800 🪙)', cost: 800, effects: { school: 7 }, note: 'Nachhilfe zweimal die Woche.' },
+    { label: 'Egal – Fußball zählt', effects: { school: -3, happiness: 3 }, note: '„Messi hatte auch kein Abi.“' },
+  ] },
+  { id: 'injury', minAge: 9, icon: '🩹', title: 'Verletzung im Training', text: (n) => `${n} hat sich am Knöchel verletzt, will aber am Wochenende unbedingt spielen.`, options: [
+    { label: 'Pause erzwingen', effects: { happiness: -2 }, note: 'Ruht sich aus und kommt gesund zurück.' },
+    { label: 'Spielen lassen', effects: { happiness: 3, fitness: 1 }, note: 'Beißt auf die Zähne.', risk: { chance: 0.35, effects: { fitness: -10, happiness: -4 }, note: 'Das ging schief – monatelange Pause.' } },
+  ] },
+  { id: 'party', minAge: 14, icon: '🎉', title: 'Partyeinladung', text: (n) => `${n} will am Freitag auf eine große Party – am Samstag ist das wichtigste Spiel der Saison.`, options: [
+    { label: 'Erlauben', effects: { social: 4, happiness: 4, discipline: -3 }, note: 'Kommt um 4 Uhr nach Hause.' },
+    { label: 'Verbieten', effects: { discipline: 3, happiness: -5 }, note: 'Knallt die Tür – spielt aber stark.' },
+  ] },
+  { id: 'tiktok', minAge: 13, icon: '📱', title: 'TikTok-Star?', text: (n) => `${n}s Skill-Video hat 2 Millionen Aufrufe. ${n} will jetzt Influencer werden.`, options: [
+    { label: 'Unterstützen', effects: { social: 5, happiness: 4, technique: -2, discipline: -2 }, note: 'Dreht jetzt jeden Tag Videos.' },
+    { label: 'Fokus auf Fußball', effects: { discipline: 3, happiness: -3, technique: 1 }, note: 'Handy bleibt beim Training im Spind.' },
+  ] },
+  { id: 'agent', minAge: 15, icon: '🕴️', title: 'Ein Berater klopft an', text: (n) => `Ein bekannter Spielerberater will ${n} unter Vertrag nehmen – mit Goldkette und großen Versprechen.`, options: [
+    { label: 'Unterschreiben', effects: { happiness: 4, discipline: -3 }, note: 'Hat jetzt einen Berater – und große Träume.' },
+    { label: 'Ablehnen – Papa regelt das', effects: { discipline: 2 }, note: 'Vertraut auf dich.' },
+  ] },
+];
+
+export const getKidEvent = (id: string) => KID_EVENTS.find((e) => e.id === id);
+
+/** Ereignis beantworten. Gibt Spielstand und Kosten zurück. */
+export function resolveKidEvent(prev: Career, optionIndex: number, roll: () => number = Math.random): { career: Career; cost: number } {
+  const ev = prev.household?.kidEvent;
+  const def = ev && getKidEvent(ev.id);
+  const opt = def?.options[optionIndex];
+  if (!ev || !def || !opt) return { career: prev, cost: 0 };
+  const career: Career = structuredClone(prev);
+  const h = householdOf(career);
+  const c = h.children.find((x) => x.id === ev.childId);
+  h.kidEvent = null;
+  if (c) {
+    for (const [k, v] of Object.entries(opt.effects) as [StatKey, number][]) bump(c, k, v);
+    let text = opt.note;
+    if (opt.risk && roll() < opt.risk.chance) {
+      for (const [k, v] of Object.entries(opt.risk.effects) as [StatKey, number][]) bump(c, k, v);
+      text = opt.risk.note;
+    }
+    note(c, `${def.icon} ${def.title}: ${text}`);
+  }
+  career.updatedAt = Date.now();
+  return { career, cost: opt.cost ?? 0 };
+}
+
+// ---------- Vertragsverhandlung mit 18 ----------
+
+/** Forderungen: Gehaltsfaktor und Grundchance, dass der Verein zusagt. */
+export const DEMANDS: { factor: number; label: string; chance: number }[] = [
+  { factor: 1, label: 'Angebot annehmen', chance: 1 },
+  { factor: 1.25, label: '+25 % fordern', chance: 0.75 },
+  { factor: 1.5, label: '+50 % fordern', chance: 0.45 },
+  { factor: 2, label: 'Doppelt fordern', chance: 0.2 },
+];
+
+/** Chance, dass der Verein die Forderung akzeptiert (starke Kinder haben mehr Verhandlungsmacht). */
+export function demandChance(c: Child, factor: number): number {
+  const d = DEMANDS.find((x) => x.factor === factor) ?? DEMANDS[0];
+  if (d.factor === 1) return 1;
+  return clamp(d.chance + ((c.ovr ?? 56) - 62) * 0.015, 0.05, 0.95);
+}
+
+/**
+ * Für das Kind verhandeln. Klappt es, wird es Profi mit dem ausgehandelten Gehalt. Platzt der erste Deal,
+ * kommt ein schwächeres Angebot (letzte Chance). Platzt auch das, sucht sich das Kind selbst einen Verein –
+ * und ist so sauer, dass es dir kein Geld mehr gibt.
+ */
+export function negotiateKid(prev: Career, childId: string, factor: number, roll: () => number = Math.random): Career {
+  const child = prev.household?.children.find((c) => c.id === childId);
+  if (!child || child.status !== 'offer' || !child.offer) return prev;
+  const career: Career = structuredClone(prev);
+  const c = householdOf(career).children.find((x) => x.id === childId)!;
+  const offer = c.offer!;
+  const club = getClub(offer.clubId).name;
+  if (roll() < demandChance(c, factor)) {
+    c.status = 'pro';
+    c.clubId = offer.clubId;
+    // Gehaltsfaktor relativ zum Normalgehalt (das zweite, schwächere Angebot liegt darunter).
+    c.wageFactor = Math.round(factor * (offer.base / kidWage(c.ovr ?? 56)) * 100) / 100;
+    c.offer = null;
+    c.stats.happiness = clamp(c.stats.happiness + (factor > 1 ? 8 : 4), 0, 100);
+    note(c, `✍️ Profivertrag bei ${club}${factor > 1 ? ` – ${Math.round((factor - 1) * 100)} % mehr Gehalt rausgeholt!` : '.'}`);
+  } else if (offer.round === 1) {
+    c.stats.happiness = clamp(c.stats.happiness - 12, 0, 100);
+    const weaker = pickClub(career, Math.max(45, (c.ovr ?? 56) - 6));
+    c.offer = { clubId: weaker, base: Math.round(offer.base * 0.8), round: 2 };
+    note(c, `❌ ${club} hat die Verhandlungen abgebrochen. Neues Angebot von ${getClub(weaker).name} – letzte Chance.`);
+  } else {
+    c.status = 'pro';
+    c.angry = true;
+    c.clubId = pickClub(career, Math.max(45, (c.ovr ?? 56) - 8));
+    c.offer = null;
+    c.stats.happiness = clamp(c.stats.happiness - 25, 0, 100);
+    note(c, `💔 Auch dieser Deal ist geplatzt. ${c.name} hat sich selbst einen Verein gesucht (${getClub(c.clubId).name}) – und redet nicht mehr mit dir. Geld siehst du keins.`);
+  }
+  career.updatedAt = Date.now();
+  return career;
 }

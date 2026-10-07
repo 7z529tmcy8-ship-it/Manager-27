@@ -25,6 +25,7 @@ import {
 import { flagOf } from '../data/flags';
 import { clubLeagueId, clubStrength, formatMoney } from '../game/player';
 import type { Career, CoachTactic } from '../game/types';
+import { CoachInbox, CoachLine } from './CoachDesk';
 
 /** Trainerkarriere nach dem Karriereende: Zeitleiste der Trainerstationen plus Vereinswahl bzw. Simulation. */
 export default function CoachPanel({ career, onChange, onExit }: { career: Career; onChange: (c: Career) => void; onExit: () => void }) {
@@ -73,13 +74,14 @@ export default function CoachPanel({ career, onChange, onExit }: { career: Caree
       <section className="cs-window">
         {coach.note && <p className={`cs-note ${coach.note.startsWith('Entlassen') ? 'bad' : 'good'}`}>{coach.note}</p>}
 
+        <CoachInbox career={career} onChange={onChange} />
         {coach.phase !== 'done' && (
           <>
-            <button className="btn primary big cs-go coach-quick" onClick={() => onChange(quickCoachSeason(career))}>
+            <button className="btn primary big cs-go coach-quick" disabled={!!coach.pending?.length} onClick={() => onChange(quickCoachSeason(career))}>
               {quickCoachLabel(career)}
             </button>
             {coach.phase === 'prep' && (
-              <button className="btn secondary small cs-go" onClick={() => onChange(playCoachHalf(career))}>Nur bis zur Winterpause</button>
+              <button className="btn secondary small cs-go" disabled={!!coach.pending?.length} onClick={() => onChange(playCoachHalf(career))}>Nur bis zur Winterpause</button>
             )}
             <details className="coach-more" open={coach.phase === 'winter'}>
               <summary>⚙️ Selbst steuern{coach.phase === 'choose' ? ': Verein wählen' : coach.phase === 'winter' ? ': Winter-Entscheidung, Taktik, Transfers' : ': Taktik und Transfers'}</summary>
@@ -120,6 +122,7 @@ export default function CoachPanel({ career, onChange, onExit }: { career: Caree
           </>
         )}
 
+        {coach.phase !== 'done' && <CoachLine career={career} onChange={onChange} />}
         {coach.phase === 'done' ? (
           <button className="btn primary big cs-go" onClick={onExit}>Zum Hauptmenü</button>
         ) : (
@@ -252,7 +255,7 @@ function CoachSeasonView({ career, onChange }: { career: Career; onChange: (c: C
         <p className="hint">Höchstens {MAX_SIGNINGS} Neuzugänge pro Saison. Ein Teil der Verstärkung bleibt auch nächste Saison.</p>
       </div>
 
-      <button className="btn primary big cs-go" onClick={() => onChange(playCoachHalf(career))}>
+      <button className="btn primary big cs-go" disabled={!!coach.pending?.length} onClick={() => onChange(playCoachHalf(career))}>
         {winter ? 'Bis Saisonende simulieren' : 'Bis zur Winterpause simulieren'}
       </button>
     </>

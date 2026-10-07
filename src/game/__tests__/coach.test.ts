@@ -7,6 +7,10 @@ import { generateOffers } from '../offers';
 import { clubLeagueId } from '../player';
 import { applyChoice, seasonChoices, simulateToBreak } from '../simple';
 import type { Career } from '../types';
+import { POLICIES, setPolicy } from '../coachlife';
+
+/** Feste Trainer-Linie für alle Situationen – dann gibt es keine offenen Meldungen. */
+const withLine = (c: Career) => POLICIES.reduce((acc, p) => setPolicy(acc, p.id, p.options[0].id), c);
 
 const veteran = (age: number, club = 'Hannover 96') => {
   const c = createCareer({ name: 'Oldie', nation: 'Deutschland', position: 'ST', age, ovr: 80, potential: 80, clubId: slugify('SV Werder Bremen') });
@@ -61,7 +65,7 @@ it('Ikonen-Karte: genau eine nach dem Karriereende, keine Saison-Sonderkarten', 
 });
 
 it('Trainerkarriere: Verein wählen, Saisons spielen, Bilanz und Ruhestand', () => {
-  let c = startCoaching(played());
+  let c = withLine(startCoaching(played()));
   expect(c.coach?.phase).toBe('choose');
   expect(c.coach!.offers).toHaveLength(3);
   for (let i = 0; i < 12 && c.coach!.phase !== 'done'; i++) {
@@ -82,7 +86,7 @@ it('Trainerkarriere: Verein wählen, Saisons spielen, Bilanz und Ruhestand', () 
 });
 
 it('Trainersaison: Taktik, Transfers, Winterpause mit Entscheidung', () => {
-  let c = startCoaching(played());
+  let c = withLine(startCoaching(played()));
   c = chooseCoachClub(c, c.coach!.offers[0]);
   const live = c.coach!.live!;
   expect(live.targets.length).toBe(4);
@@ -91,9 +95,10 @@ it('Trainersaison: Taktik, Transfers, Winterpause mit Entscheidung', () => {
   expect(c.coach!.live!.tactic).toBe('defend');
   const cheap = [...live.targets].sort((a, b) => a.fee - b.fee)[0];
   const before = c.coach!.live!.budget;
+  const boostBefore = c.coach!.live!.boost; // Meldungen nach der Trainer-Linie verändern die Stärke schon vorher
   c = signTarget({ ...c, coach: { ...c.coach!, live: { ...c.coach!.live!, budget: cheap.fee + before } } }, cheap.id);
   expect(c.coach!.live!.signings).toHaveLength(1);
-  expect(c.coach!.live!.boost).toBeGreaterThan(0);
+  expect(c.coach!.live!.boost).toBeGreaterThan(boostBefore);
   expect(c.coach!.live!.budget).toBe(before);
   c = playCoachHalf(c);
   if (c.coach!.phase === 'winter') {

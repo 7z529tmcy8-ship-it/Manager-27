@@ -103,7 +103,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       {moments.length > 0 ? (
         <MomentOverlay key={moments.map((m) => m.title).join('|')} moments={moments} onDone={() => setMoments([])} />
       ) : (
-        <LifePopups career={career} onChange={onChange} onFamily={() => setPanel('family')} />
+        !panel && <LifePopups career={career} onChange={onChange} onFamily={() => setPanel('family')} />
       )}
 
       {/* Kopf: Wertung, Nation, Position, Alter, Verein, Marktwert */}

@@ -1572,3 +1572,30 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .broke { padding: 12px; border-radius: 16px; border: 1px dashed #ff7b7b; }
 .broke h3 { margin: 0; }
 .reduce-motion .roulette-ball.spin { animation: none; }
+
+/* Trainer: Meldungen, Ruf, Linie */
+.coach-inbox { display: grid; gap: 10px; margin-bottom: 12px; }
+.coach-inbox h3 { margin: 0; font-size: 1rem; }
+.incident { display: grid; gap: 6px; padding: 12px; border-radius: 14px; border: 1px solid var(--gold); background: linear-gradient(160deg, rgba(255, 196, 0, .08), transparent 70%); animation: sk-pop .4s ease; }
+.incident.big { border-color: #ff7b7b; background: linear-gradient(160deg, rgba(229, 72, 77, .12), transparent 70%); }
+.incident p { margin: 0; font-size: .88rem; line-height: 1.4; }
+.incident-big { margin-left: 8px; font-size: .68rem; font-weight: 800; text-transform: uppercase; color: #ff7b7b; letter-spacing: .05em; }
+.incident-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px; }
+.incident-opts .btn { display: grid; gap: 2px; text-align: left; padding: 10px 12px; height: auto; white-space: normal; }
+.incident-opts small { font-weight: 500; font-size: .74rem; opacity: .8; }
+.coach-ruf { display: grid; gap: 6px; margin: 14px 0 8px; padding: 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--hairline); }
+.ruf-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.ruf-meter { display: grid; grid-template-columns: 110px 1fr 36px; gap: 8px; align-items: center; font-size: .82rem; }
+.ruf-meter b { text-align: right; }
+.policy { display: grid; gap: 4px; margin: 10px 0; }
+.coach-feed { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: .82rem; }
+
+/* Kinder: Jugendverein, Verhandlung, Ereignisse */
+.youth-club { display: grid; gap: 4px; margin-top: 6px; font-size: .8rem; }
+.youth-club select { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); font: inherit; }
+.kid-offer { display: grid; gap: 6px; margin: 10px 0; padding: 12px; border-radius: 14px; border: 1px solid var(--gold); background: linear-gradient(160deg, rgba(255, 196, 0, .1), transparent 70%); }
+.kid-offer small { color: var(--muted); font-size: .78rem; }
+.kid-demands { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px; }
+.kid-demands .btn { display: grid; gap: 2px; height: auto; padding: 8px 10px; white-space: normal; }
+.kid-demands .btn small { color: inherit; opacity: .8; font-size: .72rem; }
+.kid-event { margin: 10px 0; }

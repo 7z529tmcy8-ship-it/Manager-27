@@ -9,6 +9,7 @@ import { addResult, applyLeagueChanges, emptyRow, goalsExpected, roundRobin, sor
 import { hasTrait } from './traits';
 import { maybeFlirt } from './family';
 import { closeYear } from './household';
+import { mediaTrust, profileRatingDelta, rollIncidents } from './coachlife';
 import type { Career, CoachLive, CoachSeason, CoachState, CoachTactic, Position, TableRow, TransferTarget } from './types';
 
 // Trainerkarriere nach dem Karriereende: Verein wählen, in der Vorbereitung Taktik und Transfers festlegen,
@@ -86,6 +87,7 @@ export function chooseCoachClub(prev: Career, clubId: string): Career {
   coach.phase = 'prep';
   coach.note = undefined;
   coach.live = newSeason(career, clubId);
+  rollIncidents(career);
   career.updatedAt = Date.now();
   return career;
 }
@@ -248,13 +250,14 @@ export function boardTrust(career: Career): number {
   const live = career.coach?.live;
   if (!live || !live.form.length) return 60;
   const { position } = livePosition(career);
-  return Math.round(clamp(60 + (live.expected - position) * 8, 0, 100));
+  return Math.round(clamp(60 + (live.expected - position) * 8 + mediaTrust(career.coach?.profile), 0, 100));
 }
 
 /** Bis zur Winterpause bzw. bis Saisonende simulieren. */
 export function playCoachHalf(prev: Career): Career {
   const c = prev.coach;
   if (!c?.clubId || !['prep', 'winter', 'season'].includes(c.phase)) return prev;
+  if (c.pending?.length) return prev; // erst die offenen Meldungen entscheiden
   const career: Career = structuredClone(prev);
   const coach = career.coach!;
   const live = liveOf(career);
@@ -269,6 +272,7 @@ export function playCoachHalf(prev: Career): Career {
       return finishCoachSeason(career, true);
     }
     live.targets = [...live.targets.slice(0, 2), ...transferTargets(career, coach.clubId!, 2)];
+    rollIncidents(career);
     career.updatedAt = Date.now();
     return career;
   }
@@ -343,7 +347,7 @@ function finishCoachSeason(career: Career, sackedInWinter: boolean): Career {
 
   // Trainerwert: Platz gegenüber der Erwartung und Titel; ab 62 lässt die Energie langsam nach.
   const titles = trophies.filter((t) => !t.startsWith('Aufstieg')).length + (trophies.some((t) => t.startsWith('Aufstieg')) ? 0.5 : 0);
-  const delta = clamp((expected - position) * 0.5 + titles * 1.5 + normal(0, 0.6), -4, 5) - (coach.age >= 62 ? 0.5 : 0);
+  const delta = clamp((expected - position) * 0.5 + titles * 1.5 + normal(0, 0.6), -4, 5) - (coach.age >= 62 ? 0.5 : 0) + profileRatingDelta(coach.profile);
   coach.rating = Math.round(clamp(coach.rating + delta, 35, 95));
 
   const record: CoachSeason = {
@@ -437,6 +441,7 @@ export function quickCoachSeason(prev: Career): Career {
   }
   if (c.coach!.phase === 'season' && !c.coach!.live) c = setTactic(c, 'balanced'); // alter Spielstand ohne Vorbereitung
   for (let i = 0; i < 2 && (c.coach!.phase === 'prep' || c.coach!.phase === 'winter' || c.coach!.phase === 'season'); i++) {
+    if (c.coach!.pending?.length) break; // Meldungen warten auf deine Entscheidung
     c = playCoachHalf(c);
   }
   return c;
@@ -446,6 +451,7 @@ export function quickCoachSeason(prev: Career): Career {
 export function quickCoachLabel(career: Career): string {
   const coach = career.coach;
   if (!coach) return '';
+  if (coach.pending?.length) return '📬 Erst die Meldungen entscheiden';
   if (coach.phase === 'winter') return '▶ Rückrunde spielen';
   if (coach.phase === 'choose' && !coach.clubId && coach.offers[0]) return `▶ ${getClub(coach.offers[0]).name} übernehmen & Saison spielen`;
   return '▶ Nächste Saison spielen';

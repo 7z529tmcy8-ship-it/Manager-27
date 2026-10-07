@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { slugify } from '../../data/leagues';
 import { createCareer, retire } from '../career';
 import { creditCareer, freshClub } from '../club';
-import { RULES, childAge, maybeFlirt, ovrAt18, resolveFlirt, ruleOption, setRule, yearlyCost } from '../family';
+import { RULES, negotiateKid, childAge, maybeFlirt, ovrAt18, resolveFlirt, ruleOption, setRule, yearlyCost } from '../family';
 import { closeYear, restYear } from '../household';
 import { buyProperty, buyShares, sellShares, sharePrice } from '../invest';
 import { simulateToBreak } from '../simple';
@@ -72,7 +72,10 @@ it('Jahreswechsel: Kind altert; Profi verdient Coins, die im Club landen', () =>
   kid.talent = 85;
   kid.stats = { fitness: 90, technique: 90, discipline: 90, school: 50, social: 50, happiness: 70 };
   closeYear(c);
-  expect(kid.status).toBe('pro');
+  // Mit 18 kommt ein Angebot – Grundangebot annehmen (klappt immer).
+  expect(kid.status).toBe('offer');
+  c = negotiateKid(c, kid.id, 1);
+  expect(c.household!.children[0].status).toBe('pro');
   closeYear(c);
   expect(c.household!.totalIncome).toBeGreaterThan(0);
   const club = creditCareer(freshClub(), c);

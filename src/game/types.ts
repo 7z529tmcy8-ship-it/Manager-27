@@ -434,7 +434,15 @@ export interface Child {
   stats: ChildStats;
   /** Gewohnheiten, z. B. wie oft gezockt oder Fastfood gegessen wurde. */
   habits: Record<string, number>;
-  status: 'kid' | 'pro' | 'amateur' | 'retired';
+  status: 'kid' | 'offer' | 'pro' | 'amateur' | 'retired';
+  /** Konkreter Jugendverein (wenn ein Verein gewählt ist). */
+  youthClubId?: string;
+  /** Offenes Vertragsangebot mit 18 (Verhandlung). */
+  offer?: { clubId: string; base: number; round: 1 | 2 } | null;
+  /** Ausgehandelter Gehaltsfaktor (1 = Grundangebot). */
+  wageFactor?: number;
+  /** Nach einer verpatzten Verhandlung sauer – gibt dir kein Geld mehr. */
+  angry?: boolean;
   /** Erziehungsregeln (Regel → gewählte Option), wirken jedes Jahr. */
   rules?: Partial<Record<import('./family').RuleId, string>>;
   ovr?: number;
@@ -510,6 +518,8 @@ export interface Household {
   birth?: { childId: string } | null;
   /** Familienjahr, in dem der Ruhestand ohne Trainerjob begann (für das Alter des Vaters). */
   retiredYear?: number;
+  /** Offenes Ereignis rund um ein Kind (Pop-up mit Entscheidung). */
+  kidEvent?: { childId: string; id: string } | null;
 }
 
 export interface CoachSeason {
@@ -545,6 +555,19 @@ export interface CoachState {
   note?: string;
   /** Laufende Trainersaison. */
   live?: CoachLive | null;
+  /** Trainer-Linie je Situation ('ask' = selbst entscheiden). */
+  policies?: Partial<Record<import('./coachlife').PolicyId, string>>;
+  /** Offene Meldungen, die auf eine Entscheidung warten. */
+  pending?: import('./coachlife').Incident[];
+  /** Letzte Meldungen (neueste zuerst). */
+  feed?: string[];
+  /** Trainer-Ruf: Kabine, Medien, Konsequenz. */
+  profile?: import('./coachlife').CoachProfile;
+  /** Letzte Entscheidung je Situation (für die Konsequenz). */
+  lastChoice?: Partial<Record<import('./coachlife').PolicyId, string>>;
+  /** Feste Kadernamen des aktuellen Vereins. */
+  squad?: string[];
+  squadClub?: string | null;
 }
 
 export type CoachTactic = 'attack' | 'balanced' | 'defend';

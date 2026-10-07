@@ -19,6 +19,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-07-trainer-kinder',
+    date: '07.10.2026',
+    title: 'Trainer mit Haltung & Kinder mit eigenem Kopf',
+    items: [
+      '📬 Trainer: Mitten in der Saison kommen Meldungen aus der Kabine – Medienskandal vor dem Derby, angeschlagener Star, Zuspätkommer, Talent drängt nach oben, Star-Allüren. Du entscheidest, und das verändert Ergebnisse.',
+      '📏 Deine Linie: Leg vorher fest, wie du in solchen Situationen handelst („Hart durchgreifen“, „Gesundheit zuerst“ …) – oder entscheide jedes Mal selbst.',
+      '🗣️ Trainer-Ruf: Kabine, Medien und Konsequenz – daraus wird dein Trainertyp (Harter Hund, Spielerversteher, Wetterfahne …) und am Saisonende dein Trainerwert.',
+      '⚽ Kinder: Wähle den konkreten Jugendverein (Dorfverein bis Top-Akademie). Dazu Ereignisse mit Entscheidung: Scout, Streit mit dem Trainer, Partys, TikTok, Berater …',
+      '📝 Mit 18 verhandelst du den Profivertrag deines Kindes: Grundangebot oder pokern bis zum doppelten Gehalt. Platzt der Deal zweimal, sucht sich dein Kind selbst einen Verein – und gibt dir keinen Cent mehr.',
+    ],
+  },
+  {
     id: '2026-10-06-casino',
     date: '06.10.2026',
     title: 'Das Casino hat geöffnet 🎰',

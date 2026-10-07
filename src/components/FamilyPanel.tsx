@@ -1,6 +1,15 @@
 import { getClub } from '../data/leagues';
 import { useClub } from '../clubStore';
+import { getClubState, setClubState } from '../clubStore';
 import {
+  DEMANDS,
+  demandChance,
+  getKidEvent,
+  negotiateKid,
+  resolveKidEvent,
+  setYouthClub,
+  youthClubCost,
+  youthClubs,
   RULES,
   STAT_LABELS,
   characterTags,
@@ -17,7 +26,7 @@ import type { Career, Child, ChildStats } from '../game/types';
 const fmt = (n: number) => n.toLocaleString('de-DE');
 
 const STATUS: Record<Child['status'], string> = {
-  kid: 'Kind', pro: '⚽ Fußballprofi', amateur: 'Kein Profi', retired: 'Karriere beendet',
+  kid: 'Kind', offer: '📝 Vertragsverhandlung', pro: '⚽ Fußballprofi', amateur: 'Kein Profi', retired: 'Karriere beendet',
 };
 
 /** Kurzer Text zur Wirkung pro Jahr, z. B. „+4 Technik · −2 Disziplin“. */
@@ -62,6 +71,8 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
           </div>
         )}
 
+        {h?.kidEvent && <KidEventBox career={career} onChange={onChange} />}
+
         {children.length === 0 && (
           <p className="cs-sub">
             {h?.flirtUsed
@@ -84,11 +95,29 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
                 {child.status === 'pro' && child.ovr && (
                   <div className="fam-pro">
                     <b className="cs-pill gold">{child.ovr}</b>
-                    <small>{child.clubId ? getClub(child.clubId).name : ''}<br />+{fmt(kidWage(child.ovr))} 🪙/Jahr</small>
+                    <small>
+                      {child.clubId ? getClub(child.clubId).name : ''}<br />
+                      {child.angry ? '💔 sauer – zahlt nichts' : `+${fmt(Math.round(kidWage(child.ovr) * (child.wageFactor ?? 1)))} 🪙/Jahr`}
+                    </small>
                   </div>
                 )}
               </div>
               {tags.length > 0 && <div className="fam-tags">{tags.map((t) => <span key={t}>{t}</span>)}</div>}
+
+              {child.status === 'offer' && child.offer && (
+                <div className="kid-offer">
+                  <strong>📝 {child.offer.round === 2 ? 'Letzte Chance: ' : ''}Angebot von {getClub(child.offer.clubId).name}</strong>
+                  <small>Wertung {child.ovr} · Grundgehalt {fmt(child.offer.base)} 🪙 pro Jahr. Du verhandelst für {child.name} – pokerst du zu hoch, platzt der Deal.</small>
+                  <div className="kid-demands">
+                    {DEMANDS.map((d) => (
+                      <button key={d.factor} className={`btn ${d.factor === 1 ? 'primary' : 'secondary'} small`} onClick={() => onChange(negotiateKid(career, child.id, d.factor))}>
+                        {d.label}
+                        <small>{fmt(Math.round(child.offer!.base * d.factor))} 🪙 · {Math.round(demandChance(child, d.factor) * 100)} %</small>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {child.status === 'kid' && (
                 <>
@@ -136,6 +165,16 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
                             })}
                           </div>
                           <small className="fam-effect">Pro Jahr: {effectText(current) || 'keine Wirkung'}</small>
+                          {rule.id === 'club' && current.id !== 'none' && active && (
+                            <label className="youth-club">
+                              Verein
+                              <select value={child.youthClubId ?? ''} onChange={(e) => onChange(setYouthClub(career, child.id, e.target.value))}>
+                                {!child.youthClubId && <option value="">– wählen –</option>}
+                                {youthClubs(current.id).map((id) => <option key={id} value={id}>{getClub(id).name}</option>)}
+                              </select>
+                              <small className="muted">{youthClubCost(child) ? `Vereinsbeitrag ${fmt(youthClubCost(child))} 🪙/Jahr · stärkere Förderung` : 'Kein Extra-Beitrag'}{current.id !== 'village' ? ' · bietet mit 18 bevorzugt den ersten Vertrag an' : ''}</small>
+                            </label>
+                          )}
                         </div>
                       );
                     })}
@@ -150,6 +189,34 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
             </section>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+/** Ereignis rund um ein Kind mit Entscheidung. */
+export function KidEventBox({ career, onChange }: { career: Career; onChange: (c: Career) => void }) {
+  const ev = career.household?.kidEvent;
+  const def = ev && getKidEvent(ev.id);
+  const child = ev && career.household?.children.find((c) => c.id === ev.childId);
+  if (!ev || !def || !child) return null;
+  const choose = (i: number) => {
+    const opt = def.options[i];
+    if (opt.cost && getClubState().coins < opt.cost) return;
+    const res = resolveKidEvent(career, i);
+    if (res.cost) setClubState({ ...getClubState(), coins: getClubState().coins - res.cost });
+    onChange(res.career);
+  };
+  return (
+    <div className="incident kid-event">
+      <strong>{def.icon} {def.title} · {child.name}</strong>
+      <p>{def.text(child.name)}</p>
+      <div className="incident-opts">
+        {def.options.map((o, i) => (
+          <button key={o.label} className="btn secondary" disabled={!!o.cost && getClubState().coins < o.cost} onClick={() => choose(i)}>
+            <b>{o.label}</b>
+          </button>
+        ))}
       </div>
     </div>
   );
