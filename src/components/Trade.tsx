@@ -7,7 +7,11 @@ import { play } from '../sound';
 import Confetti from './Confetti';
 import UtCard from './UtCard';
 
-type Phase = 'pick' | 'search' | 'found' | 'adding' | 'confirm' | 'done';
+type Phase = 'pick' | 'search' | 'found' | 'adding' | 'confirm' | 'done' | 'lost';
+
+/** So oft bricht die „Verbindung“ ab – irgendwo zwischen Suche und letzter Karte. */
+const DROP_CHANCE = 0.3;
+const RECONNECTS = 3;
 
 const pickLine = (a: string[]) => a[Math.floor(Math.random() * a.length)];
 const AUTO_ACCEPT = 10;
@@ -25,6 +29,10 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
   const [query, setQuery] = useState('');
   const [declined, setDeclined] = useState(false);
   const [myStars, setMyStars] = useState(0);
+  /** Wann die Verbindung abbricht: 0 = bei der Suche, 1–2 = nach so vielen Karten, null = gar nicht. */
+  const [drop, setDrop] = useState<number | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const [errCode, setErrCode] = useState('');
   const [hover, setHover] = useState(0);
   const [left, setLeft] = useState(AUTO_ACCEPT);
   const quick = motionReduced();
@@ -50,12 +58,19 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
     setDeclined(false);
     setMyStars(0);
     setLeft(AUTO_ACCEPT);
+    setDrop(Math.random() < DROP_CHANCE ? Math.floor(Math.random() * TRADE_SIZE) : null);
+    setAttempt(0);
+    setErrCode(`TRD-${Math.floor(400 + Math.random() * 200)}-${Math.random().toString(16).slice(2, 6).toUpperCase()}`);
     setPhase('search');
   };
 
   // Ablauf: suchen → gefunden → Karten kommen einzeln rein → „bestätigen“.
   useEffect(() => {
     if (phase === 'search') {
+      if (drop === 0) {
+        const t = setTimeout(() => setPhase('lost'), 1800 * speed);
+        return () => clearTimeout(t);
+      }
       const t = setTimeout(() => setPhase('found'), 2400 * speed);
       return () => clearTimeout(t);
     }
@@ -68,10 +83,14 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
     if (phase === 'confirm') {
       setChat((c) => [...c, pickLine(TRADER_LINES.done)]);
     }
-  }, [phase, speed]);
+  }, [phase, speed, drop]);
 
   useEffect(() => {
     if (phase !== 'adding') return;
+    if (drop !== null && drop > 0 && shown === drop) {
+      const t = setTimeout(() => setPhase('lost'), 900 * speed);
+      return () => clearTimeout(t);
+    }
     if (shown >= TRADE_SIZE) {
       const t = setTimeout(() => setPhase('confirm'), 700 * speed);
       return () => clearTimeout(t);
@@ -84,7 +103,18 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
       play('tap');
     }, 1400 * speed);
     return () => clearTimeout(t);
-  }, [phase, shown, speed]);
+  }, [phase, shown, speed, drop]);
+
+  // Verbindungsabbruch: ein paar Wiederverbindungsversuche, dann fliegt man raus.
+  useEffect(() => {
+    if (phase !== 'lost' || attempt > RECONNECTS) return;
+    if (attempt === 0) play('error');
+    const t = setTimeout(() => {
+      setAttempt((a) => a + 1);
+      if (attempt === RECONNECTS) play('fall');
+    }, (attempt === 0 ? 300 : 1400) * speed);
+    return () => clearTimeout(t);
+  }, [phase, attempt, speed]);
 
   // Wer nicht annimmt, nimmt trotzdem an.
   useEffect(() => {
@@ -192,6 +222,28 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
           )}
           <p className="disclaimer">* Laut Tauschpartner immer fair. Abgeschickte Angebote können nicht zurückgezogen werden.</p>
         </>
+      )}
+
+      {phase === 'lost' && (
+        <div className="net-lost" role="alertdialog" aria-modal="true" aria-label="Verbindung unterbrochen">
+          <div className="net-box">
+            <div className="net-icon" aria-hidden="true">📡</div>
+            {attempt <= RECONNECTS ? (
+              <>
+                <h2>Verbindung unterbrochen</h2>
+                <p>Die Verbindung zum Trade-Server wurde getrennt. Bitte prüfe deine Internetverbindung.</p>
+                <p className="net-retry"><span className="trade-spin" aria-hidden="true" /> Verbinde erneut … ({Math.max(1, attempt)}/{RECONNECTS})</p>
+              </>
+            ) : (
+              <>
+                <h2>Du wurdest aus dem Trade entfernt</h2>
+                <p>Die Sitzung ist abgelaufen. Der Tausch wurde möglicherweise trotzdem abgeschlossen – prüfe deine Sammlung.</p>
+                <button className="btn primary" onClick={() => { setOffer([]); setGot([]); setShown(0); setChat([]); setPhase('pick'); }}>OK</button>
+              </>
+            )}
+            <small className="net-code">Fehlercode: {errCode}</small>
+          </div>
+        </div>
       )}
 
       {phase === 'confirm' && (

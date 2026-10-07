@@ -1782,3 +1782,12 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .trade-stars button.on { color: #ffc93c; }
 .trade-stars button:not(:disabled):hover { transform: scale(1.2); }
 .trade-stars button:disabled { cursor: default; }
+.net-lost { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, .7); backdrop-filter: blur(3px); animation: tag-in .2s ease both; }
+.net-box { width: 100%; max-width: 360px; background: #f2f2f5; color: #1c1c1e; border-radius: 14px; padding: 20px 18px 14px; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, .5); font-family: -apple-system, system-ui, sans-serif; }
+.net-box h2 { font-size: 1.05rem; margin: 6px 0; justify-content: center; text-transform: none; letter-spacing: 0; color: #1c1c1e; }
+.net-box p { font-size: .88rem; margin: 6px 0; color: #3a3a3c; }
+.net-box .btn { margin-top: 8px; width: 100%; }
+.net-icon { font-size: 2.2rem; filter: grayscale(1); }
+.net-retry { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; }
+.net-retry .trade-spin { border-color: #c7c7cc; border-top-color: #007aff; }
+.net-code { display: block; margin-top: 10px; color: #8e8e93; font-size: .72rem; font-family: ui-monospace, monospace; }
