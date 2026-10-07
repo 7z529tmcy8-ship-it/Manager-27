@@ -22,7 +22,7 @@ export const TRADER_LINES = {
   done: ['Anik Achu Sharmuta 😂', 'GiG!', 'sei mal leise ya ayri', 'fairer deal 🤝', 'gg ez', 'war mir eine ehre 😇', 'nicht weitersagen 🤫', 'beste trade deines lebens'],
 };
 
-/** Vertrauenswürdig wirkende Kennzahlen – frei erfunden. */
+/** Kennzahlen – frei erfunden. Die Bewertung ist immer mies (1,0–2,3 Sterne). */
 export function randomTrader(rand: () => number = Math.random): Trader {
   const pickR = <T,>(a: T[]) => a[Math.floor(rand() * a.length)];
   // Abwechselnd: nie zweimal hintereinander derselbe Tauschpartner.
@@ -31,7 +31,7 @@ export function randomTrader(rand: () => number = Math.random): Trader {
   return {
     name,
     avatar: pickR(AVATARS),
-    rating: (4.8 + Math.floor(rand() * 3) / 10).toFixed(1).replace('.', ','),
+    rating: (1 + Math.floor(rand() * 14) / 10).toFixed(1).replace('.', ','),
     trades: 800 + Math.floor(rand() * 9000),
   };
 }

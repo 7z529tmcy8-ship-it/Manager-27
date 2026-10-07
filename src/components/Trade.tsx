@@ -24,6 +24,8 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
   const [chat, setChat] = useState<string[]>([]);
   const [query, setQuery] = useState('');
   const [declined, setDeclined] = useState(false);
+  const [myStars, setMyStars] = useState(0);
+  const [hover, setHover] = useState(0);
   const [left, setLeft] = useState(AUTO_ACCEPT);
   const quick = motionReduced();
   const speed = quick ? 0.3 : 1;
@@ -46,6 +48,7 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
     setShown(0);
     setChat([]);
     setDeclined(false);
+    setMyStars(0);
     setLeft(AUTO_ACCEPT);
     setPhase('search');
   };
@@ -208,6 +211,18 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
           <h2>Trade erfolgreich! 🤝</h2>
           {declined && <p className="trade-auto">Du hast „Ablehnen“ gedrückt – wir haben das als „Annehmen“ gewertet. Gern geschehen.</p>}
           <p>Glückwunsch zu deinen neuen Karten. {trader.name} bedankt sich für {offer.map((c) => c.name).join(', ')}.</p>
+          <div className="trade-rate">
+            <strong>Wie war dein Trade mit {trader.name}?</strong>
+            <div className="trade-stars" onPointerLeave={() => setHover(0)}>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button key={n} className={n <= (hover || myStars) ? 'on' : ''} disabled={myStars > 0} aria-label={`${n} Sterne`}
+                  onPointerEnter={() => setHover(n)} onClick={() => { setMyStars(n); play('notify'); }}>★</button>
+              ))}
+            </div>
+            {myStars > 0 && (
+              <small>Danke für deine Bewertung! Sie wird geprüft und in 4–6 Wochen berücksichtigt. Bewertung von {trader.name} aktuell: ⭐ {trader.rating}</small>
+            )}
+          </div>
           <div className="trade-actions">
             <button className="btn secondary big" onClick={onCollection}>Zur Sammlung</button>
             <button className="btn primary big" onClick={() => { setOffer([]); setGot([]); setShown(0); setChat([]); setPhase('pick'); }}>Noch ein fairer Trade</button>
