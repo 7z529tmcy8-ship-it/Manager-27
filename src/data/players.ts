@@ -156,7 +156,30 @@ const WONDERKIDS_2026: typeof RAW = [
   ['Gianluca Prestianni', 'Argentinien', 'FL', 19, 75, 86, 'Benfica Lissabon'],
 ];
 
-export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026].map(
+// Ergänzung Oktober 2026: Stars und junge Spieler, Vereine nach dem Sommer-Transferfenster 2026 per Websuche geprüft.
+// Alter wie oben zum Start der Saison 2025/26; Wertungen sind eigene Schätzungen.
+const ADDITIONS_2026: typeof RAW = [
+  ['Enzo Fernández', 'Argentinien', 'ZM', 24, 86, 88, 'Manchester City'],
+  ['Moisés Caicedo', 'Ecuador', 'ZDM', 23, 87, 89, 'Chelsea FC'],
+  ['Dominik Szoboszlai', 'Ungarn', 'ZOM', 24, 85, 87, 'Liverpool FC'],
+  ['Alexis Mac Allister', 'Argentinien', 'ZM', 26, 87, 87, 'Liverpool FC'],
+  ['Martín Zubimendi', 'Spanien', 'ZDM', 26, 85, 86, 'Arsenal FC'],
+  ['Nuno Mendes', 'Portugal', 'AV', 23, 87, 89, 'Paris Saint-Germain'],
+  ['Theo Hernández', 'Frankreich', 'AV', 27, 84, 84, 'Al-Hilal'],
+  ['Julián Álvarez', 'Argentinien', 'ST', 25, 88, 89, 'Atlético Madrid'],
+  ['Rodrygo', 'Brasilien', 'FL', 24, 85, 87, 'Real Madrid'],
+  ['Gianluigi Donnarumma', 'Italien', 'TW', 26, 89, 89, 'Manchester City'],
+  ['Elliot Anderson', 'England', 'ZM', 22, 83, 87, 'Manchester City'],
+  ['Archie Gray', 'England', 'ZDM', 19, 76, 85, 'Tottenham Hotspur'],
+  ['Adam Wharton', 'England', 'ZM', 21, 81, 87, 'Crystal Palace'],
+  ['Jamie Bynoe-Gittens', 'England', 'FL', 20, 79, 86, 'Chelsea FC'],
+  ['Eliesse Ben Seghir', 'Marokko', 'ZOM', 20, 79, 86, 'Bayer 04 Leverkusen'],
+  ['Marc Guiu', 'Spanien', 'ST', 19, 73, 84, 'RB Leipzig'],
+  ['Tyler Dibling', 'England', 'FL', 19, 75, 85, 'Everton FC'],
+  ['Sverre Nypan', 'Norwegen', 'ZM', 18, 72, 85, 'Manchester City'],
+];
+
+export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026, ...ADDITIONS_2026].map(
   ([name, nation, position, age, ovr, potential, club]) => ({
     name, nation, position, age, ovr, potential, clubId: slugify(club),
   }),

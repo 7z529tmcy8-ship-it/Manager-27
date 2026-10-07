@@ -28,6 +28,9 @@ export const EXTRA_STARS: [string, string, Position, number, number, string, str
   ['Lionel Messi', 'Argentinien', 'FL', 38, 88, 'Inter Miami', 'MLS'],
   ['Son Heung-min', 'Südkorea', 'FL', 33, 85, 'Los Angeles FC', 'MLS'],
   ['Thomas Müller', 'Deutschland', 'ZOM', 36, 82, 'Vancouver Whitecaps', 'MLS'],
+  // Sommer 2026 zu bzw. bei Galatasaray (per Websuche geprüft) – die Süper Lig gibt es im Karrieremodus nicht.
+  ['Rafael Leão', 'Portugal', 'FL', 26, 86, 'Galatasaray', 'Süper Lig'],
+  ['Victor Osimhen', 'Nigeria', 'ST', 26, 88, 'Galatasaray', 'Süper Lig'],
   ['Cristiano Ronaldo', 'Portugal', 'ST', 40, 86, 'Al-Nassr', 'Saudi Pro League'],
   ['Neymar', 'Brasilien', 'FL', 33, 83, 'Santos FC', 'Brasileirão'],
 ];
@@ -52,6 +55,14 @@ export const EXTRA_ICONS: [string, string, Position, number][] = [
   ['Miroslav Klose', 'Deutschland', 'ST', 90],
   ['Bastian Schweinsteiger', 'Deutschland', 'ZM', 90],
   ['Michael Ballack', 'Deutschland', 'ZM', 90],
+  ['Rivaldo', 'Brasilien', 'ZOM', 93],
+  ['Roberto Baggio', 'Italien', 'ZOM', 93],
+  ['Ruud Gullit', 'Niederlande', 'ZM', 92],
+  ['Alessandro Del Piero', 'Italien', 'ST', 92],
+  ['Roberto Carlos', 'Brasilien', 'AV', 91],
+  ['Cafu', 'Brasilien', 'AV', 91],
+  ['Patrick Vieira', 'Frankreich', 'ZDM', 91],
+  ['David Beckham', 'England', 'ZM', 90],
 ];
 
 /**
@@ -89,4 +100,20 @@ export const CULT_HEROES: [string, string, Position, number, string][] = [
   ['Mario Gómez', 'Deutschland', 'ST', 86, 'VfB Stuttgart'],
   ['Jens Lehmann', 'Deutschland', 'TW', 86, 'Arsenal FC'],
   ['Hans-Jörg Butt', 'Deutschland', 'TW', 80, 'Bayer Leverkusen'],
+  ['Arjen Robben', 'Niederlande', 'FL', 91, 'FC Bayern München'],
+  ['Franck Ribéry', 'Frankreich', 'FL', 90, 'FC Bayern München'],
+  ['Fernando Torres', 'Spanien', 'ST', 90, 'Liverpool FC'],
+  ['Yaya Touré', 'Elfenbeinküste', 'ZM', 89, 'Manchester City'],
+  ['David Villa', 'Spanien', 'ST', 89, 'Valencia CF'],
+  ['Diego Forlán', 'Uruguay', 'ST', 88, 'Atlético Madrid'],
+  ['Carlos Tévez', 'Argentinien', 'ST', 88, 'Manchester United'],
+  ['Marcelo', 'Brasilien', 'AV', 88, 'Real Madrid'],
+  ['Dani Alves', 'Brasilien', 'AV', 88, 'FC Barcelona'],
+  ['Xabi Alonso', 'Spanien', 'ZM', 88, 'Liverpool FC'],
+  ['Pepe', 'Portugal', 'IV', 87, 'Real Madrid'],
+];
+
+/** Was-wäre-wenn-Talente nur als Karte (ihr Jugendverein ist nicht im Karrieremodus). [Name, Nation, Position, Potenzial, Verein] */
+export const EXTRA_TALENTS: [string, string, Position, number, string][] = [
+  ['Paulo Henrique Ganso', 'Brasilien', 'ZOM', 88, 'FC Santos'],
 ];

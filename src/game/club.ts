@@ -1,7 +1,7 @@
 import type { Avatar } from './creator';
 import { FAILED_TALENTS, LEGENDS } from '../data/legends';
 import { REAL_PLAYERS } from '../data/players';
-import { CULT_HEROES, EXTRA_ICONS, EXTRA_STARS } from '../data/cards';
+import { CULT_HEROES, EXTRA_ICONS, EXTRA_STARS, EXTRA_TALENTS } from '../data/cards';
 import { getClub, getLeague, slugify } from '../data/leagues';
 import { summarizeCareer } from './legacy';
 import { homeClubOf } from './offers';
@@ -103,6 +103,7 @@ export const CARD_POOL: CollectCard[] = [
   ...EXTRA_ICONS.map(([name, nation, position, ovr]) => ({ id: cardId(name), name, position, nation, club: 'Ikone', ovr, variant: 'icon' as const, label: 'Ikone' })),
   ...CULT_HEROES.map(([name, nation, position, ovr, club]) => ({ id: cardId(name), name, position, nation, club, ovr, variant: 'cult' as const })),
   ...FAILED_TALENTS.map((l) => ({ id: cardId(l.name), name: l.name, position: l.position, nation: l.nation, club: 'Zweite Chance', ovr: l.potential, variant: 'talent' as const, label: 'Was wäre wenn' })),
+  ...EXTRA_TALENTS.map(([name, nation, position, ovr]) => ({ id: cardId(name), name, position, nation, club: 'Zweite Chance', ovr, variant: 'talent' as const, label: 'Was wäre wenn' })),
 ];
 export const getCard = (id: string) => CARD_POOL.find((c) => c.id === id);
 
