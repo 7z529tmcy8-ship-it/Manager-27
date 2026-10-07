@@ -1646,3 +1646,15 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .inv-projects li .grow { display: grid; gap: 2px; min-width: 0; }
 .inv-projects li small { color: var(--muted); font-size: .74rem; line-height: 1.35; }
 .inv-projects li .btn { flex: none; max-width: 46%; white-space: normal; }
+
+/* Schicksals-Automat */
+.fate { display: grid; gap: 10px; }
+.fate-reels { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.6fr); gap: 8px; }
+.panel.form fieldset { min-width: 0; }
+.fate-reel { display: grid; place-items: center; min-height: 56px; padding: 8px; border-radius: 14px; background: linear-gradient(180deg, #0b1020, #1a2240 50%, #0b1020); border: 2px solid var(--gold); color: #fff; font-weight: 800; text-align: center; font-size: .9rem; overflow: hidden; }
+.fate-reel span { display: block; overflow-wrap: anywhere; }
+.fate-reel.spin span { animation: reel .14s linear infinite; filter: blur(.6px); }
+@keyframes reel { 0% { transform: translateY(-40%); opacity: .4; } 50% { opacity: 1; } 100% { transform: translateY(40%); opacity: .4; } }
+.bld-body { display: grid; gap: 4px; padding: 10px 12px; border-radius: 12px; background: var(--surface); font-size: .88rem; }
+.bld-body small { color: var(--muted); }
+.reduce-motion .fate-reel.spin span { animation: none; }

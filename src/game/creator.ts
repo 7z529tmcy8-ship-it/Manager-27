@@ -234,3 +234,55 @@ export function storeSpin(id: OriginId | null): void {
     // ohne Speicher: dann eben nur für diese Sitzung
   }
 }
+
+// ---------- Schicksals-Automat: Größe, Gewicht, Startverein ----------
+// Nicht wählbar: Körper und erster Verein werden ausgelost. Kleine Ligen sind häufiger – der Weg nach oben ist lang.
+
+export interface Fate {
+  height: number;
+  weight: number;
+  clubId: string;
+}
+
+/** Wahrscheinlichkeit (%) je Ligastufe – erst die Stufe, dann ein Verein daraus (1 = höchste Liga). */
+export const FATE_TIER_WEIGHT: Record<number, number> = { 1: 8, 2: 12, 3: 16, 4: 20, 5: 22, 6: 22 };
+
+const gauss = () => {
+  let u = 0;
+  let v = 0;
+  while (!u) u = Math.random();
+  while (!v) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+};
+
+/** Schicksal auslosen. `clubs` = alle Vereine mit Ligastufe. */
+export function spinFate(clubs: { id: string; tier: number }[]): Fate {
+  const height = clamp(Math.round(181 + gauss() * 7), HEIGHT_RANGE[0], HEIGHT_RANGE[1]);
+  const bmi = clamp(22.8 + gauss() * 1.6, 19, 27.5);
+  const weight = clamp(Math.round(bmi * (height / 100) ** 2), WEIGHT_RANGE[0], WEIGHT_RANGE[1]);
+  const tiers = [...new Set(clubs.map((c) => c.tier))];
+  const total = tiers.reduce((a, t) => a + (FATE_TIER_WEIGHT[t] ?? 1), 0);
+  let r = Math.random() * total;
+  const tier = tiers.find((t) => (r -= FATE_TIER_WEIGHT[t] ?? 1) < 0) ?? tiers[tiers.length - 1];
+  const pool = clubs.filter((c) => c.tier === tier);
+  const club = pool[Math.floor(Math.random() * pool.length)];
+  return { height, weight, clubId: club.id };
+}
+
+const FATE_KEY = 'fc-fate-spin';
+export function storedFate(): Fate | null {
+  try {
+    const raw = localStorage.getItem(FATE_KEY);
+    return raw ? (JSON.parse(raw) as Fate) : null;
+  } catch {
+    return null;
+  }
+}
+export function storeFate(f: Fate | null): void {
+  try {
+    if (f) localStorage.setItem(FATE_KEY, JSON.stringify(f));
+    else localStorage.removeItem(FATE_KEY);
+  } catch {
+    // ohne Speicher nur für diese Sitzung
+  }
+}

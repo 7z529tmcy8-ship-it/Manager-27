@@ -33,3 +33,23 @@ it('Glücksrad: Verteilung passt grob zu den Chancen', () => {
   for (let i = 0; i < n; i++) { const o = spinOrigin(); count[o] = (count[o] ?? 0) + 1; }
   for (const [id, pct] of Object.entries(ORIGIN_ODDS)) expect(Math.abs((count[id] / n) * 100 - pct)).toBeLessThan(4);
 });
+
+it('Schicksals-Automat: realistische Körper, Vereine nach Ligastufe verteilt', async () => {
+  const { spinFate, FATE_TIER_WEIGHT } = await import('../creator');
+  const { CLUBS, getLeague } = await import('../../data/leagues');
+  const clubs = CLUBS.filter((c) => !c.name.endsWith(' II')).map((c) => ({ id: c.id, tier: getLeague(c.leagueId).tier }));
+  const tierOf = new Map(clubs.map((c) => [c.id, c.tier]));
+  const n = 4000;
+  const count: Record<number, number> = {};
+  for (let i = 0; i < n; i++) {
+    const f = spinFate(clubs);
+    expect(f.height).toBeGreaterThanOrEqual(158);
+    expect(f.height).toBeLessThanOrEqual(206);
+    const bmi = f.weight / (f.height / 100) ** 2;
+    expect(bmi).toBeGreaterThan(17);
+    expect(bmi).toBeLessThan(29);
+    const t = tierOf.get(f.clubId)!;
+    count[t] = (count[t] ?? 0) + 1;
+  }
+  for (const [t, w] of Object.entries(FATE_TIER_WEIGHT)) expect(Math.abs(((count[Number(t)] ?? 0) / n) * 100 - w)).toBeLessThan(3);
+});

@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-07-schicksal',
+    date: '07.10.2026',
+    title: 'Der Schicksals-Automat 🎰',
+    items: [
+      '🎰 Beim eigenen Spieler werden Größe, Gewicht und Startverein jetzt ausgelost – drei Walzen, einmal drehen, kein Zurück.',
+      '📉 Der Startverein kann aus jeder Liga kommen – je tiefer, desto wahrscheinlicher. Viele starten in der Landes- oder Oberliga und müssen sich hocharbeiten.',
+      '🧩 Name, Nation, Position, Alter, Attributpunkte und Aussehen wählst du weiter selbst.',
+    ],
+  },
+  {
     id: '2026-10-07-bauprojekte',
     date: '07.10.2026',
     title: 'Bauprojekte bei deinen Klubs 🏗️',

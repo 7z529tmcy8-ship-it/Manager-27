@@ -1,16 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { play } from '../sound';
 import { motionReduced } from '../settings';
-import { CLUBS, LEAGUES, getClub } from '../data/leagues';
+import { CLUBS, LEAGUES, getClub, getLeague } from '../data/leagues';
 import { NATIONS, POSITIONS, REAL_PLAYERS, type RealPlayerTemplate } from '../data/players';
 import { CULT_LEGENDS, FAILED_TALENTS, HANNOVER_2018, LEGENDS, type LegendTemplate } from '../data/legends';
 import { createCareer } from '../game/career';
 import { MAX_TRAITS, TRAITS, getTrait, type TraitId } from '../game/traits';
 import { pick } from '../game/random';
 import {
-  ATTR_WEIGHTS, BEARDS, DEFAULT_AVATAR, HAIR_COLORS, HAIR_STYLES, HEIGHT_RANGE, IDEAL_HEIGHT, MAX_PER_ATTR, ORIGINS, POINT_POOL, SKIN_TONES,
-  WEIGHT_RANGE, ORIGIN_ODDS, applyOrigin, evaluateBuild, getOrigin, randomAvatar, randomBody, randomPoints, rollBuild, scoutLabel,
-  spinOrigin, storeSpin, storedSpin,
+  ATTR_WEIGHTS, BEARDS, DEFAULT_AVATAR, HAIR_COLORS, HAIR_STYLES, IDEAL_HEIGHT, MAX_PER_ATTR, ORIGINS, POINT_POOL, SKIN_TONES,
+  ORIGIN_ODDS, applyOrigin, evaluateBuild, getOrigin, randomAvatar, randomPoints, rollBuild, scoutLabel,
+  spinOrigin, storeSpin, storedSpin, spinFate, storeFate, storedFate, FATE_TIER_WEIGHT, type Fate,
   type Avatar, type OriginId,
 } from '../game/creator';
 import { FIRST, LAST } from '../game/rival';
@@ -67,59 +67,51 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
   const [nation, setNation] = useState('Deutschland');
   const [position, setPosition] = useState<Position>('ST');
   const [age, setAge] = useState(17);
-  const [height, setHeight] = useState(182);
-  const [weight, setWeight] = useState(76);
+  // Platzhalter bis zum Auslosen (Größe/Gewicht kommen aus dem Schicksals-Automaten).
+  const height = 182;
+  const weight = 76;
   const [points, setPoints] = useState<number[]>([0, 0, 0, 0, 0, 0]);
-  const [leagueId, setLeagueId] = useState('bl1');
-  const [clubId, setClubId] = useState('');
   const [traits, setTraits] = useState<TraitId[]>([]);
   // Herkunft wird per Glücksrad ausgelost – einmal, nicht wählbar.
   const [origin, setOrigin] = useState<OriginId | null>(storedSpin);
+  // Größe, Gewicht und Startverein: ebenfalls ausgelost (Schicksals-Automat).
+  const [fate, setFate] = useState<Fate | null>(storedFate);
+  const fh = fate?.height ?? height;
+  const fw = fate?.weight ?? weight;
   const [avatar, setAvatar] = useState<Avatar>(DEFAULT_AVATAR);
 
   // Live-Vorschau: so sieht die Karte zum Start ungefähr aus.
-  const built = evaluateBuild({ position, age, height, weight, points });
+  const built = evaluateBuild({ position, age, height: fh, weight: fw, points });
   const preview = origin ? applyOrigin(built, origin, position === 'TW') : built;
   const tier = cardTier(preview.ovr);
   const previewCard = {
     id: 'preview', name: name.trim() || 'Dein Spieler', position, nation, ovr: preview.ovr, avatar,
-    club: clubId ? getClub(clubId).name : 'Startverein offen', variant: tier === 'bronze' ? ('silver' as const) : tier,
+    club: fate ? getClub(fate.clubId).name : 'Startverein offen', variant: tier === 'bronze' ? ('silver' as const) : tier,
   };
 
   const randomize = () => {
     const pos = pick(POSITIONS).id;
-    const body = randomBody(pos);
     setName(`${pick(FIRST)} ${pick(LAST)}`);
     setNation(pick(NATIONS).name);
     setPosition(pos);
     setAge(pick([16, 17, 17, 18, 18, 19, 20]));
-    setHeight(body.height);
-    setWeight(body.weight);
     setPoints(randomPoints(pos));
     setTraits(TRAITS.filter(() => Math.random() < 0.15).slice(0, 2).map((t) => t.id));
     setAvatar(randomAvatar());
-    setClubId('');
   };
 
-  const clubs = useMemo(
-    () => CLUBS.filter((c) => c.leagueId === leagueId).sort((a, b) => a.name.localeCompare(b.name, 'de')),
-    [leagueId],
-  );
 
   const start = () => {
-    if (!origin) return;
+    if (!origin || !fate) return;
     storeSpin(null);
-    const rolled = rollBuild({ position, age, height, weight, points });
+    storeFate(null);
+    const rolled = rollBuild({ position, age, height: fh, weight: fw, points });
     const o = getOrigin(origin);
     const ovr = rolled.ovr + o.ovr;
     const potential = Math.max(ovr + 4, Math.min(94, rolled.potential + o.potential));
     const profile = applyOrigin({ ovr, potential, offsets: rolled.profile }, origin, position === 'TW').offsets;
-    // Zufälliger Verein: einer, bei dem der Spieler realistische Chancen auf Einsätze hat.
-    const club = clubId
-      ? getClub(clubId)
-      : pick(CLUBS.filter((c) => c.strength >= ovr + 2 && c.strength <= ovr + 9));
     onCreate(
-      createCareer({ name: name.trim() || 'Namenloser Held', nation, position, age, ovr, potential, clubId: club.id, traits, profile, height, weight, origin, avatar }),
+      createCareer({ name: name.trim() || 'Namenloser Held', nation, position, age, ovr, potential, clubId: fate.clubId, traits, profile, height: fh, weight: fw, origin, avatar }),
     );
   };
 
@@ -172,27 +164,79 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
           setTraits((t) => (t.includes(id) ? t.filter((x) => x !== id) : t.length < MAX_TRAITS ? [...t, id] : t))} />
       </fieldset>
 
-      <Builder position={position} age={age} height={height} weight={weight} points={points} origin={origin}
-        onHeight={setHeight} onWeight={setWeight} onPoints={setPoints} />
+      <fieldset>
+        <legend>Schicksal: Größe, Gewicht, Startverein</legend>
+        <FateMachine fate={fate} onResult={(f) => { setFate(f); storeFate(f); }} />
+      </fieldset>
 
-      <div className="row">
-        <label>
-          Liga
-          <select value={leagueId} onChange={(e) => { setLeagueId(e.target.value); setClubId(''); }}>
-            {LEAGUES.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-          </select>
-        </label>
-        <label>
-          Startverein
-          <select value={clubId} onChange={(e) => setClubId(e.target.value)}>
-            <option value="">Zufällig (passender Verein)</option>
-            {clubs.map((c) => <option key={c.id} value={c.id}>{c.name} ({c.strength})</option>)}
-          </select>
-        </label>
-      </div>
+      <Builder position={position} age={age} height={fh} weight={fw} points={points} origin={origin} fated={!!fate} onPoints={setPoints} />
 
-      <button className="btn primary big" onClick={start} disabled={!origin}>{origin ? 'Karriere starten' : 'Erst das Glücksrad drehen'}</button>
+      <button className="btn primary big" onClick={start} disabled={!origin || !fate}>
+        {!origin ? 'Erst das Glücksrad drehen' : !fate ? 'Erst den Schicksals-Automaten drehen' : 'Karriere starten'}
+      </button>
     </section>
+  );
+}
+
+const FATE_CLUBS = CLUBS.filter((c) => !c.name.endsWith(' II')).map((c) => ({ id: c.id, tier: getLeague(c.leagueId).tier }));
+
+/** Schicksals-Automat: drei Walzen (Größe, Gewicht, Verein) – einmal drehen, das Ergebnis bleibt. */
+function FateMachine({ fate, onResult }: { fate: Fate | null; onResult: (f: Fate) => void }) {
+  const [spinning, setSpinning] = useState<Fate | null>(null);
+  const [stopped, setStopped] = useState(0);
+  const [tick, setTick] = useState(0);
+  const done = useRef(onResult);
+  done.current = onResult;
+
+  useEffect(() => {
+    if (!spinning) return;
+    const quick = motionReduced();
+    const iv = setInterval(() => setTick((t) => t + 1), 70);
+    const stops = (quick ? [30, 60, 90] : [1100, 1800, 2600]).map((ms, i) =>
+      setTimeout(() => { setStopped(i + 1); play('walkStep'); }, ms));
+    const end = setTimeout(() => {
+      clearInterval(iv);
+      done.current(spinning);
+      setSpinning(null);
+      setStopped(0);
+      play('reveal');
+    }, quick ? 120 : 2900);
+    return () => { clearInterval(iv); stops.forEach(clearTimeout); clearTimeout(end); };
+  }, [spinning]);
+
+  const spin = () => {
+    if (fate || spinning) return;
+    setSpinning(spinFate(FATE_CLUBS));
+    play('packShake');
+  };
+
+  const randomClub = () => getClub(FATE_CLUBS[(tick * 7) % FATE_CLUBS.length].id).name;
+  const reel = (i: number, final: string, random: string) => (
+    <div className={`fate-reel ${spinning && stopped <= i ? 'spin' : ''}`}>
+      <span>{spinning ? (stopped > i ? final : random) : fate ? final : '?'}</span>
+    </div>
+  );
+  const show = spinning ?? fate;
+  return (
+    <div className="fate">
+      <div className="fate-reels">
+        {reel(0, show ? `${show.height} cm` : '?', `${160 + ((tick * 13) % 45)} cm`)}
+        {reel(1, show ? `${show.weight} kg` : '?', `${58 + ((tick * 11) % 40)} kg`)}
+        {reel(2, show ? getClub(show.clubId).name : '?', randomClub())}
+      </div>
+      {fate ? (
+        <small className="muted">
+          {getClub(fate.clubId).name} · {getLeague(getClub(fate.clubId).leagueId).name}. Das Schicksal hat entschieden – das bleibt so.
+        </small>
+      ) : (
+        <>
+          <button type="button" className="btn primary" onClick={spin} disabled={!!spinning}>{spinning ? 'Dreht …' : '🎰 Schicksal drehen'}</button>
+          <small className="muted">
+            Startverein aus allen Ligen – je tiefer die Liga, desto wahrscheinlicher ({Object.entries(FATE_TIER_WEIGHT).map(([t, w]) => `${t}. Liga ${w} %`).join(' · ')}).
+          </small>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -402,7 +446,9 @@ const ATTR_NAMES: Record<string, string> = {
 /** Spieler-Baukasten: Körperbau und Attributpunkte bestimmen Startwertung und Potenzial. */
 function Builder(props: {
   position: Position; age: number; height: number; weight: number; points: number[]; origin: OriginId | null;
-  onHeight: (v: number) => void; onWeight: (v: number) => void; onPoints: (v: number[]) => void;
+  /** Größe und Gewicht schon ausgelost? */
+  fated: boolean;
+  onPoints: (v: number[]) => void;
 }) {
   const { position, age, height, weight, points } = props;
   const base = evaluateBuild({ position, age, height, weight, points });
@@ -421,17 +467,12 @@ function Builder(props: {
   return (
     <fieldset className="builder">
       <legend>Körper & Attribute</legend>
-      <p className="hint">Kein Potenzial zum Auswählen: Größe, Gewicht und die verteilten Punkte entscheiden, wie viel Talent in deinem Spieler steckt. Passt alles zur Position, steigt das Potenzial.</p>
+      <p className="hint">Kein Potenzial zum Auswählen: Dein Körper (ausgelost) und die verteilten Punkte entscheiden, wie viel Talent in deinem Spieler steckt. Passen Punkte und Körper zur Position, steigt das Potenzial.</p>
 
-      <label className="bld-slider">
-        <span>Größe <b>{height} cm</b> <small>ideal für {position}: {lo}–{hi} cm</small></span>
-        <input type="range" min={HEIGHT_RANGE[0]} max={HEIGHT_RANGE[1]} value={height} onChange={(e) => props.onHeight(Number(e.target.value))} />
-      </label>
-      <label className="bld-slider">
-        <span>Gewicht <b>{weight} kg</b> <small>BMI {r.bmi.toFixed(1).replace('.', ',')} · {bmiText}</small></span>
-        <input type="range" min={WEIGHT_RANGE[0]} max={WEIGHT_RANGE[1]} value={weight} onChange={(e) => props.onWeight(Number(e.target.value))} />
-      </label>
-
+      <div className="bld-body">
+        <span>Größe <b>{props.fated ? `${height} cm` : '?'}</b> <small>ideal für {position}: {lo}–{hi} cm</small></span>
+        <span>Gewicht <b>{props.fated ? `${weight} kg` : '?'}</b> {props.fated && <small>BMI {r.bmi.toFixed(1).replace('.', ',')} · {bmiText}</small>}</span>
+      </div>
       <div className="bld-points-head">
         <strong>Attributpunkte</strong>
         <span className={left > 0 ? 'left' : ''}>{left} von {POINT_POOL} übrig</span>
