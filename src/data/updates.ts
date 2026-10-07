@@ -19,6 +19,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-07-logo',
+    date: '07.10.2026',
+    title: 'Neuer Look: Manager Sim 👑',
+    items: [
+      '👑 Das Spiel hat ein eigenes Logo – zu sehen im Hauptmenü und beim Start.',
+      '📱 Neues App-Icon: Füge die Seite zum Home-Bildschirm hinzu, dann erscheint das Logo als Icon.',
+    ],
+  },
+  {
     id: '2026-10-07-tauschboerse',
     date: '07.10.2026',
     title: 'Die Tauschbörse ist da 🔄',

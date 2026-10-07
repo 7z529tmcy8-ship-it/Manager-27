@@ -52,7 +52,8 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
     <main className="gate">
       <form className="gate-box" onSubmit={submit}>
         <p className="eyebrow">Privat</p>
-        <h1>Karriere-Manager</h1>
+        <img className="gate-logo" src="/logo.webp" alt="" width="640" height="624" />
+        <h1>Manager Sim</h1>
         <label htmlFor="gate-pw" className="muted">Passwort</label>
         <input
           id="gate-pw"

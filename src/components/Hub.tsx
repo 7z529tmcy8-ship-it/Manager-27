@@ -43,7 +43,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   return (
     <main className="hub">
       <header className="hub-top">
-        <span className="hub-brand">FC KARRIERE</span>
+        <img className="hub-logo" src="/logo.webp" alt="Manager Sim" width="640" height="624" />
         <span className="hub-coins" title="Coins – verdienst du im Karrieremodus">🪙 {fmtCoins(club.coins)}</span>
         <button className="hub-icon" onClick={onNews} aria-label="Neuigkeiten" title="Neuigkeiten">📣</button>
         <button className="hub-icon" onClick={() => setSettings(true)} aria-label="Einstellungen">⚙️</button>
