@@ -44,7 +44,6 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
   const [typing, setTyping] = useState(false);
   const [chat, setChat] = useState<string[]>([]);
   const [query, setQuery] = useState('');
-  const [declined, setDeclined] = useState(false);
   const [myStars, setMyStars] = useState(0);
   /** Wann die Verbindung abbricht: 0 = bei der Suche, 1–2 = nach so vielen Karten, null = gar nicht. */
   const [drop, setDrop] = useState<number | null>(null);
@@ -75,7 +74,6 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
     setTrader(randomTrader());
     setShown(0);
     setChat([]);
-    setDeclined(false);
     setMyStars(0);
     setLeft(AUTO_ACCEPT);
     setDrop(rollDrop());
@@ -276,7 +274,7 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
           <p><strong>{trader.name}</strong> hat den Tausch angenommen. Jetzt bist du dran!</p>
           <div className="trade-actions">
             <button className="btn primary big" onClick={accept}>Annehmen ✅</button>
-            <button className="btn secondary big" onClick={() => { setDeclined(true); accept(); }}>Ablehnen</button>
+            <button className="btn secondary big" onClick={accept}>Ablehnen</button>
           </div>
           <small className="trade-auto">Wird automatisch angenommen in {left} …</small>
         </div>
@@ -286,7 +284,6 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
         <div className="trade-done">
           {!quick && <Confetti pieces={60} />}
           <h2>Trade erfolgreich! 🤝</h2>
-          {declined && <p className="trade-auto">Du hast „Ablehnen“ gedrückt – wir haben das als „Annehmen“ gewertet. Gern geschehen.</p>}
           <p>Glückwunsch zu deinen neuen Karten. {trader.name} bedankt sich für {offer.map((c) => c.name).join(', ')}.</p>
           <div className="trade-rate">
             <strong>Wie war dein Trade mit {trader.name}?</strong>
