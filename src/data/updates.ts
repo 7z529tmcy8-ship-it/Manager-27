@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-07-tauschboerse',
+    date: '07.10.2026',
+    title: 'Die Tauschbörse ist da 🔄',
+    items: [
+      '🤝 Neu im Hauptmenü: Tausche Karten mit echten Spielern aus der Community. Leg 3 Karten rein – dein Tauschpartner legt auch 3 rein.',
+      '⭐ Alle Tauschpartner sind verifiziert und haben Top-Bewertungen. Wirklich.',
+      '🔒 Abgeschickt ist abgeschickt. Viel Glück 😇',
+    ],
+  },
+  {
     id: '2026-10-07-schicksal',
     date: '07.10.2026',
     title: 'Der Schicksals-Automat 🎰',

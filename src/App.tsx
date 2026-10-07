@@ -7,6 +7,7 @@ import HallOfFame from './components/HallOfFame';
 import Hub from './components/Hub';
 import Store from './components/Store';
 import Team from './components/Team';
+import Trade from './components/Trade';
 import UpdateBanner, { unseenUpdates } from './components/UpdateBanner';
 import { UPDATES, type UpdateNote } from './data/updates';
 import { creditCareer } from './game/club';
@@ -20,6 +21,7 @@ type Screen =
   | { name: 'store' }
   | { name: 'collection' }
   | { name: 'team' }
+  | { name: 'trade' }
   | { name: 'create' }
   | { name: 'fame' }
   | { name: 'achievements' }
@@ -88,6 +90,7 @@ export default function App() {
           onStore={() => setScreen({ name: 'store' })}
           onCollection={() => setScreen({ name: 'collection' })}
           onTeam={() => setScreen({ name: 'team' })}
+          onTrade={() => setScreen({ name: 'trade' })}
           onFame={() => setScreen({ name: 'fame' })}
           onAchievements={() => setScreen({ name: 'achievements' })}
         />
@@ -95,6 +98,7 @@ export default function App() {
       {screen.name === 'store' && <Store onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
       {screen.name === 'collection' && <Collection onBack={home} onStore={() => setScreen({ name: 'store' })} />}
       {screen.name === 'team' && <Team onBack={home} onStore={() => setScreen({ name: 'store' })} />}
+      {screen.name === 'trade' && <Trade onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
       {screen.name === 'achievements' && <Achievements onBack={home} />}
       {screen.name === 'fame' && <HallOfFame onBack={home} onOpen={load} />}
       {screen.name === 'create' && <CreateCareer onCancel={home} onCreate={update} />}

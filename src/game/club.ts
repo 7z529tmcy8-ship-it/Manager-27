@@ -67,6 +67,8 @@ export interface ClubState {
   ownerId?: string;
   /** Gespeicherte Freunde mit Team und Duell-Verlauf. */
   friends?: import('./friends').FriendEntry[];
+  /** Abgeschlossene Trades in der Tauschbörse. */
+  tradesDone?: number;
 }
 
 export const START_COINS = 3000;
