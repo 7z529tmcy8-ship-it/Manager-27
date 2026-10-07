@@ -10,7 +10,24 @@ import UtCard from './UtCard';
 type Phase = 'pick' | 'search' | 'found' | 'adding' | 'confirm' | 'done' | 'lost';
 
 /** So oft bricht die „Verbindung“ ab – irgendwo zwischen Suche und letzter Karte. */
-const DROP_CHANCE = 0.3;
+const DROP_CHANCE = 0.4;
+/** Spätestens beim dritten Trade in Folge ohne Abbruch bricht es garantiert ab. */
+const DROP_KEY = 'fc-trade-nodrop';
+function rollDrop(): number | null {
+  let calm = 0;
+  try {
+    calm = Number(localStorage.getItem(DROP_KEY)) || 0;
+  } catch {
+    // ohne Speicher: nur Zufall
+  }
+  const drops = calm >= 2 || Math.random() < DROP_CHANCE;
+  try {
+    localStorage.setItem(DROP_KEY, String(drops ? 0 : calm + 1));
+  } catch {
+    // egal
+  }
+  return drops ? Math.floor(Math.random() * TRADE_SIZE) : null;
+}
 const RECONNECTS = 3;
 
 const pickLine = (a: string[]) => a[Math.floor(Math.random() * a.length)];
@@ -33,6 +50,7 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
   const [drop, setDrop] = useState<number | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [errCode, setErrCode] = useState('');
+  const [online, setOnline] = useState(5);
   const [hover, setHover] = useState(0);
   const [left, setLeft] = useState(AUTO_ACCEPT);
   const quick = motionReduced();
@@ -58,7 +76,8 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
     setDeclined(false);
     setMyStars(0);
     setLeft(AUTO_ACCEPT);
-    setDrop(Math.random() < DROP_CHANCE ? Math.floor(Math.random() * TRADE_SIZE) : null);
+    setDrop(rollDrop());
+    setOnline(3 + Math.floor(Math.random() * 5));
     setAttempt(0);
     setErrCode(`TRD-${Math.floor(400 + Math.random() * 200)}-${Math.random().toString(16).slice(2, 6).toUpperCase()}`);
     setPhase('search');
@@ -155,7 +174,7 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
       {inTrade && (
         <div className="trade-partner">
           {phase === 'search' ? (
-            <div className="trade-search"><span className="trade-spin" aria-hidden="true" /> Suche Tauschpartner … <small>{(1200 + Math.floor(Math.random() * 300)).toLocaleString('de-DE')} Spieler online</small></div>
+            <div className="trade-search"><span className="trade-spin" aria-hidden="true" /> Suche Tauschpartner … <small>{online} Spieler online</small></div>
           ) : (
             <div className="trade-who">
               <span className="trade-ava" aria-hidden="true">{trader.avatar}</span>
