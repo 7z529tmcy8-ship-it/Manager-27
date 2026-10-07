@@ -157,48 +157,60 @@ const GOLD_FILL: PackOdds = { gold: 85, rare: 13, elite: 2 };
 
 export const PACKS: PackDef[] = [
   {
-    id: 'standard', name: 'Standard-Pack', price: 2000, size: 3, text: '3 Karten, meist Silber und Gold.',
+    id: 'standard', name: 'Standard-Pack', price: 6000, size: 3, text: '3 Karten, meist Silber und Gold.',
     odds: { silver: 70, gold: 26.5, rare: 3, elite: 0.4, special: 0.08, icon: 0.02 },
   },
   {
-    id: 'gold', name: 'Gold-Pack', price: 7500, size: 3, text: '3 Karten ab 75, kleine Chance auf mehr.',
+    id: 'gold', name: 'Gold-Pack', price: 22500, size: 3, text: '3 Karten ab 75, kleine Chance auf mehr.',
     odds: { gold: 88, rare: 10, elite: 1.5, special: 0.4, icon: 0.1 },
   },
   {
-    id: 'premium', name: 'Premium-Pack', price: 20000, size: 4, text: '4 Karten ab 75, die beste garantiert ab 83 oder eine Spezialkarte.',
+    id: 'premium', name: 'Premium-Pack', price: 60000, size: 4, text: '4 Karten ab 75, die beste garantiert ab 83 oder eine Spezialkarte.',
     odds: { gold: 85, rare: 12, elite: 2.5, special: 0.4, icon: 0.1 },
     first: { odds: { rare: 80, elite: 15, special: 3.5, icon: 1.5 } },
   },
   {
-    id: 'mystery', name: 'Wundertüte', price: 3000, size: 1, text: '1 völlig zufällige Karte – von Silber bis Ikone ist alles drin.',
+    id: 'jumbo', name: 'Jumbo-Pack', price: 16000, size: 9, text: '9 Karten, meist Silber und Gold – viel Futter für die Sammlung.',
+    odds: { silver: 62, gold: 33, rare: 4, elite: 0.8, special: 0.15, icon: 0.05 },
+  },
+  {
+    id: 'megagold', name: 'Mega-Gold-Pack', price: 60000, size: 9, text: '9 Karten ab 75 – neun Chancen auf etwas Großes.',
+    odds: { gold: 86, rare: 11.5, elite: 2, special: 0.4, icon: 0.1 },
+  },
+  {
+    id: 'ultimate', name: 'Ultimate-Pack', price: 240000, size: 9, text: '9 Karten ab 75, die beste garantiert ein Weltstar ab 87, eine Spezialkarte oder eine Ikone.',
+    odds: { gold: 78, rare: 18, elite: 3.5, special: 0.4, icon: 0.1 }, first: { odds: { elite: 80, special: 14, icon: 6 } },
+  },
+  {
+    id: 'mystery', name: 'Wundertüte', price: 9000, size: 1, text: '1 völlig zufällige Karte – von Silber bis Ikone ist alles drin.',
     odds: { silver: 55, gold: 33, rare: 8, elite: 2.5, special: 1, icon: 0.5 },
   },
   {
-    id: 'germany', name: 'Deutschland-Pack', price: 6000, size: 3, text: '3 deutsche Spieler – mit viel Glück eine deutsche Ikone.',
+    id: 'germany', name: 'Deutschland-Pack', price: 18000, size: 3, text: '3 deutsche Spieler – mit viel Glück eine deutsche Ikone.',
     filter: (c) => c.nation === 'Deutschland', odds: { silver: 40, gold: 50, rare: 8, elite: 1.5, special: 0.3, icon: 0.2 },
   },
   {
-    id: 'bundesliga', name: 'Bundesliga-Pack', price: 6000, size: 3, text: '3 Spieler aus der Bundesliga, gute Chemie garantiert.',
+    id: 'bundesliga', name: 'Bundesliga-Pack', price: 18000, size: 3, text: '3 Spieler aus der Bundesliga, gute Chemie garantiert.',
     filter: BL, odds: { silver: 40, gold: 50, rare: 8, elite: 2 },
   },
   {
-    id: 'wonder', name: 'Wunderkind-Pack', price: 9000, size: 3, text: '3 Talente bis 21 Jahre – die Stars von morgen.',
+    id: 'wonder', name: 'Wunderkind-Pack', price: 27000, size: 3, text: '3 Talente bis 21 Jahre – die Stars von morgen.',
     filter: (c) => c.age !== undefined && c.age <= 21, odds: { silver: 35, gold: 50, rare: 13, elite: 2 },
   },
   {
-    id: 'cult', name: 'Kult-Pack', price: 12000, size: 2, text: '1 garantierter Kult-Held (Riquelme, Ailton, Quaresma …) plus eine Gold-Karte.',
+    id: 'cult', name: 'Kult-Pack', price: 36000, size: 2, text: '1 garantierter Kult-Held (Riquelme, Ailton, Quaresma …) plus eine Gold-Karte.',
     odds: GOLD_FILL, first: { odds: { special: 100 }, filter: (c) => c.variant === 'cult' },
   },
   {
-    id: 'worldstar', name: 'Weltstar-Pack', price: 30000, size: 2, text: '2 Karten, die beste ab 83 oder Ikone – gute Chance auf einen Weltstar ab 87.',
+    id: 'worldstar', name: 'Weltstar-Pack', price: 90000, size: 2, text: '2 Karten, die beste ab 83 oder Ikone – gute Chance auf einen Weltstar ab 87.',
     odds: { gold: 70, rare: 27, elite: 3 }, first: { odds: { rare: 65, elite: 32, icon: 3 } },
   },
   {
-    id: 'icon', name: 'Ikonen-Pack', price: 60000, size: 2, text: '1 garantierte Ikone plus eine Gold-Karte.',
+    id: 'icon', name: 'Ikonen-Pack', price: 180000, size: 2, text: '1 garantierte Ikone plus eine Gold-Karte.',
     odds: GOLD_FILL, first: { odds: { icon: 100 } },
   },
   {
-    id: 'goat', name: 'GOAT-Pack', price: 150000, size: 1, text: 'Eine Ikone ab 94 garantiert: Pelé, Maradona, Cruyff, Ronaldo …',
+    id: 'goat', name: 'GOAT-Pack', price: 450000, size: 1, text: 'Eine Ikone ab 94 garantiert: Pelé, Maradona, Cruyff, Ronaldo …',
     odds: { icon: 100 }, filter: (c) => c.variant === 'icon' && c.ovr >= 94,
   },
 ];

@@ -4,7 +4,7 @@ import { getSettings } from './settings';
 // Jeder Sound ist eine kleine Mischung aus Tönen (Oszillatoren) und Rauschen (Wind, Publikum, Pfiff).
 
 export type SoundId =
-  | 'tap' | 'coin' | 'spend' | 'whistle' | 'packShake' | 'reveal' | 'revealRare' | 'walkout' | 'walkStep'
+  | 'tap' | 'coin' | 'spend' | 'whistle' | 'packShake' | 'packRip' | 'reveal' | 'revealRare' | 'walkout' | 'walkStep'
   | 'unlock' | 'levelUp' | 'fanfare' | 'transfer' | 'rise' | 'fall' | 'notify' | 'error';
 
 let ctx: AudioContext | null = null;
@@ -115,6 +115,12 @@ const SOUNDS: Record<SoundId, (c: AudioContext) => void> = {
   packShake: (c) => {
     hiss(c, 1.2, { freq: 400, to: 4000, gain: 0.18, attack: 0.9 });
     for (let i = 0; i < 6; i++) tone(c, 140 + i * 25, 0.08, { type: 'triangle', gain: 0.12, at: i * 0.18 });
+  },
+  // Pack reißt auf: Riss-Rauschen, tiefer Schlag, heller Funke.
+  packRip: (c) => {
+    hiss(c, 0.28, { freq: 1200, to: 7000, gain: 0.22, q: 0.8 });
+    tone(c, 90, 0.5, { type: 'sine', gain: 0.45, to: 40 });
+    tone(c, C6, 0.5, { type: 'triangle', gain: 0.08, at: 0.06, to: E6 });
   },
   reveal: (c) => {
     hiss(c, 0.35, { freq: 6000, to: 800, gain: 0.12 });

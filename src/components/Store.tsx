@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { play } from '../sound';
-import { ITEMS, PACKS, oddsAtLeast, openPack, rarity, type PackDef, type PackResult } from '../game/club';
+import { ITEMS, PACKS, oddsAtLeast, openPack, packTier, rarity, type PackDef, type PackResult } from '../game/club';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { motionReduced } from '../settings';
 import Confetti from './Confetti';
@@ -66,19 +66,28 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
   );
 }
 
-type Phase = 'pack' | 'walkout' | 'reveal' | 'all';
+type Phase = 'pack' | 'burst' | 'walkout' | 'reveal' | 'all';
 
-/** Pack-Öffnung: Pack wackelt, bei seltenen Karten ein „Walkout“ (Nation → Position → Verein), dann die Karte. */
+const FLIP_GAP = 140; // ms zwischen zwei Karten beim Aufdecken
+
+/**
+ * Pack-Öffnung: Das Pack lädt sich auf und leuchtet in der Farbe der besten Karte, reißt mit einem Blitz auf,
+ * bei seltenen Karten folgt ein „Walkout“ (Nation → Position → Verein), dann die Karte – am Ende drehen sich alle Karten einzeln um.
+ */
 export function PackOpening({ name, result, onClose, onCollection }: { name: string; result: PackResult; onClose: () => void; onCollection: () => void }) {
   const best = result.cards[0].card;
   const special = rarity(best) >= 200; // Elite, Ikone, Talent
+  const tier = packTier(best);
   const [phase, setPhase] = useState<Phase>('pack');
   const [step, setStep] = useState(0);
+  const [instant, setInstant] = useState(false);
   const quick = motionReduced();
+  const many = result.cards.length > 4;
 
   // Sounds zur Pack-Öffnung.
   useEffect(() => {
     if (phase === 'pack') play('packShake');
+    if (phase === 'burst') play('packRip');
     if (phase === 'walkout') play('walkout');
     if (phase === 'reveal') play(special ? 'revealRare' : 'reveal');
   }, [phase, special]);
@@ -86,9 +95,27 @@ export function PackOpening({ name, result, onClose, onCollection }: { name: str
     if (phase === 'walkout' && step > 0 && step <= 3) play('walkStep');
   }, [phase, step]);
 
+  // Beim Aufdecken: ein Ton pro Karte, passend zur Stufe.
+  useEffect(() => {
+    if (phase !== 'all' || quick || instant) return;
+    const timers = result.cards.map(({ card }, i) =>
+      setTimeout(() => {
+        const t = packTier(card);
+        play(t === 'special' || t === 'icon' ? 'revealRare' : t === 'elite' || t === 'rare' ? 'unlock' : 'tap');
+      }, 250 + i * FLIP_GAP),
+    );
+    // Wenn alles aufgedeckt ist, verschwindet „Alle aufdecken“.
+    timers.push(setTimeout(() => setInstant(true), 1000 + result.cards.length * FLIP_GAP));
+    return () => timers.forEach(clearTimeout);
+  }, [phase, quick, instant, result.cards]);
+
   useEffect(() => {
     if (phase === 'pack') {
-      const t = setTimeout(() => setPhase(special && !quick ? 'walkout' : 'reveal'), quick ? 200 : 1300);
+      const t = setTimeout(() => setPhase(quick ? 'reveal' : 'burst'), quick ? 200 : 1500);
+      return () => clearTimeout(t);
+    }
+    if (phase === 'burst') {
+      const t = setTimeout(() => setPhase(special ? 'walkout' : 'reveal'), 650);
       return () => clearTimeout(t);
     }
     if (phase === 'walkout') {
@@ -106,13 +133,27 @@ export function PackOpening({ name, result, onClose, onCollection }: { name: str
     { label: 'Position', value: best.position },
     { label: best.variant === 'icon' || best.variant === 'talent' ? 'Kartentyp' : 'Verein', value: best.label ?? best.club },
   ];
+  const flipping = phase === 'all' && !quick && !instant;
 
   return (
-    <div className={`pack-open ph-${phase} ${special ? 'special' : ''}`} role="dialog" aria-modal="true" aria-label={`${name} öffnen`}>
+    <div className={`pack-open ph-${phase} tier-${tier} ${special ? 'special' : ''}`} role="dialog" aria-modal="true" aria-label={`${name} öffnen`}>
       {phase !== 'all' && <button className="pack-skip" onClick={() => setPhase('all')}>Überspringen</button>}
 
       {phase === 'pack' && (
-        <div className="pack-big" aria-hidden="true"><span>{name}</span></div>
+        <div className="pack-stage" aria-hidden="true">
+          <div className="pack-halo" />
+          <div className="pack-big"><span>{name}</span></div>
+          <div className="pack-sparks">{Array.from({ length: 10 }, (_, i) => <i key={i} style={{ '--i': i } as CSSProperties} />)}</div>
+        </div>
+      )}
+
+      {phase === 'burst' && (
+        <div className="pack-stage" aria-hidden="true">
+          <div className="pack-flash" />
+          <div className="pack-big half l"><span>{name}</span></div>
+          <div className="pack-big half r"><span>{name}</span></div>
+          <div className="pack-ring" />
+        </div>
       )}
 
       {phase === 'walkout' && (
@@ -131,6 +172,7 @@ export function PackOpening({ name, result, onClose, onCollection }: { name: str
         <div className="reveal" onClick={() => setPhase('all')}>
           {special && <div className="beams" aria-hidden="true" />}
           {special && <Confetti pieces={90} />}
+          <div className="pack-ring" aria-hidden="true" />
           <div className="reveal-card"><UtCard card={best} size="lg" shine={special} /></div>
           <p className="reveal-name">{best.name}</p>
           <button className="btn primary big" onClick={() => setPhase('all')}>
@@ -140,12 +182,15 @@ export function PackOpening({ name, result, onClose, onCollection }: { name: str
       )}
 
       {phase === 'all' && (
-        <div className="pack-all">
+        <div className={`pack-all ${flipping ? 'flipping' : ''}`}>
           <h2>{name}</h2>
-          <div className="pack-cards">
-            {result.cards.map(({ card, duplicate }) => (
-              <div key={card.id} className="pack-slot">
-                <UtCard card={card} size="sm" shine={rarity(card) >= 200} />
+          <div className={`pack-cards ${many ? 'many' : ''}`}>
+            {result.cards.map(({ card, duplicate }, i) => (
+              <div key={card.id} className={`pack-slot tier-${packTier(card)}`} style={{ '--d': `${i * FLIP_GAP}ms` } as CSSProperties}>
+                <div className="flip">
+                  <UtCard card={card} size="sm" shine={rarity(card) >= 200} />
+                  <div className="card-back" aria-hidden="true" />
+                </div>
                 {duplicate ? <span className="pack-tag dup">Doppelt</span> : <span className="pack-tag new">Neu</span>}
               </div>
             ))}
@@ -154,6 +199,7 @@ export function PackOpening({ name, result, onClose, onCollection }: { name: str
             <p key={i} className="pack-item">{ITEMS[k].icon} {ITEMS[k].name}: {ITEMS[k].text}</p>
           ))}
           <div className="pack-actions">
+            {flipping && result.cards.length > 1 && <button className="btn secondary big" onClick={() => setInstant(true)}>Alle aufdecken</button>}
             <button className="btn secondary big" onClick={onCollection}>Zur Sammlung</button>
             <button className="btn primary big" onClick={onClose}>Fertig</button>
           </div>
