@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-07-momente',
+    date: '07.10.2026',
+    title: 'Legendäre Momente – Spezial-Tausch ⏱️',
+    items: [
+      '⏱️ Neu unter „Mein Team → Tauschaufgaben“: Momentkarten mit 91–93 – Ramos „92:48“, Agüero „93:20“, Lewandowski „9 Minuten“ und das Wolfsburg-Duo Grafite & Džeko.',
+      '🧩 Dafür gibst du genau 11 Karten ab – mit hohem Schnitt, Pflicht-Ligen, Nationen, Positionen, Ikonen oder Kult-Helden. Zusammenstellen musst du selbst, Karte für Karte.',
+      '🔒 Jede Momentkarte gibt es nur einmal. Džeko wird erst nach Grafite freigeschaltet.',
+    ],
+  },
+  {
     id: '2026-10-07-logo',
     date: '07.10.2026',
     title: 'Neuer Look: Manager Sim 👑',

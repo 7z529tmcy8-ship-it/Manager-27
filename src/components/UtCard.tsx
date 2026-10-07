@@ -8,6 +8,7 @@ const VARIANT_LABEL: Partial<Record<CollectCard['variant'], string>> = {
   icon: 'Ikone',
   talent: 'Was wäre wenn',
   cult: 'Kult-Held',
+  moment: 'Legendärer Moment',
   tots: 'Team der Saison',
   potm: 'Spieler des Monats',
   record: 'Rekordjäger',

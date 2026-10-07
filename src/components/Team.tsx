@@ -9,6 +9,7 @@ import { FRIEND_REWARD, SLOT_LABELS, exportTeam, importTeam, playFriendDuel, rec
 import { motionReduced } from '../settings';
 import { PackOpening } from './Store';
 import UtCard from './UtCard';
+import LegendTrades from './LegendTrades';
 
 type Tab = 'squad' | 'duels' | 'friends' | 'tasks';
 
@@ -405,6 +406,8 @@ function Tasks() {
   };
   return (
     <>
+      <LegendTrades />
+      <h2 className="lt-sub">Pack-Tausche</h2>
       <p className="hub-sub">Gib Karten ab und bekomme dafür ein Pack. Aufgestellte Spieler und deine eigenen Sonderkarten werden nie abgegeben.</p>
       <div className="task-list">
         {TASKS.map((t) => {

@@ -14,7 +14,7 @@ const FILTERS: { id: Filter; label: string; test: (c: CollectCard) => boolean; t
   { id: 'cult', label: 'Kult-Helden', test: (c) => c.variant === 'cult', total: true },
   { id: 'wonder', label: 'Wunderkinder', test: (c) => c.age !== undefined && c.age <= 21, total: true },
   { id: 'talent', label: 'Was wäre wenn', test: (c) => c.variant === 'talent', total: true },
-  { id: 'special', label: 'Sonderkarten', test: (c) => ['tots', 'potm', 'record', 'champion'].includes(c.variant) },
+  { id: 'special', label: 'Sonderkarten', test: (c) => ['tots', 'potm', 'record', 'champion', 'moment'].includes(c.variant) },
   { id: 'dupes', label: 'Doppelte', test: () => true },
 ];
 

@@ -723,6 +723,14 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .ucard.v-icon { --a: #fffaf0; --b: #d8c7a0; --ink: #3a2a10; --edge: rgba(196, 160, 90, .9); --glow: rgba(255, 240, 200, .45); }
 .ucard.v-cult { --a: #0f6b63; --b: #1a0d2e; --ink: #ffb347; --edge: rgba(255, 179, 71, .7); --glow: rgba(255, 140, 60, .4); }
 .ucard.v-talent { --a: #3a3f4f; --b: #13151c; --ink: #a7c4ff; --edge: rgba(167, 196, 255, .5); --glow: rgba(120, 160, 255, .3); }
+.ucard.v-moment {
+  --a: #2a0a0e; --b: #050507; --ink: #ff3b3b; --edge: rgba(255, 59, 59, .8); --glow: rgba(255, 40, 40, .55);
+  background:
+    radial-gradient(circle at 50% 38%, rgba(255, 59, 59, .28) 0 22%, transparent 23%),
+    repeating-conic-gradient(from 0deg at 50% 38%, rgba(255, 255, 255, .07) 0 2deg, transparent 2deg 30deg),
+    linear-gradient(160deg, var(--a) 0%, var(--b) 100%);
+}
+.ucard.v-moment .ucard-club { font-family: ui-monospace, 'SF Mono', monospace; letter-spacing: .08em; color: #ff3b3b; text-shadow: 0 0 8px rgba(255, 59, 59, .8); }
 .ucard.v-tots { --a: #1f46a8; --b: #040b26; --ink: #ffd76a; --edge: rgba(255, 215, 106, .7); --glow: rgba(80, 140, 255, .45); }
 .ucard.v-potm { --a: #9b3ff0; --b: #2b0a4a; --ink: #fff; --edge: rgba(255, 255, 255, .5); --glow: rgba(180, 90, 255, .45); }
 .ucard.v-record { --a: #e8303f; --b: #2a0508; --ink: #fff; --edge: rgba(255, 255, 255, .5); --glow: rgba(255, 70, 80, .4); }
@@ -1800,3 +1808,35 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .trade-picked { background: var(--surface); border: 1px solid var(--accent); border-radius: 14px; padding: 8px 10px; }
 .trade-picked .btn { margin-left: auto; }
 .trade-picked .trade-verified { color: #30d158; }
+
+/* ---------- Spezial-Tausch (Legendäre Momente) ---------- */
+.legend-trades { margin-bottom: 22px; }
+.legend-trades h2, .lt-sub { font-size: 1.05rem; margin: 18px 0 6px; }
+.lt-list { display: grid; gap: 12px; margin-top: 10px; }
+.lt-item { display: flex; gap: 12px; align-items: flex-start; background: linear-gradient(135deg, rgba(255, 59, 59, .12), transparent 60%), var(--surface); border: 1px solid rgba(255, 59, 59, .35); border-radius: 16px; padding: 12px; }
+.lt-item.locked { opacity: .55; filter: grayscale(.6); }
+.lt-item.done { border-color: var(--accent); }
+.lt-info { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.lt-info small { color: var(--muted); font-size: .8rem; }
+.lt-info .lt-req { color: #ff8a8a; font-weight: 600; }
+.lt-info .btn { align-self: flex-start; }
+.lt-badge { font-weight: 700; color: var(--accent); font-size: .85rem; }
+.lt-badge.muted { color: var(--muted); }
+.lt-builder { padding-bottom: 110px; }
+.lt-head { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.lt-head .overlay-title { font-family: ui-monospace, 'SF Mono', monospace; color: #ff3b3b; }
+.lt-rules { list-style: none; padding: 0; margin: 14px 0; display: grid; gap: 6px; }
+.lt-rules li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: 10px; background: var(--surface); border: 1px solid rgba(255, 69, 58, .35); color: #ff8a8a; font-size: .9rem; }
+.lt-rules li.ok { border-color: rgba(48, 209, 88, .5); color: #30d158; }
+.lt-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px; justify-items: center; }
+.lt-slot { width: 64px; min-height: 92px; display: grid; place-items: center; }
+.lt-slot .trade-empty { height: 92px; font-size: 1.3rem; border-radius: 10px; }
+.lt-chips { margin: 8px 0; }
+.lt-pool { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; justify-items: center; }
+.lt-pool .trade-pickcard { padding: 2px; border-radius: 10px; }
+.lt-pool .trade-pickcard.weak { opacity: .4; }
+.lt-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 12px max(16px, calc((100vw - 680px) / 2 + 16px)) max(12px, env(safe-area-inset-bottom)); background: var(--surface); border-top: 1px solid var(--hairline);
+  font-weight: 700;
+}
