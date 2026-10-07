@@ -20,9 +20,9 @@ const NAMES = [
 const AVATARS = ['😎', '🤠', '🧢', '🐸', '🦊', '🤑', '🥸', '👽', '🐒', '🧌'];
 
 export const TRADER_LINES = {
-  hello: ['jo bro 👋', 'servus, fairer tausch?', 'hab genau was du brauchst 🔥', 'ehrenmann am start 🤝', 'na, tauschen? 😏'],
-  adding: ['moment, such was richtig gutes raus', 'warte, die hier ist SELTEN', 'die ist mega wertvoll, glaub mir', 'hab extra für dich die besten genommen', 'pass auf, jetzt kommt die beste'],
-  done: ['fairer deal 🤝', 'gg ez', 'war mir eine ehre 😇', 'nicht weitersagen 🤫', 'beste trade deines lebens'],
+  hello: ['jo bro 👋', 'GiG!', 'sei mal leise ya ayri', 'servus, fairer tausch?', 'hab genau was du brauchst 🔥', 'ehrenmann am start 🤝', 'na, tauschen? 😏'],
+  adding: ['moment, such was richtig gutes raus', 'warte, die hier ist SELTEN', 'die ist mega wertvoll, glaub mir', 'hab extra für dich die besten genommen', 'pass auf, jetzt kommt die beste', 'sei mal leise ya ayri, ich such noch', 'GiG! die hier ist krank'],
+  done: ['Anik Achu Sharmuta 😂', 'GiG!', 'sei mal leise ya ayri', 'fairer deal 🤝', 'gg ez', 'war mir eine ehre 😇', 'nicht weitersagen 🤫', 'beste trade deines lebens'],
 };
 
 /** Vertrauenswürdig wirkende Kennzahlen – frei erfunden. */
