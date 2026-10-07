@@ -1,6 +1,9 @@
 import { getClub } from '../data/leagues';
 import { useClub } from '../clubStore';
+import { useEffect, useState } from 'react';
 import { getClubState, setClubState } from '../clubStore';
+import { play } from '../sound';
+import { motionReduced } from '../settings';
 import {
   DEMANDS,
   demandChance,
@@ -46,6 +49,30 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
   const children = h?.children ?? [];
   const idle = career.phase === 'retired' && (!career.coach || career.coach.phase === 'done');
   const report = h?.report;
+  // Verhandlung: kurz Spannung („Der Verein überlegt …“), dann das Ergebnis groß anzeigen.
+  const [deal, setDeal] = useState<{ phase: 'wait' | 'done'; name: string; demand: string; tone: 'good' | 'bad' | 'angry'; title: string; text: string } | null>(null);
+  const negotiate = (childId: string, factor: number, label: string) => {
+    const before = career.household!.children.find((x) => x.id === childId)!;
+    const next = negotiateKid(career, childId, factor);
+    const after = next.household!.children.find((x) => x.id === childId)!;
+    const ok = after.status === 'pro' && !after.angry;
+    const tone = ok ? 'good' : after.angry ? 'angry' : 'bad';
+    const title = ok ? '✅ Deal!' : after.angry ? '💔 Deal geplatzt' : '❌ Abgelehnt';
+    const text = ok
+      ? `${getClub(after.clubId!).name} akzeptiert „${label}“. ${before.name} wird Profi und verdient ${fmt(Math.round(kidWage(after.ovr!) * (after.wageFactor ?? 1)))} 🪙 pro Jahr.`
+      : (after.log[0] ?? '').replace(/^[^\s]+\s/, '');
+    setDeal({ phase: 'wait', name: before.name, demand: label, tone, title, text });
+    play('packShake');
+    onChange(next);
+  };
+  useEffect(() => {
+    if (deal?.phase !== 'wait') return;
+    const t = setTimeout(() => {
+      setDeal((d) => (d ? { ...d, phase: 'done' } : d));
+      play(deal.tone === 'good' ? 'fanfare' : 'fall');
+    }, motionReduced() ? 100 : 1600);
+    return () => clearTimeout(t);
+  }, [deal]);
 
   return (
     <div className="overlay fam-overlay" role="dialog" aria-modal="true" aria-label="Familie">
@@ -55,6 +82,27 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
           <span className="hub-coins">🪙 {fmt(club.coins)}</span>
         </header>
         <h2 className="fam-title">👨‍👧 Familie</h2>
+
+        {deal && (
+          <div className="life-pop" role="dialog" aria-modal="true" aria-label="Ergebnis der Verhandlung">
+            <div className={`life-card deal ${deal.phase === 'done' ? deal.tone : ''}`}>
+              {deal.phase === 'wait' ? (
+                <>
+                  <div className="life-emoji deal-phone" aria-hidden="true">📞</div>
+                  <h2>Der Verein überlegt …</h2>
+                  <p>Deine Forderung für {deal.name}: <b>{deal.demand}</b></p>
+                </>
+              ) : (
+                <>
+                  <div className="life-emoji" aria-hidden="true">{deal.tone === 'good' ? '🤝' : deal.tone === 'angry' ? '💔' : '🚪'}</div>
+                  <h2>{deal.title}</h2>
+                  <p>{deal.text}</p>
+                  <button className="btn primary big" onClick={() => setDeal(null)}>Weiter</button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {idle && children.length > 0 && (
           <button className="btn primary big cs-go fam-year" onClick={() => onChange(restYear(career))}>
@@ -110,7 +158,7 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
                   <small>Wertung {child.ovr} · Grundgehalt {fmt(child.offer.base)} 🪙 pro Jahr. Du verhandelst für {child.name} – pokerst du zu hoch, platzt der Deal.</small>
                   <div className="kid-demands">
                     {DEMANDS.map((d) => (
-                      <button key={d.factor} className={`btn ${d.factor === 1 ? 'primary' : 'secondary'} small`} onClick={() => onChange(negotiateKid(career, child.id, d.factor))}>
+                      <button key={d.factor} className={`btn ${d.factor === 1 ? 'primary' : 'secondary'} small`} onClick={() => negotiate(child.id, d.factor, d.label)}>
                         {d.label}
                         <small>{fmt(Math.round(child.offer!.base * d.factor))} 🪙 · {Math.round(demandChance(child, d.factor) * 100)} %</small>
                       </button>

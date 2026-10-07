@@ -19,6 +19,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-07-halten',
+    date: '07.10.2026',
+    title: 'Gedrückt halten & Verhandlungs-Ergebnis',
+    items: [
+      '⭐ Fähigkeiten lernst du jetzt durch Gedrückthalten: Die Karte lädt sich gold auf, ein Ton steigt an – und dann knallt es. Keine Fehlklicks mehr.',
+      '📞 Gehaltsverhandlung fürs Kind: Nach deiner Forderung klingelt das Telefon („Der Verein überlegt …“) – dann siehst du groß, ob der Deal steht, abgelehnt wurde oder ganz geplatzt ist.',
+    ],
+  },
+  {
     id: '2026-10-07-trainer-kinder',
     date: '07.10.2026',
     title: 'Trainer mit Haltung & Kinder mit eigenem Kopf',

@@ -17,8 +17,9 @@ import {
   unlockSkill,
   type Skill,
 } from '../game/skills';
-import { useState } from 'react';
-import { play } from '../sound';
+import { useEffect, useRef, useState } from 'react';
+import { play, playCharge } from '../sound';
+import { motionReduced } from '../settings';
 import type { Career } from '../game/types';
 
 /** Auswahl des Spielertyps (einmal pro Karriere). */
@@ -70,12 +71,37 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
   const free = freePoints(p);
   const bonuses = bonusSummary(skillMods(p));
   const [just, setJust] = useState<string | null>(null);
+  // Gedrückt halten zum Lernen: verhindert Fehlklicks und fühlt sich nach „Aufladen“ an.
+  const [holding, setHolding] = useState<string | null>(null);
+  const timer = useRef<number | null>(null);
+  const stopSound = useRef<() => void>(() => {});
+  const holdMs = motionReduced() ? 450 : 900;
 
   const learn = (id: string) => {
     setJust(id);
     play('unlock');
+    play('levelUp');
+    navigator.vibrate?.(40);
     onChange(unlockSkill(career, id));
   };
+  const startHold = (id: string) => {
+    if (timer.current) return;
+    setHolding(id);
+    stopSound.current = playCharge(holdMs);
+    timer.current = window.setTimeout(() => {
+      timer.current = null;
+      setHolding(null);
+      learn(id);
+    }, holdMs);
+  };
+  const cancelHold = () => {
+    if (!timer.current) return;
+    clearTimeout(timer.current);
+    timer.current = null;
+    stopSound.current();
+    setHolding(null);
+  };
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
   const node = (s: Skill, wide = false) => {
     const rank = rankOf(p, s.id);
@@ -86,9 +112,16 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
     return (
       <button
         key={s.id}
-        className={`sk-skill ${owned ? 'owned' : can ? 'can' : rank > 0 ? 'partial' : 'locked'} ${isMaster(s) ? 'master' : s.tier >= 4 && !s.maxRank ? 'elite' : ''} ${wide ? 'wide' : ''} ${just === s.id ? 'just' : ''}`}
+        className={`sk-skill ${owned ? 'owned' : can ? 'can' : rank > 0 ? 'partial' : 'locked'} ${isMaster(s) ? 'master' : s.tier >= 4 && !s.maxRank ? 'elite' : ''} ${wide ? 'wide' : ''} ${just === s.id ? 'just' : ''} ${holding === s.id ? 'holding' : ''}`}
+        style={{ ['--hold' as string]: `${holdMs}ms` }}
         disabled={!can}
-        onClick={() => learn(s.id)}
+        onPointerDown={(e) => { if (can && e.button === 0) startHold(s.id); }}
+        onPointerUp={cancelHold}
+        onPointerLeave={cancelHold}
+        onPointerCancel={cancelHold}
+        onKeyDown={(e) => { if (can && (e.key === 'Enter' || e.key === ' ') && !e.repeat) { e.preventDefault(); startHold(s.id); } }}
+        onKeyUp={(e) => { if (e.key === 'Enter' || e.key === ' ') cancelHold(); }}
+        onContextMenu={(e) => e.preventDefault()}
         aria-label={`${s.name}: ${s.text}. ${owned ? 'Freigeschaltet' : reason ?? `Kostet ${s.cost} Punkte`}`}
       >
         <span className="sk-icon" aria-hidden="true">{s.icon}</span>
@@ -99,7 +132,8 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
             {Array.from({ length: max }, (_, i) => <i key={i} className={i < rank ? 'on' : ''} />)}
           </span>
         )}
-        <em>{owned ? '✓ aktiv' : can ? `${s.cost} FP · lernen` : reason === `${s.cost} FP nötig` ? `${s.cost} FP` : `🔒 ${reason}`}</em>
+        {can && <span className="sk-hold" aria-hidden="true" />}
+        <em>{owned ? '✓ aktiv' : can ? (holding === s.id ? 'Halten …' : `${s.cost} FP · gedrückt halten`) : reason === `${s.cost} FP nötig` ? `${s.cost} FP` : `🔒 ${reason}`}</em>
       </button>
     );
   };

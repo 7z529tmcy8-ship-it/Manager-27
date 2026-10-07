@@ -179,6 +179,37 @@ export function play(id: SoundId): void {
   }
 }
 
+/** Aufladeton beim Gedrückthalten (steigt an). Gibt eine Funktion zum Abbrechen zurück. */
+export function playCharge(ms: number): () => void {
+  if (!getSettings().sound) return () => {};
+  const c = audio();
+  if (!c) return () => {};
+  try {
+    const t0 = c.currentTime;
+    const osc = c.createOscillator();
+    const g = c.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(260, t0);
+    osc.frequency.exponentialRampToValueAtTime(980, t0 + ms / 1000);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.09, t0 + 0.08);
+    osc.connect(g).connect(master!);
+    osc.start(t0);
+    osc.stop(t0 + ms / 1000 + 0.05);
+    return () => {
+      try {
+        g.gain.cancelScheduledValues(c.currentTime);
+        g.gain.setTargetAtTime(0.0001, c.currentTime, 0.03);
+        osc.stop(c.currentTime + 0.12);
+      } catch {
+        // schon vorbei
+      }
+    };
+  } catch {
+    return () => {};
+  }
+}
+
 /** Leiser Klick bei jedem Knopfdruck (einmal im App-Start registrieren). */
 export function installClickSound(): () => void {
   const onDown = (e: PointerEvent) => {
