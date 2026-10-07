@@ -11,9 +11,9 @@ import { PackOpening } from './Store';
 import UtCard from './UtCard';
 import LegendTrades from './LegendTrades';
 
-type Tab = 'squad' | 'duels' | 'friends' | 'tasks';
+type Tab = 'squad' | 'friends';
 
-/** Mein Team: Aufstellung aus der Sammlung, Duelle gegen immer stärkere Gegner, Tauschaufgaben. */
+/** Mein Team: Aufstellung aus der Sammlung und Duelle gegen Freunde. */
 export default function Team({ onBack, onStore }: { onBack: () => void; onStore: () => void }) {
   const club = useClub();
   const [tab, setTab] = useState<Tab>('squad');
@@ -35,14 +35,53 @@ export default function Team({ onBack, onStore }: { onBack: () => void; onStore:
         <div><small>Duelle</small><strong>{club.duels.w}<em>S</em> {club.duels.d}<em>U</em> {club.duels.l}<em>N</em></strong></div>
       </div>
       <div className="segmented team-tabs" role="tablist">
-        {([['squad', 'Aufstellung'], ['duels', 'Duelle'], ['friends', 'Freunde'], ['tasks', 'Tausch']] as [Tab, string][]).map(([id, label]) => (
+        {([['squad', 'Aufstellung'], ['friends', 'Freunde']] as [Tab, string][]).map(([id, label]) => (
           <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>{label}</button>
         ))}
       </div>
       {tab === 'squad' && <Squad onStore={onStore} />}
-      {tab === 'duels' && <Duels full={full} onSquad={() => setTab('squad')} />}
       {tab === 'friends' && <Friends full={full} onSquad={() => setTab('squad')} />}
-      {tab === 'tasks' && <Tasks />}
+    </main>
+  );
+}
+
+function ScreenHead({ title, onBack }: { title: string; onBack: () => void }) {
+  const club = useClub();
+  return (
+    <>
+      <header className="hub-top">
+        <button className="hub-back" onClick={onBack}>‹ Hauptmenü</button>
+        <span className="hub-coins">🪙 {club.coins.toLocaleString('de-DE')}</span>
+      </header>
+      <h1 className="hub-title">{title}</h1>
+    </>
+  );
+}
+
+/** Eigener Bereich: Duelle gegen immer stärkere Gegner (mit der Elf aus „Mein Team“). */
+export function DuelsScreen({ onBack, onTeam }: { onBack: () => void; onTeam: () => void }) {
+  const club = useClub();
+  const cards = club.squad.map((id) => cardById(club, id));
+  const full = cards.filter(Boolean).length === 11;
+  return (
+    <main className="hub">
+      <ScreenHead title="Duelle" onBack={onBack} />
+      <div className="team-stats">
+        <div><small>Wertung</small><strong>{teamRating(cards) || '–'}</strong></div>
+        <div><small>Stufe</small><strong>{club.duelLevel}<em>/{DUEL_LEVELS}</em></strong></div>
+        <div><small>Bilanz</small><strong>{club.duels.w}<em>S</em> {club.duels.d}<em>U</em> {club.duels.l}<em>N</em></strong></div>
+      </div>
+      <Duels full={full} onSquad={onTeam} />
+    </main>
+  );
+}
+
+/** Eigener Bereich: SBC – Spezial-Tausche (Momentkarten) und Pack-Tausche. */
+export function SbcScreen({ onBack }: { onBack: () => void }) {
+  return (
+    <main className="hub">
+      <ScreenHead title="SBC" onBack={onBack} />
+      <Tasks />
     </main>
   );
 }

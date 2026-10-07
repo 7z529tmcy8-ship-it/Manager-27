@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-07-tabs',
+    date: '07.10.2026',
+    title: 'Duelle & SBC jetzt im Hauptmenü',
+    items: [
+      '⚔️ „Duelle“ hat jetzt eine eigene Kachel im Hauptmenü.',
+      '🧩 Neue Kachel „SBC“: Legendäre Momente (91–93) und die Pack-Tausche an einem Ort.',
+      '🛡️ „Mein Team“ zeigt jetzt nur noch Aufstellung und Freunde-Duelle.',
+    ],
+  },
+  {
     id: '2026-10-07-momente',
     date: '07.10.2026',
     title: 'Legendäre Momente – Spezial-Tausch ⏱️',
