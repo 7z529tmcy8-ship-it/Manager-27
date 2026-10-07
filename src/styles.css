@@ -1793,3 +1793,10 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .net-retry { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; }
 .net-retry .trade-spin { border-color: #c7c7cc; border-top-color: #007aff; }
 .net-code { display: block; margin-top: 10px; color: #8e8e93; font-size: .72rem; font-family: ui-monospace, monospace; }
+.trade-find { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.trade-find label { font-size: .8rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.trade-find-row { display: flex; gap: 8px; }
+.trade-find-row .search { flex: 1; min-width: 0; margin: 0; }
+.trade-picked { background: var(--surface); border: 1px solid var(--accent); border-radius: 14px; padding: 8px 10px; }
+.trade-picked .btn { margin-left: auto; }
+.trade-picked .trade-verified { color: #30d158; }

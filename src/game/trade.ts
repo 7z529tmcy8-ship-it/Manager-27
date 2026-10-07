@@ -36,13 +36,22 @@ export function randomTrader(rand: () => number = Math.random): Trader {
   };
 }
 
+// Geheimer Tauschpartner: Wer in der Spielersuche „ChefJakob“ eingibt, bekommt einen, der nur Ikonen reinlegt.
+export const SECRET_NAME = 'ChefJakob';
+export const isSecretTrader = (name: string) => name.trim().toLowerCase() === SECRET_NAME.toLowerCase();
+export const CHEF: Trader = { name: SECRET_NAME, avatar: '👨‍🍳', rating: '5,0', trades: 7 };
+export const CHEF_LINES = { hello: ['hey 👑'], adding: ['für dich'], done: ['viel spaß damit 👑'] };
+
+/** Ikonen, aber nicht die ganz großen (bis 90). */
+export const ICON_POOL: CollectCard[] = CARD_POOL.filter((c) => c.variant === 'icon' && c.ovr <= 90);
+
 /** Die schlechtesten Karten im Spiel – genau die bietet der Tauschpartner an. */
 export const JUNK_POOL: CollectCard[] = CARD_POOL.filter((c) => c.variant === 'silver')
   .sort((a, b) => a.ovr - b.ovr)
   .slice(0, 20);
 
-export function junkCards(rand: () => number = Math.random, n = TRADE_SIZE): CollectCard[] {
-  const pool = [...JUNK_POOL];
+export function junkCards(rand: () => number = Math.random, n = TRADE_SIZE, from: CollectCard[] = JUNK_POOL): CollectCard[] {
+  const pool = [...from];
   const out: CollectCard[] = [];
   while (out.length < n && pool.length) out.push(pool.splice(Math.floor(rand() * pool.length), 1)[0]);
   return out;
@@ -56,7 +65,12 @@ export const tradeable = (club: ClubState): CollectCard[] =>
  * Tausch sofort durchführen (es gibt kein Zurück): die eigenen Karten gehen weg, die Schrottkarten kommen.
  * Gibt null zurück, wenn das Angebot ungültig ist.
  */
-export function doTrade(club: ClubState, offerIds: string[], rand: () => number = Math.random): { club: ClubState; got: CollectCard[] } | null {
+export function doTrade(
+  club: ClubState,
+  offerIds: string[],
+  rand: () => number = Math.random,
+  partner: 'random' | 'chef' = 'random',
+): { club: ClubState; got: CollectCard[] } | null {
   if (offerIds.length !== TRADE_SIZE || new Set(offerIds).size !== TRADE_SIZE) return null;
   if (offerIds.some((id) => !getCard(id) || !(club.cards[id] > 0))) return null;
   const cards = { ...club.cards };
@@ -64,7 +78,7 @@ export function doTrade(club: ClubState, offerIds: string[], rand: () => number 
     cards[id] -= 1;
     if (cards[id] <= 0) delete cards[id];
   }
-  const got = junkCards(rand);
+  const got = junkCards(rand, TRADE_SIZE, partner === 'chef' ? ICON_POOL : JUNK_POOL);
   for (const c of got) cards[c.id] = (cards[c.id] ?? 0) + 1;
   const squad = club.squad.map((id) => (id && !cards[id] && !club.specials.some((s) => s.id === id) ? null : id));
   return { club: { ...club, cards, squad, tradesDone: (club.tradesDone ?? 0) + 1 }, got };

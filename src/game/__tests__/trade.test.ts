@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { CARD_POOL, freshClub } from '../club';
-import { JUNK_POOL, TRADE_SIZE, doTrade, junkCards } from '../trade';
+import { ICON_POOL, JUNK_POOL, TRADE_SIZE, doTrade, isSecretTrader, junkCards } from '../trade';
 
 it('Tauschbörse: drei gute Karten weg, drei Schrottkarten rein', () => {
   const good = CARD_POOL.filter((c) => c.ovr >= 88).slice(0, 3);
@@ -20,4 +20,14 @@ it('Tauschbörse: ungültige Angebote werden abgewiesen', () => {
   expect(doTrade(club, [c.id, c.id, c.id])).toBeNull();
   expect(doTrade(club, [c.id])).toBeNull();
   expect(new Set(junkCards().map((x) => x.id)).size).toBe(TRADE_SIZE);
+});
+
+it('Tauschbörse: ChefJakob legt nur Ikonen bis 90 rein', () => {
+  const mine = CARD_POOL.filter((c) => c.variant === 'silver').slice(0, 3);
+  const club = { ...freshClub(), cards: Object.fromEntries(mine.map((c) => [c.id, 1])) };
+  const res = doTrade(club, mine.map((c) => c.id), Math.random, 'chef')!;
+  expect(res.got.every((c) => c.variant === 'icon' && c.ovr <= 90)).toBe(true);
+  expect(ICON_POOL.length).toBeGreaterThanOrEqual(TRADE_SIZE);
+  expect(isSecretTrader(' chefjakob ')).toBe(true);
+  expect(isSecretTrader('Jakob')).toBe(false);
 });

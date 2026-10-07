@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { rarity, withUpgrade, type CollectCard } from '../game/club';
-import { TRADER_LINES, TRADE_SIZE, doTrade, randomTrader, tradeable, type Trader } from '../game/trade';
+import { CHEF, CHEF_LINES, TRADER_LINES, TRADE_SIZE, doTrade, isSecretTrader, randomTrader, tradeable, type Trader } from '../game/trade';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { motionReduced } from '../settings';
 import { play } from '../sound';
@@ -53,6 +53,12 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
   /** Wann der Partner überhaupt etwas schreibt (meist gar nicht oder nur einmal). */
   const [talk, setTalk] = useState({ hello: false, adding: -1, done: false });
   const [hover, setHover] = useState(0);
+  // Spielersuche: Es passiert nichts – außer bei einem bestimmten Namen.
+  const [lookup, setLookup] = useState('');
+  const [looking, setLooking] = useState<string | null>(null);
+  const [partner, setPartner] = useState<Trader | null>(null);
+  const isChef = trader.name === CHEF.name;
+  const lines = isChef ? CHEF_LINES : TRADER_LINES;
   const [left, setLeft] = useState(AUTO_ACCEPT);
   const quick = motionReduced();
   const speed = quick ? 0.3 : 1;
@@ -67,19 +73,21 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
 
   const send = () => {
     // Der Tausch passiert sofort – es gibt kein Zurück.
-    const res = doTrade(getClubState(), offer.map((c) => c.id));
+    const chef = partner?.name === CHEF.name;
+    const res = doTrade(getClubState(), offer.map((c) => c.id), Math.random, chef ? 'chef' : 'random');
     if (!res) return;
     setClubState(res.club);
     setGot(res.got);
-    setTrader(randomTrader());
+    setTrader(chef ? CHEF : randomTrader());
+    setPartner(null);
     setShown(0);
     setChat([]);
     setMyStars(0);
     setLeft(AUTO_ACCEPT);
-    setDrop(rollDrop());
+    setDrop(chef ? null : rollDrop());
     setOnline(3 + Math.floor(Math.random() * 5));
     const r = Math.random();
-    setTalk({ hello: r < 0.35, adding: r >= 0.35 && r < 0.6 ? Math.floor(Math.random() * TRADE_SIZE) : -1, done: Math.random() < 0.5 });
+    setTalk(chef ? { hello: true, adding: -1, done: true } : { hello: r < 0.35, adding: r >= 0.35 && r < 0.6 ? Math.floor(Math.random() * TRADE_SIZE) : -1, done: Math.random() < 0.5 });
     setAttempt(0);
     setErrCode(`TRD-${Math.floor(400 + Math.random() * 200)}-${Math.random().toString(16).slice(2, 6).toUpperCase()}`);
     setPhase('search');
@@ -98,14 +106,14 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
     if (phase === 'found') {
       play('notify');
       // Echte Tauschpartner schreiben wenig: höchstens ein, zwei kurze Nachrichten pro Trade.
-      if (talk.hello) setChat([pickLine(TRADER_LINES.hello)]);
+      if (talk.hello) setChat([pickLine(lines.hello)]);
       const t = setTimeout(() => setPhase('adding'), 1500 * speed);
       return () => clearTimeout(t);
     }
     if (phase === 'confirm') {
-      if (talk.done) setChat((c) => [...c, pickLine(TRADER_LINES.done)]);
+      if (talk.done) setChat((c) => [...c, pickLine(lines.done)]);
     }
-  }, [phase, speed, drop, talk]);
+  }, [phase, speed, drop, talk, lines]);
 
   useEffect(() => {
     if (phase !== 'adding') return;
@@ -119,14 +127,24 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
     }
     const writes = talk.adding === shown;
     setTyping(writes);
-    if (writes) setChat((c) => [...c, pickLine(TRADER_LINES.adding)]);
+    if (writes) setChat((c) => [...c, pickLine(lines.adding)]);
     const t = setTimeout(() => {
       setTyping(false);
       setShown((s) => s + 1);
       play('tap');
     }, 1400 * speed);
     return () => clearTimeout(t);
-  }, [phase, shown, speed, drop, talk]);
+  }, [phase, shown, speed, drop, talk, lines]);
+
+  useEffect(() => {
+    if (looking === null || !isSecretTrader(looking)) return; // alle anderen Namen: lädt für immer
+    const t = setTimeout(() => {
+      setPartner(CHEF);
+      setLooking(null);
+      play('notify');
+    }, 2200 * speed);
+    return () => clearTimeout(t);
+  }, [looking, speed]);
 
   // Verbindungsabbruch: ein paar Wiederverbindungsversuche, dann fliegt man raus.
   useEffect(() => {
@@ -178,7 +196,7 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
       {inTrade && (
         <div className="trade-partner">
           {phase === 'search' ? (
-            <div className="trade-search"><span className="trade-spin" aria-hidden="true" /> Suche Tauschpartner … <small>{online} Spieler online</small></div>
+            <div className="trade-search"><span className="trade-spin" aria-hidden="true" /> {isChef ? <>Verbinde mit {CHEF.name} …</> : <>Suche Tauschpartner … <small>{online} Spieler online</small></>}</div>
           ) : (
             <div className="trade-who">
               <span className="trade-ava" aria-hidden="true">{trader.avatar}</span>
@@ -224,9 +242,26 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
 
       {phase === 'pick' && (
         <>
+          <form className="trade-find" onSubmit={(e) => { e.preventDefault(); if (lookup.trim()) setLooking(lookup.trim()); }}>
+            <label htmlFor="trade-find">Bestimmten Spieler suchen</label>
+            <div className="trade-find-row">
+              <input id="trade-find" className="search" placeholder="Spielername …" value={lookup} autoComplete="off" onChange={(e) => setLookup(e.target.value)} />
+              <button className="btn secondary" type="submit" disabled={!lookup.trim()}>Suchen</button>
+            </div>
+            {partner && (
+              <div className="trade-who trade-picked">
+                <span className="trade-ava" aria-hidden="true">{partner.avatar}</span>
+                <span>
+                  <strong>{partner.name}</strong>
+                  <small>⭐ {partner.rating} · {partner.trades} Trades · <b className="trade-verified">● online</b></small>
+                </span>
+                <button className="btn ghost small" type="button" onClick={() => setPartner(null)} aria-label="Tauschpartner entfernen">✕</button>
+              </div>
+            )}
+          </form>
           <div className="trade-actions">
             <button className="btn primary big" disabled={offer.length !== TRADE_SIZE} onClick={send}>
-              {offer.length === TRADE_SIZE ? 'Angebot abschicken' : `Noch ${TRADE_SIZE - offer.length} Karte${TRADE_SIZE - offer.length === 1 ? '' : 'n'} auswählen`}
+              {offer.length === TRADE_SIZE ? (partner ? `Angebot an ${partner.name}` : 'Angebot abschicken') : `Noch ${TRADE_SIZE - offer.length} Karte${TRADE_SIZE - offer.length === 1 ? '' : 'n'} auswählen`}
             </button>
           </div>
           {mine.length < TRADE_SIZE ? (
@@ -245,6 +280,15 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
           )}
           <p className="disclaimer">* Laut Tauschpartner immer fair. Abgeschickte Angebote können nicht zurückgezogen werden.</p>
         </>
+      )}
+
+      {looking !== null && (
+        <div className="net-lost" role="dialog" aria-modal="true" aria-label="Spielersuche">
+          <div className="net-box">
+            <p className="net-retry"><span className="trade-spin" aria-hidden="true" /> Suche nach „{looking}“ …</p>
+            <button className="btn secondary" onClick={() => setLooking(null)}>Abbrechen</button>
+          </div>
+        </div>
       )}
 
       {phase === 'lost' && (
