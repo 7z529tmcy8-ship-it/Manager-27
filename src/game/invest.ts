@@ -1,5 +1,6 @@
 import { getClub, getLeague } from '../data/leagues';
 import { householdOf } from './family';
+import { makeGift } from './gifts';
 import { clubLeagueId, clubStrength } from './player';
 import { clamp, normal, rand } from './random';
 import type { Career } from './types';
@@ -206,8 +207,19 @@ function backingYear(career: Career, notes: string[]): void {
     if (s.lastLeague && s.lastLeague !== now) {
       const up = getLeague(now).tier < getLeague(s.lastLeague).tier;
       notes.push(up ? `🚀 ${getClub(s.clubId).name} steigt auf – jetzt in der ${getLeague(now).name}!` : `📉 ${getClub(s.clubId).name} steigt ab in die ${getLeague(now).name}.`);
+      // Aufstieg: Der Aufsichtsrat bedankt sich bei seinen Anteilseignern mit einer Mystery-Box.
+      if (up) {
+        career.gifts = [...(career.gifts ?? []), makeGift(s.clubId, `Aufstieg in die ${getLeague(now).name}`, getLeague(now).tier, s.percent)];
+        notes.push(`🎁 Geschenk vom Aufsichtsrat von ${getClub(s.clubId).name}!`);
+      }
     }
     s.lastLeague = now;
+    const europe = !!career.europeSlots[s.clubId];
+    if (europe && s.lastEurope === false) {
+      career.gifts = [...(career.gifts ?? []), makeGift(s.clubId, `Europapokal: ${career.europeSlots[s.clubId]}`, 1, s.percent)];
+      notes.push(`🎁 ${getClub(s.clubId).name} spielt europäisch – Geschenk vom Aufsichtsrat!`);
+    }
+    s.lastEurope = europe;
   }
   const backing = (career.clubBacking ??= {});
   for (const id of Object.keys(backing)) {

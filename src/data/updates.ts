@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-07-geschenke',
+    date: '07.10.2026',
+    title: 'Mystery-Geschenke vom Aufsichtsrat 🎁',
+    items: [
+      '🎁 Steigt ein Klub auf, an dem du Anteile hast (oder spielt er erstmals europäisch), schickt dir der Aufsichtsrat eine Mystery-Box.',
+      '✨ Bronze-, Silber- oder Gold-Box: Beim Öffnen wackelt sie, springt auf – Coins (je höher die Liga und dein Anteil, desto mehr) und mit Glück ein Gratis-Pack bis hin zum Ikonen-Pack.',
+      '📬 Ungeöffnete Geschenke siehst du direkt in der Karriere und unter „Vermögen“.',
+    ],
+  },
+  {
     id: '2026-10-07-halten',
     date: '07.10.2026',
     title: 'Gedrückt halten & Verhandlungs-Ergebnis',

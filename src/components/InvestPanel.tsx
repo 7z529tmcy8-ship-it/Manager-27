@@ -21,6 +21,7 @@ import {
 import { clubLeagueId, clubStrength } from '../game/player';
 import type { Career } from '../game/types';
 import CasinoTab from './CasinoTab';
+import { GiftShelf } from './Gifts';
 
 const fmt = (n: number) => Math.round(n).toLocaleString('de-DE');
 
@@ -57,6 +58,7 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
           <span className="hub-coins">🪙 {fmt(club.coins)}</span>
         </header>
         <h2 className="fam-title">💼 Vermögen</h2>
+        <GiftShelf career={career} onChange={onChange} />
 
         <div className="inv-summary">
           <div><small>Wert</small><strong>🪙 {fmt(portfolioValue(career))}</strong></div>

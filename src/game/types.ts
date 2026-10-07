@@ -393,6 +393,8 @@ export interface Career {
   gambling?: { bets: number; won: number; lost: number; streak: number };
   /** Insgesamt verzockt bzw. verprasst (Casino-Verluste, Drogen, verschwundenes Geld). */
   squandered?: number;
+  /** Ungeöffnete Geschenke vom Aufsichtsrat (Mystery-Boxen). */
+  gifts?: import('./gifts').Gift[];
   /** Erledigte Trash-TV-Auftritte nach der Pleite. */
   brokeDone?: import('./gambling').BrokeId[];
   /** Pause, in der schon eine Aktion abseits des Platzes gemacht wurde (eine pro Pause). */
@@ -485,6 +487,8 @@ export interface ShareHolding {
   fund?: number;
   /** Liga beim letzten Jahresabschluss (für Aufstiegs-Meldungen). */
   lastLeague?: string;
+  /** Spielte beim letzten Jahresabschluss europäisch (für das Europapokal-Geschenk). */
+  lastEurope?: boolean;
 }
 
 export interface YearReport {

@@ -135,6 +135,12 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         <button className="cs-life-btn" onClick={() => setPanel('clinic')}>💎 Klinik{career.glam ? ` ✨${career.glam}` : ''}</button>
       </div>
 
+      {(career.gifts?.length ?? 0) > 0 && (
+        <button className="cs-note good sk-note gift-note" onClick={() => setPanel('invest')}>
+          🎁 {career.gifts!.length === 1 ? 'Ein Geschenk' : `${career.gifts!.length} Geschenke`} vom Aufsichtsrat – jetzt öffnen!
+        </button>
+      )}
+
       {/* Aktion */}
       {needType && <ArchetypePicker career={career} onChange={onChange} />}
 
