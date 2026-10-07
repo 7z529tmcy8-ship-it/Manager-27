@@ -116,7 +116,7 @@ export function currentRole(p: PlayerState): Role {
 
 export function clubStrength(career: Career, clubId: string): number {
   const invested = career.owner?.clubId === clubId ? career.owner.boost : 0;
-  return getClub(clubId).strength + (career.clubDrift[clubId] ?? 0) + (career.clubBacking?.[clubId] ?? 0) + invested;
+  return getClub(clubId).strength + (career.clubDrift[clubId] ?? 0) + (career.clubBacking?.[clubId] ?? 0) + (career.clubInfra?.[clubId] ?? 0) + invested;
 }
 
 export function clubLeagueId(career: Career, clubId: string): string {

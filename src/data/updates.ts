@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-07-bauprojekte',
+    date: '07.10.2026',
+    title: 'Bauprojekte bei deinen Klubs 🏗️',
+    items: [
+      '🏟️ Unter „Vermögen → Klub-Anteile“ kannst du jetzt in Projekte investieren: neues Stadion, Jugendakademie, Trainingszentrum, Scouting-Netzwerk, Fanshop & Marketing.',
+      '⏳ Projekte brauchen Bauzeit, manchmal gibt es Verzögerungen – und nicht jedes Projekt wird gleich gut. Dafür bleibt das Geld dem Klub erhalten.',
+      '🤫 Was genau sie bringen, steht nirgends. Probier es aus.',
+    ],
+  },
+  {
     id: '2026-10-07-geschenke',
     date: '07.10.2026',
     title: 'Mystery-Geschenke vom Aufsichtsrat 🎁',

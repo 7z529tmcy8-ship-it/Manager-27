@@ -1,6 +1,7 @@
 import { getClub, getLeague } from '../data/leagues';
 import { householdOf } from './family';
 import { makeGift } from './gifts';
+import { backingKeep, fundEfficiency, projectDividendBonus, projectsYear } from './projects';
 import { clubLeagueId, clubStrength } from './player';
 import { clamp, normal, rand } from './random';
 import type { Career } from './types';
@@ -67,7 +68,10 @@ export function expectedIncome(career: Career): number {
   return Math.round(rent + div);
 }
 
-const dividendRate = (career: Career, clubId: string) => DIVIDEND + (career.europeSlots[clubId] ? EUROPE_BONUS : 0);
+const dividendRate = (career: Career, clubId: string) => {
+  const s = career.household?.shares.find((x) => x.clubId === clubId);
+  return DIVIDEND + (career.europeSlots[clubId] ? EUROPE_BONUS : 0) + (s ? projectDividendBonus(s) : 0);
+};
 
 // ---------- Kaufen und verkaufen (gibt Spielstand und Coins-Änderung zurück) ----------
 
@@ -137,6 +141,9 @@ export function investYear(career: Career): { rent: number; dividends: number; n
     if (change >= 0.15) notes.push(`📈 ${prop.name}: starke Wertsteigerung (+${Math.round(change * 100)} %).`);
   }
   backingYear(career, notes);
+  // Bauprojekte: Bau schreitet voran, fertige Projekte wirken dauerhaft.
+  const projects = projectsYear(career, (id) => sharePrice(career, id));
+  notes.push(...projects.notes);
   // Alte Spielstände: früher eingestecktes Geld wirkt noch einmal auf die Vereinsstärke.
   for (const s of h.shares) {
     if (s.pendingBoost) {
@@ -150,7 +157,7 @@ export function investYear(career: Career): { rent: number; dividends: number; n
     dividends += d;
     if (career.europeSlots[s.clubId]) notes.push(`🏆 ${getClub(s.clubId).name} spielt europäisch – Extra-Dividende.`);
   }
-  return { rent, dividends, notes };
+  return { rent, dividends: dividends + projects.income, notes };
 }
 
 // ---------- Geld in einen Klub stecken (nur als Anteilseigner) – das „Leipzig-Projekt“ ----------
@@ -223,7 +230,7 @@ function backingYear(career: Career, notes: string[]): void {
   }
   const backing = (career.clubBacking ??= {});
   for (const id of Object.keys(backing)) {
-    backing[id] *= BACKING_KEEP;
+    backing[id] *= backingKeep(householdOf(career).shares.find((s) => s.clubId === id), BACKING_KEEP);
     if (backing[id] < 0.05) delete backing[id];
   }
   for (const s of householdOf(career).shares) {
@@ -232,7 +239,7 @@ function backingYear(career: Career, notes: string[]): void {
     let room = Math.min(MAX_GAIN_PER_YEAR, MAX_BACKING - (backing[s.clubId] ?? 0));
     let gain = 0;
     while (s.fund > 0 && room > 0) {
-      const cost = costPerPoint(strength);
+      const cost = costPerPoint(strength) / fundEfficiency(s);
       const step = Math.min(1, room, s.fund / cost);
       s.fund -= step * cost;
       gain += step;

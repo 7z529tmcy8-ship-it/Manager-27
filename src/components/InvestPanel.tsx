@@ -22,6 +22,7 @@ import { clubLeagueId, clubStrength } from '../game/player';
 import type { Career } from '../game/types';
 import CasinoTab from './CasinoTab';
 import { GiftShelf } from './Gifts';
+import { PROJECTS, canBuild, projectOf, projectStatus, startProject } from '../game/projects';
 
 const fmt = (n: number) => Math.round(n).toLocaleString('de-DE');
 
@@ -177,6 +178,41 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
                         </button>
                       ))}
                     </span>
+                    <details className="inv-projects">
+                      <summary>🏗️ Bauprojekte{s.projects?.length ? ` (${s.projects.length})` : ''}</summary>
+                      <small className="muted">Anders als eine Finanzspritze bleibt ein Bauprojekt dem Klub erhalten. Was es genau bringt, zeigt sich erst über die Jahre.</small>
+                      <ul>
+                        {PROJECTS.map((def) => {
+                          const cur = projectOf(s, def.id);
+                          const strength = clubStrength(career, s.clubId);
+                          const check = canBuild(s, def, strength, club.coins);
+                          const label = cur ? (cur.buildLeft > 0 ? null : cur.level < def.maxLevel ? 'Ausbauen' : null) : 'Bauen';
+                          return (
+                            <li key={def.id} className={cur ? 'has' : ''}>
+                              <span className="grow">
+                                <strong>{def.icon} {def.name}</strong>
+                                <small>{cur ? projectStatus(cur) : def.text}</small>
+                              </span>
+                              {label && (
+                                <button
+                                  className="btn secondary small"
+                                  disabled={!check.ok}
+                                  title={check.ok ? '' : check.reason}
+                                  onClick={() => {
+                                    if (!check.ok) return;
+                                    if (!window.confirm(`${def.name} bei ${getClub(s.clubId).name} für ${fmt(check.cost)} Coins ${cur ? 'ausbauen' : 'bauen'}? Die Bauzeit beträgt mehrere Saisons.`)) return;
+                                    const r = startProject(career, s.clubId, def.id, strength, getClubState().coins);
+                                    apply({ career: r.career, delta: -r.cost });
+                                  }}
+                                >
+                                  {check.ok ? `${label} · 🪙 ${fmt(check.cost)}` : check.reason}
+                                </button>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </details>
                     <span className="inv-btns">
                       <button className="btn secondary small" onClick={() => apply(sellShares(career, s.clubId, 1))}>−1 %</button>
                       <button className="btn secondary small" onClick={() => window.confirm(`Alle ${s.percent} % verkaufen?`) && apply(sellShares(career, s.clubId, s.percent))}>Alle</button>

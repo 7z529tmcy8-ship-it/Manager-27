@@ -343,6 +343,10 @@ export interface Career {
   clubDrift: Record<string, number>;
   /** Dauerhafte Stärkung durch Investoren-Geld (Vereins-ID → Stärkepunkte). Klingt ohne neues Geld langsam ab. */
   clubBacking?: Record<string, number>;
+  /** Dauerhafte Stärke aus fertigen Bauprojekten (Stadion, Akademie) – klingt nicht ab. */
+  clubInfra?: Record<string, number>;
+  /** Wie viel Stärke die Akademie eines Klubs schon gebracht hat (für die Obergrenze). */
+  academyBoost?: Record<string, number>;
   /** Europapokal-Startplätze aus der Vorsaison (Vereins-ID → Wettbewerb). */
   europeSlots: Record<string, Competition>;
   /** Aktuelle Ligazugehörigkeit (ändert sich durch Auf- und Abstieg). */
@@ -489,6 +493,8 @@ export interface ShareHolding {
   lastLeague?: string;
   /** Spielte beim letzten Jahresabschluss europäisch (für das Europapokal-Geschenk). */
   lastEurope?: boolean;
+  /** Bauprojekte (Stadion, Akademie …). */
+  projects?: import('./projects').ClubProject[];
 }
 
 export interface YearReport {
