@@ -12,11 +12,8 @@ export interface Trader {
   trades: number;
 }
 
-const NAMES = [
-  'xX_Kevin2011_Xx', 'FairTrader_Dennis', 'Justin_BVB_4ever', 'Ehrenmann_Luca', 'Packluck_Pascal', 'Chantal_TOTS_Queen',
-  'Marvin_99er', 'Jeremy_Pascal_06', 'Trade_King_Ömer', 'vertraumirbro', 'Schalke_Sven_04', 'TOTW_Tobi',
-  'Dieter.Bohlen.Fan', 'Kevin_aus_Kassel', 'Sascha_No_Scam', 'Lieferando_Leon', 'MannschaftsMaik', 'Gönnjamin',
-];
+const NAMES = ['Alex der Yogi', 'Hamudi California', 'Rene Dost', 'Dore65', 'Karsten Boss', 'Alpha67', 'Yo Olli', 'Barello'];
+let lastName = '';
 const AVATARS = ['😎', '🤠', '🧢', '🐸', '🦊', '🤑', '🥸', '👽', '🐒', '🧌'];
 
 export const TRADER_LINES = {
@@ -28,8 +25,11 @@ export const TRADER_LINES = {
 /** Vertrauenswürdig wirkende Kennzahlen – frei erfunden. */
 export function randomTrader(rand: () => number = Math.random): Trader {
   const pickR = <T,>(a: T[]) => a[Math.floor(rand() * a.length)];
+  // Abwechselnd: nie zweimal hintereinander derselbe Tauschpartner.
+  const name = pickR(NAMES.filter((n) => n !== lastName));
+  lastName = name;
   return {
-    name: pickR(NAMES),
+    name,
     avatar: pickR(AVATARS),
     rating: (4.8 + Math.floor(rand() * 3) / 10).toFixed(1).replace('.', ','),
     trades: 800 + Math.floor(rand() * 9000),
