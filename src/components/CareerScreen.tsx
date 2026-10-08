@@ -10,6 +10,7 @@ import MomentOverlay from './MomentOverlay';
 import LiveMatch from './LiveMatch';
 import { advanceFinal, autoFinal } from '../game/final';
 import { autoPlayFinal, keyMatchFor, playFinalStep, setKeyMatch, startKeyMatch } from '../game/career';
+import { setCareerSettings } from '../game/difficulty';
 import { detectMoments, type Moment } from '../game/moments';
 import SkillTree, { ArchetypePicker, LevelChip } from './SkillTree';
 import { flagOf, nationCode } from '../data/flags';
@@ -81,6 +82,9 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   const coins = useClub().coins;
 
   // Topspiel der Halbserie: vor dem Simulieren selbst spielen (oder automatisch).
+  const live = career.settings?.liveMatches !== false;
+  // Zu Beginn jeder Karriere: Topspiele und Finals selbst spielen oder alles simulieren?
+  const askLive = career.settings?.liveMatches === undefined && career.history.length === 0 && career.phase === 'season' && (prog?.stage ?? 0) === 0 && !career.coach;
   const [keyLive, setKeyLive] = useState<{ key: NonNullable<ReturnType<typeof keyMatchFor>>; state: FinalState; started: boolean } | null>(null);
   const run = () => {
     setPicked(null);
@@ -89,13 +93,13 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       setKeyLive({ key, state: startKeyMatch(career, key), started: false });
       return;
     }
-    onChange(simulateToBreak(career, true));
+    onChange(simulateToBreak(career, live));
   };
   const finishKey = (state: FinalState) => {
     if (!keyLive) return;
     const next = setKeyMatch(career, keyLive.key, state);
     setKeyLive(null);
-    onChange(simulateToBreak(next, true));
+    onChange(simulateToBreak(next, live));
   };
   const confirm = () => {
     if (picked === null) return;
@@ -218,9 +222,26 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
             </p>
           )}
           {note && <p className={`cs-note ${note.tone}`}><b>{note.title}:</b> {note.text}</p>}
-          <button className="btn primary big cs-go" onClick={run}>
-            {secondHalf ? 'Bis Saisonende simulieren' : 'Bis zur Winterpause simulieren'}
-          </button>
+          {askLive ? (
+            <div className="live-ask">
+              <h3>Wie willst du deine Karriere spielen?</h3>
+              <div className="live-ask-opts">
+                <button className="cs-choice" onClick={() => onChange(setCareerSettings(career, { liveMatches: true }))}>
+                  <strong>Mit Topspielen & Finals</strong>
+                  <small>Pro Halbserie ein Topspiel und alle Finals spielst du selbst – du entscheidest in den wichtigen Momenten.</small>
+                </button>
+                <button className="cs-choice" onClick={() => onChange(setCareerSettings(career, { liveMatches: false }))}>
+                  <strong>Nur simulieren</strong>
+                  <small>Alles läuft automatisch durch – schnell und ohne Unterbrechungen.</small>
+                </button>
+              </div>
+              <p className="hint">Du kannst das später jederzeit in den Einstellungen ändern.</p>
+            </div>
+          ) : (
+            <button className="btn primary big cs-go" onClick={run}>
+              {secondHalf ? 'Bis Saisonende simulieren' : 'Bis zur Winterpause simulieren'}
+            </button>
+          )}
           {career.phase === 'winter' && (
             <div className="cs-extras">
               {choices.length > 0 && (

@@ -1932,3 +1932,9 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .dev-values div { display: flex; justify-content: space-between; gap: 6px; border-bottom: 1px solid var(--hairline); padding: 2px 0; }
 .dev-values dt { color: var(--muted); }
 .dev-values dd { margin: 0; font-weight: 700; }
+
+.live-ask h3 { margin: 4px 0 10px; }
+.live-ask-opts { display: grid; gap: 10px; }
+.live-ask-opts .cs-choice { text-align: left; display: flex; flex-direction: column; gap: 4px; }
+.live-ask-opts .cs-choice small { color: var(--muted); text-transform: none; letter-spacing: 0; font-size: .85rem; font-weight: 500; line-height: 1.35; }
+.live-ask-opts .cs-choice strong { font-size: 1rem; }

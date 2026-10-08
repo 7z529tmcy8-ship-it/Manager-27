@@ -86,6 +86,9 @@ export default function Settings({ career, onChange, onClose }: Props) {
               onPick={(difficulty) => onChange(setCareerSettings(career, { difficulty }))}
               hint={DIFFICULTIES[cs.difficulty].hint}
             />
+            <Toggle label="Topspiele & Finals selbst spielen" checked={career.settings?.liveMatches !== false}
+              onToggle={() => onChange(setCareerSettings(career, { liveMatches: career.settings?.liveMatches === false }))}
+              hint="Aus: Die Karriere läuft komplett automatisch, ohne Live-Spiele." />
           </section>
         )}
 

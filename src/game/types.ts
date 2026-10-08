@@ -635,6 +635,8 @@ export type PressFrequency = 'off' | 'rare' | 'normal' | 'often';
 export interface CareerSettings {
   difficulty?: Difficulty;
   press?: PressFrequency;
+  /** Topspiele und Finals selbst spielen (Standard) oder alles simulieren. */
+  liveMatches?: boolean;
 }
 
 export type InboxKind = 'welcome' | 'goals' | 'season' | 'offer' | 'contract' | 'transfer' | 'event' | 'decision' | 'press' | 'achievement' | 'lotto' | 'casino' | 'holiday' | 'retire';

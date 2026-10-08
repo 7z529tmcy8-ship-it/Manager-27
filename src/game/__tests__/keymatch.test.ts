@@ -35,3 +35,9 @@ it('Topspiel-Engine: Unentschieden ohne Elfmeterschießen möglich', () => {
   }
   expect(draws).toBeGreaterThan(0);
 });
+
+it('Topspiele lassen sich pro Karriere abschalten', () => {
+  const c = createCareer({ name: 'Off', nation: 'Deutschland', position: 'ST', age: 24, ovr: 84, potential: 86, clubId: slugify('Borussia Dortmund') });
+  expect(keyMatchFor({ ...c, settings: { liveMatches: false } })).toBeNull();
+  expect(keyMatchFor({ ...c, settings: { liveMatches: true } })).not.toBeNull();
+});

@@ -19,6 +19,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-08-livewahl',
+    date: '08.10.2026',
+    title: 'Du entscheidest: selbst spielen oder simulieren',
+    items: [
+      '🎮 Zu Beginn jeder Karriere wählst du: mit Topspielen & Finals zum Selberspielen – oder alles automatisch simulieren.',
+      '⚙️ Umstellen geht jederzeit in den Einstellungen unter „Diese Karriere“.',
+    ],
+  },
+  {
     id: '2026-10-08-sbc-weltmeister',
     date: '08.10.2026',
     title: 'Drei neue Legendäre Momente im SBC',

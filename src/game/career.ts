@@ -422,6 +422,7 @@ export function playSeasonUntilFinal(prev: Career): Career {
 /** Topspiel der kommenden Halbserie: Liga-Gegner mit der größten Stärke. */
 export function keyMatchFor(career: Career): { half: 1 | 2; opponentId: string; home: boolean } | null {
   const prog = career.progress;
+  if (career.settings?.liveMatches === false) return null;
   if (!prog || (career.phase !== 'season' && career.phase !== 'winter') || prog.injuredFor > 0 || career.player.absent) return null;
   const half: 1 | 2 = career.phase === 'winter' || (prog.stage ?? 0) >= STAGES_PER_HALF ? 2 : 1;
   if (prog.keyMatch && prog.keyMatch.half === half) return null;
