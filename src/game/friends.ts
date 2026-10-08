@@ -1,5 +1,5 @@
 import { clamp, poisson, randInt, uid } from './random';
-import { FORMATION, cardById, teamRating, teamStrength, chemistry, type DuelResult } from './squad';
+import { FORMATION, cardById, slotsOf, teamRating, teamStrength, chemistry, type DuelResult } from './squad';
 import type { ClubState } from './club';
 import type { Position } from './types';
 
@@ -43,9 +43,9 @@ export function exportTeam(club: ClubState, name: string): string | null {
   if (cards.some((c) => !c)) return null;
   const team: FriendTeam = {
     name: name.trim().slice(0, 30) || 'Freundes-Elf',
-    strength: Math.round(teamStrength(cards) * 10) / 10,
+    strength: Math.round(teamStrength(cards, slotsOf(club)) * 10) / 10,
     rating: teamRating(cards),
-    chemistry: chemistry(cards).total,
+    chemistry: chemistry(cards, slotsOf(club)).total,
     players: cards.map((c) => ({ name: c!.name, ovr: c!.ovr, position: c!.position })),
   };
   const body = toBase64(JSON.stringify([team.name, team.strength, team.rating, team.chemistry, team.players.map((p) => [p.name, p.ovr, p.position]), ownerIdOf(club)]));
@@ -133,7 +133,7 @@ export function record(entry: FriendEntry) {
 export function playFriendDuel(club: ClubState, team: FriendTeam, now = Date.now()): { club: ClubState; result: DuelResult; firstWin: boolean } | null {
   const cards = club.squad.map((id) => cardById(club, id));
   if (cards.filter(Boolean).length < 11) return null;
-  const ownStrength = teamStrength(cards);
+  const ownStrength = teamStrength(cards, slotsOf(club));
   const diff = ownStrength - team.strength;
   const own = poisson(clamp(1.4 * Math.exp(diff / 14), 0.2, 4));
   const against = poisson(clamp(1.4 * Math.exp(-diff / 14), 0.2, 4));

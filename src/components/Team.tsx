@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PACKS, openPack, rarity, type CollectCard, type PackResult } from '../game/club';
 import {
-  DUEL_LEVELS, FORMATION, TASKS, autoSquad, cardById, chemistry, completeTask, fit, opponent, ownedCards, playDuel,
+  DUEL_LEVELS, FORMATIONS, FORMATION_ORDER, TASKS, changeFormation, slotsOf, type FormationId, autoSquad, cardById, chemistry, completeTask, fit, opponent, ownedCards, playDuel,
   setSlot, taskPick, teamRating, teamStrength, type DuelResult,
 } from '../game/squad';
 import { getClubState, setClubState, useClub } from '../clubStore';
@@ -18,7 +18,7 @@ export default function Team({ onBack, onStore }: { onBack: () => void; onStore:
   const club = useClub();
   const [tab, setTab] = useState<Tab>('squad');
   const cards = club.squad.map((id) => cardById(club, id));
-  const chem = chemistry(cards);
+  const chem = chemistry(cards, slotsOf(club));
   const rating = teamRating(cards);
   const full = cards.filter(Boolean).length === 11;
 
@@ -91,7 +91,8 @@ function Squad({ onStore }: { onStore: () => void }) {
   const club = useClub();
   const [slot, setSlotOpen] = useState<number | null>(null);
   const cards = club.squad.map((id) => cardById(club, id));
-  const chem = chemistry(cards);
+  const slots = slotsOf(club);
+  const chem = chemistry(cards, slots);
   const owned = ownedCards(club);
 
   if (!owned.length) {
@@ -105,13 +106,19 @@ function Squad({ onStore }: { onStore: () => void }) {
 
   return (
     <>
+      <div className="chips formation-chips" role="radiogroup" aria-label="Formation">
+        {FORMATION_ORDER.map((id) => [id, FORMATIONS[id]] as const).map(([id, f]) => (
+          <button key={id} role="radio" aria-checked={(club.formation ?? '433') === id} className={`chip ${(club.formation ?? '433') === id ? 'active' : ''}`}
+            onClick={() => setClubState(changeFormation(getClubState(), id))}>{f.name}</button>
+        ))}
+      </div>
       <div className="team-actions">
         <button className="btn secondary small" onClick={() => setClubState({ ...getClubState(), squad: autoSquad(getClubState()) })}>⚡ Auto-Aufstellung</button>
         <button className="btn ghost small" onClick={() => setClubState({ ...getClubState(), squad: Array(11).fill(null) })}>Leeren</button>
       </div>
       <div className="pitch">
         <div className="pitch-lines" aria-hidden="true"><i className="box top" /><i className="circle" /><i className="box bottom" /></div>
-        {FORMATION.map((s, i) => {
+        {slots.map((s, i) => {
           const c = cards[i];
           return (
             <div key={i} className="pitch-slot" style={{ left: `${s.x}%`, top: `${s.y}%` }}>
@@ -136,7 +143,8 @@ function Squad({ onStore }: { onStore: () => void }) {
 
 function Picker({ slot, onClose }: { slot: number; onClose: () => void }) {
   const club = useClub();
-  const pos = FORMATION[slot].pos;
+  const slotDef = slotsOf(club)[slot];
+  const pos = slotDef.pos;
   const current = club.squad[slot];
   const list = ownedCards(club)
     .map((c) => ({ c, f: fit(c, pos) }))
@@ -146,13 +154,13 @@ function Picker({ slot, onClose }: { slot: number; onClose: () => void }) {
     onClose();
   };
   return (
-    <div className="overlay" role="dialog" aria-modal="true" aria-label={`Spieler für ${FORMATION[slot].label}`}>
+    <div className="overlay" role="dialog" aria-modal="true" aria-label={`Spieler für ${slotDef.label}`}>
       <div className="overlay-inner">
         <header className="overlay-head">
           <button className="nav-back" onClick={onClose}>‹ Zurück</button>
           {current && <button className="btn link small" onClick={() => pick(null)}>Platz leeren</button>}
         </header>
-        <h1 className="overlay-title">Position {FORMATION[slot].label}</h1>
+        <h1 className="overlay-title">Position {slotDef.label}</h1>
         <p className="muted">Passende Spieler zuerst. Ein Spieler, der schon woanders steht, wechselt auf diese Position.</p>
         <div className="collection-grid">
           {list.map(({ c, f }) => (
@@ -171,7 +179,7 @@ function Picker({ slot, onClose }: { slot: number; onClose: () => void }) {
 function Duels({ full, onSquad }: { full: boolean; onSquad: () => void }) {
   const club = useClub();
   const [live, setLive] = useState<{ level: number; result: DuelResult } | null>(null);
-  const strength = teamStrength(club.squad.map((id) => cardById(club, id)));
+  const strength = teamStrength(club.squad.map((id) => cardById(club, id)), slotsOf(club));
 
   const play = (level: number) => {
     const res = playDuel(getClubState(), level);
@@ -276,7 +284,7 @@ function Friends({ full, onSquad }: { full: boolean; onSquad: () => void }) {
   const [live, setLive] = useState<{ team: FriendTeam; result: DuelResult } | null>(null);
   const code = full ? exportTeam(club, name) : null;
   const pasted = paste.trim() ? importTeam(paste) : null;
-  const ownStrength = teamStrength(club.squad.map((id) => cardById(club, id)));
+  const ownStrength = teamStrength(club.squad.map((id) => cardById(club, id)), slotsOf(club));
   const friends = [...(club.friends ?? [])].sort((a, b) => b.updatedAt - a.updatedAt);
 
   // Eigene Kennung anlegen, damit Freunde dich beim nächsten Code wiedererkennen.

@@ -67,6 +67,8 @@ export interface ClubState {
   ownerId?: string;
   /** Gespeicherte Freunde mit Team und Duell-Verlauf. */
   friends?: import('./friends').FriendEntry[];
+  /** Gewählte Formation in „Mein Team“ (Standard 4-3-3). */
+  formation?: import('./squad').FormationId;
   /** Abgeschlossene Trades in der Tauschbörse. */
   tradesDone?: number;
 }

@@ -1840,3 +1840,4 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
   padding: 12px max(16px, calc((100vw - 680px) / 2 + 16px)) max(12px, env(safe-area-inset-bottom)); background: var(--surface); border-top: 1px solid var(--hairline);
   font-weight: 700;
 }
+.formation-chips { margin-bottom: 10px; }

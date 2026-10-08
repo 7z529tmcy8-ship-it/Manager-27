@@ -27,6 +27,45 @@ export const FORMATION: Slot[] = [
   { pos: 'FL', label: 'RF', x: 84, y: 16 },
 ];
 
+const S = (pos: Position, label: string, x: number, y: number): Slot => ({ pos, label, x, y });
+const BACK4 = [S('AV', 'LV', 14, 66), S('IV', 'IV', 38, 70), S('IV', 'IV', 62, 70), S('AV', 'RV', 86, 66)];
+const BACK3 = [S('IV', 'IV', 24, 69), S('IV', 'IV', 50, 72), S('IV', 'IV', 76, 69)];
+const KEEPER = S('TW', 'TW', 50, 90);
+
+export type FormationId = '433' | '442' | '4231' | '352' | '343';
+export const FORMATIONS: Record<FormationId, { name: string; slots: Slot[] }> = {
+  '433': { name: '4-3-3', slots: FORMATION },
+  '442': { name: '4-4-2', slots: [KEEPER, ...BACK4, S('ZM', 'LM', 12, 40), S('ZM', 'ZM', 37, 45), S('ZM', 'ZM', 63, 45), S('ZM', 'RM', 88, 40), S('ST', 'ST', 36, 13), S('ST', 'ST', 64, 13)] },
+  '4231': { name: '4-2-3-1', slots: [KEEPER, ...BACK4, S('ZDM', 'ZDM', 36, 50), S('ZDM', 'ZDM', 64, 50), S('FL', 'LF', 14, 26), S('ZOM', 'ZOM', 50, 30), S('FL', 'RF', 86, 26), S('ST', 'ST', 50, 10)] },
+  '352': { name: '3-5-2', slots: [KEEPER, ...BACK3, S('AV', 'LAV', 10, 42), S('ZM', 'ZM', 32, 44), S('ZDM', 'ZDM', 50, 52), S('ZM', 'ZM', 68, 44), S('AV', 'RAV', 90, 42), S('ST', 'ST', 36, 13), S('ST', 'ST', 64, 13)] },
+  '343': { name: '3-4-3', slots: [KEEPER, ...BACK3, S('ZM', 'LM', 12, 44), S('ZM', 'ZM', 37, 47), S('ZM', 'ZM', 63, 47), S('ZM', 'RM', 88, 44), S('FL', 'LF', 16, 16), S('ST', 'ST', 50, 11), S('FL', 'RF', 84, 16)] },
+};
+
+/** Reihenfolge für die Auswahl (Objekt-Schlüssel aus Ziffern würden sonst numerisch sortiert). */
+export const FORMATION_ORDER: FormationId[] = ['433', '442', '4231', '352', '343'];
+
+/** Die Positionen der gewählten Formation (Standard 4-3-3). */
+export const slotsOf = (club: Pick<ClubState, 'formation'>): Slot[] => FORMATIONS[club.formation ?? '433']?.slots ?? FORMATION;
+
+/** Formation wechseln: die aufgestellten Spieler werden möglichst passend auf die neuen Positionen verteilt. */
+export function changeFormation(club: ClubState, id: FormationId): ClubState {
+  const slots = FORMATIONS[id].slots;
+  const pool = club.squad.map((cid) => cardById(club, cid)).filter((c): c is CollectCard => !!c).sort((a, b) => b.ovr - a.ovr);
+  const used = new Set<string>();
+  const squad: (string | null)[] = Array(11).fill(null);
+  for (const pass of ['ok', 'near', 'off'] as const) {
+    slots.forEach((slot, i) => {
+      if (squad[i]) return;
+      const c = pool.find((x) => !used.has(x.id) && (pass === 'off' || fit(x, slot.pos) === pass));
+      if (c) {
+        squad[i] = c.id;
+        used.add(c.id);
+      }
+    });
+  }
+  return { ...club, formation: id, squad };
+}
+
 // Verwandte Positionen: dort spielt eine Karte mit halber Chemie.
 const NEAR: Record<Position, Position[]> = {
   TW: [],
@@ -57,12 +96,12 @@ export function cardById(club: ClubState, id: string | null): CollectCard | null
 }
 
 /** Chemie je Slot (0–3) und gesamt (max. 33). Ikonen haben immer volle Chemie, solange sie passend stehen. */
-export function chemistry(cards: (CollectCard | null)[]): { per: number[]; total: number } {
+export function chemistry(cards: (CollectCard | null)[], slots: Slot[] = FORMATION): { per: number[]; total: number } {
   const placed = cards.filter((c): c is CollectCard => !!c);
   const count = (f: (c: CollectCard) => string | undefined, v: string | undefined) => (v ? placed.filter((c) => f(c) === v).length - 1 : 0);
   const per = cards.map((c, i) => {
     if (!c) return 0;
-    const f = fit(c, FORMATION[i].pos);
+    const f = fit(c, slots[i].pos);
     if (f === 'off') return 0;
     let pts: number;
     if (c.variant === 'icon') pts = 3;
@@ -86,8 +125,8 @@ export function teamRating(cards: (CollectCard | null)[]): number {
 }
 
 /** Spielstärke im Duell: Wertung plus Chemie-Bonus (bis +4) bzw. Malus bei schlechter Chemie. */
-export function teamStrength(cards: (CollectCard | null)[]): number {
-  return teamRating(cards) + (chemistry(cards).total / 33) * 6 - 2;
+export function teamStrength(cards: (CollectCard | null)[], slots: Slot[] = FORMATION): number {
+  return teamRating(cards) + (chemistry(cards, slots).total / 33) * 6 - 2;
 }
 
 /** Automatisch aufstellen: je Position die beste passende Karte, danach die besten übrigen. */
@@ -95,8 +134,9 @@ export function autoSquad(club: ClubState): (string | null)[] {
   const pool = ownedCards(club).sort((a, b) => b.ovr - a.ovr);
   const used = new Set<string>();
   const squad: (string | null)[] = Array(11).fill(null);
+  const slots = slotsOf(club);
   for (const pass of ['ok', 'near'] as const) {
-    FORMATION.forEach((slot, i) => {
+    slots.forEach((slot, i) => {
       if (squad[i]) return;
       const c = pool.find((x) => !used.has(x.id) && fit(x, slot.pos) === pass);
       if (c) {
@@ -105,7 +145,7 @@ export function autoSquad(club: ClubState): (string | null)[] {
       }
     });
   }
-  FORMATION.forEach((_, i) => {
+  slots.forEach((_, i) => {
     if (squad[i]) return;
     const c = pool.find((x) => !used.has(x.id));
     if (c) {
@@ -141,7 +181,7 @@ export function playDuel(club: ClubState, level: number): { club: ClubState; res
   const cards = club.squad.map((id) => cardById(club, id));
   if (cards.filter(Boolean).length < 11 || level > club.duelLevel) return null;
   const opp = opponent(level);
-  const diff = teamStrength(cards) - opp.strength;
+  const diff = teamStrength(cards, slotsOf(club)) - opp.strength;
   const own = poisson(clamp(1.4 * Math.exp(diff / 14), 0.2, 4));
   const against = poisson(clamp(1.4 * Math.exp(-diff / 14), 0.2, 4));
   const outcome = own > against ? 'win' : own === against ? 'draw' : 'loss';
