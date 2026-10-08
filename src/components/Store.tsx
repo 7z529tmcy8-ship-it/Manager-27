@@ -42,7 +42,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         }}>
           <span className="mx-bolt l" aria-hidden="true">⚡</span>
           <span className="mx-text">
-            <small>Einmalig · Gratis · Diesmal echt</small>
+            <small>Einmalig · Gratis</small>
             <strong>MEGA SUPER XXL PACK</strong>
             <em>8 Karten ab 85 + Sonderkarte Gervinho (89)</em>
           </span>
