@@ -83,3 +83,21 @@ export function doTrade(
   const squad = club.squad.map((id) => (id && !cards[id] && !club.specials.some((s) => s.id === id) ? null : id));
   return { club: { ...club, cards, squad, tradesDone: (club.tradesDone ?? 0) + 1 }, got };
 }
+
+// Entwickler-Schalter für die Tauschbörse (nur in diesem Browser).
+export interface DevTrade { drop?: 'force' | 'never' | null; chef?: boolean; name?: string }
+const DEV_TRADE_KEY = 'fc-dev-trade';
+export function readDevTrade(): DevTrade {
+  try {
+    return JSON.parse(localStorage.getItem(DEV_TRADE_KEY) ?? '{}') as DevTrade;
+  } catch {
+    return {};
+  }
+}
+export function writeDevTrade(d: DevTrade): void {
+  try {
+    localStorage.setItem(DEV_TRADE_KEY, JSON.stringify(d));
+  } catch {
+    // privater Modus
+  }
+}

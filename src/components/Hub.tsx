@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { getClub } from '../data/leagues';
-import { CARD_POOL, careerCard } from '../game/club';
+import { CARD_POOL, careerCard, creditCareer } from '../game/club';
 import { currentClubId, seasonLabel } from '../game/player';
-import { deleteCareer, listCareers } from '../game/storage';
+import { deleteCareer, listCareers, saveCareer } from '../game/storage';
 import type { Career } from '../game/types';
-import { useClub } from '../clubStore';
+import { getClubState, setClubState, useClub } from '../clubStore';
 import Backup from './Backup';
 import Settings from './Settings';
 import UtCard from './UtCard';
@@ -120,7 +120,19 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
           </div>
         </div>
       )}
-      {settings && <Settings onClose={() => setSettings(false)} />}
+      {settings && (
+        <Settings
+          career={latest}
+          onChange={(c) => {
+            // Entwickler-Änderungen an der letzten Karriere: Coins gutschreiben und speichern.
+            const res = creditCareer(getClubState(), c);
+            if (res.gained > 0 || res.icon) setClubState(res.club);
+            saveCareer(c);
+            setSaves(listCareers());
+          }}
+          onClose={() => setSettings(false)}
+        />
+      )}
       {backup && <Backup onClose={() => setBackup(false)} />}
     </main>
   );

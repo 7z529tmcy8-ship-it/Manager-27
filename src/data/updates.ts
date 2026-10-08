@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-08-sbc-weltmeister',
+    date: '08.10.2026',
+    title: 'Drei neue Legendäre Momente im SBC',
+    items: [
+      "🏆 Mario Götze „113'“ (93): das Siegtor im WM-Finale 2014.",
+      "🎯 Toni Kroos „95'“ (92): der Freistoß gegen Schweden bei der WM 2018.",
+      '💥 Vincent Kompany „Der Fernschuss“ (91): das 1:0 gegen Leicester im Titelrennen 2019.',
+    ],
+  },
+  {
     id: '2026-10-08-topspiele',
     date: '08.10.2026',
     title: 'Topspiele und Finals selbst spielen ⚽',

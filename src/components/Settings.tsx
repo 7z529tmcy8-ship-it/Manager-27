@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../clubStore';
-import { INFINITE_COINS, devAllCards, devCoins, devLevels, devMaxCards, devOvr, isDevCode } from '../game/dev';
+import { INFINITE_COINS, devAdvance, devAllCards, devCoins, devFlags, devLevels, devMaxCards, devOvr, devTransfer, isDevCode } from '../game/dev';
+import { CLUBS, LEAGUES, getClub } from '../data/leagues';
+import { currentClubId } from '../game/player';
+import { readDevTrade, writeDevTrade, type DevTrade } from '../game/trade';
 import { DIFFICULTIES, setCareerSettings, settingsOf } from '../game/difficulty';
 import type { Career, Difficulty } from '../game/types';
 import { UNLOCK_KEY } from './PasswordGate';
@@ -190,8 +193,100 @@ function DevPanel({ career, onChange, onLock }: { career?: Career; onChange?: (c
         </div>
       )}
 
+      {career && onChange && <DevCareerTools career={career} onDone={career$} />}
+
+      <DevTradeTools onMsg={setMsg} />
+
       {msg && <p className="cs-note good" role="status">✓ {msg}</p>}
       <button className="btn ghost small" onClick={onLock}>Entwickler-Bereich ausblenden</button>
     </section>
+  );
+}
+
+/** Entwickler: Karriere vorspulen, Wechsel erzwingen, versteckte Werte. */
+function DevCareerTools({ career, onDone }: { career: Career; onDone: (c: Career, text: string) => void }) {
+  const p = career.player;
+  const [leagueId, setLeagueId] = useState(LEAGUES[0].id);
+  const [clubId, setClubId] = useState('');
+  const clubs = CLUBS.filter((c) => c.leagueId === leagueId).sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  const prog = career.progress;
+  const hidden: [string, string][] = [
+    ['Potenzial', `${p.potential}${p.potentialStart ? ` (Start ${p.potentialStart})` : ''}`],
+    ['Form', prog ? prog.form.toFixed(1) : '–'],
+    ['Moral', String(p.morale ?? 0)],
+    ['Skandal', String(career.scandal ?? 0)],
+    ['Burnout', String(p.burnout ?? 0)],
+    ['Sucht (versteckt)', p.hooked ? 'ja' : 'nein'],
+    ['Spielsucht (versteckt)', p.gambler ? 'ja' : 'nein'],
+    ['Verletzt noch', prog ? `${prog.injuredFor} Spiele` : '–'],
+    ['Glamour', String(career.glam ?? 0)],
+    ['Eigenschaften', (p.traits ?? []).join(', ') || '–'],
+  ];
+  const coach = !!career.coach;
+  return (
+    <>
+      <div className="dev-group">
+        <span className="setting-label">Vorspulen · {career.phase === 'retired' ? 'Karriere beendet' : `Saison ${career.history.length + 1}, ${p.age} Jahre`}</span>
+        <div className="dev-btns">
+          <button className="btn secondary small" disabled={coach || career.phase === 'retired'} onClick={() => onDone(devAdvance(career, 1), '+1 Saison simuliert')}>+1 Saison</button>
+          <button className="btn secondary small" disabled={coach || career.phase === 'retired'} onClick={() => onDone(devAdvance(career, 5), '+5 Saisons simuliert')}>+5 Saisons</button>
+          <button className="btn primary small" disabled={coach || career.phase === 'retired'} onClick={() => onDone(devAdvance(career, 'end'), 'Bis zum Karriereende simuliert')}>Bis Karriereende</button>
+        </div>
+        {coach && <p className="hint">Im Trainer-Modus nicht verfügbar.</p>}
+      </div>
+
+      <div className="dev-group">
+        <span className="setting-label">Wechsel erzwingen · jetzt bei {getClub(currentClubId(p)).name}</span>
+        <div className="dev-row">
+          <select value={leagueId} onChange={(e) => { setLeagueId(e.target.value); setClubId(''); }}>
+            {LEAGUES.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+          </select>
+          <select value={clubId} onChange={(e) => setClubId(e.target.value)}>
+            <option value="">Verein wählen …</option>
+            {clubs.map((c) => <option key={c.id} value={c.id}>{c.name} ({c.strength})</option>)}
+          </select>
+          <button className="btn primary small" disabled={!clubId || coach || career.phase === 'retired'}
+            onClick={() => onDone(devTransfer(career, clubId), `Wechsel zu ${getClub(clubId).name}`)}>Wechseln</button>
+        </div>
+        <p className="hint">Im Sommer als normaler Transfer, während der Saison sofort (Pokal und Europapokal dann ohne dich).</p>
+      </div>
+
+      <div className="dev-group">
+        <span className="setting-label">Versteckte Werte</span>
+        <dl className="dev-values">
+          {hidden.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
+        </dl>
+        <div className="dev-btns">
+          <button className="btn secondary small" onClick={() => onDone(devFlags(career, { hooked: !p.hooked }), p.hooked ? 'Sucht entfernt' : 'Sucht aktiviert')}>{p.hooked ? 'Sucht aus' : 'Sucht an'}</button>
+          <button className="btn secondary small" onClick={() => onDone(devFlags(career, { gambler: !p.gambler }), p.gambler ? 'Spielsucht entfernt' : 'Spielsucht aktiviert')}>{p.gambler ? 'Spielsucht aus' : 'Spielsucht an'}</button>
+          <button className="btn ghost small" onClick={() => onDone(devFlags(career, { scandal: 0 }), 'Skandal auf 0')}>Skandal auf 0</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/** Entwickler: Tauschbörse steuern (gilt für den nächsten Trade). */
+function DevTradeTools({ onMsg }: { onMsg: (t: string) => void }) {
+  const [d, setD] = useState<DevTrade>(readDevTrade);
+  const set = (patch: Partial<DevTrade>, text: string) => {
+    const next = { ...d, ...patch };
+    setD(next);
+    writeDevTrade(next);
+    onMsg(text);
+  };
+  return (
+    <div className="dev-group">
+      <span className="setting-label">Tauschbörse</span>
+      <div className="dev-btns">
+        {([[null, 'Abbruch: Zufall'], ['force', 'Abbruch: immer'], ['never', 'Abbruch: nie']] as [DevTrade['drop'], string][]).map(([v, label]) => (
+          <button key={label} className={`btn small ${(d.drop ?? null) === v ? 'primary' : 'secondary'}`} onClick={() => set({ drop: v }, label)}>{label}</button>
+        ))}
+        <button className={`btn small ${d.chef ? 'primary' : 'secondary'}`} onClick={() => set({ chef: !d.chef }, d.chef ? 'ChefJakob aus' : 'ChefJakob bei jedem Trade')}>ChefJakob {d.chef ? 'an' : 'aus'}</button>
+      </div>
+      <div className="dev-row">
+        <input placeholder="Bot-Name erzwingen (leer = Zufall)" value={d.name ?? ''} maxLength={24} onChange={(e) => set({ name: e.target.value || undefined }, e.target.value ? `Bot heißt jetzt „${e.target.value}“` : 'Bot-Name wieder zufällig')} />
+      </div>
+    </div>
   );
 }

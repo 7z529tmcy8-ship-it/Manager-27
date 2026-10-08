@@ -84,6 +84,39 @@ export const MOMENTS: MomentSbc[] = [
     ],
   },
   {
+    id: 'moment-goetze',
+    reward: card('goetze', 'Mario Götze', 'ZOM', 'Deutschland', 'FC Bayern München', 'Bundesliga', 93, "113'"),
+    story: 'WM-Finale 2014 im Maracanã: eingewechselt, Flanke von Schürrle, Brust, Volley – 1:0 gegen Argentinien in der 113. Minute. Deutschland ist Weltmeister.',
+    minAvg: 88, minEach: 84,
+    needs: [
+      { label: 'Deutsche', count: 5, test: nation('Deutschland') },
+      { label: 'Bundesliga-Spieler', count: 3, test: league('Bundesliga') },
+      { label: 'Ikone', count: 1, test: isIcon },
+    ],
+  },
+  {
+    id: 'moment-kroos',
+    reward: card('kroos', 'Toni Kroos', 'ZM', 'Deutschland', 'Real Madrid', 'LaLiga', 92, "95'"),
+    story: 'WM 2018 in Sotschi: In Unterzahl, Nachspielzeit, Freistoß von links – Kroos zirkelt den Ball zum 2:1 gegen Schweden in den Winkel. Laut FIFA das späteste Siegtor der WM-Geschichte.',
+    minAvg: 88, minEach: 84,
+    needs: [
+      { label: 'Deutsche', count: 4, test: nation('Deutschland') },
+      { label: 'Mittelfeldspieler ab 86', count: 3, test: (c) => ['ZM', 'ZDM', 'ZOM'].includes(c.position) && c.ovr >= 86 },
+      { label: 'LaLiga-Spieler', count: 3, test: league('LaLiga') },
+    ],
+  },
+  {
+    id: 'moment-kompany',
+    reward: card('kompany', 'Vincent Kompany', 'IV', 'Belgien', 'Manchester City', 'Premier League', 91, 'Der Fernschuss'),
+    story: 'Mai 2019, 70. Minute gegen Leicester: Der Kapitän, der sonst nie aus der Distanz schießt, hämmert den Ball zum 1:0 in den Winkel – City holt danach den Titel.',
+    minAvg: 87, minEach: 83,
+    needs: [
+      { label: 'Innenverteidiger ab 85', count: 4, test: pos('IV', 85) },
+      { label: 'Premier-League-Spieler', count: 4, test: league('Premier League') },
+      { label: 'Kult-Held', count: 1, test: isCult },
+    ],
+  },
+  {
     id: 'moment-grafite',
     reward: card('grafite', 'Grafite', 'ST', 'Brasilien', 'VfL Wolfsburg', 'Bundesliga', 92, 'Meister 2009'),
     story: 'Wolfsburg wird 2009 sensationell Meister. Grafite schießt 28 Tore – zusammen mit Džeko 54, Bundesliga-Rekord für ein Sturmduo.',

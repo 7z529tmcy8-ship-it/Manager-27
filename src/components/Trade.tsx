@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { rarity, withUpgrade, type CollectCard } from '../game/club';
-import { CHEF, CHEF_LINES, TRADER_LINES, TRADE_SIZE, doTrade, isSecretTrader, randomTrader, tradeable, type Trader } from '../game/trade';
+import { CHEF, CHEF_LINES, TRADER_LINES, TRADE_SIZE, doTrade, isSecretTrader, randomTrader, readDevTrade, tradeable, type Trader } from '../game/trade';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { motionReduced } from '../settings';
 import { play } from '../sound';
@@ -73,18 +73,19 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
 
   const send = () => {
     // Der Tausch passiert sofort – es gibt kein Zurück.
-    const chef = partner?.name === CHEF.name;
+    const dev = readDevTrade();
+    const chef = partner?.name === CHEF.name || !!dev.chef;
     const res = doTrade(getClubState(), offer.map((c) => c.id), Math.random, chef ? 'chef' : 'random');
     if (!res) return;
     setClubState(res.club);
     setGot(res.got);
-    setTrader(chef ? CHEF : randomTrader());
+    setTrader(chef ? CHEF : dev.name ? { ...randomTrader(), name: dev.name } : randomTrader());
     setPartner(null);
     setShown(0);
     setChat([]);
     setMyStars(0);
     setLeft(AUTO_ACCEPT);
-    setDrop(chef ? null : rollDrop());
+    setDrop(dev.drop === 'force' ? Math.floor(Math.random() * TRADE_SIZE) : dev.drop === 'never' || chef ? null : rollDrop());
     setOnline(3 + Math.floor(Math.random() * 5));
     const r = Math.random();
     setTalk(chef ? { hello: true, adding: -1, done: true } : { hello: r < 0.35, adding: r >= 0.35 && r < 0.6 ? Math.floor(Math.random() * TRADE_SIZE) : -1, done: Math.random() < 0.5 });

@@ -1926,3 +1926,9 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .live-actions { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
 .live-sum { margin: 0; text-align: center; font-weight: 700; }
 .live-intro p { margin: 0 0 10px; color: var(--muted); }
+.dev-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+.dev-row select, .dev-row input { flex: 1; min-width: 140px; }
+.dev-values { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px 12px; margin: 6px 0 10px; font-size: .85rem; }
+.dev-values div { display: flex; justify-content: space-between; gap: 6px; border-bottom: 1px solid var(--hairline); padding: 2px 0; }
+.dev-values dt { color: var(--muted); }
+.dev-values dd { margin: 0; font-weight: 700; }
