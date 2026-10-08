@@ -35,6 +35,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   const latest = [...saves].sort((a, b) => b.updatedAt - a.updatedAt)[0];
   const owned = Object.keys(club.cards).length + club.specials.length;
   const hasHistory = saves.some((c) => c.history.length > 0);
+  const freePacks = (club.welcomeClaimed ? 0 : 1) + (club.megaXxlClaimed ? 0 : 1);
 
   const remove = (c: Career) => {
     if (!confirm(`Karriere von ${c.player.name} wirklich löschen?`)) return;
@@ -79,7 +80,8 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
         </section>
 
         <Tile icon="⚽" title="Neue Karriere" sub="Eigener Spieler, Profi, Legende oder zweite Chance" onClick={onNew} />
-        <Tile icon="🎁" title="Store" sub={club.welcomeClaimed ? 'Packs mit Coins öffnen' : 'Gratis-Pack wartet!'} badge={!club.welcomeClaimed ? '1' : undefined} onClick={onStore} accent />
+        <Tile icon="🎁" title="Store" sub={!club.megaXxlClaimed ? 'MEGA-XXL-Pack gratis!' : club.welcomeClaimed ? 'Packs mit Coins öffnen' : 'Gratis-Pack wartet!'}
+          badge={freePacks ? String(freePacks) : undefined} onClick={onStore} accent />
         <Tile icon="🗂️" title="Sammlung" sub={`${owned} von ${CARD_POOL.length}+ Karten`} onClick={onCollection} />
         <Tile icon="🛡️" title="Mein Team" sub="Aufstellung und Freunde-Duelle" onClick={onTeam} />
         <Tile icon="⚔️" title="Duelle" sub={`Stufe ${club.duelLevel} · ${club.duels.w} Siege`} onClick={onDuels} />

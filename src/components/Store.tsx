@@ -12,6 +12,7 @@ const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 export default function Store({ onBack, onCollection }: { onBack: () => void; onCollection: () => void }) {
   const club = useClub();
   const [opening, setOpening] = useState<{ result: PackResult; name: string } | null>(null);
+  const [mega, setMega] = useState(false);
 
   const buy = (packId: string, free = false) => {
     const res = openPack(getClubState(), packId, Math.random, free);
@@ -28,6 +29,22 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
       </header>
       <h1 className="hub-title">Store</h1>
       <p className="hub-sub">Coins verdienst du in deinen Karrieren: pro Saison für Spiele, Tore, Vorlagen, Titel, Erfolge und Sonderkarten.</p>
+
+      {!club.megaXxlClaimed && (
+        <button className="mega-xxl" onClick={() => {
+          // Einmalig: sofort als geöffnet merken – auch wenn danach „der Server abstürzt“.
+          setClubState({ ...getClubState(), megaXxlClaimed: true });
+          setMega(true);
+        }}>
+          <span className="mx-bolt l" aria-hidden="true">⚡</span>
+          <span className="mx-text">
+            <small>Einmalig · Gratis</small>
+            <strong>MEGA XXL PACK</strong>
+            <em>50 Karten · garantiert 10 Ikonen</em>
+          </span>
+          <span className="mx-bolt r" aria-hidden="true">⚡</span>
+        </button>
+      )}
 
       {!club.welcomeClaimed && (
         <button className="hub-tile accent welcome" onClick={() => buy('gold', true)}>
@@ -54,6 +71,8 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         })}
       </div>
 
+      {mega && <MegaCrash onDone={onBack} />}
+
       {opening && (
         <PackOpening
           name={opening.name}
@@ -63,6 +82,48 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         />
       )}
     </main>
+  );
+}
+
+/** Das „Mega-XXL-Pack“: lädt sich auf – und dann stürzt der Server ab. Danach geht es ins Hauptmenü. */
+function MegaCrash({ onDone }: { onDone: () => void }) {
+  const [stage, setStage] = useState<'charge' | 'crash' | 'reboot'>('charge');
+  const [code] = useState(() => `0x${Math.floor(Math.random() * 0xffffff).toString(16).toUpperCase().padStart(6, '0')}`);
+  useEffect(() => {
+    if (stage === 'charge') {
+      play('packShake');
+      const t = setTimeout(() => setStage('crash'), motionReduced() ? 600 : 2600);
+      return () => clearTimeout(t);
+    }
+    if (stage === 'crash') {
+      play('error');
+      const t = setTimeout(() => setStage('reboot'), 3200);
+      return () => clearTimeout(t);
+    }
+    const t = setTimeout(onDone, 2600);
+    return () => clearTimeout(t);
+  }, [stage, onDone]);
+
+  return (
+    <div className={`mega-open st-${stage}`} role="alertdialog" aria-modal="true" aria-label="Mega-XXL-Pack">
+      {stage === 'charge' && (
+        <div className="mega-stage" aria-hidden="true">
+          <div className="mega-pack"><span>MEGA<br />XXL</span></div>
+          <i className="mega-flash" />
+        </div>
+      )}
+      {stage !== 'charge' && (
+        <div className="crash-box">
+          <p className="crash-icon" aria-hidden="true">⚠️</p>
+          <h2>{stage === 'crash' ? 'Interner Serverfehler (500)' : 'Verbindung wird wiederhergestellt …'}</h2>
+          <p>{stage === 'crash'
+            ? 'Beim Öffnen des Packs ist der Pack-Server abgestürzt. Zu viele Anfragen gleichzeitig.'
+            : 'Die Sitzung wurde zurückgesetzt. Du wirst zum Hauptmenü weitergeleitet.'}</p>
+          <code>PACK_SERVER_CRASH · {code}</code>
+          {stage === 'reboot' && <span className="crash-bar"><i /></span>}
+        </div>
+      )}
+    </div>
   );
 }
 

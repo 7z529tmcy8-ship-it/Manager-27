@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-08-megaxxl',
+    date: '08.10.2026',
+    title: '⚡ GRATIS: Das MEGA XXL PACK ⚡',
+    items: [
+      '🎁 Für alle Spieler einmalig und komplett gratis: das MEGA XXL PACK – jetzt im Store.',
+      '💎 50 Karten, garantiert 10 Ikonen. Das größte Pack, das es je gab.',
+      '⏳ Nur einmal pro Spieler. Schnell sein lohnt sich!',
+    ],
+  },
+  {
     id: '2026-10-08-herkunft',
     date: '08.10.2026',
     title: 'Eigener Spieler: wieder frei wählbar – Herkunft zählt mehr',
