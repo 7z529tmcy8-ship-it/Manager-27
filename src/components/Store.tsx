@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { play } from '../sound';
-import { ITEMS, PACKS, oddsAtLeast, openPack, packTier, rarity, type PackDef, type PackResult } from '../game/club';
+import { ITEMS, PACKS, oddsAtLeast, openMegaSuper, openPack, packTier, rarity, type PackDef, type PackResult } from '../game/club';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { motionReduced } from '../settings';
 import Confetti from './Confetti';
@@ -13,6 +13,8 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
   const club = useClub();
   const [opening, setOpening] = useState<{ result: PackResult; name: string } | null>(null);
   const [mega, setMega] = useState(false);
+  const [superPack, setSuperPack] = useState<PackResult | null>(null);
+  const [superCharging, setSuperCharging] = useState(false);
 
   const buy = (packId: string, free = false) => {
     const res = openPack(getClubState(), packId, Math.random, free);
@@ -29,6 +31,24 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
       </header>
       <h1 className="hub-title">Store</h1>
       <p className="hub-sub">Coins verdienst du in deinen Karrieren: pro Saison für Spiele, Tore, Vorlagen, Titel, Erfolge und Sonderkarten.</p>
+
+      {!club.megaSuperClaimed && (
+        <button className="mega-xxl super" onClick={() => {
+          const res = openMegaSuper(getClubState());
+          if (!res) return;
+          setClubState(res.club);
+          setSuperPack(res.result);
+          setSuperCharging(true);
+        }}>
+          <span className="mx-bolt l" aria-hidden="true">⚡</span>
+          <span className="mx-text">
+            <small>Einmalig · Gratis · Diesmal echt</small>
+            <strong>MEGA SUPER XXL PACK</strong>
+            <em>8 Karten ab 85 + Sonderkarte Gervinho (89)</em>
+          </span>
+          <span className="mx-bolt r" aria-hidden="true">⚡</span>
+        </button>
+      )}
 
       {!club.megaXxlClaimed && (
         <button className="mega-xxl" onClick={() => {
@@ -72,6 +92,10 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
       </div>
 
       {mega && <MegaCrash onDone={onBack} />}
+      {superPack && superCharging && <MegaCharge title={'MEGA<br />SUPER<br />XXL'} onDone={() => setSuperCharging(false)} />}
+      {superPack && !superCharging && (
+        <PackOpening name="MEGA SUPER XXL PACK" result={superPack} onClose={() => setSuperPack(null)} onCollection={() => { setSuperPack(null); onCollection(); }} />
+      )}
 
       {opening && (
         <PackOpening
@@ -82,6 +106,23 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         />
       )}
     </main>
+  );
+}
+
+/** Neon-Aufladen vor dem echten Mega Super XXL Pack (gleiche Effekte wie beim Mega-XXL-Pack). */
+function MegaCharge({ title, onDone }: { title: string; onDone: () => void }) {
+  useEffect(() => {
+    play('packShake');
+    const t = setTimeout(onDone, motionReduced() ? 600 : 2600);
+    return () => clearTimeout(t);
+  }, [onDone]);
+  return (
+    <div className="mega-open st-charge super" role="dialog" aria-modal="true" aria-label="Mega Super XXL Pack">
+      <div className="mega-stage" aria-hidden="true">
+        <div className="mega-pack"><span dangerouslySetInnerHTML={{ __html: title }} /></div>
+        <i className="mega-flash" />
+      </div>
+    </div>
   );
 }
 

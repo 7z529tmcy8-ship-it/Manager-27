@@ -11,7 +11,7 @@ import type { Career, CoachSeason, Position, SeasonRecord, SpecialCard, SpecialT
 // „Club“ über alle Karrieren hinweg: Coins, gesammelte Karten, Items. Angelehnt an Karten-Sammelmodi,
 // aber mit eigenen Namen und Designs. Coins verdient man nur im Karrieremodus – kein echtes Geld.
 
-export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | SpecialType;
+export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | SpecialType;
 
 export interface CollectCard {
   id: string;
@@ -69,6 +69,8 @@ export interface ClubState {
   friends?: import('./friends').FriendEntry[];
   /** Das einmalige Gratis-„Mega-XXL-Pack“ schon geöffnet? */
   megaXxlClaimed?: boolean;
+  /** Das einmalige Gratis-„Mega-Super-XXL-Pack“ (echt, mit Gervinho) schon geöffnet? */
+  megaSuperClaimed?: boolean;
   /** Gewählte Formation in „Mein Team“ (Standard 4-3-3). */
   formation?: import('./squad').FormationId;
   /** Abgeschlossene Trades in der Tauschbörse. */
@@ -123,7 +125,7 @@ export function sellValue(c: CollectCard): number {
 
 /** Seltenheit für Sortierung und „bester Zug“. */
 export function rarity(c: CollectCard): number {
-  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
+  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
   return base * 100 + c.ovr;
 }
 
@@ -483,4 +485,28 @@ export function upgradeCard(club: ClubState, id: string): ClubState | null {
     coins: club.coins - cost,
     upgrades: { ...(club.upgrades ?? {}), [id]: (club.upgrades?.[id] ?? 0) + 1 },
   };
+}
+
+// ---------- Mega Super XXL Pack (einmalig, gratis) ----------
+/** Geschenk-Sonderkarte aus dem Mega Super XXL Pack. */
+export const GERVINHO_GIFT: CollectCard = {
+  id: 'gift-gervinho', name: 'Gervinho', position: 'FL', nation: 'Elfenbeinküste', club: 'AS Rom', league: 'Serie A', ovr: 89, variant: 'present', label: 'Geschenk',
+};
+export const MEGA_SUPER_SIZE = 8;
+
+/** Das echte Mega Super XXL Pack: Gervinho (89) plus 8 verschiedene Karten ab 85. Nur einmal. */
+export function openMegaSuper(club: ClubState, rand = Math.random): { club: ClubState; result: PackResult } | null {
+  if (club.megaSuperClaimed) return null;
+  const pool = CARD_POOL.filter((c) => c.ovr >= 85 && c.variant !== 'talent');
+  const picked: CollectCard[] = [];
+  while (picked.length < MEGA_SUPER_SIZE && pool.length) picked.push(pool.splice(Math.floor(rand() * pool.length), 1)[0]);
+  picked.sort((a, b) => rarity(b) - rarity(a));
+  const cards = { ...club.cards };
+  const result: PackResult = { cards: [{ card: GERVINHO_GIFT, duplicate: club.specials.some((s) => s.id === GERVINHO_GIFT.id) }], items: [] };
+  for (const c of picked) {
+    result.cards.push({ card: c, duplicate: (cards[c.id] ?? 0) > 0 });
+    cards[c.id] = (cards[c.id] ?? 0) + 1;
+  }
+  const specials = club.specials.some((s) => s.id === GERVINHO_GIFT.id) ? club.specials : [...club.specials, GERVINHO_GIFT];
+  return { club: { ...club, cards, specials, megaSuperClaimed: true, packsOpened: club.packsOpened + 1 }, result };
 }

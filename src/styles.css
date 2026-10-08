@@ -731,6 +731,13 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
     linear-gradient(160deg, var(--a) 0%, var(--b) 100%);
 }
 .ucard.v-moment .ucard-club { font-family: ui-monospace, 'SF Mono', monospace; letter-spacing: .08em; color: #ff3b3b; text-shadow: 0 0 8px rgba(255, 59, 59, .8); }
+.ucard.v-present {
+  --a: #ff2bd6; --b: #12002a; --ink: #fff; --edge: rgba(0, 229, 255, .9); --glow: rgba(255, 43, 214, .6);
+  background:
+    repeating-linear-gradient(135deg, rgba(0, 229, 255, .18) 0 4px, transparent 4px 14px),
+    radial-gradient(120% 70% at 50% 0%, rgba(255, 255, 255, .35), transparent 60%),
+    linear-gradient(160deg, var(--a) 0%, #4a0a8a 55%, var(--b) 100%);
+}
 .ucard.v-tots { --a: #1f46a8; --b: #040b26; --ink: #ffd76a; --edge: rgba(255, 215, 106, .7); --glow: rgba(80, 140, 255, .45); }
 .ucard.v-potm { --a: #9b3ff0; --b: #2b0a4a; --ink: #fff; --edge: rgba(255, 255, 255, .5); --glow: rgba(180, 90, 255, .45); }
 .ucard.v-record { --a: #e8303f; --b: #2a0508; --ink: #fff; --edge: rgba(255, 255, 255, .5); --glow: rgba(255, 70, 80, .4); }
@@ -1890,3 +1897,8 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .crash-bar i { display: block; height: 100%; width: 0; background: #0a84ff; animation: crash-fill 2.6s linear forwards; }
 @keyframes crash-fill { to { width: 100%; } }
 @media (prefers-reduced-motion: reduce) { .mega-xxl, .mega-xxl::before, .mx-text strong, .mx-bolt, .mega-pack, .mega-flash { animation: none; } }
+
+.mega-xxl.super { border-color: #ffd700; box-shadow: 0 0 14px #ffd700, 0 0 32px rgba(255, 43, 214, .7), inset 0 0 18px rgba(255, 215, 0, .45);
+  background: radial-gradient(circle at 50% 0%, rgba(255, 215, 0, .35), transparent 60%), linear-gradient(135deg, #2a0050, #001a33 60%, #2a1600); }
+.mega-xxl.super .mx-text small { color: #ffd700; text-shadow: 0 0 8px #ffd700; }
+.mega-open.super .mega-pack { font-size: 1.9rem; border-color: #ffd700; box-shadow: 0 0 30px #ffd700, 0 0 80px #ff2bd6; }

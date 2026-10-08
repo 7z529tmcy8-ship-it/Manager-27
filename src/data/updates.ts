@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-08-megasuper',
+    date: '08.10.2026',
+    title: '⚡ MEGA SUPER XXL PACK – gratis für alle ⚡',
+    items: [
+      '🎁 Einmalig und komplett gratis im Store: das MEGA SUPER XXL PACK – und diesmal echt.',
+      '💎 Drin: 8 Karten ab 85 plus die neue Sonderkarte Gervinho (89, Geschenk).',
+      '🧩 Neu im SBC: Gervinho „Die Stirn“ mit 93 – für eine harte 11er-Abgabe.',
+    ],
+  },
+  {
     id: '2026-10-08-entwicklung',
     date: '08.10.2026',
     title: 'Karriere: Der Weg nach oben dauert länger',

@@ -54,7 +54,7 @@ describe('Saison-Simulation', () => {
       old.push(runCareer(vet, 4).player.ovr);
     }
     const avg = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length;
-    expect(avg(young)).toBeGreaterThan(76);
+    expect(avg(young)).toBeGreaterThan(73) // langsamere Entwicklung seit Oktober 2026: deutlich, aber kein Raketenstart;
     expect(avg(young)).toBeLessThanOrEqual(90);
     expect(avg(old)).toBeLessThan(83);
   });

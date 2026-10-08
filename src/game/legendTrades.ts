@@ -71,6 +71,19 @@ export const MOMENTS: MomentSbc[] = [
     ],
   },
   {
+    id: 'moment-gervinho',
+    reward: card('gervinho', 'Gervinho', 'FL', 'Elfenbeinküste', 'OSC Lille', 'Ligue 1', 93, 'Die Stirn'),
+    story: 'Lille 2011: Meisterschaft und Pokalsieg – mit Gervinho als Tempo-Waffe. Später Arsenal und Rom – und die berühmteste Stirn des Fußballs.',
+    minAvg: 88, minEach: 84,
+    needs: [
+      { label: 'Ligue-1-Spieler', count: 3, test: league('Ligue 1') },
+      { label: 'Serie-A-Spieler', count: 3, test: league('Serie A') },
+      { label: 'Flügelspieler ab 86', count: 3, test: pos('FL', 86) },
+      { label: 'Ikone', count: 1, test: isIcon },
+      { label: 'Kult-Held', count: 1, test: isCult },
+    ],
+  },
+  {
     id: 'moment-grafite',
     reward: card('grafite', 'Grafite', 'ST', 'Brasilien', 'VfL Wolfsburg', 'Bundesliga', 92, 'Meister 2009'),
     story: 'Wolfsburg wird 2009 sensationell Meister. Grafite schießt 28 Tore – zusammen mit Džeko 54, Bundesliga-Rekord für ein Sturmduo.',
