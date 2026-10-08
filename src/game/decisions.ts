@@ -1,3 +1,4 @@
+import { bonusOvr } from './development';
 import { getClub } from '../data/leagues';
 import { POSITIONS } from '../data/players';
 import { generateOffers } from './offers';
@@ -206,9 +207,7 @@ const DECISIONS: DecisionDef[] = [
     }),
     resolve: (career, option) => {
       if (option === 'camp') {
-        if (chance(0.65)) {
-          career.player.ovr = Math.min(99, career.player.ovr + 1);
-          career.player.potential = Math.max(career.player.potential, career.player.ovr);
+        if (chance(0.65) && bonusOvr(career.player)) {
           return { title: 'Topfit in die Saison', text: 'Die Extraschichten zahlen sich aus: +1 Gesamtwertung.', tone: 'good' };
         }
         const weeks = randInt(2, 3);

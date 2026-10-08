@@ -1,3 +1,4 @@
+import { bonusOvr } from './development';
 import { attributeLabels } from './player';
 import { chance } from './random';
 import type { PlayerState, Position, TrainingFocus } from './types';
@@ -64,8 +65,7 @@ export function applyTraining(p: PlayerState, ovrBeforeDev: number): string | nu
     if (p.ovr < ovrBeforeDev && chance(0.35)) {
       p.ovr += 1;
       note = 'Gezieltes Training hat den Abbau gebremst.';
-    } else if (p.ovr >= ovrBeforeDev && p.ovr < p.potential && chance(0.25)) {
-      p.ovr += 1;
+    } else if (p.ovr >= ovrBeforeDev && p.ovr < p.potential && chance(0.25) && bonusOvr(p)) {
       note = 'Das Spezialtraining zahlt sich aus: +1 Gesamtwertung.';
     }
   }

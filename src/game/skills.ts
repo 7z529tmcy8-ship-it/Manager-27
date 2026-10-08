@@ -295,9 +295,10 @@ export function respecSkills(prev: Career): Career {
   const career: Career = structuredClone(prev);
   const p = career.player;
   const all = allSkills(p);
-  const ovrBack = p.skills!.unlocked.reduce((a, id) => a + (all.find((s) => s.id === id)?.ovr ?? 0), 0);
+  const ovrBack = p.skills!.unlocked.reduce((a, id) => a + (p.skills!.gains?.[id] ?? all.find((s) => s.id === id)?.ovr ?? 0), 0);
   p.ovr = Math.max(40, p.ovr - ovrBack);
   p.skills!.unlocked = [];
+  p.skills!.gains = {};
   p.skills!.respecUsed = true;
   career.updatedAt = Date.now();
   return career;
@@ -337,8 +338,11 @@ export function unlockSkill(prev: Career, skillId: string): Career {
   const s = allSkills(p).find((x) => x.id === skillId)!;
   p.skills!.unlocked.push(skillId);
   if (s.ovr) {
-    p.ovr = Math.min(99, p.ovr + s.ovr);
+    // Fähigkeiten heben die Wertung nur bis 94 – darüber zählt allein, was auf dem Platz passiert.
+    const gained = Math.max(0, Math.min(s.ovr, 94 - p.ovr));
+    p.ovr += gained;
     p.potential = Math.max(p.potential, p.ovr);
+    p.skills!.gains = { ...(p.skills!.gains ?? {}), [skillId]: gained };
   }
   career.updatedAt = Date.now();
   return career;

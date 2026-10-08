@@ -116,6 +116,8 @@ export interface PlayerSkills {
   seasonXp: number;
   /** Punkte wurden schon einmal neu verteilt (geht nur einmal pro Karriere). */
   respecUsed?: boolean;
+  /** Tatsächlich gewonnene Wertung je Fähigkeit (für das Zurücksetzen). */
+  gains?: Record<string, number>;
   /** Meldung nach der letzten Pause, z. B. „+320 EP · Level 4“. */
   note?: string;
 }

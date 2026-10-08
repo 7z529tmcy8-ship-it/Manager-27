@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-08-entwicklung',
+    date: '08.10.2026',
+    title: 'Karriere: Der Weg nach oben dauert länger',
+    items: [
+      '📈 Spieler entwickeln sich langsamer und länger – die meisten erreichen ihr Bestes erst mit 25 bis 27.',
+      '🧗 Weltklasse ist schwer: Ab etwa 86 wird jeder Punkt zäher, ab 94 kommt kaum noch etwas dazu. Eine 99 ist auf natürlichem Weg nicht mehr drin.',
+      '🌳 Fähigkeiten heben die Wertung nur noch bis 94, Trainingslager und Spezialtraining wirken an der Spitze nur noch selten.',
+    ],
+  },
+  {
     id: '2026-10-08-megaxxl',
     date: '08.10.2026',
     title: '⚡ GRATIS: Das MEGA XXL PACK ⚡',

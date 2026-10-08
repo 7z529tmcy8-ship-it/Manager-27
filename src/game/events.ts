@@ -1,5 +1,5 @@
 import { getClub, getLeague } from '../data/leagues';
-import { performanceIndex, relativePerformance, type DevStats } from './development';
+import { bonusOvr, performanceIndex, relativePerformance, type DevStats } from './development';
 import { clubLeagueId, currentClubId, seasonLabel } from './player';
 import { chance, clamp, pick, randInt, shuffle } from './random';
 import { hasTrait, type TraitId } from './traits';
@@ -30,7 +30,8 @@ const MAX_EVENTS_PER_HALF = 2;
 
 function changeOvr(c: EventContext, delta: number) {
   const p = c.career.player;
-  p.ovr = clamp(p.ovr + delta, 40, 99);
+  if (delta > 0) bonusOvr(p, delta);
+  else p.ovr = clamp(p.ovr + delta, 40, 99);
   p.potential = Math.max(p.potential, p.ovr);
 }
 

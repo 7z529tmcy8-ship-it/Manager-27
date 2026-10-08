@@ -4,11 +4,28 @@ import { skillMods } from './skills';
 import type { PlayerState, Position } from './types';
 
 /** Wie schnell sich die Lücke zum Potenzial pro Saison schließt – abhängig vom Alter. */
+/**
+ * Kleine Extra-Boni (Trainingslager, Ereignisse, Spezialtraining): Bis 87 wirken sie voll,
+ * darüber immer seltener, ab 97 gar nicht mehr. Gibt zurück, wie viel wirklich dazukam.
+ */
+export function bonusOvr(p: { ovr: number; potential: number }, amount = 1): number {
+  let gained = 0;
+  for (let i = 0; i < amount; i++) {
+    if (p.ovr >= 97) break;
+    if (p.ovr >= 88 && !chance((97 - p.ovr) / 12)) continue;
+    p.ovr += 1;
+    gained++;
+  }
+  p.potential = Math.max(p.potential, p.ovr);
+  return gained;
+}
+
 function growthRate(age: number): number {
   const table: Record<number, number> = {
-    16: 0.34, 17: 0.34, 18: 0.32, 19: 0.3, 20: 0.26, 21: 0.22, 22: 0.18, 23: 0.14, 24: 0.1, 25: 0.07, 26: 0.05, 27: 0.03,
+    // Langsamer und länger: Die meisten erreichen ihr Bestes erst mit 25–27.
+    16: 0.22, 17: 0.22, 18: 0.21, 19: 0.2, 20: 0.19, 21: 0.17, 22: 0.15, 23: 0.13, 24: 0.11, 25: 0.08, 26: 0.06, 27: 0.04, 28: 0.02,
   };
-  return age < 16 ? 0.34 : (table[age] ?? 0);
+  return age < 16 ? 0.22 : (table[age] ?? 0);
 }
 
 /** Grundlage der Entwicklung: Spielzeit und Leistung in einem Zeitraum. */
@@ -103,7 +120,7 @@ export function developPlayer(
   // Je besser ein Spieler schon ist, desto schwerer fällt jeder weitere Punkt.
   const eliteBrake = clamp((92 - p.ovr) / 12, 0, 1);
   // Natürliche Obergrenze: höchstens 2 Punkte über dem Start-Potenzial (Fähigkeiten-Boni kommen extra dazu).
-  const ceiling = Math.min(99, (p.potentialStart ?? p.potential) + 2);
+  const ceiling = Math.min(97, (p.potentialStart ?? p.potential) + 2);
   const reasons: string[] = [];
 
   const ptFactor = 0.35 + 0.95 * Math.min(1, share / 0.75);
@@ -146,6 +163,8 @@ export function developPlayer(
     if (p.sideProject) growth *= 0.92;
     if (p.hooked) growth *= 0.8;
     growth *= skillMods(p).growth;
+    // Weltklasse ist schwer: Je näher an der Spitze, desto zäher geht es voran.
+    growth *= p.ovr >= 96 ? 0.08 : p.ovr >= 94 ? 0.15 : p.ovr >= 90 ? 0.4 : p.ovr >= 86 ? 0.65 : 1;
     change = growth - setback;
   } else {
     const base = 0.8 + (age - 30) * 0.9;
@@ -160,7 +179,7 @@ export function developPlayer(
   }
   change *= weight;
   // Obergrenze pro Halbserie: Weltklassespieler machen keine Riesensprünge mehr.
-  change = Math.min(change, p.ovr >= 85 ? 1.5 : 4);
+  change = Math.min(change, p.ovr >= 93 ? 0.35 : p.ovr >= 89 ? 0.8 : p.ovr >= 85 ? 1.2 : 2.5);
   // Starke Halbserie mit Spielzeit: kein Rückschritt (bis 29).
   if (strongHalf && age < 30) change = Math.max(0, change);
 

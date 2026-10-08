@@ -1,3 +1,4 @@
+import { bonusOvr } from './development';
 import { getClub } from '../data/leagues';
 import { acceptOffer, acceptWinterOffer, canStay, playFirstHalf, playSeason, requestOffers, retire, stayAtClub } from './career';
 import { chance, randInt } from './random';
@@ -170,8 +171,7 @@ export function winterCamp(prev: Career): Career {
   const share = s.possibleMinutes ? s.minutes / s.possibleMinutes : 0;
   const parts: string[] = [];
   let tone: 'good' | 'bad' | 'neutral' = 'neutral';
-  if (p.ovr < p.potential && chance(0.35 + 0.35 * share)) {
-    p.ovr += 1;
+  if (p.ovr < p.potential && chance(0.35 + 0.35 * share) && bonusOvr(p)) {
     parts.push('Harte Einheiten zahlen sich aus: +1 Gesamtwertung.');
     tone = 'good';
   } else {
