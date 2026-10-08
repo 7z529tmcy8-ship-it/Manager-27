@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>LAB BOSS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="crt" aria-hidden="true"></div>
+
+  <!-- ===== Startbildschirm ===== -->
+  <section id="start-screen" class="screen hidden">
+    <div class="box start-box">
+      <pre class="logo" aria-hidden="true">
+ _       _   ___   ___  ___  ___ ___
+| |     /_\ | _ ) | _ )/ _ \/ __/ __|
+| |__  / _ \| _ \ | _ \ (_) \__ \__ \
+|____|/_/ \_\___/ |___/\___/|___/___/</pre>
+      <p class="tag">KELLERLABOR TYCOON · BUILD 1987</p>
+      <p>Du startest mit einem feuchten Keller, ein paar Kisten Zubehör – und Schulden bei Onkel Vito.
+        Produziere, handle, bau dein Imperium aus. Der Markt ändert sich jede Woche. Die Polizei schläft nicht.</p>
+      <p class="goal">ZIEL: 1.000.000 $ – und nicht erwischt werden.</p>
+      <label for="boss-name">DEIN DECKNAME</label>
+      <input id="boss-name" maxlength="20" autocomplete="off" placeholder="z. B. Der Chemiker" />
+      <button id="start-btn" class="btn big">[ SPIEL STARTEN ]</button>
+      <p class="fine">Reine Fantasie. Erfundene Ware, erfundene Stadt – ein Spiel, keine Anleitung.</p>
+    </div>
+  </section>
+
+  <!-- ===== Spiel ===== -->
+  <main id="game" class="hidden">
+    <header class="top">
+      <div class="title-row">
+        <h1>LAB BOSS</h1>
+        <span id="boss-label" class="boss"></span>
+      </div>
+      <div class="stats">
+        <div><small>CASH</small><b id="st-cash"></b></div>
+        <div><small>SCHULDEN</small><b id="st-debt"></b></div>
+        <div><small>WOCHE</small><b id="st-week"></b></div>
+        <div><small>LAGER</small><b id="st-store"></b></div>
+      </div>
+      <div class="heat">
+        <small>HEAT</small>
+        <div class="heat-bar"><i id="heat-fill"></i></div>
+        <b id="st-heat"></b>
+      </div>
+    </header>
+
+    <section id="news" class="box news" aria-live="polite"></section>
+
+    <nav class="tabs" role="tablist">
+      <button data-tab="market" class="on">MARKT</button>
+      <button data-tab="lab">LABOR</button>
+      <button data-tab="stash">LAGER</button>
+      <button data-tab="upgrades">AUSBAU</button>
+      <button data-tab="bank">VITO</button>
+    </nav>
+
+    <section id="tab-market" class="tab box"></section>
+    <section id="tab-lab" class="tab box hidden"></section>
+    <section id="tab-stash" class="tab box hidden"></section>
+    <section id="tab-upgrades" class="tab box hidden"></section>
+    <section id="tab-bank" class="tab box hidden"></section>
+
+    <footer class="end">
+      <button id="next-week" class="btn big">[ WOCHE BEENDEN ▶ ]</button>
+      <button id="reset" class="btn small ghost">Neues Spiel</button>
+    </footer>
+  </main>
+
+  <!-- ===== Meldungen (Razzia, Ereignisse, Game Over) ===== -->
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="box modal-box">
+      <h2 id="modal-title"></h2>
+      <p id="modal-text"></p>
+      <button id="modal-ok" class="btn">[ OK ]</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

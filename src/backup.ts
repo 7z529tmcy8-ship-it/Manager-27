@@ -1,7 +1,7 @@
 // Sicherung aller Spieldaten: Karrieren, Club (Coins, Karten), Einstellungen und das Rapper-Spiel.
 // Alles liegt nur im Browser – mit Export/Import kann man es sichern oder auf ein anderes Gerät bringen.
 
-const KEYS = ['fc-karriere-saves-v1', 'fc-club', 'fc-manager-settings', 'homestudio-hustle-v1'];
+const KEYS = ['fc-karriere-saves-v1', 'fc-club', 'fc-manager-settings', 'homestudio-hustle-v1', 'lab-boss-v1'];
 const APP = 'fc-karriere-backup';
 
 export interface Backup {
