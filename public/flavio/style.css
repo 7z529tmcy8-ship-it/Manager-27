@@ -149,3 +149,9 @@ input:focus { border-color: var(--blue); }
 .start h1 { font-size: 40px; font-weight: 800; color: var(--blue); text-transform: uppercase; line-height: 1; margin: 4px 0 12px; }
 .modal { position: absolute; }
 h3.sub { margin: 14px 0 4px; font-size: 15px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.stretch-row { align-items: center; }
+.scale { width: 120px; height: auto; flex: none; }
+.scale .lcd { font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; fill: #7dffb0; }
+.scale .sc-label { font-size: 13px; font-weight: 700; fill: var(--muted); }
+.stretch-btns { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.stretch-btns .btn { text-align: left; }

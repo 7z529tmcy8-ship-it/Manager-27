@@ -24,7 +24,7 @@ const CONFIG = {
   kieze: [
     { id: 'goerli', code: 'GP', name: 'Görlitzer Park', people: 'Touristen und Nachtschwärmer', crowd: 2.6, police: 1.5, demand: { kraut: 1.4, pillen: 0.9, pulver: 0.7 }, x: 240, y: 150, ly: 30 },
     { id: 'kotti', code: 'KT', name: 'Kottbusser Tor', people: 'Laufkundschaft rund um die Uhr', crowd: 2.4, police: 1.4, demand: { kraut: 1, pillen: 1.1, pulver: 1 }, x: 150, y: 110, ly: -18 },
-    { id: 'wrangel', code: 'WK', name: 'Wrangelkiez', people: 'Studis und WG-Partys', crowd: 1.6, police: 0.8, demand: { kraut: 1.2, pillen: 1.3, pulver: 0.6 }, x: 330, y: 70, ly: -18 },
+    { id: 'wrangel', code: 'WK', name: 'Wrangelkiez', people: 'Studis, WG-Partys – und deine Bude', crowd: 1.6, police: 0.8, demand: { kraut: 1.2, pillen: 1.3, pulver: 0.6 }, x: 330, y: 70, ly: -18 },
     { id: 'oranien', code: 'OS', name: 'Oranienstraße', people: 'Bars, Clubs – und Flávios Späti', crowd: 1.8, police: 1, demand: { kraut: 0.9, pillen: 1.2, pulver: 1.2 }, x: 70, y: 70, ly: -18 },
     { id: 'bergmann', code: 'BK', name: 'Bergmannkiez', people: 'Gut verdienende Kundschaft', crowd: 1.1, police: 0.7, demand: { kraut: 0.8, pillen: 0.9, pulver: 1.6 }, x: 90, y: 225, ly: 30 },
     { id: 'schles', code: 'ST', name: 'Schlesisches Tor', people: 'Club-Publikum am Wochenende', crowd: 1.5, police: 1.1, demand: { kraut: 1, pillen: 1.4, pulver: 1.1 }, x: 330, y: 200, ly: 30 },
@@ -48,6 +48,13 @@ const CONFIG = {
   ],
   bunker: { price: 700, capacity: 60 },
   graceDays: 3, // in den ersten Tagen gibt es keine Kontrollen
+  // Deine Bude (WG-Zimmer): hier kann man Ware kostenlos strecken – mehr Gewicht, weniger Qualität
+  bude: 'wrangel',
+  stretch: [
+    { id: 'light', name: 'Leicht strecken', more: 0.25 },
+    { id: 'strong', name: 'Stark strecken', more: 0.5 },
+  ],
+  badQuality: 70, // darunter merken es die Kunden
   // Taschen: dauerhaft mehr Platz am Mann (zusätzlich zum Rang)
   bags: [
     { id: 'none', name: 'Jackentaschen', bonus: 0, price: 0 },
@@ -85,6 +92,7 @@ function newState(name) {
     phone: [], // Nachrichten
     tips: true, // Tutor-Hinweise auf der Startseite
     bag: 0, // Index in CONFIG.bags
+    purity: { kraut: 100, pillen: 100, pulver: 100 }, // Qualität der Ware am Mann in Prozent
     gear: [], // gekaufte Waffen (IDs)
     stats: { sold: 0, earned: 0, jobs: 0, busts: 0 },
     page: 'home',
@@ -199,7 +207,32 @@ function buy(gid, n) {
   n = Math.min(n, pocketFree(), Math.floor(S.cash / p));
   if (n <= 0) return;
   S.cash -= n * p;
+  mixPurity(gid, n, 100);
   S.pocket[gid] += n;
+  save(); render();
+}
+
+/** Qualität mischen: neue Einheiten mit eigener Qualität zur vorhandenen Ware. */
+function mixPurity(gid, n, purity) {
+  const have = S.pocket[gid];
+  S.purity[gid] = have + n > 0 ? Math.round(((S.purity[gid] ?? 100) * have + purity * n) / (have + n)) : 100;
+}
+/** So viel vom Angebot zahlt ein Kunde bei dieser Qualität. */
+const qualityFactor = (gid) => 0.55 + 0.45 * ((S.purity[gid] ?? 100) / 100);
+const salePrice = (c) => Math.max(1, Math.round(c.offer * qualityFactor(c.good)));
+
+/** Strecken in der Bude: mehr Einheiten, gleiche Menge Wirkstoff – also weniger Qualität. Kostet nichts. */
+function stretchPreview(gid, level) {
+  const n = S.pocket[gid];
+  const add = n > 0 ? Math.max(1, Math.round(n * CONFIG.stretch.find((x) => x.id === level).more)) : 0;
+  return { n, add, purity: n + add > 0 ? Math.round(((S.purity[gid] ?? 100) * n) / (n + add)) : 100 };
+}
+function stretch(gid, level) {
+  if (S.at !== CONFIG.bude) return;
+  const pv = stretchPreview(gid, level);
+  if (!pv.add || pocketFree() < pv.add) return;
+  S.pocket[gid] += pv.add;
+  S.purity[gid] = pv.purity;
   save(); render();
 }
 
@@ -207,17 +240,27 @@ function sellTo(i) {
   const c = S.customers[i];
   if (!c || c.done || S.pocket[c.good] < c.units) return;
   const g = good(c.good);
-  const money = c.units * c.offer;
+  const money = c.units * salePrice(c);
+  const purity = S.purity[c.good] ?? 100;
   S.pocket[c.good] -= c.units;
+  if (S.pocket[c.good] === 0 && !(S.bunker && S.bunker.goods[c.good])) S.purity[c.good] = 100;
   S.cash += money;
   S.heat[S.at] = clamp(S.heat[S.at] + c.units * g.heat * 0.7 * kiez(S.at).police * (c.regular ? 0.5 : 1), 0, 100);
-  S.rep += c.regular ? 2 : 1;
+  // Schlechte Qualität spricht sich rum.
+  const bad = purity < CONFIG.badQuality;
+  S.rep = Math.max(0, S.rep + (bad ? 0 : c.regular ? 2 : 1));
+  if (bad && Math.random() < 0.3) {
+    S.rep = Math.max(0, S.rep - 2);
+    const r0 = S.regulars[c.name];
+    if (r0 && r0.regular) { r0.regular = false; r0.buys = 0; }
+    text(c.name, `Was war das denn für ein Zeug? Totaler Schrott. Von dir kauf ich nix mehr.`);
+  }
   S.stats.sold += c.units;
   S.stats.earned += money;
   c.done = true;
   const r = S.regulars[c.name] ?? { kiez: S.at, buys: 0, type: c.type, regular: false };
   r.buys++;
-  if (!r.regular && r.buys >= 3) {
+  if (!r.regular && r.buys >= 3 && !bad) {
     r.regular = true;
     r.kiez = S.at;
     text(c.name, `Bist echt zuverlässig. Ich meld mich wieder – und bring Freunde mit.`);
@@ -425,6 +468,7 @@ const ICONS = {
   customers: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6"/><circle cx="16.5" cy="9" r="2.5"/><path d="M16 14c3 0 5 2 5 5"/>',
   jobs: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM8 11h8M8 15h6"/>',
   buy: '<path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
+  bude: '<path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/>',
   shop: '<path d="M4 9h16l-1 11H5z"/><path d="M3 9l2-5h14l2 5M9 13h6"/>',
   pocket: '<rect x="6" y="7" width="12" height="14" rx="3"/><path d="M9 7V5a3 3 0 0 1 6 0v2M9 13h6"/>',
   bunker: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3M12 15v2"/>',
@@ -440,6 +484,7 @@ function apps() {
     { page: 'jobs', name: 'Aufträge', color: '#ffa53b,#d9661a', badge: S.job ? '1' : S.rank === 0 && S.at === CONFIG.flavioAt ? S.jobs.length : 0 },
     { page: 'buy', name: 'Flávio', color: '#ff5f5f,#c0262f', off: S.rank < 1 },
     { page: 'pocket', name: 'Am Mann', color: '#9a7bff,#5a37c9', badge: carried() },
+    { page: 'bude', name: 'Bude', color: '#ff8f5a,#b84a14', off: S.rank < 1 },
     { page: 'shop', name: 'Laden', color: '#ff7ab6,#c22b74' },
     { page: 'bunker', name: 'Bunker', color: '#8f99a8,#4b5563', off: S.rank < 2 },
     { page: 'status', name: 'Aufstieg', color: '#f3c84a,#c08a10' },
@@ -452,7 +497,7 @@ const DOCK = () => [
   { page: 'wait', name: 'Abwarten', color: '#4a4f59,#15171b' },
   { page: 'customers', name: 'Kunden', color: '#3fbf5f,#1b7f39', badge: S.customers.filter((c) => !c.done).length, off: S.rank < 1 },
 ];
-const TITLES = { shop: 'Kiez-Laden', customers: 'Kunden', jobs: 'Aufträge', buy: 'Einkauf bei Flávio', pocket: 'Am Mann', bunker: 'Bunker', map: 'U-Bahn', phone: 'Nachrichten', status: 'Aufstieg' };
+const TITLES = { bude: 'Bude', shop: 'Kiez-Laden', customers: 'Kunden', jobs: 'Aufträge', buy: 'Einkauf bei Flávio', pocket: 'Am Mann', bunker: 'Bunker', map: 'U-Bahn', phone: 'Nachrichten', status: 'Aufstieg' };
 
 function appIcon(a) {
   const [c1, c2] = a.color.split(',');
@@ -488,8 +533,8 @@ function pageCustomers() {
     const g = good(c.good);
     const has = S.pocket[c.good] >= c.units;
     return `<div class="row">
-      <div class="grow"><strong>${c.name}</strong>${c.regular ? '<span class="badge">Stammkunde</span>' : ''}<small>${c.type} · will ${c.units}× ${g.name} · zahlt ${eur(c.offer)} pro Einheit</small></div>
-      <span class="num">${eur(c.units * c.offer)}</span>
+      <div class="grow"><strong>${c.name}</strong>${c.regular ? '<span class="badge">Stammkunde</span>' : ''}<small>${c.type} · will ${c.units}× ${g.name} · zahlt ${eur(salePrice(c))} pro Einheit${(S.purity[c.good] ?? 100) < 100 ? ` (Qualität ${S.purity[c.good]} %)` : ''}</small></div>
+      <span class="num">${eur(c.units * salePrice(c))}</span>
       ${c.done ? '<span class="good">Erledigt</span>' : `<button class="btn sm primary" data-act="sell:${i}" ${has ? '' : 'disabled'}>${has ? 'Verkaufen' : 'Nicht genug'}</button>`}
     </div>`;
   }).join('');
@@ -524,6 +569,37 @@ function pageBuy() {
     <div class="list">${rows}</div>`;
 }
 
+function scale(value, label) {
+  // Schlichte Waage: Schale, Säule, Digitalanzeige
+  return `<svg class="scale" viewBox="0 0 160 110" role="img" aria-label="Waage zeigt ${value}">
+    <rect x="20" y="70" width="120" height="32" rx="6" fill="#1f4fd1"/>
+    <rect x="44" y="78" width="72" height="18" rx="3" fill="#0b1f5c"/>
+    <text x="80" y="92" text-anchor="middle" class="lcd">${value}</text>
+    <ellipse cx="80" cy="62" rx="60" ry="8" fill="#c9d3e6"/>
+    <rect x="76" y="62" width="8" height="10" fill="#9aa8c2"/>
+    <text x="80" y="40" text-anchor="middle" class="sc-label">${label}</text></svg>`;
+}
+
+function pageBude() {
+  const here = S.at === CONFIG.bude;
+  const goods = goodsForRank().filter((g) => S.pocket[g.id] > 0);
+  const rows = goods.map((g) => {
+    const p = S.purity[g.id] ?? 100;
+    const opts = CONFIG.stretch.map((st) => {
+      const pv = stretchPreview(g.id, st.id);
+      const ok = here && pv.add > 0 && pocketFree() >= pv.add;
+      return `<button class="btn sm ${st.id === 'strong' ? '' : 'primary'}" data-act="stretch:${g.id}:${st.id}" ${ok ? '' : 'disabled'}>${st.name}: ${pv.n} g → ${pv.n + pv.add} g · Qualität ${pv.purity} %</button>`;
+    }).join('');
+    return `<div class="row stretch-row">
+      <div class="grow"><strong>${g.name}</strong><small>Qualität ${p} %${p < CONFIG.badQuality ? ' <span class="badge warn">Kunden merken es</span>' : ''} · Kunden zahlen ${Math.round(qualityFactor(g.id) * 100)} % vom Preis</small></div>
+      ${scale(`${S.pocket[g.id]},0 g`, g.name)}
+      <div class="stretch-btns">${opts}</div></div>`;
+  }).join('');
+  return `<div class="where"><small>Deine Bude</small><strong>WG-Zimmer im ${kiez(CONFIG.bude).name}</strong><span>${here ? 'Du bist zuhause. Die Waage steht bereit.' : 'Fahr mit der U-Bahn in den Wrangelkiez, um hier zu arbeiten.'}</span></div>
+    <p class="hint">Strecken kostet nichts: Aus deiner Ware wird mehr Gewicht – aber die Qualität sinkt. Kunden zahlen weniger, und unter ${CONFIG.badQuality} % beschweren sich manche und springen ab. Flávios Auftragsware kannst du nicht strecken.</p>
+    <div class="list">${rows || '<div class="empty">Keine eigene Ware am Mann. Kauf erst bei Flávio ein.</div>'}</div>`;
+}
+
 function pageShop() {
   const bags = CONFIG.bags.slice(1).map((b, j) => {
     const i = j + 1;
@@ -545,7 +621,7 @@ function pageShop() {
 }
 
 function pagePocket() {
-  const rows = CONFIG.goods.filter((g) => S.pocket[g.id] > 0).map((g) => `<div class="row"><div class="grow"><strong>${g.name}</strong><small>Straßenwert hier ca. ${eur(streetPrice(g.id))} pro Einheit</small></div><span class="num">${S.pocket[g.id]}</span></div>`).join('');
+  const rows = CONFIG.goods.filter((g) => S.pocket[g.id] > 0).map((g) => `<div class="row"><div class="grow"><strong>${g.name}</strong><small>Qualität ${S.purity[g.id] ?? 100} % · Straßenwert hier ca. ${eur(streetPrice(g.id))} pro Einheit</small></div><span class="num">${S.pocket[g.id]}</span></div>`).join('');
   const job = S.job ? `<div class="row"><div class="grow"><strong>Flávios Ware</strong><small>Auftrag nach ${kiez(S.job.to).name}</small></div><span class="num">${S.job.units}</span></div>` : '';
   const gear = (S.gear ?? []).map((id) => `<div class="row"><div class="grow"><strong>${weapon(id).name}</strong><small>Schutz ${Math.round(weapon(id).defense * 100)} %</small></div><span class="num">${weapon(id).slots} Platz</span></div>`).join('');
   return `${head('Am Mann')}<p class="hint">${carried()} von ${capacity()} Plätzen · Tasche: ${bag().name}. Bei einer Kontrolle ist alles weg – ab ${CONFIG.arrestAt} Einheiten gibt es eine Festnahme.</p>
@@ -604,7 +680,7 @@ function pageStatus() {
     <button class="btn sm" data-act="reset">Neues Spiel</button>`;
 }
 
-const PAGES = { shop: pageShop, home: pageHome, customers: pageCustomers, jobs: pageJobs, buy: pageBuy, pocket: pagePocket, bunker: pageBunker, map: pageMap, phone: pagePhone, status: pageStatus };
+const PAGES = { bude: pageBude, shop: pageShop, home: pageHome, customers: pageCustomers, jobs: pageJobs, buy: pageBuy, pocket: pagePocket, bunker: pageBunker, map: pageMap, phone: pagePhone, status: pageStatus };
 
 function render() {
   $('clock').textContent = `Tag ${S.day} · ${CONFIG.times[S.time]}`;
@@ -636,6 +712,7 @@ document.addEventListener('click', (e) => {
   if (a === 'out') stash(b, false);
   if (a === 'wait') { advanceTime(false); return; }
   if (a === 'bag') buyBag(Number(b));
+  if (a === 'stretch') stretch(b, c);
   if (a === 'weapon') buyWeapon(b);
   if (a === 'drop') dropWeapon(b);
   if (a === 'tips') { S.tips = !S.tips; save(); render(); }
@@ -675,5 +752,6 @@ function start() {
 S = load();
 if (S && S.tips === undefined) S.tips = true;
 if (S && S.bag === undefined) { S.bag = 0; S.gear = []; }
+if (S && !S.purity) S.purity = { kraut: 100, pillen: 100, pulver: 100 };
 if (S) start();
 else $('start').classList.remove('hidden');
