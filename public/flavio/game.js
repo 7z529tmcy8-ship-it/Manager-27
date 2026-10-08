@@ -326,7 +326,7 @@ const item = (page, code, title, sub, meta = '', disabled = false) =>
   `<button class="item ${HL === page ? 'hl' : ''}" data-page="${page}" ${disabled ? 'disabled' : ''}>
     <span class="code">${code}</span><span class="txt"><strong>${title}</strong><small>${sub}</small></span>
     <span class="meta">${meta}</span><span class="chev">›</span></button>`;
-const head = (title) => `<div class="page-head"><button class="back" data-page="home">‹ Zurück</button><h2>${title}</h2></div>`;
+const head = () => ''; // Titel steht in der Navigationsleiste der App
 
 /** Tutor: Was ist jetzt der sinnvollste nächste Schritt? Gibt Text und die Abteilung zurück, die hervorgehoben wird. */
 function nextStep() {
@@ -336,34 +336,75 @@ function nextStep() {
   if (S.heat[S.at] >= 50 && goods) return [`In ${kiez(S.at).name} ist es heiß (${Math.round(S.heat[S.at])} %). Fahr in einen ruhigeren Kiez, bevor du verkaufst.`, 'map'];
   if (S.rank === 0) {
     if (!here) return ['Fahr mit der U-Bahn zur Oranienstraße – dort hat Flávio Arbeit für dich.', 'map'];
-    if (S.jobs.length) return [`Öffne „Aufträge“ und nimm einen an. Noch ${CONFIG.ranks[1].needs.rep - S.rep} Ruf bis zum Straßendealer.`, 'jobs'];
-    return ['Heute keine Aufträge mehr. Tipp auf „Abwarten“ – morgen gibt es neue.', null];
+    if (S.jobs.length) return [`Öffne die App „Aufträge“ und nimm einen an. Noch ${CONFIG.ranks[1].needs.rep - S.rep} Ruf bis zum Straßendealer.`, 'jobs'];
+    return ['Heute keine Aufträge mehr. Tipp auf „Abwarten“ unten im Dock – morgen gibt es neue.', null];
   }
-  if (goods === 0) return here ? ['Öffne „Einkauf bei Flávio“ und kauf Ware ein – am besten Kraut, das wollen viele.', 'buy'] : ['Du hast nichts zum Verkaufen. Fahr zur Oranienstraße und kauf bei Flávio ein.', 'map'];
-  if (S.customers.some((c) => !c.done && S.pocket[c.good] >= c.units)) return ['Kunden warten! Öffne „Kunden“ und verkauf.', 'customers'];
+  if (goods === 0) return here ? ['Öffne die App „Flávio“ und kauf Ware ein – am besten Kraut, das wollen viele.', 'buy'] : ['Du hast nichts zum Verkaufen. Fahr zur Oranienstraße und kauf bei Flávio ein.', 'map'];
+  if (S.customers.some((c) => !c.done && S.pocket[c.good] >= c.units)) return ['Kunden warten! Öffne die App „Kunden“ und verkauf.', 'customers'];
   if (S.rank >= 2 && !S.bunker && S.cash >= CONFIG.bunker.price) return ['Kauf dir einen Bunker, damit nicht alles am Mann ist.', 'bunker'];
   const want = S.customers.find((c) => !c.done);
   if (want) return [`Die Kunden hier wollen ${good(want.good).name} (${want.units}×) – das hast du nicht genug dabei. Abwarten oder beim nächsten Einkauf mitnehmen.`, null];
   return ['Gerade passt kein Kunde. Abwarten (nachts kommen mehr) oder in einen anderen Kiez fahren – im Görli und am Kotti ist am meisten los.', null];
 }
 
+/** Linien-Symbole für die Apps (eigene Zeichnungen). */
+const ICONS = {
+  customers: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6"/><circle cx="16.5" cy="9" r="2.5"/><path d="M16 14c3 0 5 2 5 5"/>',
+  jobs: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM8 11h8M8 15h6"/>',
+  buy: '<path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
+  pocket: '<rect x="6" y="7" width="12" height="14" rx="3"/><path d="M9 7V5a3 3 0 0 1 6 0v2M9 13h6"/>',
+  bunker: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3M12 15v2"/>',
+  map: '<rect x="6" y="3" width="12" height="14" rx="3"/><path d="M6 11h12M8 21l2-3M16 21l-2-3"/><circle cx="9" cy="14" r=".6"/><circle cx="15" cy="14" r=".6"/>',
+  phone: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>',
+  status: '<path d="M4 20V11M10 20V5M16 20v-7M3 20h18"/>',
+  wait: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.7"/><circle cx="12" cy="17" r=".6"/>',
+};
+/** Apps auf dem Startbildschirm: Seite, Name, Farbe, Zähler, gesperrt? */
+function apps() {
+  return [
+    { page: 'jobs', name: 'Aufträge', color: '#ffa53b,#d9661a', badge: S.job ? '1' : S.rank === 0 && S.at === CONFIG.flavioAt ? S.jobs.length : 0 },
+    { page: 'buy', name: 'Flávio', color: '#ff5f5f,#c0262f', off: S.rank < 1 },
+    { page: 'pocket', name: 'Am Mann', color: '#9a7bff,#5a37c9', badge: carried() },
+    { page: 'bunker', name: 'Bunker', color: '#8f99a8,#4b5563', off: S.rank < 2 },
+    { page: 'status', name: 'Aufstieg', color: '#f3c84a,#c08a10' },
+    { page: 'help', name: 'Hilfe', color: '#36c6d3,#118a96' },
+  ];
+}
+const DOCK = () => [
+  { page: 'phone', name: 'Nachrichten', color: '#5ee07a,#1f9e40', badge: unread() },
+  { page: 'map', name: 'U-Bahn', color: '#5b84f0,#1f3fa8' },
+  { page: 'wait', name: 'Abwarten', color: '#4a4f59,#15171b' },
+  { page: 'customers', name: 'Kunden', color: '#3fbf5f,#1b7f39', badge: S.customers.filter((c) => !c.done).length, off: S.rank < 1 },
+];
+const TITLES = { customers: 'Kunden', jobs: 'Aufträge', buy: 'Einkauf bei Flávio', pocket: 'Am Mann', bunker: 'Bunker', map: 'U-Bahn', phone: 'Nachrichten', status: 'Aufstieg' };
+
+function appIcon(a) {
+  const [c1, c2] = a.color.split(',');
+  const act = a.page === 'wait' ? 'data-act="wait"' : a.page === 'help' ? 'data-act="intro"' : `data-page="${a.page}"`;
+  return `<button class="app ${HL === a.page ? 'hl' : ''}" ${act} ${a.off ? 'disabled' : ''}>
+    <span class="icon" style="background:linear-gradient(${c1},${c2})"><svg viewBox="0 0 24 24">${ICONS[a.page]}</svg></span>
+    ${a.badge ? `<span class="badge-red">${a.badge}</span>` : ''}<span>${a.name}</span></button>`;
+}
+
 function pageHome() {
   const k = kiez(S.at);
-  const open = S.customers.filter((c) => !c.done).length;
-  const jobInfo = S.job ? `Unterwegs nach ${kiez(S.job.to).name}` : S.at === CONFIG.flavioAt ? `${S.jobs.length} Aufträge bei Flávio` : 'Bei Flávio in der Oranienstraße';
   const [tip, target] = S.tips ? nextStep() : [null, null];
   HL = target;
-  const tipBox = tip ? `<div class="tip"><small>Nächster Schritt</small><p>${tip}</p></div>` : '';
-  return `${tipBox}<div class="where"><small>Standort</small><strong>${k.name}</strong><span>${k.people} · Heat hier ${Math.round(S.heat[S.at])} %</span></div>
-  <div class="list">
-    ${item('customers', 'KU', 'Kunden', S.rank < 1 ? 'Als Läufer verkaufst du noch nicht selbst' : open ? 'Warten auf dich' : 'Gerade niemand', open ? `${open} da` : '', S.rank < 1)}
-    ${item('jobs', 'AU', 'Aufträge', jobInfo, S.job ? 'aktiv' : '')}
-    ${item('buy', 'EK', 'Einkauf bei Flávio', S.rank < 1 ? 'Ab Straßendealer' : S.at === CONFIG.flavioAt ? 'Späti, Hinterzimmer' : 'Nur in der Oranienstraße', '', S.rank < 1)}
-    ${item('pocket', 'AM', 'Am Mann', `${carried()} von ${rank().pocket} Einheiten`, '')}
-    ${item('bunker', 'BU', 'Bunker', S.bunker ? `Versteck in ${kiez(S.bunker.kiez).name}` : S.rank < 2 ? 'Ab Kiez-Dealer' : `Für ${eur(CONFIG.bunker.price)} zu haben`, '', S.rank < 2)}
-    ${item('map', 'U', 'U-Bahn', 'Kiez wechseln – kostet eine Tageszeit', '')}
-    ${item('phone', 'HY', 'Handy', S.phone[0] ? `${S.phone[0].from}: ${S.phone[0].body.slice(0, 40)}…` : 'Keine Nachrichten', unread() ? `${unread()} neu` : '')}
-    ${item('status', 'RG', 'Aufstieg', `${rank().name} · Ruf ${S.rep}`, '')}
+  const push = tip ? `<button class="push" ${target ? `data-page="${target}"` : 'data-act="wait"'}><span class="pi">F</span>
+    <span><small>Tipp · Nächster Schritt</small>${tip}</span></button>` : '';
+  return `<div class="springboard">
+    <div class="widget">
+      <small>Standort</small><strong>${k.name}</strong>
+      <div class="wstats">
+        <div><span>Geld</span><b>${eur(S.cash)}</b></div><div><span>Ruf</span><b>${S.rep}</b></div>
+        <div><span>Rang</span><b>${rank().short}</b></div><div><span>Heat</span><b>${Math.round(S.heat[S.at])} %</b></div>
+      </div>
+      <div class="wheat"><i style="width:${S.heat[S.at]}%"></i></div>
+    </div>
+    ${push}
+    <div class="apps">${apps().map(appIcon).join('')}</div>
+    <div class="dock">${DOCK().map(appIcon).join('')}</div>
   </div>`;
 }
 
@@ -471,12 +512,12 @@ const PAGES = { home: pageHome, customers: pageCustomers, jobs: pageJobs, buy: p
 
 function render() {
   $('clock').textContent = `Tag ${S.day} · ${CONFIG.times[S.time]}`;
-  $('s-cash').textContent = eur(S.cash);
-  $('s-rep').textContent = S.rep;
-  $('s-rank').textContent = rank().short;
-  $('s-heat').textContent = `${Math.round(S.heat[S.at])} %`;
-  $('heat-fill').style.width = `${S.heat[S.at]}%`;
-  $('view').innerHTML = (PAGES[S.page] ?? pageHome)();
+  if (S.page === 'home' || !PAGES[S.page]) {
+    $('view').innerHTML = pageHome();
+    return;
+  }
+  $('view').innerHTML = `<div class="navbar"><button class="nav-back" data-page="home">‹ Home</button><h2>${TITLES[S.page] ?? ''}</h2></div>
+    <div class="app-body">${PAGES[S.page]()}</div>`;
 }
 
 /* ========== 8. Start ========== */
@@ -487,7 +528,7 @@ document.addEventListener('click', (e) => {
   const go = e.target.closest('[data-go]');
   if (go) { travel(go.dataset.go); return; }
   const page = e.target.closest('[data-page]');
-  if (page && !page.disabled) { S.page = page.dataset.page; render(); window.scrollTo(0, 0); return; }
+  if (page && !page.disabled) { S.page = page.dataset.page; render(); $('view').scrollTop = 0; return; }
   const act = e.target.closest('[data-act]');
   if (!act || act.disabled) return;
   const [a, b, c] = act.dataset.act.split(':');
@@ -497,6 +538,7 @@ document.addEventListener('click', (e) => {
   if (a === 'bunker') buyBunker();
   if (a === 'in') stash(b, true);
   if (a === 'out') stash(b, false);
+  if (a === 'wait') { advanceTime(false); return; }
   if (a === 'tips') { S.tips = !S.tips; save(); render(); }
   if (a === 'intro') intro();
   if (a === 'reset' && confirm('Wirklich neu anfangen? Der Spielstand geht verloren.')) {
@@ -504,7 +546,7 @@ document.addEventListener('click', (e) => {
     location.reload();
   }
 });
-$('wait').addEventListener('click', () => advanceTime(false));
+
 $('m-ok').addEventListener('click', () => $('modal').classList.add('hidden'));
 $('start-btn').addEventListener('click', () => {
   S = newState($('name').value.trim() || 'Kalle');
@@ -522,12 +564,12 @@ function intro() {
     <p><b>2. Werde Dealer.</b> Ab ${CONFIG.ranks[1].needs.rep} Ruf kaufst du bei Flávio selbst ein und verkaufst an Kunden – nachts kommen die meisten.</p>
     <p><b>3. Bleib unter dem Radar.</b> Jeder Verkauf macht den Kiez heißer. Ist es heiß, fahr woanders hin. Bei einer Kontrolle ist die Ware am Mann weg.</p>
     <p><b>4. Werde größer.</b> Stammkunden, Bunker, mehr Ware – die Stufen siehst du unter „Aufstieg“.</p>
-    <p>Die ersten ${CONFIG.graceDays} Tage gibt es keine Kontrollen. Der Kasten „Nächster Schritt“ sagt dir immer, was du als Nächstes tun kannst.</p>`);
+    <p>Die ersten ${CONFIG.graceDays} Tage gibt es keine Kontrollen. Die Mitteilung oben auf dem Startbildschirm sagt dir immer, was du als Nächstes tun kannst – die passende App leuchtet. Mit dem runden Knopf kommst du immer zurück.</p>`);
 }
 
 function start() {
   $('start').classList.add('hidden');
-  $('game').classList.remove('hidden');
+  $('view').classList.remove('hidden');
   render();
 }
 

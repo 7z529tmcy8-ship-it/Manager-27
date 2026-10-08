@@ -10,49 +10,39 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Startbildschirm -->
-  <section id="start" class="start hidden">
-    <div class="start-card">
-      <p class="eyebrow">Ein Kiez-Spiel</p>
-      <h1>Onkel Flávio</h1>
-      <p>Kreuzberg. Du hast 50 Euro, ein altes Handy und eine Nummer: die von Onkel Flávio.
-        Er sucht jemanden, der Sachen von A nach B bringt. Fang klein an – und werde größer.</p>
-      <label for="name">Wie nennen sie dich im Kiez?</label>
-      <input id="name" maxlength="20" autocomplete="off" placeholder="z. B. Kalle" />
-      <button id="start-btn" class="btn primary wide">Loslegen</button>
-      <p class="fine">Erfundene Geschichte, erfundene Ware. Ein Spiel – keine Anleitung.</p>
-    </div>
-  </section>
-
-  <!-- Spiel -->
-  <main id="game" class="hidden">
-    <header class="bar">
-      <div class="bar-top">
-        <strong class="brand">Onkel Flávio</strong>
-        <span id="clock"></span>
+  <!-- Das Handy: Rahmen, Bildschirm, Home-Knopf -->
+  <div class="device">
+    <div class="speaker" aria-hidden="true"></div>
+    <div class="screen">
+      <div class="statusbar">
+        <span class="sig" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>KiezNet</span>
+        <span id="clock" class="clock"></span>
+        <span class="batt" aria-hidden="true"><i></i></span>
       </div>
-      <div class="bar-stats">
-        <div><small>Geld</small><b id="s-cash"></b></div>
-        <div><small>Ruf</small><b id="s-rep"></b></div>
-        <div><small>Rang</small><b id="s-rank"></b></div>
-        <div><small>Heat</small><b id="s-heat"></b></div>
+
+      <!-- Startbildschirm (erster Start) -->
+      <section id="start" class="start hidden">
+        <p class="eyebrow">Ein Kiez-Spiel</p>
+        <h1>Onkel Flávio</h1>
+        <p>Kreuzberg. Du hast 100 Euro, dieses alte Handy und eine Nummer: die von Onkel Flávio.
+          Er sucht jemanden, der Sachen von A nach B bringt. Fang klein an – und werde größer.</p>
+        <label for="name">Wie nennen sie dich im Kiez?</label>
+        <input id="name" maxlength="20" autocomplete="off" placeholder="z. B. Kalle" />
+        <button id="start-btn" class="btn primary wide">Handy entsperren</button>
+        <p class="fine">Erfundene Geschichte, erfundene Ware. Ein Spiel – keine Anleitung.</p>
+      </section>
+
+      <main id="view" class="hidden"></main>
+
+      <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-card">
+          <h2 id="m-title"></h2>
+          <div id="m-body"></div>
+          <button id="m-ok" class="btn primary wide">OK</button>
+        </div>
       </div>
-      <div class="heat"><i id="heat-fill"></i></div>
-    </header>
-
-    <section id="view"></section>
-
-    <footer class="foot">
-      <button id="wait" class="btn primary wide">Abwarten · nächste Tageszeit</button>
-    </footer>
-  </main>
-
-  <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal-card">
-      <h2 id="m-title"></h2>
-      <div id="m-body"></div>
-      <button id="m-ok" class="btn primary wide">OK</button>
     </div>
+    <button class="home-btn" data-page="home" aria-label="Zum Startbildschirm"><i></i></button>
   </div>
 
   <script src="game.js"></script>
