@@ -16,8 +16,8 @@
 /* ========== 1. CONFIG ========== */
 const CONFIG = {
   saveKey: 'onkel-flavio-v1',
-  startCash: 50,
-  rent: { every: 7, amount: 120 }, // WG-Zimmer, alle 7 Tage
+  startCash: 100,
+  rent: { every: 7, amount: 80 }, // WG-Zimmer, alle 7 Tage
   times: ['Morgen', 'Nachmittag', 'Nacht'],
   flavioAt: 'oranien', // Flávios Späti
   // Kieze: Kürzel, Name, Kundschaft (Menge pro Tageszeit), Polizeidruck, Nachfrage je Ware, Position auf der Karte
@@ -39,15 +39,17 @@ const CONFIG = {
   ],
   // Ränge: was man braucht, was es bringt
   ranks: [
-    { name: 'Läufer', short: 'Läufer', pocket: 8, needs: null, unlock: 'Aufträge für Flávio: Ware abholen und ausliefern.' },
-    { name: 'Straßendealer', short: 'Dealer', pocket: 12, needs: { rep: 12 }, unlock: 'Eigene Kunden, Einkauf bei Flávio.' },
-    { name: 'Kiez-Dealer', short: 'Kiez', pocket: 20, needs: { rep: 45, regulars: 3, cash: 2000 }, unlock: 'Bunker (Versteck), Pulver, mehr Platz am Mann.' },
+    { name: 'Läufer', short: 'Läufer', pocket: 10, needs: null, unlock: 'Aufträge für Flávio: Ware abholen und ausliefern.' },
+    { name: 'Straßendealer', short: 'Dealer', pocket: 15, needs: { rep: 8 }, unlock: 'Eigene Kunden, Einkauf bei Flávio.' },
+    { name: 'Kiez-Dealer', short: 'Kiez', pocket: 25, needs: { rep: 30, regulars: 2, cash: 800 }, unlock: 'Bunker (Versteck), Pulver, mehr Platz am Mann.' },
     { name: 'Zwischenhändler', short: 'Händler', pocket: 30, needs: { locked: true }, unlock: 'Andere Dealer beliefern, Fassade – kommt bald.' },
     { name: 'Großhändler', short: 'Groß', pocket: 50, needs: { locked: true }, unlock: 'Ganz Berlin, Lieferanten – kommt bald.' },
     { name: 'Der Boss', short: 'Boss', pocket: 80, needs: { locked: true }, unlock: 'Die Stadt gehört dir – kommt bald.' },
   ],
-  bunker: { price: 1500, capacity: 60 },
-  heatDecay: 12, // pro Tag in jedem Kiez
+  bunker: { price: 700, capacity: 60 },
+  graceDays: 3, // in den ersten Tagen gibt es keine Kontrollen
+  arrestAt: 15, // ab so vielen Einheiten am Mann wird man festgenommen
+  heatDecay: 15, // pro Tag in jedem Kiez
 };
 
 const FIRST = ['Kalle', 'Deniz', 'Mia', 'Jonas', 'Leyla', 'Tom', 'Sami', 'Nina', 'Ben', 'Aylin', 'Paul', 'Lina', 'Emre', 'Sophie', 'Malik', 'Jana', 'Luca', 'Hanna', 'Kemal', 'Finn', 'Marta', 'Ole', 'Selin', 'Max'];
@@ -67,6 +69,7 @@ function newState(name) {
     customers: [], // Kunden der aktuellen Tageszeit
     regulars: {}, // Name → { kiez, buys, regular }
     phone: [], // Nachrichten
+    tips: true, // Tutor-Hinweise auf der Startseite
     stats: { sold: 0, earned: 0, jobs: 0, busts: 0 },
     page: 'home',
   };
@@ -145,7 +148,7 @@ function rollJobs() {
   S.jobs = Array.from({ length: 3 }, () => {
     const to = pick(targets);
     const units = Math.round(rnd(2, 6));
-    return { to: to.id, units, pay: Math.round(18 + units * rnd(5, 9) + to.police * 8) };
+    return { to: to.id, units, pay: Math.round(25 + units * rnd(6, 10) + to.police * 10) };
   });
 }
 
@@ -185,7 +188,7 @@ function sellTo(i) {
   const money = c.units * c.offer;
   S.pocket[c.good] -= c.units;
   S.cash += money;
-  S.heat[S.at] = clamp(S.heat[S.at] + c.units * g.heat * kiez(S.at).police * (c.regular ? 0.5 : 1), 0, 100);
+  S.heat[S.at] = clamp(S.heat[S.at] + c.units * g.heat * 0.7 * kiez(S.at).police * (c.regular ? 0.5 : 1), 0, 100);
   S.rep += c.regular ? 2 : 1;
   S.stats.sold += c.units;
   S.stats.earned += money;
@@ -249,13 +252,13 @@ function checkRank() {
 function advanceTime(traveled = false) {
   const report = [];
   // Kontrolle: je heißer der Kiez, desto eher. Nachts mehr Streifen.
-  const chance = clamp((S.heat[S.at] / 220) * kiez(S.at).police + (S.time === 2 ? 0.03 : 0) + (traveled ? 0.02 : 0), 0, 0.55);
+  const chance = S.day <= CONFIG.graceDays ? 0 : clamp((S.heat[S.at] / 300) * kiez(S.at).police + (S.time === 2 ? 0.02 : 0) + (traveled ? 0.01 : 0), 0, 0.4);
   if (Math.random() < chance) {
     const units = carried();
     if (units === 0) {
       report.push(`Polizeikontrolle in ${kiez(S.at).name}. Du warst sauber – sie lassen dich gehen.`);
     } else {
-      const fine = Math.min(Math.max(0, S.cash), 40 * units);
+      const fine = Math.min(Math.max(0, S.cash), 15 * units);
       S.cash -= fine;
       for (const g of Object.keys(S.pocket)) S.pocket[g] = 0;
       if (S.job) {
@@ -265,10 +268,10 @@ function advanceTime(traveled = false) {
       }
       S.heat[S.at] = clamp(S.heat[S.at] + 15, 0, 100);
       S.stats.busts++;
-      if (units >= 10) {
-        S.day += 2;
+      if (units >= CONFIG.arrestAt) {
+        S.day += 1;
         S.time = 0;
-        report.push(`Festnahme! ${units} Einheiten beschlagnahmt, ${eur(fine)} Kaution, zwei Tage in Gewahrsam.`);
+        report.push(`Festnahme! ${units} Einheiten beschlagnahmt, ${eur(fine)} Kaution, ein Tag in Gewahrsam.`);
       } else {
         report.push(`Polizeikontrolle! ${units} Einheiten beschlagnahmt, ${eur(fine)} weg.`);
       }
@@ -318,17 +321,40 @@ function showModal(title, html, bad = false) {
   $('modal').classList.remove('hidden');
 }
 
+let HL = null; // vom Tutor hervorgehobene Abteilung
 const item = (page, code, title, sub, meta = '', disabled = false) =>
-  `<button class="item" data-page="${page}" ${disabled ? 'disabled' : ''}>
+  `<button class="item ${HL === page ? 'hl' : ''}" data-page="${page}" ${disabled ? 'disabled' : ''}>
     <span class="code">${code}</span><span class="txt"><strong>${title}</strong><small>${sub}</small></span>
     <span class="meta">${meta}</span><span class="chev">›</span></button>`;
 const head = (title) => `<div class="page-head"><button class="back" data-page="home">‹ Zurück</button><h2>${title}</h2></div>`;
+
+/** Tutor: Was ist jetzt der sinnvollste nächste Schritt? Gibt Text und die Abteilung zurück, die hervorgehoben wird. */
+function nextStep() {
+  const here = S.at === CONFIG.flavioAt;
+  const goods = Object.values(S.pocket).reduce((a, b) => a + b, 0);
+  if (S.job) return S.at === S.job.to ? ['Lieferung läuft – tipp auf „Abwarten“.', null] : [`Fahr mit der U-Bahn nach ${kiez(S.job.to).name}, um Flávios Ware abzuliefern.`, 'map'];
+  if (S.heat[S.at] >= 50 && goods) return [`In ${kiez(S.at).name} ist es heiß (${Math.round(S.heat[S.at])} %). Fahr in einen ruhigeren Kiez, bevor du verkaufst.`, 'map'];
+  if (S.rank === 0) {
+    if (!here) return ['Fahr mit der U-Bahn zur Oranienstraße – dort hat Flávio Arbeit für dich.', 'map'];
+    if (S.jobs.length) return [`Öffne „Aufträge“ und nimm einen an. Noch ${CONFIG.ranks[1].needs.rep - S.rep} Ruf bis zum Straßendealer.`, 'jobs'];
+    return ['Heute keine Aufträge mehr. Tipp auf „Abwarten“ – morgen gibt es neue.', null];
+  }
+  if (goods === 0) return here ? ['Öffne „Einkauf bei Flávio“ und kauf Ware ein – am besten Kraut, das wollen viele.', 'buy'] : ['Du hast nichts zum Verkaufen. Fahr zur Oranienstraße und kauf bei Flávio ein.', 'map'];
+  if (S.customers.some((c) => !c.done && S.pocket[c.good] >= c.units)) return ['Kunden warten! Öffne „Kunden“ und verkauf.', 'customers'];
+  if (S.rank >= 2 && !S.bunker && S.cash >= CONFIG.bunker.price) return ['Kauf dir einen Bunker, damit nicht alles am Mann ist.', 'bunker'];
+  const want = S.customers.find((c) => !c.done);
+  if (want) return [`Die Kunden hier wollen ${good(want.good).name} (${want.units}×) – das hast du nicht genug dabei. Abwarten oder beim nächsten Einkauf mitnehmen.`, null];
+  return ['Gerade passt kein Kunde. Abwarten (nachts kommen mehr) oder in einen anderen Kiez fahren – im Görli und am Kotti ist am meisten los.', null];
+}
 
 function pageHome() {
   const k = kiez(S.at);
   const open = S.customers.filter((c) => !c.done).length;
   const jobInfo = S.job ? `Unterwegs nach ${kiez(S.job.to).name}` : S.at === CONFIG.flavioAt ? `${S.jobs.length} Aufträge bei Flávio` : 'Bei Flávio in der Oranienstraße';
-  return `<div class="where"><small>Standort</small><strong>${k.name}</strong><span>${k.people} · Heat hier ${Math.round(S.heat[S.at])} %</span></div>
+  const [tip, target] = S.tips ? nextStep() : [null, null];
+  HL = target;
+  const tipBox = tip ? `<div class="tip"><small>Nächster Schritt</small><p>${tip}</p></div>` : '';
+  return `${tipBox}<div class="where"><small>Standort</small><strong>${k.name}</strong><span>${k.people} · Heat hier ${Math.round(S.heat[S.at])} %</span></div>
   <div class="list">
     ${item('customers', 'KU', 'Kunden', S.rank < 1 ? 'Als Läufer verkaufst du noch nicht selbst' : open ? 'Warten auf dich' : 'Gerade niemand', open ? `${open} da` : '', S.rank < 1)}
     ${item('jobs', 'AU', 'Aufträge', jobInfo, S.job ? 'aktiv' : '')}
@@ -385,7 +411,7 @@ function pageBuy() {
 function pagePocket() {
   const rows = CONFIG.goods.filter((g) => S.pocket[g.id] > 0).map((g) => `<div class="row"><div class="grow"><strong>${g.name}</strong><small>Straßenwert hier ca. ${eur(streetPrice(g.id))} pro Einheit</small></div><span class="num">${S.pocket[g.id]}</span></div>`).join('');
   const job = S.job ? `<div class="row"><div class="grow"><strong>Flávios Ware</strong><small>Auftrag nach ${kiez(S.job.to).name}</small></div><span class="num">${S.job.units}</span></div>` : '';
-  return `${head('Am Mann')}<p class="hint">${carried()} von ${rank().pocket} Einheiten. Bei einer Kontrolle ist alles weg – ab 10 Einheiten gibt es eine Festnahme.</p>
+  return `${head('Am Mann')}<p class="hint">${carried()} von ${rank().pocket} Einheiten. Bei einer Kontrolle ist alles weg – ab ${CONFIG.arrestAt} Einheiten gibt es eine Festnahme.</p>
     <div class="list">${job}${rows || (job ? '' : '<div class="empty">Nichts dabei. Sauber.</div>')}</div>`;
 }
 
@@ -435,6 +461,9 @@ function pageStatus() {
     <p class="hint">Ruf ${S.rep} · Stammkunden ${regularCount()} · Geld ${eur(S.cash)}</p>
     <ul class="steps">${steps}</ul>
     <p class="hint">Bilanz: ${S.stats.sold} Einheiten verkauft · ${eur(S.stats.earned)} Umsatz · ${S.stats.jobs} Aufträge · ${S.stats.busts}× erwischt</p>
+    <div class="list"><div class="row"><div class="grow"><strong>Tipps</strong><small>„Nächster Schritt“ auf der Startseite</small></div>
+      <button class="btn sm ${S.tips ? 'primary' : ''}" data-act="tips">${S.tips ? 'An' : 'Aus'}</button>
+      <button class="btn sm" data-act="intro">Einführung</button></div></div>
     <button class="btn sm" data-act="reset">Neues Spiel</button>`;
 }
 
@@ -468,6 +497,8 @@ document.addEventListener('click', (e) => {
   if (a === 'bunker') buyBunker();
   if (a === 'in') stash(b, true);
   if (a === 'out') stash(b, false);
+  if (a === 'tips') { S.tips = !S.tips; save(); render(); }
+  if (a === 'intro') intro();
   if (a === 'reset' && confirm('Wirklich neu anfangen? Der Spielstand geht verloren.')) {
     try { localStorage.removeItem(CONFIG.saveKey); } catch { /* egal */ }
     location.reload();
@@ -481,7 +512,18 @@ $('start-btn').addEventListener('click', () => {
   text('Onkel Flávio', 'Du bist also der Neue. Komm in den Späti in der Oranienstraße. Ich hab Arbeit für dich.');
   save();
   start();
+  intro();
 });
+
+/** Kurze Einführung beim ersten Start (und jederzeit unter „Aufstieg“). */
+function intro() {
+  showModal('So läuft es', `
+    <p><b>1. Arbeite für Flávio.</b> In der Oranienstraße gibt es Aufträge: Ware abholen, mit der U-Bahn in einen anderen Kiez bringen, Geld und Ruf kassieren.</p>
+    <p><b>2. Werde Dealer.</b> Ab ${CONFIG.ranks[1].needs.rep} Ruf kaufst du bei Flávio selbst ein und verkaufst an Kunden – nachts kommen die meisten.</p>
+    <p><b>3. Bleib unter dem Radar.</b> Jeder Verkauf macht den Kiez heißer. Ist es heiß, fahr woanders hin. Bei einer Kontrolle ist die Ware am Mann weg.</p>
+    <p><b>4. Werde größer.</b> Stammkunden, Bunker, mehr Ware – die Stufen siehst du unter „Aufstieg“.</p>
+    <p>Die ersten ${CONFIG.graceDays} Tage gibt es keine Kontrollen. Der Kasten „Nächster Schritt“ sagt dir immer, was du als Nächstes tun kannst.</p>`);
+}
 
 function start() {
   $('start').classList.add('hidden');
@@ -490,5 +532,6 @@ function start() {
 }
 
 S = load();
+if (S && S.tips === undefined) S.tips = true;
 if (S) start();
 else $('start').classList.remove('hidden');

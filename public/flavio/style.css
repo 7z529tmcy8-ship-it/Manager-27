@@ -97,3 +97,8 @@ input:focus { border-color: var(--blue); }
 .modal-card.bad h2 { color: var(--bad); }
 .modal-card p { margin: 6px 0; }
 @media (max-width: 420px) { .bar-stats b { font-size: 18px; } .brand { font-size: 19px; } }
+.tip { margin: 14px 0 0; padding: 12px 14px; background: var(--blue); color: #fff; }
+.tip small { text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 700; opacity: .8; }
+.tip p { margin: 4px 0 0; font-size: 19px; font-weight: 600; }
+.item.hl { background: var(--blue-soft); box-shadow: inset 4px 0 0 var(--blue); }
+.item.hl .chev { color: var(--blue); font-weight: 800; }
