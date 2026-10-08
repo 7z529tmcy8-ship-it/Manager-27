@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PACKS, openPack, rarity, type CollectCard, type PackResult } from '../game/club';
 import {
-  DUEL_LEVELS, FORMATIONS, FORMATION_ORDER, TASKS, changeFormation, slotsOf, type FormationId, autoSquad, cardById, chemistry, completeTask, fit, opponent, ownedCards, playDuel,
+  DUEL_LEVELS, FORMATIONS, FORMATION_ORDER, TASKS, changeFormation, slotsOf, autoSquad, cardById, chemistry, completeTask, fit, opponent, ownedCards, playDuel,
   setSlot, taskPick, teamRating, teamStrength, type DuelResult,
 } from '../game/squad';
 import { getClubState, setClubState, useClub } from '../clubStore';
