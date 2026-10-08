@@ -291,6 +291,22 @@ export interface SeasonProgress {
   cup: CupState;
   euro: EuroState | null;
   winterMove: WinterMove | null;
+  /** Selbst gespieltes Topspiel der Halbserie – fließt in die Simulation ein. */
+  keyMatch?: KeyMatch | null;
+}
+
+export interface KeyMatch {
+  half: 1 | 2;
+  opponentId: string;
+  home: boolean;
+  goalsFor: number;
+  goalsAgainst: number;
+  goals: number;
+  assists: number;
+  rating: number | null;
+  role: 'start' | 'sub' | 'bench';
+  minutes: number;
+  used: boolean;
 }
 
 export type OfferType = 'Transfer' | 'Leihe' | 'Verlängerung' | 'Ablösefrei';
@@ -689,7 +705,7 @@ export interface Application {
 }
 
 export interface PendingFinal {
-  kind: 'cup' | 'euro' | 'national';
+  kind: 'cup' | 'euro' | 'national' | 'league';
   title: string;
   opponentId?: string;
   opponentName: string;
@@ -719,6 +735,8 @@ export interface FinalLogLine {
 
 export interface FinalState {
   final: PendingFinal;
+  /** Ligaspiel: Unentschieden möglich, kein Elfmeterschießen. */
+  allowDraw?: boolean;
   isKeeper: boolean;
   /** Bonus auf eigene Aktionen in Finals (Eiskalt/Showman). */
   clutch?: number;

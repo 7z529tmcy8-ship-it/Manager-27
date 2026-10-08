@@ -1,6 +1,6 @@
 import { bonusOvr } from './development';
 import { getClub } from '../data/leagues';
-import { acceptOffer, acceptWinterOffer, canStay, playFirstHalf, playSeason, requestOffers, retire, stayAtClub } from './career';
+import { acceptOffer, acceptWinterOffer, autoPlayFinal, canStay, finishFinal, playFirstHalf, playSeasonUntilFinal, requestOffers, retire, stayAtClub } from './career';
 import { chance, randInt } from './random';
 import { clubStrength } from './player';
 import { STAGES_PER_HALF, halfStats } from './season';
@@ -11,18 +11,36 @@ import { closeYear } from './household';
 import type { Career, Offer } from './types';
 
 // Vereinfachter Spielablauf: immer bis zur nächsten Pause simulieren (Winterpause, dann Saisonende),
-// am Saisonende genau drei Möglichkeiten. Keine Zwischen-Entscheidungen, Finals laufen automatisch.
+// am Saisonende genau drei Möglichkeiten. Finals und ein Topspiel pro Halbserie spielt man selbst (oder automatisch).
 
 /** Bis zur Winterpause (aus der Saison) bzw. bis Saisonende (aus der Winterpause). */
-export function simulateToBreak(input: Career): Career {
+/** `liveFinals`: vor Finals anhalten, damit man sie selbst spielt (Oberfläche); sonst laufen sie automatisch. */
+export function simulateToBreak(input: Career, liveFinals = false): Career {
   const prev: Career = { ...input, decisionResult: null };
   // Alte Spielstände können mitten in der Rückrunde stehen – dann direkt bis Saisonende.
   const inSecondHalf = (prev.progress?.stage ?? 0) >= STAGES_PER_HALF;
   if (prev.phase === 'season' && !inSecondHalf) return withXp({ ...playFirstHalf({ ...prev, decision: null }, true), decision: null });
-  if (prev.phase === 'season' || prev.phase === 'winter' || prev.phase === 'final') {
-    return withXp(ensureOffers({ ...playSeason({ ...prev, decision: null }), decision: null }));
+  if (prev.phase === 'final') {
+    // Finale nicht selbst spielen: alles automatisch zu Ende.
+    let c: Career = { ...prev, decision: null };
+    while (c.phase === 'final') c = finishFinal(autoPlayFinal(c));
+    return withXp(ensureOffers({ ...c, decision: null }));
+  }
+  if (prev.phase === 'season' || prev.phase === 'winter') {
+    const c = playSeasonUntilFinal({ ...prev, decision: null });
+    // Finals stehen an: die Oberfläche zeigt sie live, danach geht es mit finishLiveFinal weiter.
+    if (c.phase === 'final' && liveFinals) return { ...c, decision: null };
+    if (c.phase === 'final') return simulateToBreak(c);
+    return withXp(ensureOffers({ ...c, decision: null }));
   }
   return prev;
+}
+
+/** Live-Finale abgeschlossen: nächstes Finale oder Saisonende (mit Angeboten und Erfahrungspunkten). */
+export function finishLiveFinal(prev: Career): Career {
+  const c = finishFinal(prev);
+  if (c.phase === 'final') return c;
+  return withXp(ensureOffers({ ...c, decision: null }));
 }
 
 /**

@@ -17,6 +17,8 @@ export interface FinalSetup {
   /** Bonus auf eigene Aktionen (Eiskalt/Showman). */
   clutch?: number;
   hothead?: boolean;
+  /** Ligaspiel: Unentschieden möglich. */
+  allowDraw?: boolean;
 }
 
 /** Plant ein Finale: Chancen beider Teams über 90 Minuten, einige davon mit Entscheidung des Spielers. */
@@ -66,6 +68,7 @@ export function startFinal(setup: FinalSetup): FinalState {
 
   return {
     final,
+    allowDraw: setup.allowDraw ?? false,
     isKeeper: position === 'TW',
     clutch: setup.clutch ?? 0,
     hothead: setup.hothead ?? false,
@@ -174,7 +177,7 @@ export function advanceFinal(prev: FinalState, choice?: string, playerName = 'Du
   // 90 Minuten gespielt
   if (!state.shootout) {
     state.minute = 90;
-    if (state.score[0] !== state.score[1]) return finish(state);
+    if (state.score[0] !== state.score[1] || state.allowDraw) return finish(state);
     state.log.push({ minute: 90, text: 'Abpfiff nach 90 Minuten – es geht ins Elfmeterschießen!', tone: 'info' });
     state.shootout = { own: 0, opp: 0, round: 0, playerKicked: false };
     if (state.playerRole !== 'bench' && state.minute >= state.subMinute) {
@@ -310,7 +313,11 @@ function finish(state: FinalState): FinalState {
   state.won = state.score[0] > state.score[1];
   state.log.push({
     minute: 90,
-    text: state.won ? `Abpfiff! ${state.ownName} gewinnt ${state.score[0]}:${state.score[1]}!` : `Abpfiff. ${state.final.opponentName} gewinnt ${state.score[1]}:${state.score[0]}.`,
+    text: state.won
+      ? `Abpfiff! ${state.ownName} gewinnt ${state.score[0]}:${state.score[1]}!`
+      : state.score[0] === state.score[1]
+        ? `Abpfiff. Unentschieden, ${state.score[0]}:${state.score[1]}.`
+        : `Abpfiff. ${state.final.opponentName} gewinnt ${state.score[1]}:${state.score[0]}.`,
     tone: state.won ? 'goal' : 'against',
   });
   return state;

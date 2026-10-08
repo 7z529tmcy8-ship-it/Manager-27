@@ -7,6 +7,9 @@ import InvestPanel from './InvestPanel';
 import ClinicPanel from './ClinicPanel';
 import LifePopups from './LifePopups';
 import MomentOverlay from './MomentOverlay';
+import LiveMatch from './LiveMatch';
+import { advanceFinal, autoFinal } from '../game/final';
+import { autoPlayFinal, keyMatchFor, playFinalStep, setKeyMatch, startKeyMatch } from '../game/career';
 import { detectMoments, type Moment } from '../game/moments';
 import SkillTree, { ArchetypePicker, LevelChip } from './SkillTree';
 import { flagOf, nationCode } from '../data/flags';
@@ -17,9 +20,9 @@ import { freePoints, levelInfo } from '../game/skills';
 import { play } from '../sound';
 import { isBroke } from '../game/gambling';
 import { useClub } from '../clubStore';
-import { applyChoice, applyWinterChoice, choiceClub, seasonChoices, simulateToBreak, winterChoices, type Choice } from '../game/simple';
+import { applyChoice, applyWinterChoice, choiceClub, finishLiveFinal, seasonChoices, simulateToBreak, winterChoices, type Choice } from '../game/simple';
 import { STAGES_PER_HALF } from '../game/season';
-import type { Career, SeasonRecord } from '../game/types';
+import type { Career, FinalState, SeasonRecord } from '../game/types';
 
 interface Props {
   career: Career;
@@ -77,9 +80,22 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   const retired = career.phase === 'retired';
   const coins = useClub().coins;
 
+  // Topspiel der Halbserie: vor dem Simulieren selbst spielen (oder automatisch).
+  const [keyLive, setKeyLive] = useState<{ key: NonNullable<ReturnType<typeof keyMatchFor>>; state: FinalState; started: boolean } | null>(null);
   const run = () => {
     setPicked(null);
-    onChange(simulateToBreak(career));
+    const key = keyMatchFor(career);
+    if (key) {
+      setKeyLive({ key, state: startKeyMatch(career, key), started: false });
+      return;
+    }
+    onChange(simulateToBreak(career, true));
+  };
+  const finishKey = (state: FinalState) => {
+    if (!keyLive) return;
+    const next = setKeyMatch(career, keyLive.key, state);
+    setKeyLive(null);
+    onChange(simulateToBreak(next, true));
   };
   const confirm = () => {
     if (picked === null) return;
@@ -91,6 +107,26 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
 
   return (
     <main className="cs">
+      {keyLive && (
+        <LiveMatch
+          title={`Topspiel · ${keyLive.key.home ? 'Heimspiel' : 'Auswärtsspiel'}`}
+          state={keyLive.state}
+          intro={!keyLive.started}
+          onStart={() => setKeyLive({ ...keyLive, started: true })}
+          onStep={(choice) => setKeyLive({ ...keyLive, state: advanceFinal(keyLive.state, choice, p.name, p.ovr) })}
+          onAuto={() => finishKey(autoFinal(keyLive.state, p.name, p.ovr))}
+          onDone={() => finishKey(keyLive.state)}
+        />
+      )}
+      {career.phase === 'final' && career.liveFinal && (
+        <LiveMatch
+          title={career.liveFinal.final.title}
+          state={career.liveFinal}
+          onStep={(choice) => onChange(playFinalStep(career, choice))}
+          onAuto={() => onChange(finishLiveFinal(autoPlayFinal(career)))}
+          onDone={() => onChange(finishLiveFinal(career))}
+        />
+      )}
       <div className="cs-nav">
         <button className="cs-link" onClick={onExit}>‹ Menü</button>
         <span className="cs-nav-name">{p.name}</span>

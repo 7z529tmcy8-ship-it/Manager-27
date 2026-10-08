@@ -13,6 +13,7 @@ import { PRESS_FREQUENCIES, adjustGrowth, settingsOf } from './difficulty';
 import {
   STAGES,
   STAGES_PER_HALF,
+  upcomingFixtures,
   applyLeagueChanges,
   computeNational,
   finishSeason,
@@ -31,7 +32,7 @@ import { hasTrait, type TraitId } from './traits';
 import { advanceFinal, autoFinal, finalRating, startFinal } from './final';
 import { addNews, summerNews, winterNews } from './news';
 import { createRival, simulateRivalSeason } from './rival';
-import type { Career, DecisionResult, GameEvent, MatchLine, Offer, Position, Role, SeasonRecord, StageLoad, TrainingFocus, TransferEntry } from './types';
+import type { Career, DecisionResult, FinalState, GameEvent, MatchLine, Offer, Position, Role, SeasonRecord, StageLoad, TrainingFocus, TransferEntry } from './types';
 
 export const START_YEAR = 2025;
 export const MAX_AGE = 41;
@@ -409,6 +410,61 @@ export function acceptWinterOffer(prev: Career, offer: Offer, quick = false): Ca
 }
 
 /** „Ganze Saison“: spielt den Rest der Saison am Stück – egal, in welcher Etappe man gerade ist. */
+/** Wie playSeason, hält aber vor Finals an (Phase „final“ mit Live-Finale) – für selbst gespielte Finals. */
+export function playSeasonUntilFinal(prev: Career): Career {
+  let career: Career = structuredClone(prev);
+  if (career.phase === 'season' && (career.progress?.stage ?? 0) < STAGES_PER_HALF) career = playFirstHalf(career, true);
+  if (career.phase === 'winter') career = stayInWinter(career, true);
+  else if (career.phase === 'season') career = finishSecondHalf(career);
+  return career;
+}
+
+/** Topspiel der kommenden Halbserie: Liga-Gegner mit der größten Stärke. */
+export function keyMatchFor(career: Career): { half: 1 | 2; opponentId: string; home: boolean } | null {
+  const prog = career.progress;
+  if (!prog || (career.phase !== 'season' && career.phase !== 'winter') || prog.injuredFor > 0 || career.player.absent) return null;
+  const half: 1 | 2 = career.phase === 'winter' || (prog.stage ?? 0) >= STAGES_PER_HALF ? 2 : 1;
+  if (prog.keyMatch && prog.keyMatch.half === half) return null;
+  const first = half === 1 ? 0 : STAGES_PER_HALF;
+  const fixtures = Array.from({ length: STAGES_PER_HALF }, (_, i) => upcomingFixtures(career, prog, first + i)).flat();
+  if (!fixtures.length) return null;
+  const top = fixtures.reduce((a, b) => ((prog.strength[b.opponentId] ?? 0) > (prog.strength[a.opponentId] ?? 0) ? b : a));
+  return { half, ...top };
+}
+
+/** Live-Szene für das Topspiel starten (gleiche Engine wie die Finals, aber mit Unentschieden). */
+export function startKeyMatch(career: Career, key: { opponentId: string; home: boolean }): FinalState {
+  const p = career.player;
+  const prog = career.progress!;
+  const clubId = currentClubId(p);
+  const ownStrength = (prog.strength[clubId] ?? clubStrength(career, clubId)) + (key.home ? 1.5 : -1.5);
+  const opp = getClub(key.opponentId);
+  return startFinal({
+    final: { kind: 'league', title: 'Topspiel', opponentId: key.opponentId, opponentName: opp.name, opponentStrength: prog.strength[key.opponentId] ?? opp.strength },
+    ownName: getClub(clubId).name,
+    ownStrength,
+    goalsPerGame: getLeague(clubLeagueId(career, clubId)).goalsPerGame,
+    playerName: p.name,
+    position: p.position,
+    ovr: p.ovr,
+    selection: p.ovr - ownStrength + ROLE_BONUS[currentRole(p)] + (p.morale ?? 0) + (p.captainOf === clubId ? 1 : 0),
+    clutch: (hasTrait(p, 'clutch') ? 0.06 : 0) + (hasTrait(p, 'showman') ? 0.03 : 0),
+    hothead: hasTrait(p, 'hothead'),
+    allowDraw: true,
+  });
+}
+
+/** Ergebnis des selbst gespielten Topspiels merken – die Simulation übernimmt es, wenn das Spiel dran ist. */
+export function setKeyMatch(prev: Career, key: { half: 1 | 2; opponentId: string; home: boolean }, state: FinalState): Career {
+  const career: Career = structuredClone(prev);
+  const minutes = state.playerRole === 'start' ? 90 : state.playerRole === 'sub' ? 90 - state.subMinute : 0;
+  career.progress!.keyMatch = {
+    ...key, goalsFor: state.score[0], goalsAgainst: state.score[1], goals: state.playerGoals, assists: state.playerAssists,
+    rating: finalRating(state), role: state.playerRole, minutes, used: false,
+  };
+  return career;
+}
+
 export function playSeason(prev: Career): Career {
   let career: Career = structuredClone(prev);
   if (career.phase === 'season' && (career.progress?.stage ?? 0) < STAGES_PER_HALF) career = playFirstHalf(career, true);

@@ -171,6 +171,21 @@ function playerMatch(
     }
   }
 
+  // Selbst gespieltes Topspiel: Ergebnis und eigene Werte aus der Live-Szene übernehmen.
+  const key = prog.keyMatch;
+  if (key && !key.used && competition === 'Liga' && key.opponentId === opponentId && key.half === ctx.half) {
+    key.used = true;
+    if (key.minutes > 0 && status === 'injured' && prog.injuredFor > 0) prog.injuredFor++; // Zähne zusammengebissen
+    const line: MatchLine = {
+      competition, opponent: opponentId, home, goalsFor: key.goalsFor, goalsAgainst: key.goalsAgainst,
+      status: key.role === 'bench' ? 'bench' : key.role, minutes: key.minutes, goals: key.goals, assists: key.assists,
+      rating: key.rating, clubId: ctx.clubId, half: ctx.half, stage: ctx.stage,
+    };
+    if (key.rating !== null) prog.form = prog.form * 0.8 + key.rating * 0.2;
+    prog.matches.push(line);
+    return line;
+  }
+
   const share = minutes / 90;
   const boost = minutes > 0 ? (player.ovr - own) * 0.09 * share : 0;
   const [gf, ga] = home

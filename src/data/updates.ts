@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-08-topspiele',
+    date: '08.10.2026',
+    title: 'Topspiele und Finals selbst spielen ⚽',
+    items: [
+      '🔥 In jeder Halbserie gibt es ein Topspiel gegen den stärksten Gegner: Spiel es selbst – du entscheidest in den wichtigen Momenten (abziehen, querlegen, dribbeln, grätschen …) – oder lass es simulieren.',
+      '🏆 Pokal- und Europapokal-Finals laufen jetzt live, mit Ticker, Entscheidungen und Elfmeterschießen.',
+      '📊 Was du im Spiel machst, zählt: Tore, Vorlagen, Note und Ergebnis landen in deiner Saison.',
+    ],
+  },
+  {
     id: '2026-10-08-megasuper',
     date: '08.10.2026',
     title: '⚡ MEGA SUPER XXL PACK – gratis für alle ⚡',
