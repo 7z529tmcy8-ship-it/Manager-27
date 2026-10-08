@@ -62,9 +62,12 @@ function newState(name) {
     news: ['Willkommen im Keller. Onkel Vito wartet auf sein Geld.'],
     won: false, over: false,
     stats: { sold: 0, earned: 0, raids: 0 },
+    ledger: newLedger(CONFIG.start.cash),
   };
 }
 let S = null;
+let view = 'hq'; // 'hq' oder eine Abteilung
+function newLedger(cash = 0) { return { startCash: cash, sales: 0, bought: 0, made: 0, upgrades: 0, loan: 0, events: [] }; }
 
 /* ========== 3. Hilfsfunktionen ========== */
 const $ = (id) => document.getElementById(id);
@@ -114,6 +117,7 @@ function buy(id, n) {
   n = Math.min(n, freeSpace(), Math.floor(S.cash / buyPrice(id)));
   if (n <= 0) return;
   S.cash -= n * buyPrice(id);
+  S.ledger.bought += n * buyPrice(id);
   S.inv[id] += n;
   save(); render();
 }
@@ -128,6 +132,7 @@ function sell(id, n) {
   S.heat = clamp(S.heat + n * p.heat * (1 - coverFactor(S.levels.cover)), 0, 100);
   S.stats.sold += n;
   S.stats.earned += money;
+  S.ledger.sales += money;
   save(); render();
   checkEnd();
 }
@@ -138,6 +143,7 @@ function produce(id, n) {
   n = Math.min(n, labCapacity(S.levels.lab) - S.produced, freeSpace(), Math.floor(S.cash / p.cost));
   if (n <= 0) return;
   S.cash -= n * p.cost;
+  S.ledger.made += n * p.cost;
   S.inv[id] += n;
   S.produced += n;
   S.heat = clamp(S.heat + n * 0.01, 0, 100); // Herstellen fällt weniger auf als Verkaufen
@@ -150,6 +156,7 @@ function upgrade(u) {
   const price = upgradePrice(u, l + 1);
   if (S.cash < price) return;
   S.cash -= price;
+  S.ledger.upgrades += price;
   S.levels[u] = l + 1;
   news(`${CONFIG.upgrades[u].name} ausgebaut auf Stufe ${l + 1}.`);
   save(); render();
@@ -159,6 +166,7 @@ function borrow(n) {
   if (S.debt + n > 50000) return;
   S.debt += n;
   S.cash += n;
+  S.ledger.loan += n;
   save(); render();
 }
 
@@ -167,6 +175,7 @@ function repay(n) {
   if (n <= 0) return;
   S.debt -= n;
   S.cash -= n;
+  S.ledger.loan -= n;
   if (S.debt === 0) news('Onkel Vito ist zufrieden. Vorerst.');
   save(); render();
 }
@@ -174,40 +183,63 @@ function repay(n) {
 /* ========== 6. Woche beenden ========== */
 function nextWeek() {
   if (S.over) return;
+  const L = S.ledger;
+  const heatBefore = S.heat;
+  let bad = false;
   // Fixkosten und Zinsen
   const rent = CONFIG.rentPerLab * S.levels.lab;
   S.cash -= rent;
-  if (S.debt > 0) S.debt = Math.round(S.debt * (1 + CONFIG.interest));
+  const interest = S.debt > 0 ? Math.round(S.debt * CONFIG.interest) : 0;
+  S.debt += interest;
   // Onkel Vito wird ungeduldig
+  let vito = 0;
   if (S.debt > 25000 && Math.random() < 0.3) {
-    const take = Math.min(S.cash, Math.round(S.debt * 0.2));
-    S.cash -= take;
-    S.debt -= take;
-    modal('VITO SCHICKT JEMANDEN', `Zwei Männer in Lederjacken holen ${fmt(take)} ab. „Nur eine kleine Erinnerung.“`, true);
+    vito = Math.max(0, Math.min(S.cash, Math.round(S.debt * 0.2)));
+    S.cash -= vito;
+    S.debt -= vito;
+    L.events.push(`🤵 Vito schickt zwei Männer: ${fmt(vito)} abgeholt.`);
+    bad = true;
   }
   // Heat und Razzia
   const raidChance = clamp((S.heat - 35) / 110, 0, 0.6);
+  let fine = 0;
   if (Math.random() < raidChance) {
     const lost = Math.ceil(stored() * 0.6);
     for (const id of Object.keys(S.inv)) S.inv[id] = Math.floor(S.inv[id] * 0.4);
-    const fine = Math.round(Math.max(0, S.cash) * 0.25);
+    fine = Math.round(Math.max(0, S.cash) * 0.25);
     S.cash -= fine;
     S.heat = clamp(S.heat - 35, 0, 100);
     S.stats.raids++;
-    modal('🚨 RAZZIA!', `Die Polizei stürmt dein Lager: ${lost} Einheiten beschlagnahmt, ${fmt(fine)} „Strafe“.`, true);
+    L.events.push(`🚨 RAZZIA: ${lost} Einheiten beschlagnahmt, ${fmt(fine)} Strafe.`);
+    bad = true;
   } else {
     S.heat = clamp(S.heat - CONFIG.heatDecay, 0, 100);
   }
   if (S.cash < 0) {
+    L.events.push(`💸 Miete nicht gedeckt – Vito schießt ${fmt(-S.cash)} vor.`);
     S.debt += -S.cash;
-    news(`Miete nicht gedeckt – Vito schießt ${fmt(-S.cash)} vor.`);
     S.cash = 0;
   }
+  const week = S.week;
   S.week++;
   S.produced = 0;
   shiftMarket();
-  news(`Woche ${S.week}: Miete ${fmt(rent)} bezahlt.`);
+  if (S.event) L.events.push(`📈 Markt: ${S.event.text}`);
+
+  // Wochenbericht
+  const row = (label, v, cls = '') => (!v && !cls ? '' : `<tr class="${cls}"><td>${label}</td><td class="${v < 0 ? 'down' : v > 0 ? 'up' : 'flat'}">${v > 0 ? '+' : ''}${fmt(v || 0)}</td></tr>`);
+  const html = `<table class="report">
+      ${row('Verkäufe', L.sales)}${row('Einkauf Markt', -L.bought)}${row('Produktion', -L.made)}${row('Ausbau', -L.upgrades)}
+      ${L.loan ? row(L.loan > 0 ? 'Kredit von Vito' : 'An Vito gezahlt', L.loan) : ''}${row('Miete', -rent)}${vito ? row('Vito holt ab', -vito) : ''}${fine ? row('Razzia-Strafe', -fine) : ''}
+      ${row('Cash-Veränderung', S.cash - L.startCash, 'sum')}
+    </table>
+    <p class="flat">Zinsen: +${fmt(interest)} Schulden · Heat ${Math.round(heatBefore)} % → ${Math.round(S.heat)} %</p>
+    ${L.events.map((e) => `<p>${e}</p>`).join('')}`;
+  for (const e of L.events) news(e);
+  news(`Woche ${week} abgeschlossen.`);
+  S.ledger = newLedger(S.cash);
   save(); render();
+  modalHtml(`📋 WOCHENBERICHT · WOCHE ${week}`, html, bad);
   checkEnd();
 }
 
@@ -226,6 +258,12 @@ function checkEnd() {
 }
 
 /* ========== 7. Anzeige ========== */
+function modalHtml(title, html, bad = false) {
+  $('modal-title').textContent = title;
+  $('modal-text').innerHTML = html;
+  document.querySelector('.modal-box').classList.toggle('bad', bad);
+  $('modal').classList.remove('hidden');
+}
 function modal(title, text, bad = false) {
   $('modal-title').textContent = title;
   $('modal-text').textContent = text;
@@ -245,6 +283,24 @@ function btn(label, action, disabled, cls = '') {
   return `<button class="btn small ${cls}" data-act="${action}" ${disabled ? 'disabled' : ''}>${label}</button>`;
 }
 
+/** Abteilungen der Zentrale: Symbol, Name, Kurzinfo, Inhalt. */
+const DEPTS = {
+  market: { icon: '🏪', name: 'SCHWARZMARKT', info: () => (S.event ? `${S.event.mult > 1 ? 'Engpass' : 'Schwemme'}: ${product(S.event.id).name}` : 'Preise dieser Woche'), alert: () => !!S.event, render: renderMarket },
+  lab: { icon: '⚗️', name: 'LABOR', info: () => `Noch ${labCapacity(S.levels.lab) - S.produced} von ${labCapacity(S.levels.lab)} herstellbar`, alert: () => S.produced === 0, render: renderLab },
+  stash: { icon: '📦', name: 'LAGER', info: () => `${stored()} / ${storageCapacity(S.levels.storage)} belegt`, alert: () => freeSpace() === 0, render: renderStash },
+  upgrades: { icon: '🔧', name: 'AUSBAU', info: () => `Labor ${S.levels.lab} · Lager ${S.levels.storage} · Tarnung ${S.levels.cover}`, alert: () => false, render: renderUpgrades },
+  bank: { icon: '🤵', name: 'ONKEL VITO', info: () => (S.debt ? `Schulden ${fmt(S.debt)}` : 'Keine Schulden'), alert: () => S.debt > 25000, render: renderBank },
+  stats: { icon: '📊', name: 'BUCHHALTUNG', info: () => `Umsatz ${fmt(S.stats.earned)}`, alert: () => false, render: renderStats },
+};
+
+function renderHq() {
+  $('news').innerHTML = S.news.map((n) => `<p>${n}</p>`).join('');
+  $('dept-grid').innerHTML = Object.entries(DEPTS).map(([id, d]) => `
+    <button class="dept ${d.alert() ? 'alert' : ''}" data-view="${id}">
+      <span class="ic">${d.icon}</span><strong>${d.name}</strong><span>${d.info()}</span>
+    </button>`).join('');
+}
+
 function renderMarket() {
   const rows = CONFIG.products.map((p) => {
     const sp = sellPrice(p.id);
@@ -255,14 +311,13 @@ function renderMarket() {
       <div class="name">${p.icon} ${p.name} ${hot}<br><span class="spark">${sparkline(S.history[p.id])}</span> ${trend(p.id)}</div>
       <div class="price">Verkauf <b>${fmt(sp)}</b><br><em class="flat">Einkauf ${fmt(bp)}</em></div>
       <div class="actions">
-        ${btn('Kauf 1', `buy:${p.id}:1`, canBuy < 1)} ${btn('Kauf 10', `buy:${p.id}:10`, canBuy < 1)} ${btn('Kauf max', `buy:${p.id}:999999`, canBuy < 1)}
-        ${btn(`Verk. 1`, `sell:${p.id}:1`, S.inv[p.id] < 1, 'amber')} ${btn('Verk. alle', `sell:${p.id}:999999`, S.inv[p.id] < 1, 'amber')}
-        <span class="flat">· im Lager: ${S.inv[p.id]}</span>
+        <div class="group"><b>KAUFEN</b>${btn('1', `buy:${p.id}:1`, canBuy < 1)}${btn('10', `buy:${p.id}:10`, canBuy < 1)}${btn('MAX', `buy:${p.id}:999999`, canBuy < 1)}</div>
+        <div class="group"><b>VERKAUFEN</b>${btn('1', `sell:${p.id}:1`, S.inv[p.id] < 1, 'amber')}${btn('ALLE', `sell:${p.id}:999999`, S.inv[p.id] < 1, 'amber')}<span class="flat">im Lager: ${S.inv[p.id]}</span></div>
       </div>
     </div>`;
   }).join('');
-  $('tab-market').innerHTML = `<h2>SCHWARZMARKT · WOCHE ${S.week}</h2>
-    <p class="hint">Preise ändern sich jede Woche. Billig einkaufen, teuer verkaufen – jeder Verkauf erhöht die Heat.</p>${rows}`;
+  return `<h2>🏪 SCHWARZMARKT · WOCHE ${S.week}</h2>
+    <p class="hint">Preise ändern sich jede Woche. Billig einkaufen, teuer verkaufen – jeder Verkauf erhöht die Heat. Platz frei: ${freeSpace()}</p>${rows}`;
 }
 
 function renderLab() {
@@ -274,10 +329,10 @@ function renderLab() {
     return `<div class="row ${locked ? 'locked' : ''}">
       <div class="name">${p.icon} ${p.name}<br><em>${locked ? `🔒 ab Laborstufe ${p.lab}` : `Kosten ${fmt(p.cost)} pro Einheit · Markt ${fmt(sellPrice(p.id))}`}</em></div>
       <div class="price">${locked ? '' : `<b>${Math.round((1 - p.cost / sellPrice(p.id)) * 100)} %</b><br><em class="flat">Marge</em>`}</div>
-      ${locked ? '' : `<div class="actions">${btn('+1', `make:${p.id}:1`, max < 1)} ${btn('+10', `make:${p.id}:10`, max < 1)} ${btn('Max', `make:${p.id}:999999`, max < 1)}</div>`}
+      ${locked ? '' : `<div class="actions"><div class="group"><b>HERSTELLEN</b>${btn('+1', `make:${p.id}:1`, max < 1)}${btn('+10', `make:${p.id}:10`, max < 1)}${btn('MAX', `make:${p.id}:999999`, max < 1)}</div></div>`}
     </div>`;
   }).join('');
-  $('tab-lab').innerHTML = `<h2>⚗️ LABOR · STUFE ${S.levels.lab}</h2>
+  return `<h2>⚗️ LABOR · STUFE ${S.levels.lab}</h2>
     <p class="hint">Diese Woche noch <b>${left}</b> von ${cap} Einheiten herstellbar. Selbst herstellen ist viel billiger als einkaufen.</p>${rows}`;
 }
 
@@ -287,12 +342,10 @@ function renderStash() {
   const value = CONFIG.products.reduce((a, p) => a + S.inv[p.id] * sellPrice(p.id), 0);
   const rows = CONFIG.products.filter((p) => S.inv[p.id] > 0).map((p) => `<div class="row">
       <div class="name">${p.icon} ${p.name}</div><div class="price"><b>${S.inv[p.id]}</b> × ${fmt(sellPrice(p.id))}</div></div>`).join('');
-  $('tab-stash').innerHTML = `<h2>📦 INVENTAR</h2>
+  return `<h2>📦 LAGER · INVENTAR</h2>
     <p class="hint">${used} / ${cap} Einheiten belegt · Marktwert ${fmt(value)}</p>
     <div class="inv-bar"><i style="width:${Math.min(100, (used / cap) * 100)}%"></i></div>
-    ${rows || '<p class="flat">Leer. Ab ins Labor oder auf den Markt.</p>'}
-    <h2 style="margin-top:14px">STATISTIK</h2>
-    <p class="flat">Verkauft: ${S.stats.sold} Einheiten · Umsatz ${fmt(S.stats.earned)} · Razzien: ${S.stats.raids}</p>`;
+    ${rows || '<p class="flat">Leer. Ab ins Labor oder auf den Markt.</p>'}`;
 }
 
 function renderUpgrades() {
@@ -301,21 +354,45 @@ function renderUpgrades() {
     const maxed = l >= def.max;
     const price = maxed ? 0 : upgradePrice(u, l + 1);
     return `<div class="row">
-      <div class="name">${def.icon} ${def.name} · Stufe ${l}/${def.max}<br><em>${def.text(l)}</em></div>
+      <div class="name">${def.icon} ${def.name} · Stufe ${l}/${def.max}<br><em>${def.text(l)}</em>${maxed ? '' : `<br><em class="up">Nächste: ${def.text(l + 1)}</em>`}</div>
       <div class="price">${maxed ? '<b>MAX</b>' : fmt(price)}</div>
-      <div class="actions">${maxed ? '' : btn(`Ausbauen → ${def.text(l + 1)}`, `up:${u}`, S.cash < price)}</div>
+      <div class="actions">${maxed ? '' : btn('AUSBAUEN', `up:${u}`, S.cash < price)}</div>
     </div>`;
   }).join('');
-  $('tab-upgrades').innerHTML = `<h2>🔧 AUSBAU</h2><p class="hint">Größeres Labor = teurere Ware und mehr Fixkosten (${fmt(CONFIG.rentPerLab * S.levels.lab)} pro Woche).</p>${rows}`;
+  return `<h2>🔧 AUSBAU</h2><p class="hint">Größeres Labor = teurere Ware und mehr Fixkosten (aktuell ${fmt(CONFIG.rentPerLab * S.levels.lab)} pro Woche).</p>${rows}`;
 }
 
 function renderBank() {
-  $('tab-bank').innerHTML = `<h2>🤵 ONKEL VITO</h2>
+  return `<h2>🤵 ONKEL VITO</h2>
     <p class="hint">„Ich leihe dir gern was. ${Math.round(CONFIG.interest * 100)} % pro Woche. Und wenn es zu viel wird, komme ich vorbei.“</p>
     <div class="row"><div class="name">Schulden</div><div class="price"><b class="down">${fmt(S.debt)}</b></div>
-      <div class="actions">${btn('Leihen 1.000', 'borrow:1000', S.debt + 1000 > 50000)} ${btn('Leihen 10.000', 'borrow:10000', S.debt + 10000 > 50000)}
-      ${btn('Zahlen 1.000', 'repay:1000', S.debt < 1 || S.cash < 1, 'amber')} ${btn('Alles zahlen', 'repay:99999999', S.debt < 1 || S.cash < 1, 'amber')}</div></div>
+      <div class="actions">
+        <div class="group"><b>LEIHEN</b>${btn('1.000', 'borrow:1000', S.debt + 1000 > 50000)}${btn('10.000', 'borrow:10000', S.debt + 10000 > 50000)}</div>
+        <div class="group"><b>ZAHLEN</b>${btn('1.000', 'repay:1000', S.debt < 1 || S.cash < 1, 'amber')}${btn('ALLES', 'repay:99999999', S.debt < 1 || S.cash < 1, 'amber')}</div>
+      </div></div>
     <p class="flat">Höchstens 50.000 $ Schulden. Über 25.000 $ wird Vito ungemütlich.</p>`;
+}
+
+function renderStats() {
+  const L = S.ledger;
+  const net = S.cash - S.debt + CONFIG.products.reduce((a, p) => a + S.inv[p.id] * sellPrice(p.id), 0);
+  return `<h2>📊 BUCHHALTUNG</h2>
+    <p class="hint">Diese Woche bisher</p>
+    <table class="report">
+      <tr><td>Verkäufe</td><td class="up">+${fmt(L.sales)}</td></tr>
+      <tr><td>Einkauf Markt</td><td class="down">−${fmt(L.bought)}</td></tr>
+      <tr><td>Produktion</td><td class="down">−${fmt(L.made)}</td></tr>
+      <tr><td>Ausbau</td><td class="down">−${fmt(L.upgrades)}</td></tr>
+      <tr><td>Miete am Wochenende</td><td class="down">−${fmt(CONFIG.rentPerLab * S.levels.lab)}</td></tr>
+    </table>
+    <p class="hint">Gesamt</p>
+    <table class="report">
+      <tr><td>Vermögen (Cash + Ware − Schulden)</td><td>${fmt(net)}</td></tr>
+      <tr><td>Ziel</td><td>${fmt(CONFIG.goal)}</td></tr>
+      <tr><td>Verkaufte Einheiten</td><td>${S.stats.sold}</td></tr>
+      <tr><td>Umsatz gesamt</td><td>${fmt(S.stats.earned)}</td></tr>
+      <tr><td>Razzien</td><td>${S.stats.raids}</td></tr>
+    </table>`;
 }
 
 function render() {
@@ -326,8 +403,10 @@ function render() {
   $('st-store').textContent = `${stored()}/${storageCapacity(S.levels.storage)}`;
   $('st-heat').textContent = `${Math.round(S.heat)} %`;
   $('heat-fill').style.width = `${S.heat}%`;
-  $('news').innerHTML = S.news.map((n) => `<p>${n}</p>`).join('');
-  renderMarket(); renderLab(); renderStash(); renderUpgrades(); renderBank();
+  $('view-hq').classList.toggle('hidden', view !== 'hq');
+  $('view-dept').classList.toggle('hidden', view === 'hq');
+  if (view === 'hq') renderHq();
+  else $('dept').innerHTML = DEPTS[view].render();
   $('next-week').disabled = S.over;
 }
 
@@ -359,10 +438,11 @@ document.addEventListener('click', (e) => {
     if (act === 'borrow') borrow(Number(a));
     if (act === 'repay') repay(Number(a));
   }
-  const tab = e.target.closest('[data-tab]');
-  if (tab) {
-    document.querySelectorAll('.tabs button').forEach((t) => t.classList.toggle('on', t === tab));
-    document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('hidden', t.id !== `tab-${tab.dataset.tab}`));
+  const go = e.target.closest('[data-view]');
+  if (go) {
+    view = go.dataset.view;
+    render();
+    window.scrollTo(0, 0);
   }
 });
 
@@ -373,6 +453,7 @@ $('start-btn').addEventListener('click', () => {
   showGame();
 });
 $('next-week').addEventListener('click', nextWeek);
+$('back-hq').addEventListener('click', () => { view = 'hq'; render(); });
 $('modal-ok').addEventListener('click', () => $('modal').classList.add('hidden'));
 $('reset').addEventListener('click', () => {
   if (!confirm('Wirklich ein neues Spiel starten? Der aktuelle Spielstand geht verloren.')) return;
@@ -383,5 +464,6 @@ $('reset').addEventListener('click', () => {
 });
 
 S = load();
+if (S && !S.ledger) S.ledger = newLedger(S.cash);
 if (S) showGame();
 else $('start-screen').classList.remove('hidden');

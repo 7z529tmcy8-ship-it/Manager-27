@@ -51,21 +51,20 @@
       </div>
     </header>
 
-    <section id="news" class="box news" aria-live="polite"></section>
+    <!-- Zentrale: Übersicht und Abteilungen -->
+    <section id="view-hq" class="view">
+      <section class="box news" aria-live="polite">
+        <h2>📟 LAGEBERICHT</h2>
+        <div id="news"></div>
+      </section>
+      <div class="dept-grid" id="dept-grid"></div>
+    </section>
 
-    <nav class="tabs" role="tablist">
-      <button data-tab="market" class="on">MARKT</button>
-      <button data-tab="lab">LABOR</button>
-      <button data-tab="stash">LAGER</button>
-      <button data-tab="upgrades">AUSBAU</button>
-      <button data-tab="bank">VITO</button>
-    </nav>
-
-    <section id="tab-market" class="tab box"></section>
-    <section id="tab-lab" class="tab box hidden"></section>
-    <section id="tab-stash" class="tab box hidden"></section>
-    <section id="tab-upgrades" class="tab box hidden"></section>
-    <section id="tab-bank" class="tab box hidden"></section>
+    <!-- Abteilungen: je eine eigene Seite -->
+    <section id="view-dept" class="view hidden">
+      <button id="back-hq" class="btn small back">‹ ZENTRALE</button>
+      <div id="dept" class="box"></div>
+    </section>
 
     <footer class="end">
       <button id="next-week" class="btn big">[ WOCHE BEENDEN ▶ ]</button>
