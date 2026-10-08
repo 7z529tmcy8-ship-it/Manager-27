@@ -8,8 +8,8 @@ import { developPlayer } from '../development';
 it('Herkunft, Avatar und Zufall', () => {
   const base = evaluateBuild({ position: 'ST', age: 17, height: 183, weight: 77, points: [4, 8, 0, 4, 0, 4] });
   expect(applyOrigin(base, 'late', false).ovr).toBe(base.ovr - 4);
-  expect(applyOrigin(base, 'late', false).potential).toBe(base.potential + 3);
-  expect(applyOrigin(base, 'street', false).offsets[3]).toBe(base.offsets[3] + 5);
+  expect(applyOrigin(base, 'late', false).potential).toBe(Math.min(94, base.potential + 6));
+  expect(applyOrigin(base, 'street', false).offsets[3]).toBe(base.offsets[3] + 8);
   const pts = randomPoints('IV');
   expect(pts.reduce((a, b) => a + b, 0)).toBe(POINT_POOL);
   expect(Math.max(...pts)).toBeLessThanOrEqual(MAX_PER_ATTR);

@@ -132,10 +132,10 @@ export interface Origin {
 }
 
 export const ORIGINS: Origin[] = [
-  { id: 'academy', icon: '🏫', name: 'Nachwuchsleistungszentrum', text: 'Solide ausgebildet: +1 Startwertung, ausgewogene Werte.', ovr: 1, potential: 0, attrs: [0, 0, 1, 0, 1, 0] },
-  { id: 'street', icon: '🏙️', name: 'Straßenfußballer', text: 'Käfig und Bolzplatz: viel Dribbling und Kreativität (+2 Potenzial), aber wenig Taktik (−1 Startwertung, weniger Defensive).', ovr: -1, potential: 2, attrs: [1, 1, 0, 5, -3, 0] },
-  { id: 'late', icon: '🌱', name: 'Spätstarter aus der Kreisliga', text: 'Lange übersehen: −4 Startwertung, +3 Potenzial, und du entwickelst dich zwei Jahre länger (bis 29).', ovr: -4, potential: 3, attrs: [0, 0, 0, 0, 0, 2] },
-  { id: 'family', icon: '👨‍👦', name: 'Fußballer-Familie', text: 'Vater war Profi: +1 Startwertung, +1 Potenzial, mehr Selbstvertrauen – aber alle erwarten viel von dir (mehr Druck in Krisen).', ovr: 1, potential: 1, attrs: [0, 0, 1, 1, 0, 0] },
+  { id: 'academy', icon: '🏫', name: 'Nachwuchsleistungszentrum', text: 'Top ausgebildet: +3 Startwertung, +1 Potenzial, starke Technik und Taktik.', ovr: 3, potential: 1, attrs: [1, 1, 3, 1, 3, 1] },
+  { id: 'street', icon: '🏙️', name: 'Straßenfußballer', text: 'Käfig und Bolzplatz: +4 Potenzial und überragendes Dribbling (+8), aber wenig Taktik (−1 Startwertung, schwächere Defensive).', ovr: -1, potential: 4, attrs: [2, 2, 1, 8, -4, 1] },
+  { id: 'late', icon: '🌱', name: 'Spätstarter aus der Kreisliga', text: 'Lange übersehen: −4 Startwertung, aber +6 Potenzial und du entwickelst dich zwei Jahre länger (bis 29). Robuster Körper.', ovr: -4, potential: 6, attrs: [0, 1, 0, 0, 0, 4] },
+  { id: 'family', icon: '👨‍👦', name: 'Fußballer-Familie', text: 'Vater war Profi: +2 Startwertung, +3 Potenzial, mehr Selbstvertrauen – aber alle erwarten viel von dir (mehr Druck in Krisen).', ovr: 2, potential: 3, attrs: [1, 1, 2, 2, 1, 0] },
 ];
 
 export const getOrigin = (id: OriginId | undefined) => ORIGINS.find((o) => o.id === id) ?? ORIGINS[0];

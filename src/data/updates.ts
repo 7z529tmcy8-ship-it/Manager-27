@@ -19,6 +19,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-08-herkunft',
+    date: '08.10.2026',
+    title: 'Eigener Spieler: wieder frei wählbar – Herkunft zählt mehr',
+    items: [
+      '📏 Größe, Gewicht und Startverein kannst du beim eigenen Spieler wieder selbst einstellen. Der Schicksals-Automat ist weg.',
+      '🎡 Das Herkunfts-Glücksrad bleibt – und ist jetzt viel mehr wert: z. B. Straßenfußballer +4 Potenzial und +8 Dribbling, Spätstarter +6 Potenzial, NLZ +3 Startwertung.',
+    ],
+  },
+  {
     id: '2026-10-07-tabs',
     date: '07.10.2026',
     title: 'Duelle & SBC jetzt im Hauptmenü',
