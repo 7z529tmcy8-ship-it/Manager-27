@@ -148,3 +148,4 @@ input:focus { border-color: var(--blue); }
 .start { padding: 20px 16px; overflow-y: auto; flex: 1; background: #fff; }
 .start h1 { font-size: 40px; font-weight: 800; color: var(--blue); text-transform: uppercase; line-height: 1; margin: 4px 0 12px; }
 .modal { position: absolute; }
+h3.sub { margin: 14px 0 4px; font-size: 15px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }

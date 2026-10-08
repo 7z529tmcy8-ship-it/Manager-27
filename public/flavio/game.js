@@ -48,6 +48,20 @@ const CONFIG = {
   ],
   bunker: { price: 700, capacity: 60 },
   graceDays: 3, // in den ersten Tagen gibt es keine Kontrollen
+  // Taschen: dauerhaft mehr Platz am Mann (zusätzlich zum Rang)
+  bags: [
+    { id: 'none', name: 'Jackentaschen', bonus: 0, price: 0 },
+    { id: 'belt', name: 'Bauchtasche', bonus: 5, price: 60 },
+    { id: 'backpack', name: 'Rucksack', bonus: 12, price: 180 },
+    { id: 'sport', name: 'Sporttasche', bonus: 25, price: 450 },
+    { id: 'trolley', name: 'Rollkoffer mit Geheimfach', bonus: 40, price: 1100 },
+  ],
+  // Waffen: schützen vor Überfällen, brauchen Platz – bei einer Polizeikontrolle gibt es dafür richtig Ärger
+  weapons: [
+    { id: 'spray', name: 'Pfefferspray', slots: 1, defense: 0.4, fine: 60, price: 40 },
+    { id: 'bat', name: 'Baseballschläger', slots: 4, defense: 0.6, fine: 150, price: 90 },
+    { id: 'blank', name: 'Schreckschusspistole', slots: 2, defense: 0.8, fine: 400, price: 350 },
+  ],
   arrestAt: 15, // ab so vielen Einheiten am Mann wird man festgenommen
   heatDecay: 15, // pro Tag in jedem Kiez
 };
@@ -70,6 +84,8 @@ function newState(name) {
     regulars: {}, // Name → { kiez, buys, regular }
     phone: [], // Nachrichten
     tips: true, // Tutor-Hinweise auf der Startseite
+    bag: 0, // Index in CONFIG.bags
+    gear: [], // gekaufte Waffen (IDs)
     stats: { sold: 0, earned: 0, jobs: 0, busts: 0 },
     page: 'home',
   };
@@ -86,8 +102,14 @@ const rnd = (a, b) => a + Math.random() * (b - a);
 const kiez = (id) => CONFIG.kieze.find((k) => k.id === id);
 const good = (id) => CONFIG.goods.find((g) => g.id === id);
 const rank = () => CONFIG.ranks[S.rank];
-const carried = () => Object.values(S.pocket).reduce((a, b) => a + b, 0) + (S.job ? S.job.units : 0);
-const pocketFree = () => rank().pocket - carried();
+const goodsCarried = () => Object.values(S.pocket).reduce((a, b) => a + b, 0) + (S.job ? S.job.units : 0);
+const weapon = (id) => CONFIG.weapons.find((w) => w.id === id);
+const gearSlots = () => (S.gear ?? []).reduce((a, id) => a + weapon(id).slots, 0);
+const carried = () => goodsCarried() + gearSlots();
+const bag = () => CONFIG.bags[S.bag ?? 0];
+const capacity = () => rank().pocket + bag().bonus;
+const pocketFree = () => capacity() - carried();
+const defense = () => Math.max(0, ...(S.gear ?? []).map((id) => weapon(id).defense));
 const goodsForRank = () => CONFIG.goods.filter((g) => g.rank <= S.rank + 1);
 const regularCount = () => Object.values(S.regulars).filter((r) => r.regular).length;
 function text(from, body) {
@@ -212,6 +234,30 @@ function travel(to) {
   advanceTime(true);
 }
 
+function buyBag(i) {
+  const b = CONFIG.bags[i];
+  if (!b || i <= (S.bag ?? 0) || S.cash < b.price) return;
+  S.cash -= b.price;
+  S.bag = i;
+  text('Kiez-Laden', `${b.name} gekauft – jetzt passen ${capacity()} Einheiten an den Mann.`);
+  save(); render();
+}
+
+function buyWeapon(id) {
+  const w = weapon(id);
+  if (!w || (S.gear ?? []).includes(id) || S.cash < w.price || pocketFree() < w.slots) return;
+  S.cash -= w.price;
+  S.gear = [...(S.gear ?? []), id];
+  save(); render();
+}
+
+function dropWeapon(id) {
+  if (!(S.gear ?? []).includes(id)) return;
+  S.gear = S.gear.filter((x) => x !== id);
+  S.cash += Math.round(weapon(id).price * 0.4);
+  save(); render();
+}
+
 function buyBunker() {
   if (S.rank < 2 || S.bunker || S.cash < CONFIG.bunker.price) return;
   S.cash -= CONFIG.bunker.price;
@@ -243,7 +289,7 @@ function checkRank() {
   if (S.rep >= (n.rep ?? 0) && regularCount() >= (n.regulars ?? 0) && S.cash >= (n.cash ?? 0)) {
     S.rank++;
     text('Onkel Flávio', `Ab heute bist du ${next.name}. ${next.unlock}`);
-    showModal(`Aufstieg: ${next.name}`, `<p>${next.unlock}</p><p>Platz am Mann: ${next.pocket} Einheiten.</p>`);
+    showModal(`Aufstieg: ${next.name}`, `<p>${next.unlock}</p><p>Platz am Mann jetzt: ${capacity()} Plätze.</p>`);
     if (S.rank >= 1 && !S.customers.length) rollCustomers();
   }
 }
@@ -253,10 +299,19 @@ function advanceTime(traveled = false) {
   const report = [];
   // Kontrolle: je heißer der Kiez, desto eher. Nachts mehr Streifen.
   const chance = S.day <= CONFIG.graceDays ? 0 : clamp((S.heat[S.at] / 300) * kiez(S.at).police + (S.time === 2 ? 0.02 : 0) + (traveled ? 0.01 : 0), 0, 0.4);
-  if (Math.random() < chance) {
-    const units = carried();
+  const controlled = Math.random() < chance;
+  if (controlled) {
+    const units = goodsCarried();
+    const armed = (S.gear ?? []).length > 0;
+    if (armed) {
+      const wfine = Math.min(Math.max(0, S.cash), (S.gear).reduce((a, id) => a + weapon(id).fine, 0));
+      S.cash -= wfine;
+      report.push(`Bei der Kontrolle finden sie ${S.gear.map((id) => weapon(id).name).join(' und ')}. Eingezogen, ${eur(wfine)} Strafe.`);
+      S.gear = [];
+      S.heat[S.at] = clamp(S.heat[S.at] + 10, 0, 100);
+    }
     if (units === 0) {
-      report.push(`Polizeikontrolle in ${kiez(S.at).name}. Du warst sauber – sie lassen dich gehen.`);
+      if (!armed) report.push(`Polizeikontrolle in ${kiez(S.at).name}. Du warst sauber – sie lassen dich gehen.`);
     } else {
       const fine = Math.min(Math.max(0, S.cash), 15 * units);
       S.cash -= fine;
@@ -268,13 +323,28 @@ function advanceTime(traveled = false) {
       }
       S.heat[S.at] = clamp(S.heat[S.at] + 15, 0, 100);
       S.stats.busts++;
-      if (units >= CONFIG.arrestAt) {
+      if (units >= CONFIG.arrestAt || armed) {
         S.day += 1;
         S.time = 0;
-        report.push(`Festnahme! ${units} Einheiten beschlagnahmt, ${eur(fine)} Kaution, ein Tag in Gewahrsam.`);
+        report.push(`Festnahme! ${units} Einheiten beschlagnahmt${armed ? ' – mit Waffe dabei' : ''}, ${eur(fine)} Kaution, ein Tag in Gewahrsam.`);
       } else {
         report.push(`Polizeikontrolle! ${units} Einheiten beschlagnahmt, ${eur(fine)} weg.`);
       }
+    }
+  }
+  // Überfall: Wer viel Ware oder Geld dabei hat, wird nachts eher abgezogen.
+  const loot = goodsCarried() > 0 || S.cash > 200;
+  const robChance = controlled || S.day <= CONFIG.graceDays || !loot ? 0 : (S.time === 2 ? 0.09 : 0.04) + Math.min(0.06, goodsCarried() / 300);
+  if (Math.random() < robChance) {
+    if (Math.random() < defense()) {
+      S.rep += 2;
+      report.push('Zwei Typen wollen dich abziehen – du wehrst dich und sie hauen ab (Ruf +2).');
+    } else {
+      const lostCash = Math.round(Math.max(0, S.cash) * 0.3);
+      let lostUnits = 0;
+      for (const g of Object.keys(S.pocket)) { const n = Math.ceil(S.pocket[g] / 2); lostUnits += n; S.pocket[g] -= n; }
+      S.cash -= lostCash;
+      report.push(`Überfall! Sie nehmen dir ${lostUnits} Einheiten und ${eur(lostCash)} ab.${(S.gear ?? []).length ? ' Deine Waffe hat nicht gereicht.' : ' Mit einer Waffe aus dem Laden wärst du besser geschützt.'}`);
     }
   }
   if (S.job && S.at === S.job.to) finishJob();
@@ -285,7 +355,8 @@ function advanceTime(traveled = false) {
     newDay(report);
   }
   rollCustomers();
-  if (report.length) showModal(report.some((r) => r.includes('beschlagnahmt') || r.includes('Festnahme')) ? 'Ärger' : 'Unterwegs', report.map((r) => `<p>${r}</p>`).join(''), report.some((r) => r.includes('beschlagnahmt')));
+  const trouble = report.some((r) => /beschlagnahmt|Festnahme|Überfall|Eingezogen/.test(r));
+  if (report.length) showModal(trouble ? 'Ärger' : 'Unterwegs', report.map((r) => `<p>${r}</p>`).join(''), trouble);
   save(); render();
 }
 
@@ -341,6 +412,8 @@ function nextStep() {
   }
   if (goods === 0) return here ? ['Öffne die App „Flávio“ und kauf Ware ein – am besten Kraut, das wollen viele.', 'buy'] : ['Du hast nichts zum Verkaufen. Fahr zur Oranienstraße und kauf bei Flávio ein.', 'map'];
   if (S.customers.some((c) => !c.done && S.pocket[c.good] >= c.units)) return ['Kunden warten! Öffne die App „Kunden“ und verkauf.', 'customers'];
+  const nextBag = CONFIG.bags[(S.bag ?? 0) + 1];
+  if (S.rank >= 1 && nextBag && S.cash >= nextBag.price + 60 && pocketFree() <= 2) return [`Deine Taschen sind voll. Im Laden gibt es eine ${nextBag.name} (+${nextBag.bonus} Platz).`, 'shop'];
   if (S.rank >= 2 && !S.bunker && S.cash >= CONFIG.bunker.price) return ['Kauf dir einen Bunker, damit nicht alles am Mann ist.', 'bunker'];
   const want = S.customers.find((c) => !c.done);
   if (want) return [`Die Kunden hier wollen ${good(want.good).name} (${want.units}×) – das hast du nicht genug dabei. Abwarten oder beim nächsten Einkauf mitnehmen.`, null];
@@ -352,6 +425,7 @@ const ICONS = {
   customers: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6"/><circle cx="16.5" cy="9" r="2.5"/><path d="M16 14c3 0 5 2 5 5"/>',
   jobs: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM8 11h8M8 15h6"/>',
   buy: '<path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
+  shop: '<path d="M4 9h16l-1 11H5z"/><path d="M3 9l2-5h14l2 5M9 13h6"/>',
   pocket: '<rect x="6" y="7" width="12" height="14" rx="3"/><path d="M9 7V5a3 3 0 0 1 6 0v2M9 13h6"/>',
   bunker: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3M12 15v2"/>',
   map: '<rect x="6" y="3" width="12" height="14" rx="3"/><path d="M6 11h12M8 21l2-3M16 21l-2-3"/><circle cx="9" cy="14" r=".6"/><circle cx="15" cy="14" r=".6"/>',
@@ -366,6 +440,7 @@ function apps() {
     { page: 'jobs', name: 'Aufträge', color: '#ffa53b,#d9661a', badge: S.job ? '1' : S.rank === 0 && S.at === CONFIG.flavioAt ? S.jobs.length : 0 },
     { page: 'buy', name: 'Flávio', color: '#ff5f5f,#c0262f', off: S.rank < 1 },
     { page: 'pocket', name: 'Am Mann', color: '#9a7bff,#5a37c9', badge: carried() },
+    { page: 'shop', name: 'Laden', color: '#ff7ab6,#c22b74' },
     { page: 'bunker', name: 'Bunker', color: '#8f99a8,#4b5563', off: S.rank < 2 },
     { page: 'status', name: 'Aufstieg', color: '#f3c84a,#c08a10' },
     { page: 'help', name: 'Hilfe', color: '#36c6d3,#118a96' },
@@ -377,7 +452,7 @@ const DOCK = () => [
   { page: 'wait', name: 'Abwarten', color: '#4a4f59,#15171b' },
   { page: 'customers', name: 'Kunden', color: '#3fbf5f,#1b7f39', badge: S.customers.filter((c) => !c.done).length, off: S.rank < 1 },
 ];
-const TITLES = { customers: 'Kunden', jobs: 'Aufträge', buy: 'Einkauf bei Flávio', pocket: 'Am Mann', bunker: 'Bunker', map: 'U-Bahn', phone: 'Nachrichten', status: 'Aufstieg' };
+const TITLES = { shop: 'Kiez-Laden', customers: 'Kunden', jobs: 'Aufträge', buy: 'Einkauf bei Flávio', pocket: 'Am Mann', bunker: 'Bunker', map: 'U-Bahn', phone: 'Nachrichten', status: 'Aufstieg' };
 
 function appIcon(a) {
   const [c1, c2] = a.color.split(',');
@@ -449,11 +524,32 @@ function pageBuy() {
     <div class="list">${rows}</div>`;
 }
 
+function pageShop() {
+  const bags = CONFIG.bags.slice(1).map((b, j) => {
+    const i = j + 1;
+    const owned = (S.bag ?? 0) >= i;
+    return `<div class="row"><div class="grow"><strong>${b.name}</strong>${(S.bag ?? 0) === i ? '<span class="badge">dabei</span>' : ''}<small>+${b.bonus} Plätze am Mann (dauerhaft)</small></div>
+      <span class="num">${owned ? '' : eur(b.price)}</span>
+      ${owned ? `<span class="good">${(S.bag ?? 0) === i ? 'Dabei' : 'Ersetzt'}</span>` : `<button class="btn sm primary" data-act="bag:${i}" ${S.cash >= b.price && i === (S.bag ?? 0) + 1 ? '' : 'disabled'}>Kaufen</button>`}</div>`;
+  }).join('');
+  const weapons = CONFIG.weapons.map((w) => {
+    const owned = (S.gear ?? []).includes(w.id);
+    return `<div class="row"><div class="grow"><strong>${w.name}</strong>${owned ? '<span class="badge">dabei</span>' : ''}<small>Schutz ${Math.round(w.defense * 100)} % · braucht ${w.slots} Platz · bei Kontrolle ${eur(w.fine)} Strafe</small></div>
+      <span class="num">${owned ? '' : eur(w.price)}</span>
+      ${owned ? `<button class="btn sm" data-act="drop:${w.id}">Loswerden (+${eur(Math.round(w.price * 0.4))})</button>` : `<button class="btn sm primary" data-act="weapon:${w.id}" ${S.cash >= w.price && pocketFree() >= w.slots ? '' : 'disabled'}>Kaufen</button>`}</div>`;
+  }).join('');
+  return `<p class="hint">Platz am Mann: ${carried()} von ${capacity()} (${rank().pocket} durch deinen Rang, +${bag().bonus} durch ${bag().name}).</p>
+    <h3 class="sub">Taschen</h3><div class="list">${bags}</div>
+    <h3 class="sub">Schutz</h3><p class="hint">Waffen helfen gegen Überfälle – es zählt die beste. Aber: Findet die Polizei eine Waffe, wird sie eingezogen und du wirst festgenommen, wenn du auch Ware dabei hast.</p>
+    <div class="list">${weapons}</div>`;
+}
+
 function pagePocket() {
   const rows = CONFIG.goods.filter((g) => S.pocket[g.id] > 0).map((g) => `<div class="row"><div class="grow"><strong>${g.name}</strong><small>Straßenwert hier ca. ${eur(streetPrice(g.id))} pro Einheit</small></div><span class="num">${S.pocket[g.id]}</span></div>`).join('');
   const job = S.job ? `<div class="row"><div class="grow"><strong>Flávios Ware</strong><small>Auftrag nach ${kiez(S.job.to).name}</small></div><span class="num">${S.job.units}</span></div>` : '';
-  return `${head('Am Mann')}<p class="hint">${carried()} von ${rank().pocket} Einheiten. Bei einer Kontrolle ist alles weg – ab ${CONFIG.arrestAt} Einheiten gibt es eine Festnahme.</p>
-    <div class="list">${job}${rows || (job ? '' : '<div class="empty">Nichts dabei. Sauber.</div>')}</div>`;
+  const gear = (S.gear ?? []).map((id) => `<div class="row"><div class="grow"><strong>${weapon(id).name}</strong><small>Schutz ${Math.round(weapon(id).defense * 100)} %</small></div><span class="num">${weapon(id).slots} Platz</span></div>`).join('');
+  return `${head('Am Mann')}<p class="hint">${carried()} von ${capacity()} Plätzen · Tasche: ${bag().name}. Bei einer Kontrolle ist alles weg – ab ${CONFIG.arrestAt} Einheiten gibt es eine Festnahme.</p>
+    <div class="list">${job}${rows}${gear}${job || rows || gear ? '' : '<div class="empty">Nichts dabei. Sauber.</div>'}</div>`;
 }
 
 function pageBunker() {
@@ -508,7 +604,7 @@ function pageStatus() {
     <button class="btn sm" data-act="reset">Neues Spiel</button>`;
 }
 
-const PAGES = { home: pageHome, customers: pageCustomers, jobs: pageJobs, buy: pageBuy, pocket: pagePocket, bunker: pageBunker, map: pageMap, phone: pagePhone, status: pageStatus };
+const PAGES = { shop: pageShop, home: pageHome, customers: pageCustomers, jobs: pageJobs, buy: pageBuy, pocket: pagePocket, bunker: pageBunker, map: pageMap, phone: pagePhone, status: pageStatus };
 
 function render() {
   $('clock').textContent = `Tag ${S.day} · ${CONFIG.times[S.time]}`;
@@ -539,6 +635,9 @@ document.addEventListener('click', (e) => {
   if (a === 'in') stash(b, true);
   if (a === 'out') stash(b, false);
   if (a === 'wait') { advanceTime(false); return; }
+  if (a === 'bag') buyBag(Number(b));
+  if (a === 'weapon') buyWeapon(b);
+  if (a === 'drop') dropWeapon(b);
   if (a === 'tips') { S.tips = !S.tips; save(); render(); }
   if (a === 'intro') intro();
   if (a === 'reset' && confirm('Wirklich neu anfangen? Der Spielstand geht verloren.')) {
@@ -575,5 +674,6 @@ function start() {
 
 S = load();
 if (S && S.tips === undefined) S.tips = true;
+if (S && S.bag === undefined) { S.bag = 0; S.gear = []; }
 if (S) start();
 else $('start').classList.remove('hidden');
