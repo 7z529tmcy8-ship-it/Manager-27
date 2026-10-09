@@ -19,6 +19,12 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-09-pack-nochmal',
+    date: '09.10.2026',
+    title: '🔁 Packs: direkt nochmal',
+    items: ['🛒 Nach dem Öffnen eines Packs gibt es jetzt den Knopf „Nochmal“ – dasselbe Pack sofort wieder kaufen und öffnen, ohne zurück in den Store.'],
+  },
+  {
     id: '2026-10-09-wm-fix',
     date: '09.10.2026',
     title: '🛠️ Fehler behoben: WM-Titel',
