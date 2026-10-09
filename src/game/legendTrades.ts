@@ -1,4 +1,4 @@
-import { getCard, withUpgrade, type ClubState, type CollectCard } from './club';
+import { getCard, halloweenActive, withUpgrade, type ClubState, type CollectCard } from './club';
 
 // Spezial-Tausche: Legendäre Momente als Karten (91–93). Man gibt genau 11 Karten ab – und die Regeln sind hart.
 // Jede Karte gibt es nur einmal. Ausfüllen muss man selbst, Karte für Karte.
@@ -22,6 +22,8 @@ export interface MomentSbc {
   needs: MomentNeed[];
   /** Erst freigeschaltet, wenn dieser Tausch erledigt ist. */
   after?: string;
+  /** Nur während eines Events verfügbar. */
+  event?: 'halloween';
 }
 
 const isIcon = (c: CollectCard) => c.variant === 'icon';
@@ -34,6 +36,18 @@ const card = (id: string, name: string, position: CollectCard['position'], nat: 
   ({ id: `moment-${id}`, name, position, nation: nat, club, league: lg, ovr, variant: 'moment', label });
 
 export const MOMENTS: MomentSbc[] = [
+  {
+    id: 'moment-adriano-halloween',
+    event: 'halloween',
+    reward: { id: 'moment-adriano-halloween', name: 'Adriano', position: 'ST', nation: 'Brasilien', club: 'Halloween', league: 'Serie A', ovr: 93, variant: 'halloween', label: 'Zombie-Imperator' },
+    story: 'Halloween-SBC „Die Nacht der lebenden Toten“: Nur wer Karrieren wiederbelebt, die eigentlich vorbei waren, bekommt den Imperator – als Zombie. Nur bis 2. November!',
+    minAvg: 85, minEach: 82,
+    needs: [
+      { label: 'Kult-Helden', count: 4, test: isCult },
+      { label: '„Was wäre wenn“-Talente', count: 3, test: (c) => c.variant === 'talent' },
+      { label: 'Ikone', count: 1, test: isIcon },
+    ],
+  },
   {
     id: 'moment-ramos',
     reward: card('ramos', 'Sergio Ramos', 'IV', 'Spanien', 'Real Madrid', 'LaLiga', 93, '92:48'),
@@ -143,7 +157,10 @@ export const MOMENTS: MomentSbc[] = [
 ];
 
 export const momentDone = (club: ClubState, m: MomentSbc) => (club.tasksDone[m.id] ?? 0) > 0;
-export const momentOpen = (club: ClubState, m: MomentSbc) => !momentDone(club, m) && (!m.after || (club.tasksDone[m.after] ?? 0) > 0);
+export const momentOpen = (club: ClubState, m: MomentSbc) =>
+  !momentDone(club, m) && (!m.after || (club.tasksDone[m.after] ?? 0) > 0) && (!m.event || halloweenActive());
+/** Sichtbar: normale Momente immer, Event-Momente nur im Event (oder wenn schon erledigt). */
+export const momentVisible = (club: ClubState, m: MomentSbc) => !m.event || halloweenActive() || momentDone(club, m);
 
 /** Karten, die man abgeben darf: gezogene Karten (je Karte einmal), keine eigenen Sonderkarten. */
 export const momentCandidates = (club: ClubState): CollectCard[] =>

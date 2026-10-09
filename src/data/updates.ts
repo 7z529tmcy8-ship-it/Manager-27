@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-09-halloween',
+    date: '09.10.2026',
+    title: '🎃 Halloween ist da – nur bis 2. November!',
+    items: [
+      '🦇 Das ganze Spiel im Halloween-Look: Fledermäuse, Nebel, Kürbis-Orange. (Abschaltbar in den Einstellungen.)',
+      '🎃 Neu im Store: das Kürbis-Pack und das Geisterstunde-Pack – mit schauriger Öffnung, Gewitter und 10 Legenden im Kostüm (88–96): Ronaldinho als Kürbiskopf, Zlatan als Vampir, Kahn als Werwolf …',
+      '🧟 Halloween-SBC „Die Nacht der lebenden Toten“: Adriano als Zombie-Imperator (93) – nur mit Kult-Helden, „Was wäre wenn“-Talenten und einer Ikone.',
+      '⏳ Am 3. November verschwinden Packs und SBC wieder – deine Karten bleiben.',
+    ],
+  },
+  {
     id: '2026-10-08-livewahl',
     date: '08.10.2026',
     title: 'Du entscheidest: selbst spielen oder simulieren',

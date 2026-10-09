@@ -1,7 +1,7 @@
 import type { Avatar } from './creator';
 import { FAILED_TALENTS, LEGENDS } from '../data/legends';
 import { REAL_PLAYERS } from '../data/players';
-import { CULT_HEROES, EXTRA_ICONS, EXTRA_STARS, EXTRA_TALENTS } from '../data/cards';
+import { CULT_HEROES, EXTRA_ICONS, EXTRA_STARS, EXTRA_TALENTS, HALLOWEEN_CARDS } from '../data/cards';
 import { getClub, getLeague, slugify } from '../data/leagues';
 import { summarizeCareer } from './legacy';
 import { homeClubOf } from './offers';
@@ -11,7 +11,7 @@ import type { Career, CoachSeason, Position, SeasonRecord, SpecialCard, SpecialT
 // „Club“ über alle Karrieren hinweg: Coins, gesammelte Karten, Items. Angelehnt an Karten-Sammelmodi,
 // aber mit eigenen Namen und Designs. Coins verdient man nur im Karrieremodus – kein echtes Geld.
 
-export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | SpecialType;
+export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | SpecialType;
 
 export interface CollectCard {
   id: string;
@@ -109,6 +109,7 @@ export const CARD_POOL: CollectCard[] = [
   ...EXTRA_ICONS.map(([name, nation, position, ovr]) => ({ id: cardId(name), name, position, nation, club: 'Ikone', ovr, variant: 'icon' as const, label: 'Ikone' })),
   ...CULT_HEROES.map(([name, nation, position, ovr, club]) => ({ id: cardId(name), name, position, nation, club, ovr, variant: 'cult' as const })),
   ...FAILED_TALENTS.map((l) => ({ id: cardId(l.name), name: l.name, position: l.position, nation: l.nation, club: 'Zweite Chance', ovr: l.potential, variant: 'talent' as const, label: 'Was wäre wenn' })),
+  ...HALLOWEEN_CARDS.map(([name, nation, position, ovr, label]) => ({ id: cardId(`${name} Halloween`), name, position, nation, club: 'Halloween', ovr, variant: 'halloween' as const, label })),
   ...EXTRA_TALENTS.map(([name, nation, position, ovr]) => ({ id: cardId(name), name, position, nation, club: 'Zweite Chance', ovr, variant: 'talent' as const, label: 'Was wäre wenn' })),
 ];
 export const getCard = (id: string) => CARD_POOL.find((c) => c.id === id);
@@ -125,7 +126,7 @@ export function sellValue(c: CollectCard): number {
 
 /** Seltenheit für Sortierung und „bester Zug“. */
 export function rarity(c: CollectCard): number {
-  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
+  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
   return base * 100 + c.ovr;
 }
 
@@ -140,7 +141,7 @@ const TIERS: PackTier[] = ['silver', 'gold', 'rare', 'elite', 'special', 'icon']
 /** Stufe einer Karte für Packs: Silber < 75, Gold 75–82, Selten 83–86, Elite 87+, Spezial (Kult/Was wäre wenn), Ikone. */
 export function packTier(c: CollectCard): PackTier {
   if (c.variant === 'icon') return 'icon';
-  if (c.variant === 'talent' || c.variant === 'cult') return 'special';
+  if (c.variant === 'talent' || c.variant === 'cult' || c.variant === 'halloween') return 'special';
   return c.ovr >= 87 ? 'elite' : c.ovr >= 83 ? 'rare' : c.ovr >= 75 ? 'gold' : 'silver';
 }
 
@@ -159,6 +160,8 @@ export interface PackDef {
   odds: PackOdds;
   /** … außer der ersten, wenn die eigene Chancen bzw. eine eigene Auswahl hat (Garantie). */
   first?: { odds: PackOdds; filter?: (c: CollectCard) => boolean };
+  /** Event-Pack: nur im Event-Zeitraum im Store, nur hier gibt es die Event-Karten. */
+  event?: 'halloween';
 }
 
 const BL = (c: CollectCard) => c.league === 'Bundesliga';
@@ -189,6 +192,16 @@ export const PACKS: PackDef[] = [
   {
     id: 'ultimate', name: 'Ultimate-Pack', price: 240000, size: 9, text: '9 Karten ab 75, die beste garantiert ein Weltstar ab 87, eine Spezialkarte oder eine Ikone.',
     odds: { gold: 78, rare: 18, elite: 3.5, special: 0.4, icon: 0.1 }, first: { odds: { elite: 80, special: 14, icon: 6 } },
+  },
+  {
+    id: 'pumpkin', name: 'Kürbis-Pack', price: 30_000, size: 4, event: 'halloween',
+    text: '4 Karten – eine Halloween-Kostümkarte (88–96) ist garantiert. Nur bis 2. November!',
+    odds: GOLD_FILL, first: { odds: { special: 100 }, filter: (c) => c.variant === 'halloween' },
+  },
+  {
+    id: 'ghosthour', name: 'Geisterstunde-Pack', price: 150_000, size: 6, event: 'halloween',
+    text: '6 Karten ab 83 – garantiert ein Top-Kostüm ab 92. Nur bis 2. November!',
+    odds: { rare: 78, elite: 18, special: 4 }, first: { odds: { special: 100 }, filter: (c) => c.variant === 'halloween' && c.ovr >= 92 },
   },
   {
     id: 'mystery', name: 'Wundertüte', price: 9000, size: 1, text: '1 völlig zufällige Karte – von Silber bis Ikone ist alles drin.',
@@ -273,10 +286,13 @@ export function openPack(club: ClubState, packId: string, rand = Math.random, fr
   const pack = PACKS.find((p) => p.id === packId);
   if (!pack || (!free && club.coins < pack.price)) return null;
   const chosen: CollectCard[] = [];
-  const base = pack.filter ?? (() => true);
+  // Event-Karten (Halloween) gibt es nur in Event-Packs.
+  const allowed = (c: CollectCard) => !!pack.event || c.variant !== 'halloween';
+  const base = (c: CollectCard) => allowed(c) && (pack.filter ? pack.filter(c) : true);
   for (let i = 0; i < pack.size; i++) {
     const slot = i === 0 ? pack.first : undefined;
-    chosen.push(drawCard(slot?.odds ?? pack.odds, slot?.filter ?? base, chosen, rand));
+    const slotFilter = slot?.filter;
+    chosen.push(drawCard(slot?.odds ?? pack.odds, slotFilter ? (c) => allowed(c) && slotFilter(c) : base, chosen, rand));
   }
   const cards = { ...club.cards };
   const result: PackResult = { cards: [], items: [] };
@@ -510,3 +526,10 @@ export function openMegaSuper(club: ClubState, rand = Math.random): { club: Club
   const specials = club.specials.some((s) => s.id === GERVINHO_GIFT.id) ? club.specials : [...club.specials, GERVINHO_GIFT];
   return { club: { ...club, cards, specials, megaSuperClaimed: true, packsOpened: club.packsOpened + 1 }, result };
 }
+
+// ---------- Halloween-Event ----------
+/** Letzter Tag des Halloween-Events (Ortszeit des Geräts). */
+export const HALLOWEEN_END = new Date(2026, 10, 2, 23, 59, 59);
+export const halloweenActive = (now = new Date()) => now <= HALLOWEEN_END;
+/** Packs, die gerade im Store stehen (Event-Packs nur im Event-Zeitraum). */
+export const activePacks = (now = new Date()) => PACKS.filter((p) => !p.event || (p.event === 'halloween' && halloweenActive(now)));

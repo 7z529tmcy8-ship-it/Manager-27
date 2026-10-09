@@ -7,6 +7,7 @@ import HallOfFame from './components/HallOfFame';
 import Hub from './components/Hub';
 import Store from './components/Store';
 import Team, { DuelsScreen, SbcScreen } from './components/Team';
+import HalloweenDecor from './components/HalloweenDecor';
 import Trade from './components/Trade';
 import UpdateBanner, { unseenUpdates } from './components/UpdateBanner';
 import { UPDATES, type UpdateNote } from './data/updates';
@@ -79,6 +80,7 @@ export default function App() {
 
   return (
     <div className="app">
+      <HalloweenDecor />
       {news.length > 0 && <UpdateBanner notes={news} onClose={() => setNews([])} />}
       {saveFailed && (
         <div className="banner warn">Speichern im Browser nicht möglich (z. B. privater Modus) – der Fortschritt geht beim Schließen verloren.</div>

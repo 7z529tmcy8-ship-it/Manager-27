@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { rarity, type CollectCard } from '../game/club';
-import { MOMENTS, MOMENT_SIZE, checkMoment, completeMoment, momentCandidates, momentDone, momentOpen, type MomentSbc } from '../game/legendTrades';
+import { MOMENTS, MOMENT_SIZE, checkMoment, completeMoment, momentCandidates, momentDone, momentOpen, momentVisible, type MomentSbc } from '../game/legendTrades';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { PackOpening } from './Store';
 import UtCard from './UtCard';
@@ -16,11 +16,11 @@ export default function LegendTrades() {
       <h2>Spezial-Tausch · Legendäre Momente</h2>
       <p className="hub-sub small">Gib 11 Karten ab und bekomme eine Momentkarte (91–93). Jede gibt es nur einmal. Zusammenstellen musst du selbst.</p>
       <div className="lt-list">
-        {MOMENTS.map((m) => {
+        {MOMENTS.filter((m) => momentVisible(club, m)).map((m) => {
           const done = momentDone(club, m);
           const locked = !done && !momentOpen(club, m);
           return (
-            <div key={m.id} className={`lt-item ${done ? 'done' : ''} ${locked ? 'locked' : ''}`}>
+            <div key={m.id} className={`lt-item ${done ? 'done' : ''} ${locked ? 'locked' : ''} ${m.event ? `ev-${m.event}` : ''}`}>
               <UtCard card={m.reward} size="sm" shine={!locked} />
               <div className="lt-info">
                 <strong>{m.reward.name} · {m.reward.label}</strong>

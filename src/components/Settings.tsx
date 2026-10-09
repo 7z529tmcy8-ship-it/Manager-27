@@ -4,6 +4,7 @@ import { INFINITE_COINS, devAdvance, devAllCards, devCoins, devFlags, devLevels,
 import { CLUBS, LEAGUES, getClub } from '../data/leagues';
 import { currentClubId } from '../game/player';
 import { readDevTrade, writeDevTrade, type DevTrade } from '../game/trade';
+import { halloweenActive } from '../game/club';
 import { DIFFICULTIES, setCareerSettings, settingsOf } from '../game/difficulty';
 import type { Career, Difficulty } from '../game/types';
 import { UNLOCK_KEY } from './PasswordGate';
@@ -101,6 +102,9 @@ export default function Settings({ career, onChange, onClose }: Props) {
             onPick={(theme) => set({ theme })}
           />
           <Toggle label="Animationen" checked={app.animations} onToggle={() => set({ animations: !app.animations })} hint="Pack-Öffnung, Konfetti und Hochzählen." />
+          {halloweenActive() && (
+            <Toggle label="Halloween-Design" checked={app.halloween !== false} onToggle={() => set({ halloween: app.halloween === false })} hint="Nur bis 2. November: Kürbisse, Fledermäuse und Nebel." />
+          )}
           <Toggle label="Sounds" checked={app.sound} onToggle={() => { set({ sound: !app.sound }); if (!app.sound) setTimeout(() => play('coin'), 30); }} hint="Klicks, Coins, Pack-Öffnung, Pfiff, Fanfare bei Titeln." />
           {app.sound && (
             <Choice<string>

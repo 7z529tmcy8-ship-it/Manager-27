@@ -117,3 +117,20 @@ export const CULT_HEROES: [string, string, Position, number, string][] = [
 export const EXTRA_TALENTS: [string, string, Position, number, string][] = [
   ['Paulo Henrique Ganso', 'Brasilien', 'ZOM', 88, 'FC Santos'],
 ];
+
+/**
+ * Halloween 2026: Legenden im Kostüm (nur in Halloween-Packs). Bewusst nur lebende Spieler – Kostüme, keine „Geister“.
+ * [Name, Nation, Position, Wertung, Kostüm]
+ */
+export const HALLOWEEN_CARDS: [string, string, Position, number, string][] = [
+  ['Ronaldinho', 'Brasilien', 'ZOM', 96, 'Kürbiskopf'],
+  ['Zlatan Ibrahimović', 'Schweden', 'ST', 95, 'Vampir'],
+  ['Oliver Kahn', 'Deutschland', 'TW', 94, 'Werwolf'],
+  ['Stefan Effenberg', 'Deutschland', 'ZM', 93, 'Graf Dracula'],
+  ['Gennaro Gattuso', 'Italien', 'ZDM', 92, 'Monster'],
+  ['Mario Balotelli', 'Italien', 'ST', 91, 'Hexenmeister'],
+  ['Jens Lehmann', 'Deutschland', 'TW', 90, 'Sensenmann'],
+  ['Kevin-Prince Boateng', 'Ghana', 'ZM', 89, 'Zombie'],
+  ['Mario Basler', 'Deutschland', 'ZM', 89, 'Mumie'],
+  ['Nicklas Bendtner', 'Dänemark', 'ST', 88, 'Gespenst'],
+];

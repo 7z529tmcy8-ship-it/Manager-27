@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { play } from '../sound';
-import { ITEMS, PACKS, oddsAtLeast, openMegaSuper, openPack, packTier, rarity, type PackDef, type PackResult } from '../game/club';
+import { ITEMS, PACKS, activePacks, oddsAtLeast, openMegaSuper, openPack, packTier, rarity, type PackDef, type PackResult } from '../game/club';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { motionReduced } from '../settings';
 import Confetti from './Confetti';
@@ -11,7 +11,7 @@ const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 /** Store: Packs mit Coins kaufen. Das erste Gold-Pack ist gratis. */
 export default function Store({ onBack, onCollection }: { onBack: () => void; onCollection: () => void }) {
   const club = useClub();
-  const [opening, setOpening] = useState<{ result: PackResult; name: string } | null>(null);
+  const [opening, setOpening] = useState<{ result: PackResult; name: string; theme?: string } | null>(null);
   const [mega, setMega] = useState(false);
   const [superPack, setSuperPack] = useState<PackResult | null>(null);
   const [superCharging, setSuperCharging] = useState(false);
@@ -20,7 +20,8 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
     const res = openPack(getClubState(), packId, Math.random, free);
     if (!res) return;
     setClubState(free ? { ...res.club, welcomeClaimed: true } : res.club);
-    setOpening({ result: res.result, name: PACKS.find((p) => p.id === packId)!.name });
+    const def = PACKS.find((p) => p.id === packId)!;
+    setOpening({ result: res.result, name: def.name, theme: def.event });
   };
 
   return (
@@ -75,10 +76,10 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
       )}
 
       <div className="store-grid">
-        {PACKS.map((p) => {
+        {activePacks().map((p) => {
           const afford = club.coins >= p.price;
           return (
-            <div key={p.id} className={`pack-card p-${p.id}`}>
+            <div key={p.id} className={`pack-card p-${p.id} ${p.event ? `ev-${p.event}` : ''}`}>
               <div className="pack-art" aria-hidden="true"><span>{p.name.replace('-Pack', '')}</span></div>
               <strong>{p.name}</strong>
               <small>{p.text}</small>
@@ -100,6 +101,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
       {opening && (
         <PackOpening
           name={opening.name}
+          theme={opening.theme}
           result={opening.result}
           onClose={() => setOpening(null)}
           onCollection={() => { setOpening(null); onCollection(); }}
@@ -176,7 +178,7 @@ const FLIP_GAP = 140; // ms zwischen zwei Karten beim Aufdecken
  * Pack-Öffnung: Das Pack lädt sich auf und leuchtet in der Farbe der besten Karte, reißt mit einem Blitz auf,
  * bei seltenen Karten folgt ein „Walkout“ (Nation → Position → Verein), dann die Karte – am Ende drehen sich alle Karten einzeln um.
  */
-export function PackOpening({ name, result, onClose, onCollection }: { name: string; result: PackResult; onClose: () => void; onCollection: () => void }) {
+export function PackOpening({ name, result, onClose, onCollection, theme }: { name: string; result: PackResult; onClose: () => void; onCollection: () => void; theme?: string }) {
   const best = result.cards[0].card;
   const special = rarity(best) >= 200; // Elite, Ikone, Talent
   const tier = packTier(best);
@@ -238,7 +240,7 @@ export function PackOpening({ name, result, onClose, onCollection }: { name: str
   const flipping = phase === 'all' && !quick && !instant;
 
   return (
-    <div className={`pack-open ph-${phase} tier-${tier} ${special ? 'special' : ''}`} role="dialog" aria-modal="true" aria-label={`${name} öffnen`}>
+    <div className={`pack-open ph-${phase} tier-${tier} ${special ? 'special' : ''} ${theme ? `theme-${theme}` : ''}`} role="dialog" aria-modal="true" aria-label={`${name} öffnen`}>
       {phase !== 'all' && <button className="pack-skip" onClick={() => setPhase('all')}>Überspringen</button>}
 
       {phase === 'pack' && (

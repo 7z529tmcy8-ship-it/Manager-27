@@ -11,6 +11,8 @@ export interface AppSettings {
   volume: number;
   /** Entwickler-Bereich freigeschaltet (Code in den Einstellungen). */
   dev?: boolean;
+  /** Halloween-Design während des Events (Standard an). */
+  halloween?: boolean;
 }
 
 const KEY = 'fc-manager-settings';
@@ -34,6 +36,8 @@ export function applySettings(s: AppSettings = current): void {
   if (s.theme === 'auto') delete root.dataset.theme;
   else root.dataset.theme = s.theme;
   root.classList.toggle('reduce-motion', !s.animations);
+  // Halloween-Event (bis 2. November 2026): eigenes Design, abschaltbar.
+  root.classList.toggle('halloween', new Date() <= new Date(2026, 10, 2, 23, 59, 59) && s.halloween !== false);
 }
 
 export function updateSettings(patch: Partial<AppSettings>): void {
