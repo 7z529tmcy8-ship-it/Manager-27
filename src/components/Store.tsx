@@ -323,12 +323,18 @@ export function PackOpening({ name, result, onClose, onCollection, theme, art, a
           ))}
           <div className="pack-actions">
             {flipping && result.cards.length > 1 && <button className="btn secondary big" onClick={() => setInstant(true)}>Alle aufdecken</button>}
-            <button className="btn secondary big" onClick={onCollection}>Zur Sammlung</button>
-            <button className="btn primary big" onClick={onClose}>Fertig</button>
-            {again && (
-              <button className="btn primary big pack-again" disabled={!again.can} onClick={again.onClick}>
-                {again.can ? `Nochmal · 🪙 ${again.price.toLocaleString('de-DE')}` : 'Zu wenig Coins'}
-              </button>
+            {again ? (
+              <>
+                <button className="btn secondary big pack-half" onClick={onClose}>Fertig</button>
+                <button className="btn primary big pack-half" disabled={!again.can} onClick={again.onClick}>
+                  Noch ein Pack<small>{again.can ? `🪙 ${again.price.toLocaleString('de-DE')}` : 'zu wenig Coins'}</small>
+                </button>
+              </>
+            ) : (
+              <>
+                <button className="btn secondary big" onClick={onCollection}>Zur Sammlung</button>
+                <button className="btn primary big" onClick={onClose}>Fertig</button>
+              </>
             )}
           </div>
         </div>

@@ -2111,5 +2111,6 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .ucard.v-ucl { --a: #0d1b4c; --b: #01040f; --ink: #dfe9ff; --edge: rgba(200, 220, 255, .9); --glow: rgba(160, 190, 255, .55);
   background: radial-gradient(circle at 50% 36%, rgba(200, 220, 255, .25) 0 22%, transparent 23%), radial-gradient(rgba(255, 255, 255, .5) 1px, transparent 1.5px) 0 0 / 14px 14px, linear-gradient(165deg, var(--a), var(--b)); }
 .ucard.v-worldcup { --a: #0f5e3a; --b: #04170e; --ink: #ffe27a; --edge: rgba(255, 215, 90, .95); --glow: rgba(255, 200, 60, .6); }
-.pack-actions .pack-again { flex-basis: 100%; max-width: 420px; background: linear-gradient(135deg, #19e3c2, #0fa38a); color: #04211c; }
-.pack-actions .pack-again:disabled { opacity: .5; }
+.pack-actions .pack-half { flex: 1 1 0; max-width: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
+.pack-actions .pack-half small { font-size: .75rem; font-weight: 700; opacity: .8; margin-top: 2px; }
+.pack-actions .pack-half:disabled { opacity: .5; }
