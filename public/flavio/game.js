@@ -1,526 +1,510 @@
 /* =========================================================
-   Onkel Flávio – vom Läufer in Kreuzberg nach oben
+   Onkel Flávio – Musikkarriere auf dem Handy
    ---------------------------------------------------------
-   Erfundene Geschichte, erfundene Ware, keine Anleitung zu irgendwas.
+   Du bist Musiker:in in Berlin, dein Onkel Flávio ist dein Manager.
+   Jede Woche hast du 100 Energie: Songs aufnehmen, verbessern,
+   veröffentlichen, posten, auftreten, üben. Dann: nächste Woche.
    Aufbau:
-     1. CONFIG       – Kieze, Ware, Ränge, Werte
-     2. Spielstand
-     3. Hilfsfunktionen
-     4. Markt & Kunden
-     5. Aktionen     – Aufträge, Einkauf, Verkauf, U-Bahn, Bunker
-     6. Zeit         – Tageszeiten, neuer Tag, Kontrollen
-     7. Anzeige      – Startseite (Liste) und Unterseiten
-     8. Start
+     1. CONFIG
+     2. Zustand & Hilfen
+     3. Aktionen (Studio, Release, Feed, Gigs, Kurse, Shop)
+     4. Wochenwechsel (Streams, Charts, Fans, Geld)
+     5. Bilder hochladen
+     6. Seiten (Apps)
+     7. Start
    ========================================================= */
 
 /* ========== 1. CONFIG ========== */
 const CONFIG = {
-  saveKey: 'onkel-flavio-v1',
-  startCash: 100,
-  rent: { every: 7, amount: 80 }, // WG-Zimmer, alle 7 Tage
-  times: ['Morgen', 'Nachmittag', 'Nacht'],
-  flavioAt: 'oranien', // Flávios Späti
-  // Kieze: Kürzel, Name, Kundschaft (Menge pro Tageszeit), Polizeidruck, Nachfrage je Ware, Position auf der Karte
-  kieze: [
-    { id: 'goerli', code: 'GP', name: 'Görlitzer Park', people: 'Touristen und Nachtschwärmer', crowd: 2.6, police: 1.5, demand: { kraut: 1.4, pillen: 0.9, pulver: 0.7 }, x: 240, y: 150, ly: 30 },
-    { id: 'kotti', code: 'KT', name: 'Kottbusser Tor', people: 'Laufkundschaft rund um die Uhr', crowd: 2.4, police: 1.4, demand: { kraut: 1, pillen: 1.1, pulver: 1 }, x: 150, y: 110, ly: -18 },
-    { id: 'wrangel', code: 'WK', name: 'Wrangelkiez', people: 'Studis, WG-Partys – und deine Bude', crowd: 1.6, police: 0.8, demand: { kraut: 1.2, pillen: 1.3, pulver: 0.6 }, x: 330, y: 70, ly: -18 },
-    { id: 'oranien', code: 'OS', name: 'Oranienstraße', people: 'Bars, Clubs – und Flávios Späti', crowd: 1.8, police: 1, demand: { kraut: 0.9, pillen: 1.2, pulver: 1.2 }, x: 70, y: 70, ly: -18 },
-    { id: 'bergmann', code: 'BK', name: 'Bergmannkiez', people: 'Gut verdienende Kundschaft', crowd: 1.1, police: 0.7, demand: { kraut: 0.8, pillen: 0.9, pulver: 1.6 }, x: 90, y: 225, ly: 30 },
-    { id: 'schles', code: 'ST', name: 'Schlesisches Tor', people: 'Club-Publikum am Wochenende', crowd: 1.5, police: 1.1, demand: { kraut: 1, pillen: 1.4, pulver: 1.1 }, x: 330, y: 200, ly: 30 },
+  saveKey: 'onkel-flavio-musik-v1',
+  energy: 100, // pro Woche
+  cost: { record: 10, polish: 5, release: 5, post: 5, gig: 20, course: 15 },
+  startCash: 200,
+  living: 20, // Lebenshaltung pro Woche
+  payPerStream: 0.003, // € pro Stream
+  market: 25000000, // so viele Menschen kann man insgesamt als Fans gewinnen – bremst das Wachstum oben
+  fanRate: 0.013, // Anteil der Streams, aus denen Fans werden
+  genres: ['Rap', 'Pop', 'R&B', 'Afrobeats', 'Techno', 'Indie'],
+  parts: { text: 'Text', beat: 'Beat', vocals: 'Gesang', mix: 'Mix & Master' },
+  skills: { text: 'Songwriting', beat: 'Produktion', vocals: 'Stimme' },
+  gear: [
+    { name: 'Handy-Mikro', price: 0, cap: 55, mix: 0 },
+    { name: 'USB-Mikrofon', price: 150, cap: 64, mix: 6 },
+    { name: 'Laptop mit Musikprogramm', price: 600, cap: 74, mix: 12 },
+    { name: 'Homestudio', price: 2500, cap: 86, mix: 20 },
+    { name: 'Profi-Studio', price: 12000, cap: 99, mix: 30 },
   ],
-  // U-Bahn-Verbindungen für die Karte (Fahrt dauert immer eine Tageszeit)
-  lines: [['oranien', 'kotti'], ['kotti', 'goerli'], ['goerli', 'schles'], ['schles', 'wrangel'], ['kotti', 'bergmann']],
-  // Ware (erfunden): Grundpreis pro Einheit beim Kunden, Einkauf bei Flávio, Heat pro Einheit, ab welchem Rang
-  goods: [
-    { id: 'kraut', code: 'K', name: 'Kraut', price: 12, buy: 6, heat: 0.6, rank: 2 },
-    { id: 'pillen', code: 'P', name: 'Pillen', price: 28, buy: 14, heat: 1, rank: 2 },
-    { id: 'pulver', code: 'W', name: 'Pulver', price: 75, buy: 38, heat: 1.8, rank: 3 },
+  courses: [
+    { id: 'text', name: 'Schreibwerkstatt', skill: 'text', price: 40 },
+    { id: 'beat', name: 'Produktionskurs', skill: 'beat', price: 60 },
+    { id: 'vocals', name: 'Gesangsstunde', skill: 'vocals', price: 50 },
   ],
-  // Ränge: was man braucht, was es bringt
+  venues: [
+    { name: 'Kneipe um die Ecke', fans: 0, pay: 60, gain: 40 },
+    { name: 'Jugendclub', fans: 150, pay: 160, gain: 110 },
+    { name: 'Club in Friedrichshain', fans: 1000, pay: 500, gain: 350 },
+    { name: 'Stadtfest-Bühne', fans: 8000, pay: 2500, gain: 1500 },
+    { name: 'Konzerthalle', fans: 60000, pay: 18000, gain: 9000 },
+    { name: 'Stadion', fans: 400000, pay: 120000, gain: 60000 },
+  ],
   ranks: [
-    { name: 'Läufer', short: 'Läufer', pocket: 10, needs: null, unlock: 'Aufträge für Flávio: Ware abholen und ausliefern.' },
-    { name: 'Straßendealer', short: 'Dealer', pocket: 15, needs: { rep: 8 }, unlock: 'Eigene Kunden, Einkauf bei Flávio.' },
-    { name: 'Kiez-Dealer', short: 'Kiez', pocket: 25, needs: { rep: 30, regulars: 2, cash: 800 }, unlock: 'Bunker (Versteck), Pulver, mehr Platz am Mann.' },
-    { name: 'Zwischenhändler', short: 'Händler', pocket: 30, needs: { locked: true }, unlock: 'Andere Dealer beliefern, Fassade – kommt bald.' },
-    { name: 'Großhändler', short: 'Groß', pocket: 50, needs: { locked: true }, unlock: 'Ganz Berlin, Lieferanten – kommt bald.' },
-    { name: 'Der Boss', short: 'Boss', pocket: 80, needs: { locked: true }, unlock: 'Die Stadt gehört dir – kommt bald.' },
+    { name: 'Schlafzimmer-Talent', fans: 0 },
+    { name: 'Kiez-Bekanntheit', fans: 1000 },
+    { name: 'Aufsteiger:in', fans: 10000 },
+    { name: 'Chartstürmer:in', fans: 100000 },
+    { name: 'Star', fans: 1000000 },
+    { name: 'Legende', fans: 10000000 },
   ],
-  bunker: { price: 700, capacity: 60 },
-  graceDays: 3, // in den ersten Tagen gibt es keine Kontrollen
-  // Deine Bude (WG-Zimmer): hier kann man Ware kostenlos strecken – mehr Gewicht, weniger Qualität
-  bude: 'wrangel',
-  stretch: [
-    { id: 'light', name: 'Leicht strecken', more: 0.25 },
-    { id: 'strong', name: 'Stark strecken', more: 0.5 },
-  ],
-  badQuality: 70, // darunter merken es die Kunden
-  // Taschen: dauerhaft mehr Platz am Mann (zusätzlich zum Rang)
-  bags: [
-    { id: 'none', name: 'Jackentaschen', bonus: 0, price: 0 },
-    { id: 'belt', name: 'Bauchtasche', bonus: 5, price: 60 },
-    { id: 'backpack', name: 'Rucksack', bonus: 12, price: 180 },
-    { id: 'sport', name: 'Sporttasche', bonus: 25, price: 450 },
-    { id: 'trolley', name: 'Rollkoffer mit Geheimfach', bonus: 40, price: 1100 },
-  ],
-  // Waffen: schützen vor Überfällen, brauchen Platz – bei einer Polizeikontrolle gibt es dafür richtig Ärger
-  weapons: [
-    { id: 'spray', name: 'Pfefferspray', slots: 1, defense: 0.4, fine: 60, price: 40 },
-    { id: 'bat', name: 'Baseballschläger', slots: 4, defense: 0.6, fine: 150, price: 90 },
-    { id: 'blank', name: 'Schreckschusspistole', slots: 2, defense: 0.8, fine: 400, price: 350 },
-  ],
-  arrestAt: 15, // ab so vielen Einheiten am Mann wird man festgenommen
-  heatDecay: 15, // pro Tag in jedem Kiez
+  // Erfundene Konkurrenz für die Charts
+  rivals: ['Mira Nox', 'KALIBER', 'Jonah Blue', 'Sami Sun', 'LUNA 7', 'Deniz K.', 'Velvet Ray', 'Brixton Mo', 'Ayla', 'Neon Kids', 'Kaspar', 'Juno Lee',
+    'Rico Gold', 'Hanna Vale', 'Fynn Vega', 'SOLEA', 'Tarek', 'Mona Lux', 'BLKWLD', 'Cleo', 'Emre Nova', 'Paula Rae', 'Zeki', 'Ivy Moon', 'Lenny Moe'],
+  rivalTitles: ['Mitternacht', 'Kein Zurück', 'Sommerregen', 'Blaulicht', 'Herzschlag', 'Paradies', 'Neonlicht', 'Allein', 'Tanzen', 'Gold', 'Vollgas',
+    'Stille', 'Fieber', 'Gegenwind', 'Lila', 'Augen zu', 'Wolken', 'Echo', 'Kometen', 'Ozean', 'Nachtzug', 'Feuerwerk', 'Wellen', 'Kopfkino', 'Ballon'],
+  titleIdeas: ['Kreuzberg Nächte', 'Spree im Dunkeln', 'Letzte Bahn', 'Kopf hoch', 'Nie wieder', 'Herz aus Glas', 'Späti-Romantik', 'Dachterrasse',
+    'Mama sagt', 'Erster Platz', 'Nebel', 'Ohne dich', 'Goldene Zeiten', 'Bis zum Morgen', 'Plattenbau', 'U8', 'Schall & Rauch', 'Kaltes Licht'],
 };
 
-const FIRST = ['Kalle', 'Deniz', 'Mia', 'Jonas', 'Leyla', 'Tom', 'Sami', 'Nina', 'Ben', 'Aylin', 'Paul', 'Lina', 'Emre', 'Sophie', 'Malik', 'Jana', 'Luca', 'Hanna', 'Kemal', 'Finn', 'Marta', 'Ole', 'Selin', 'Max'];
-const TYPES = ['Tourist', 'Studi', 'Kellner', 'DJ', 'Anwalt', 'Künstlerin', 'Barkeeper', 'Start-up-Typ', 'Kurierfahrer', 'Krankenpfleger'];
-
-/* ========== 2. Spielstand ========== */
-function newState(name) {
-  const s = {
-    name, day: 1, time: 0, cash: CONFIG.startCash, rep: 0, rank: 0,
-    at: 'oranien',
-    pocket: { kraut: 0, pillen: 0, pulver: 0 },
-    bunker: null, // { kiez, goods }
-    heat: Object.fromEntries(CONFIG.kieze.map((k) => [k.id, 0])),
-    price: Object.fromEntries(CONFIG.goods.map((g) => [g.id, 1])), // Tagesfaktor je Ware
-    event: null,
-    jobs: [], job: null, // offene Aufträge, angenommener Auftrag
-    customers: [], // Kunden der aktuellen Tageszeit
-    regulars: {}, // Name → { kiez, buys, regular }
-    phone: [], // Nachrichten
-    tips: true, // Tutor-Hinweise auf der Startseite
-    bag: 0, // Index in CONFIG.bags
-    purity: { kraut: 100, pillen: 100, pulver: 100 }, // Qualität der Ware am Mann in Prozent
-    gear: [], // gekaufte Waffen (IDs)
-    stats: { sold: 0, earned: 0, jobs: 0, busts: 0 },
-    page: 'home',
+/* ========== 2. Zustand & Hilfen ========== */
+function newState(name, genre) {
+  return {
+    name, genre, week: 1, energy: CONFIG.energy, cash: CONFIG.startCash,
+    fans: 0, followers: 20, gear: 0,
+    skills: { text: 20, beat: 15, vocals: 20 },
+    songs: [], posts: [], phone: [], gigsThisWeek: [], postsThisWeek: 0,
+    trend: pick(CONFIG.genres), trendLeft: 6,
+    label: null, peak: null, totalStreams: 0, earned: 0,
+    page: 'home', tips: true, nextId: 1,
   };
-  return s;
 }
 let S = null;
 
-/* ========== 3. Hilfsfunktionen ========== */
 const $ = (id) => document.getElementById(id);
 const eur = (n) => `${Math.round(n).toLocaleString('de-DE')} €`;
+const num = (n) => (n >= 1e6 ? `${(n / 1e6).toFixed(1).replace('.', ',')} Mio.` : n >= 1e4 ? `${Math.round(n / 1e3)}k` : Math.round(n).toLocaleString('de-DE'));
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const rnd = (a, b) => a + Math.random() * (b - a);
-const kiez = (id) => CONFIG.kieze.find((k) => k.id === id);
-const good = (id) => CONFIG.goods.find((g) => g.id === id);
-const rank = () => CONFIG.ranks[S.rank];
-const goodsCarried = () => Object.values(S.pocket).reduce((a, b) => a + b, 0) + (S.job ? S.job.units : 0);
-const weapon = (id) => CONFIG.weapons.find((w) => w.id === id);
-const gearSlots = () => (S.gear ?? []).reduce((a, id) => a + weapon(id).slots, 0);
-const carried = () => goodsCarried() + gearSlots();
-const bag = () => CONFIG.bags[S.bag ?? 0];
-const capacity = () => rank().pocket + bag().bonus;
-const pocketFree = () => capacity() - carried();
-const defense = () => Math.max(0, ...(S.gear ?? []).map((id) => weapon(id).defense));
-const goodsForRank = () => CONFIG.goods.filter((g) => g.rank <= S.rank + 1);
-const regularCount = () => Object.values(S.regulars).filter((r) => r.regular).length;
-function text(from, body) {
-  S.phone.unshift({ from, body, day: S.day, time: S.time, read: false });
-  S.phone = S.phone.slice(0, 30);
-}
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const song = (id) => S.songs.find((x) => x.id === id);
+const gear = () => CONFIG.gear[S.gear];
+const rankIdx = () => CONFIG.ranks.reduce((r, k, i) => (S.fans >= k.fans ? i : r), 0);
 const unread = () => S.phone.filter((m) => !m.read).length;
+const quality = (sg) => Math.round(Object.values(sg.parts).reduce((a, b) => a + b, 0) / 4);
+const qualityLabel = (q) => (q >= 90 ? 'Meisterwerk' : q >= 78 ? 'Hit-Potenzial' : q >= 65 ? 'Stark' : q >= 50 ? 'Solide' : q >= 35 ? 'Roh' : 'Schwach');
 
-/* ========== 4. Markt & Kunden ========== */
-/** Preis, den Kunden in einem Kiez ungefähr zahlen. */
-function streetPrice(gid, kid = S.at) {
-  const g = good(gid);
-  const k = kiez(kid);
-  const ev = S.event && S.event.kind === 'demand' && S.event.kiez === kid ? 1.4 : 1;
-  return Math.max(1, Math.round(g.price * S.price[gid] * (0.8 + k.demand[gid] * 0.25) * ev));
+function text(from, body) {
+  S.phone.unshift({ from, body, week: S.week, read: false });
+  S.phone = S.phone.slice(0, 40);
 }
-/** Einkaufspreis bei Flávio. */
-function buyPrice(gid) {
-  const short = S.event && S.event.kind === 'short' ? 1.5 : 1;
-  return Math.max(1, Math.round(good(gid).buy * S.price[gid] * short));
-}
-
-function rollCustomers() {
-  S.customers = [];
-  if (S.rank < 1) return;
-  const k = kiez(S.at);
-  const night = S.time === 2 ? 1.5 : S.time === 0 ? 0.6 : 1;
-  const ev = S.event && S.event.kind === 'demand' && S.event.kiez === S.at ? 1.8 : 1;
-  // Wer hier viel Heat hat, findet weniger Kunden – die Leute merken, dass es brennt.
-  const scare = 1 - S.heat[S.at] / 160;
-  const n = Math.max(0, Math.round(k.crowd * night * ev * scare + rnd(-1, 1.2)));
-  const goods = goodsForRank();
-  // Stammkunden aus diesem Kiez melden sich öfter.
-  for (const [name, r] of Object.entries(S.regulars)) {
-    if (r.regular && r.kiez === S.at && Math.random() < 0.5) S.customers.push(makeCustomer(name, r.type, goods, true));
+function useEnergy(n) {
+  if (S.energy < n) {
+    showModal('Keine Energie mehr', `<p>Dafür brauchst du ${n} Energie, du hast noch ${S.energy}.</p><p>Tipp unten auf <b>Nächste Woche</b> – dann bist du wieder bei ${CONFIG.energy}.</p>`, true);
+    return false;
   }
-  for (let i = 0; i < n; i++) {
-    const name = pick(FIRST);
-    if (name === S.name || S.customers.some((c) => c.name === name)) continue;
-    const r = S.regulars[name];
-    S.customers.push(makeCustomer(name, r ? r.type : pick(TYPES), goods, !!(r && r.regular && r.kiez === S.at)));
+  S.energy -= n;
+  return true;
+}
+function skillUp(k, amount) {
+  // Je besser du schon bist, desto langsamer geht es voran.
+  S.skills[k] = clamp(S.skills[k] + amount * (1 - S.skills[k] / 120), 0, 100);
+}
+
+/* ========== 3. Aktionen ========== */
+function recordSong(title) {
+  if (!useEnergy(CONFIG.cost.record)) return;
+  const g = gear();
+  const part = (skill) => clamp(skill * 0.65 + rnd(5, 28), 5, g.cap);
+  const sg = {
+    id: S.nextId++, title: title || pick(CONFIG.titleIdeas), genre: S.genre,
+    parts: {
+      text: part(S.skills.text),
+      beat: part(S.skills.beat + g.mix * 0.5),
+      vocals: part(S.skills.vocals),
+      mix: clamp(18 + g.mix * 1.6 + S.skills.beat * 0.2 + rnd(0, 12), 5, g.cap),
+    },
+    polish: { text: 0, beat: 0, vocals: 0, mix: 0 },
+    cover: null, hue: Math.floor(rnd(0, 360)),
+    released: false, week: S.week, streams: 0, last: 0, history: [], hype: 0, peak: null,
+  };
+  S.songs.unshift(sg);
+  for (const k of Object.keys(S.skills)) skillUp(k, 0.8);
+  save();
+  S.page = `song:${sg.id}`;
+  render();
+  showModal('Aufgenommen', `<p><b>„${esc(sg.title)}“</b> ist im Kasten.</p><p>Qualität: <b>${quality(sg)}</b> – ${qualityLabel(quality(sg))}.</p>
+    <p>Du kannst jeden Teil noch bis zu 3× verbessern, bevor du den Song auf Tonspur veröffentlichst.</p>`);
+}
+
+function polishSong(id, part) {
+  const sg = song(id);
+  if (!sg || sg.released || sg.polish[part] >= 3) return;
+  if (!useEnergy(CONFIG.cost.polish)) return;
+  const cap = gear().cap;
+  const skill = part === 'mix' ? S.skills.beat * 0.6 + gear().mix * 2 : S.skills[part];
+  const before = sg.parts[part];
+  // Bringt viel, solange der Teil schwach ist – später nur noch Feinschliff.
+  const gain = Math.max(1, (cap - before) * rnd(0.18, 0.3) + skill * 0.04);
+  sg.parts[part] = clamp(before + gain, 0, cap);
+  sg.polish[part]++;
+  save();
+  render();
+  flash(`${CONFIG.parts[part]} +${Math.round(sg.parts[part] - before)}`);
+}
+
+function releaseSong(id) {
+  const sg = song(id);
+  if (!sg || sg.released) return;
+  if (!useEnergy(CONFIG.cost.release)) return;
+  sg.released = true;
+  sg.releaseWeek = S.week;
+  sg.hype = 1;
+  text('Onkel Flávio', `„${sg.title}“ ist draußen! Poste im Feed darüber, dann hören es mehr Leute. Die Zahlen gibt's am Ende der Woche.`);
+  save();
+  render();
+  showModal('Veröffentlicht', `<p><b>„${esc(sg.title)}“</b> ist jetzt auf Tonspur.</p><p>Streams, Fans und Geld werden am Ende der Woche abgerechnet – tipp auf <b>Nächste Woche</b>.</p>`);
+}
+
+function deleteSong(id) {
+  const sg = song(id);
+  if (!sg || sg.released) return;
+  S.songs = S.songs.filter((x) => x.id !== id);
+  S.page = 'studio';
+  save();
+  render();
+}
+
+function post(textBody, songId, img) {
+  if (!useEnergy(CONFIG.cost.post)) return;
+  const sg = songId ? song(songId) : null;
+  // Mit Bild kommt ein Post besser an; Werbung für einen frischen Song macht Hype.
+  // Mehrere Posts in einer Woche bringen immer weniger.
+  const fatigue = 1 / (1 + (S.postsThisWeek ?? 0) * 0.7);
+  S.postsThisWeek = (S.postsThisWeek ?? 0) + 1;
+  const base = (12 + S.fans * 0.015) * (1 - S.followers / CONFIG.market);
+  const gained = Math.max(1, Math.round(base * (img ? 1.5 : 1) * fatigue * rnd(0.6, 1.4)));
+  S.followers += gained;
+  const likes = Math.round((S.followers * rnd(0.05, 0.14) + gained) * (img ? 1.4 : 1));
+  if (sg) sg.hype += 0.6;
+  S.posts.unshift({ id: S.nextId++, text: textBody, song: sg ? sg.id : null, img, likes, gained, week: S.week });
+  S.posts = S.posts.slice(0, 30);
+  pendingImg = null;
+  save();
+  render();
+  flash(`+${num(gained)} Follower`);
+}
+
+function playGig(i) {
+  const v = CONFIG.venues[i];
+  if (S.fans < v.fans || S.gigsThisWeek.includes(i)) return;
+  if (!useEnergy(CONFIG.cost.gig)) return;
+  S.gigsThisWeek.push(i);
+  // Wie gut der Auftritt läuft, hängt an deiner Stimme und an deinen Songs.
+  const best = Math.max(0, ...S.songs.filter((x) => x.released).map(quality));
+  const show = clamp((S.skills.vocals * 0.6 + best * 0.4) / 70 * rnd(0.7, 1.3), 0.3, 1.6);
+  const fans = Math.round(v.gain * show * Math.max(0, 1 - S.fans / CONFIG.market));
+  const pay = Math.round(v.pay * (0.8 + show * 0.3));
+  S.fans += fans;
+  S.cash += pay;
+  S.earned += pay;
+  skillUp('vocals', 1.5);
+  const verdict = show > 1.2 ? 'Die Leute rasten aus!' : show > 0.9 ? 'Starker Auftritt.' : show > 0.6 ? 'Ganz okay, ein paar haben mitgesungen.' : 'Zäh – das Publikum war eher am Handy.';
+  save();
+  render();
+  showModal(v.name, `<p>${verdict}</p><p>Gage: <b>${eur(pay)}</b> · neue Fans: <b>+${num(fans)}</b></p>`);
+}
+
+function takeCourse(id) {
+  const c = CONFIG.courses.find((x) => x.id === id);
+  const price = coursePrice(c);
+  if (S.cash < price) { showModal('Zu wenig Geld', `<p>Der Kurs kostet ${eur(price)}.</p>`, true); return; }
+  if (!useEnergy(CONFIG.cost.course)) return;
+  S.cash -= price;
+  const before = S.skills[c.skill];
+  skillUp(c.skill, rnd(6, 10));
+  save();
+  render();
+  flash(`${CONFIG.skills[c.skill]} +${Math.round(S.skills[c.skill] - before)}`);
+}
+const coursePrice = (c) => Math.round(c.price * (1 + S.skills[c.skill] / 25));
+
+function buyGear(i) {
+  const g = CONFIG.gear[i];
+  if (i !== S.gear + 1 || S.cash < g.price) return;
+  S.cash -= g.price;
+  S.gear = i;
+  text('Onkel Flávio', `${g.name}? Respekt. Jetzt klingen deine Songs nach mehr – neue Aufnahmen können bis Qualität ${g.cap} gehen.`);
+  save();
+  render();
+  showModal('Neues Equipment', `<p><b>${g.name}</b> steht bereit. Songs können jetzt bis <b>${g.cap}</b> Qualität erreichen.</p>`);
+}
+
+/* ========== 4. Wochenwechsel ========== */
+function weekStreams(sg, trendBoost) {
+  const age = S.week - sg.releaseWeek;
+  const q = Math.pow(quality(sg) / 60, 2.4);
+  const audience = 250 + S.fans * 0.45 + S.followers * 0.2;
+  const fresh = age === 0 ? 1.7 : Math.pow(0.82, age);
+  const hype = 1 + sg.hype * 0.8;
+  const trend = sg.genre === S.trend ? trendBoost : 1;
+  return Math.round(audience * q * fresh * hype * trend * rnd(0.8, 1.2));
+}
+
+function chartsFor(streamsByPlayer) {
+  // 50 erfundene Songs, oben ein paar Millionen Streams
+  const list = CONFIG.rivals.flatMap((a, i) => [0, 1].map((j) => ({
+    artist: a, title: CONFIG.rivalTitles[(i * 2 + j + S.week) % CONFIG.rivalTitles.length], streams: 0,
+  })));
+  shuffleSeeded(list, S.week);
+  list.forEach((e, i) => { e.streams = Math.round(2400000 * Math.pow(0.9, i) * rnd(0.9, 1.1)); });
+  for (const p of streamsByPlayer) list.push({ artist: S.name, title: p.title, streams: p.streams, mine: p.id });
+  list.sort((a, b) => b.streams - a.streams);
+  return list.slice(0, 50);
+}
+function shuffleSeeded(a, seed) {
+  let x = seed * 9301 + 49297;
+  for (let i = a.length - 1; i > 0; i--) {
+    x = (x * 9301 + 49297) % 233280;
+    const j = Math.floor((x / 233280) * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
   }
 }
 
-function makeCustomer(name, type, goods, regular) {
-  const k = kiez(S.at);
-  const weights = goods.map((g) => k.demand[g.id]);
-  let r = Math.random() * weights.reduce((a, b) => a + b, 0);
-  const g = goods.find((_, i) => (r -= weights[i]) <= 0) ?? goods[0];
-  const units = Math.max(1, Math.round(rnd(1, regular ? 7 : 4)));
-  const offer = Math.round(streetPrice(g.id) * rnd(0.85, 1.2) * (regular ? 1.1 : 1));
-  return { name, type, good: g.id, units, offer, regular, done: false };
-}
+function nextWeek() {
+  const released = S.songs.filter((x) => x.released);
+  const viral = released.find((x) => quality(x) >= 72 && S.week - x.releaseWeek <= 4 && Math.random() < 0.05);
+  let streams = 0;
+  const mine = [];
+  for (const sg of released) {
+    let w = weekStreams(sg, 1.35);
+    if (sg === viral) w *= 6;
+    sg.last = w;
+    sg.streams += w;
+    sg.history.push(w);
+    sg.history = sg.history.slice(-12);
+    sg.hype *= 0.55;
+    streams += w;
+    mine.push({ id: sg.id, title: sg.title, streams: w });
+  }
+  const share = S.label ? 1 - S.label.cut : 1;
+  const money = streams * CONFIG.payPerStream * share;
+  const room = Math.max(0, 1 - S.fans / CONFIG.market);
+  const newFans = Math.round(released.reduce((a, sg) => a + sg.last * CONFIG.fanRate * (quality(sg) / 100), 0) * room);
+  const newFollowers = Math.round(newFans * 0.3);
+  S.fans += newFans;
+  S.followers += newFollowers;
+  S.cash += money - CONFIG.living;
+  S.earned += money;
+  S.totalStreams += streams;
 
-/* ========== 5. Aktionen ========== */
-function rollJobs() {
-  const targets = CONFIG.kieze.filter((k) => k.id !== CONFIG.flavioAt);
-  S.jobs = Array.from({ length: 3 }, () => {
-    const to = pick(targets);
-    const units = Math.round(rnd(2, 6));
-    return { to: to.id, units, pay: Math.round(25 + units * rnd(6, 10) + to.police * 10) };
+  // Charts
+  S.charts = chartsFor(mine);
+  const chartLines = [];
+  S.charts.forEach((e, i) => {
+    if (!e.mine) return;
+    const sg = song(e.mine);
+    if (!sg.peak || i + 1 < sg.peak) sg.peak = i + 1;
+    if (!S.peak || i + 1 < S.peak) S.peak = i + 1;
+    chartLines.push(`<p>„${esc(sg.title)}“ steht auf <b>Platz ${i + 1}</b> der Charts!</p>`);
   });
-}
 
-function acceptJob(i) {
-  const j = S.jobs[i];
-  if (!j || S.job || S.at !== CONFIG.flavioAt || pocketFree() < j.units) return;
-  S.job = j;
-  S.jobs.splice(i, 1);
-  text('Onkel Flávio', `Bring das nach ${kiez(j.to).name}. Nicht trödeln, nicht reden.`);
-  save(); render();
-}
-
-function finishJob() {
-  const j = S.job;
-  S.cash += j.pay;
-  S.rep += 2;
-  S.stats.jobs++;
-  S.job = null;
-  text('Onkel Flávio', `Gut gemacht. ${eur(j.pay)} für dich.`);
-  checkRank();
-}
-
-function buy(gid, n) {
-  if (S.at !== CONFIG.flavioAt || S.rank < 1) return;
-  const p = buyPrice(gid);
-  n = Math.min(n, pocketFree(), Math.floor(S.cash / p));
-  if (n <= 0) return;
-  S.cash -= n * p;
-  mixPurity(gid, n, 100);
-  S.pocket[gid] += n;
-  save(); render();
-}
-
-/** Qualität mischen: neue Einheiten mit eigener Qualität zur vorhandenen Ware. */
-function mixPurity(gid, n, purity) {
-  const have = S.pocket[gid];
-  S.purity[gid] = have + n > 0 ? Math.round(((S.purity[gid] ?? 100) * have + purity * n) / (have + n)) : 100;
-}
-/** So viel vom Angebot zahlt ein Kunde bei dieser Qualität. */
-const qualityFactor = (gid) => 0.55 + 0.45 * ((S.purity[gid] ?? 100) / 100);
-const salePrice = (c) => Math.max(1, Math.round(c.offer * qualityFactor(c.good)));
-
-/** Strecken in der Bude: mehr Einheiten, gleiche Menge Wirkstoff – also weniger Qualität. Kostet nichts. */
-function stretchPreview(gid, level) {
-  const n = S.pocket[gid];
-  const add = n > 0 ? Math.max(1, Math.round(n * CONFIG.stretch.find((x) => x.id === level).more)) : 0;
-  return { n, add, purity: n + add > 0 ? Math.round(((S.purity[gid] ?? 100) * n) / (n + add)) : 100 };
-}
-function stretch(gid, level) {
-  if (S.at !== CONFIG.bude) return;
-  const pv = stretchPreview(gid, level);
-  if (!pv.add || pocketFree() < pv.add) return;
-  S.pocket[gid] += pv.add;
-  S.purity[gid] = pv.purity;
-  save(); render();
-}
-
-function sellTo(i) {
-  const c = S.customers[i];
-  if (!c || c.done || S.pocket[c.good] < c.units) return;
-  const g = good(c.good);
-  const money = c.units * salePrice(c);
-  const purity = S.purity[c.good] ?? 100;
-  S.pocket[c.good] -= c.units;
-  if (S.pocket[c.good] === 0 && !(S.bunker && S.bunker.goods[c.good])) S.purity[c.good] = 100;
-  S.cash += money;
-  S.heat[S.at] = clamp(S.heat[S.at] + c.units * g.heat * 0.7 * kiez(S.at).police * (c.regular ? 0.5 : 1), 0, 100);
-  // Schlechte Qualität spricht sich rum.
-  const bad = purity < CONFIG.badQuality;
-  S.rep = Math.max(0, S.rep + (bad ? 0 : c.regular ? 2 : 1));
-  if (bad && Math.random() < 0.3) {
-    S.rep = Math.max(0, S.rep - 2);
-    const r0 = S.regulars[c.name];
-    if (r0 && r0.regular) { r0.regular = false; r0.buys = 0; }
-    text(c.name, `Was war das denn für ein Zeug? Totaler Schrott. Von dir kauf ich nix mehr.`);
+  // Trend wechselt alle paar Wochen
+  if (--S.trendLeft <= 0) {
+    S.trend = pick(CONFIG.genres);
+    S.trendLeft = 6;
+    text('Onkel Flávio', `Gerade hören alle ${S.trend}. Songs in dem Genre laufen jetzt besser.`);
   }
-  S.stats.sold += c.units;
-  S.stats.earned += money;
-  c.done = true;
-  const r = S.regulars[c.name] ?? { kiez: S.at, buys: 0, type: c.type, regular: false };
-  r.buys++;
-  if (!r.regular && r.buys >= 3 && !bad) {
-    r.regular = true;
-    r.kiez = S.at;
-    text(c.name, `Bist echt zuverlässig. Ich meld mich wieder – und bring Freunde mit.`);
+  const rankBefore = rankIdx();
+  events();
+
+  S.week++;
+  S.energy = CONFIG.energy;
+  S.gigsThisWeek = [];
+  S.postsThisWeek = 0;
+  const rankAfter = rankIdx();
+  save();
+  render();
+
+  const best = [...released].sort((a, b) => b.last - a.last)[0];
+  showModal(`Woche ${S.week - 1} vorbei`, `
+    ${viral ? `<p class="good"><b>„${esc(viral.title)}“ geht viral!</b> Sechsmal so viele Streams wie sonst.</p>` : ''}
+    <p>Streams: <b>${num(streams)}</b>${best ? ` · Top-Song: „${esc(best.title)}“ (${num(best.last)})` : ''}</p>
+    <p>Einnahmen: <b>${eur(money)}</b>${S.label ? ` (nach ${Math.round(S.label.cut * 100)} % für das Label)` : ''} · Lebenshaltung: −${eur(CONFIG.living)}</p>
+    <p>Neue Fans: <b>+${num(newFans)}</b> · neue Follower: <b>+${num(newFollowers)}</b></p>
+    ${chartLines.join('')}
+    ${rankAfter > rankBefore ? `<p class="good"><b>Aufstieg: ${CONFIG.ranks[rankAfter].name}!</b></p>` : ''}
+    ${!released.length ? '<p>Noch nichts veröffentlicht – ohne Songs auf Tonspur keine Streams.</p>' : ''}
+    ${S.cash < 0 ? '<p class="bad">Dein Konto ist im Minus. Spiel Auftritte, um Geld zu verdienen.</p>' : ''}
+    <p>Energie wieder bei <b>${CONFIG.energy}</b>.</p>`);
+}
+
+function events() {
+  // Label-Angebot, sobald du etwas bekannter bist
+  if (!S.label && !S.labelAsked && S.fans >= 15000) {
+    S.labelAsked = true;
+    const advance = Math.round(S.fans * 0.8);
+    S.offer = { advance, cut: 0.5 };
+    text('Wellenbrecher Records', `Wir wollen dich signen: ${eur(advance)} Vorschuss sofort, dafür gehen 50 % deiner Streaming-Einnahmen an uns. Antwort im Profil.`);
   }
-  S.regulars[c.name] = r;
-  checkRank();
-  save(); render();
-}
-
-function travel(to) {
-  if (to === S.at) return;
-  S.at = to;
-  S.page = 'home'; // nach der Fahrt: Überblick über den neuen Kiez
-  advanceTime(true);
-}
-
-function buyBag(i) {
-  const b = CONFIG.bags[i];
-  if (!b || i <= (S.bag ?? 0) || S.cash < b.price) return;
-  S.cash -= b.price;
-  S.bag = i;
-  text('Kiez-Laden', `${b.name} gekauft – jetzt passen ${capacity()} Einheiten an den Mann.`);
-  save(); render();
-}
-
-function buyWeapon(id) {
-  const w = weapon(id);
-  if (!w || (S.gear ?? []).includes(id) || S.cash < w.price || pocketFree() < w.slots) return;
-  S.cash -= w.price;
-  S.gear = [...(S.gear ?? []), id];
-  save(); render();
-}
-
-function dropWeapon(id) {
-  if (!(S.gear ?? []).includes(id)) return;
-  S.gear = S.gear.filter((x) => x !== id);
-  S.cash += Math.round(weapon(id).price * 0.4);
-  save(); render();
-}
-
-function buyBunker() {
-  if (S.rank < 2 || S.bunker || S.cash < CONFIG.bunker.price) return;
-  S.cash -= CONFIG.bunker.price;
-  S.bunker = { kiez: S.at, goods: { kraut: 0, pillen: 0, pulver: 0 } };
-  text('Onkel Flávio', `Ein Keller in ${kiez(S.at).name}. Klug. Ware am Mann ist Ware im Knast.`);
-  save(); render();
-}
-
-function stash(gid, toBunker) {
-  const b = S.bunker;
-  if (!b || b.kiez !== S.at) return;
-  if (toBunker) {
-    const space = CONFIG.bunker.capacity - Object.values(b.goods).reduce((a, x) => a + x, 0);
-    const n = Math.min(S.pocket[gid], space);
-    S.pocket[gid] -= n;
-    b.goods[gid] += n;
-  } else {
-    const n = Math.min(b.goods[gid], pocketFree());
-    b.goods[gid] -= n;
-    S.pocket[gid] += n;
+  // Feature-Anfragen von anderen Artists
+  if (S.fans >= 500 && Math.random() < 0.18) {
+    const who = pick(CONFIG.rivals);
+    const gain = Math.round((S.fans * rnd(0.04, 0.1) + 50) * Math.max(0, 1 - S.fans / CONFIG.market));
+    S.fans += gain;
+    text(who, `Hab dich auf meinem Track gefeatured – lief gut! (+${num(gain)} Fans für dich)`);
   }
-  save(); render();
+  if (S.week === 2) text('Onkel Flávio', 'Erste Woche geschafft. Denk dran: Ohne Posts im Feed kriegt keiner mit, dass du Musik machst.');
 }
 
-function checkRank() {
-  const next = CONFIG.ranks[S.rank + 1];
-  if (!next || next.needs.locked) return;
-  const n = next.needs;
-  if (S.rep >= (n.rep ?? 0) && regularCount() >= (n.regulars ?? 0) && S.cash >= (n.cash ?? 0)) {
-    S.rank++;
-    text('Onkel Flávio', `Ab heute bist du ${next.name}. ${next.unlock}`);
-    showModal(`Aufstieg: ${next.name}`, `<p>${next.unlock}</p><p>Platz am Mann jetzt: ${capacity()} Plätze.</p>`);
-    if (S.rank >= 1 && !S.customers.length) rollCustomers();
-  }
+function signLabel(yes) {
+  if (!S.offer) return;
+  if (yes) {
+    S.label = { cut: S.offer.cut };
+    S.cash += S.offer.advance;
+    S.earned += S.offer.advance;
+    text('Wellenbrecher Records', 'Willkommen im Team! Der Vorschuss ist überwiesen.');
+  } else text('Onkel Flávio', 'Unabhängig bleiben – mutig. Dafür gehört jeder Cent dir.');
+  S.offer = null;
+  save();
+  render();
 }
 
-/* ========== 6. Zeit ========== */
-function advanceTime(traveled = false) {
-  const report = [];
-  // Kontrolle: je heißer der Kiez, desto eher. Nachts mehr Streifen.
-  const chance = S.day <= CONFIG.graceDays ? 0 : clamp((S.heat[S.at] / 300) * kiez(S.at).police + (S.time === 2 ? 0.02 : 0) + (traveled ? 0.01 : 0), 0, 0.4);
-  const controlled = Math.random() < chance;
-  if (controlled) {
-    const units = goodsCarried();
-    const armed = (S.gear ?? []).length > 0;
-    if (armed) {
-      const wfine = Math.min(Math.max(0, S.cash), (S.gear).reduce((a, id) => a + weapon(id).fine, 0));
-      S.cash -= wfine;
-      report.push(`Bei der Kontrolle finden sie ${S.gear.map((id) => weapon(id).name).join(' und ')}. Eingezogen, ${eur(wfine)} Strafe.`);
-      S.gear = [];
-      S.heat[S.at] = clamp(S.heat[S.at] + 10, 0, 100);
-    }
-    if (units === 0) {
-      if (!armed) report.push(`Polizeikontrolle in ${kiez(S.at).name}. Du warst sauber – sie lassen dich gehen.`);
-    } else {
-      const fine = Math.min(Math.max(0, S.cash), 15 * units);
-      S.cash -= fine;
-      for (const g of Object.keys(S.pocket)) S.pocket[g] = 0;
-      if (S.job) {
-        report.push('Flávios Ware ist weg. Er ist nicht begeistert (Ruf −5).');
-        S.rep = Math.max(0, S.rep - 5);
-        S.job = null;
+/* ========== 5. Bilder hochladen ========== */
+let uploadTarget = null; // 'cover:<id>' oder 'post'
+let pendingImg = null; // Bild für den nächsten Post
+
+function startUpload(target) {
+  uploadTarget = target;
+  $('file').value = '';
+  $('file').click();
+}
+$('file').addEventListener('change', () => {
+  const f = $('file').files[0];
+  if (!f || !uploadTarget) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      // Quadratisch zuschneiden und verkleinern, damit es in den Speicher passt
+      const size = 320;
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = size;
+      const s = Math.min(img.width, img.height);
+      cv.getContext('2d').drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
+      const data = cv.toDataURL('image/jpeg', 0.78);
+      if (uploadTarget.startsWith('cover:')) {
+        const sg = song(Number(uploadTarget.split(':')[1]));
+        if (sg) sg.cover = data;
+      } else pendingImg = data;
+      if (!save()) {
+        if (uploadTarget.startsWith('cover:')) song(Number(uploadTarget.split(':')[1])).cover = null;
+        else pendingImg = null;
+        showModal('Speicher voll', '<p>Das Bild passt nicht mehr in den Speicher des Browsers. Lösch ein paar alte Posts oder nimm ein anderes Bild.</p>', true);
       }
-      S.heat[S.at] = clamp(S.heat[S.at] + 15, 0, 100);
-      S.stats.busts++;
-      if (units >= CONFIG.arrestAt || armed) {
-        S.day += 1;
-        S.time = 0;
-        report.push(`Festnahme! ${units} Einheiten beschlagnahmt${armed ? ' – mit Waffe dabei' : ''}, ${eur(fine)} Kaution, ein Tag in Gewahrsam.`);
-      } else {
-        report.push(`Polizeikontrolle! ${units} Einheiten beschlagnahmt, ${eur(fine)} weg.`);
-      }
-    }
-  }
-  // Überfall: Wer viel Ware oder Geld dabei hat, wird nachts eher abgezogen.
-  const loot = goodsCarried() > 0 || S.cash > 200;
-  const robChance = controlled || S.day <= CONFIG.graceDays || !loot ? 0 : (S.time === 2 ? 0.09 : 0.04) + Math.min(0.06, goodsCarried() / 300);
-  if (Math.random() < robChance) {
-    if (Math.random() < defense()) {
-      S.rep += 2;
-      report.push('Zwei Typen wollen dich abziehen – du wehrst dich und sie hauen ab (Ruf +2).');
-    } else {
-      const lostCash = Math.round(Math.max(0, S.cash) * 0.3);
-      let lostUnits = 0;
-      for (const g of Object.keys(S.pocket)) { const n = Math.ceil(S.pocket[g] / 2); lostUnits += n; S.pocket[g] -= n; }
-      S.cash -= lostCash;
-      report.push(`Überfall! Sie nehmen dir ${lostUnits} Einheiten und ${eur(lostCash)} ab.${(S.gear ?? []).length ? ' Deine Waffe hat nicht gereicht.' : ' Mit einer Waffe aus dem Laden wärst du besser geschützt.'}`);
-    }
-  }
-  if (S.job && S.at === S.job.to) finishJob();
+      render();
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(f);
+});
 
-  S.time++;
-  if (S.time > 2) {
-    S.time = 0;
-    newDay(report);
-  }
-  rollCustomers();
-  const trouble = report.some((r) => /beschlagnahmt|Festnahme|Überfall|Eingezogen/.test(r));
-  if (report.length) showModal(trouble ? 'Ärger' : 'Unterwegs', report.map((r) => `<p>${r}</p>`).join(''), trouble);
-  save(); render();
-}
-
-function newDay(report) {
-  S.day++;
-  for (const k of CONFIG.kieze) S.heat[k.id] = clamp(S.heat[k.id] - CONFIG.heatDecay, 0, 100);
-  for (const g of CONFIG.goods) S.price[g.id] = clamp(S.price[g.id] * Math.exp(rnd(-0.18, 0.18)) + (1 - S.price[g.id]) * 0.15, 0.6, 1.8);
-  rollJobs();
-  S.event = null;
-  const r = Math.random();
-  if (r < 0.15) {
-    const k = pick(CONFIG.kieze);
-    S.event = { kind: 'demand', kiez: k.id, text: `Party-Wochenende in ${k.name}: viele Kunden, gute Preise.` };
-  } else if (r < 0.25) {
-    const k = pick(CONFIG.kieze);
-    S.heat[k.id] = clamp(S.heat[k.id] + 35, 0, 100);
-    S.event = { kind: 'raid', kiez: k.id, text: `Großeinsatz der Polizei in ${k.name}. Heute lieber woanders.` };
-  } else if (r < 0.32) {
-    S.event = { kind: 'short', text: 'Flávio hat Lieferprobleme – Einkauf heute 50 % teurer.' };
-  }
-  if (S.event) text('Kiez-Funk', S.event.text);
-  if (S.day % CONFIG.rent.every === 0) {
-    S.cash -= CONFIG.rent.amount;
-    report.push(`Miete fürs WG-Zimmer: ${eur(CONFIG.rent.amount)}.${S.cash < 0 ? ' Du bist im Minus.' : ''}`);
-  }
-}
-
-/* ========== 7. Anzeige ========== */
+/* ========== 6. Seiten ========== */
 function showModal(title, html, bad = false) {
   $('m-title').textContent = title;
   $('m-body').innerHTML = html;
   document.querySelector('.modal-card').classList.toggle('bad', bad);
   $('modal').classList.remove('hidden');
 }
-
-let HL = null; // vom Tutor hervorgehobene Abteilung
-const item = (page, code, title, sub, meta = '', disabled = false) =>
-  `<button class="item ${HL === page ? 'hl' : ''}" data-page="${page}" ${disabled ? 'disabled' : ''}>
-    <span class="code">${code}</span><span class="txt"><strong>${title}</strong><small>${sub}</small></span>
-    <span class="meta">${meta}</span><span class="chev">›</span></button>`;
-const head = () => ''; // Titel steht in der Navigationsleiste der App
-
-/** Tutor: Was ist jetzt der sinnvollste nächste Schritt? Gibt Text und die Abteilung zurück, die hervorgehoben wird. */
-function nextStep() {
-  const here = S.at === CONFIG.flavioAt;
-  const goods = Object.values(S.pocket).reduce((a, b) => a + b, 0);
-  if (S.job) return S.at === S.job.to ? ['Lieferung läuft – tipp auf „Abwarten“.', null] : [`Fahr mit der U-Bahn nach ${kiez(S.job.to).name}, um Flávios Ware abzuliefern.`, 'map'];
-  if (S.heat[S.at] >= 50 && goods) return [`In ${kiez(S.at).name} ist es heiß (${Math.round(S.heat[S.at])} %). Fahr in einen ruhigeren Kiez, bevor du verkaufst.`, 'map'];
-  if (S.rank === 0) {
-    if (!here) return ['Fahr mit der U-Bahn zur Oranienstraße – dort hat Flávio Arbeit für dich.', 'map'];
-    if (S.jobs.length) return [`Öffne die App „Aufträge“ und nimm einen an. Noch ${CONFIG.ranks[1].needs.rep - S.rep} Ruf bis zum Straßendealer.`, 'jobs'];
-    return ['Heute keine Aufträge mehr. Tipp auf „Abwarten“ unten im Dock – morgen gibt es neue.', null];
-  }
-  if (goods === 0) return here ? ['Öffne die App „Flávio“ und kauf Ware ein – am besten Kraut, das wollen viele.', 'buy'] : ['Du hast nichts zum Verkaufen. Fahr zur Oranienstraße und kauf bei Flávio ein.', 'map'];
-  if (S.customers.some((c) => !c.done && S.pocket[c.good] >= c.units)) return ['Kunden warten! Öffne die App „Kunden“ und verkauf.', 'customers'];
-  const nextBag = CONFIG.bags[(S.bag ?? 0) + 1];
-  if (S.rank >= 1 && nextBag && S.cash >= nextBag.price + 60 && pocketFree() <= 2) return [`Deine Taschen sind voll. Im Laden gibt es eine ${nextBag.name} (+${nextBag.bonus} Platz).`, 'shop'];
-  if (S.rank >= 2 && !S.bunker && S.cash >= CONFIG.bunker.price) return ['Kauf dir einen Bunker, damit nicht alles am Mann ist.', 'bunker'];
-  const want = S.customers.find((c) => !c.done);
-  if (want) return [`Die Kunden hier wollen ${good(want.good).name} (${want.units}×) – das hast du nicht genug dabei. Abwarten oder beim nächsten Einkauf mitnehmen.`, null];
-  return ['Gerade passt kein Kunde. Abwarten (nachts kommen mehr) oder in einen anderen Kiez fahren – im Görli und am Kotti ist am meisten los.', null];
+let flashTimer = null;
+function flash(t) {
+  const el = $('flash');
+  el.textContent = t;
+  el.classList.remove('hidden');
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => el.classList.add('hidden'), 1400);
 }
 
-/** Linien-Symbole für die Apps (eigene Zeichnungen). */
+function cover(sg, size = 52) {
+  const style = `width:${size}px;height:${size}px`;
+  if (sg.cover) return `<img class="cover" src="${sg.cover}" style="${style}" alt="">`;
+  const h = sg.hue;
+  return `<span class="cover gen" style="${style};background:linear-gradient(135deg,hsl(${h} 80% 55%),hsl(${(h + 60) % 360} 70% 30%))">${esc(sg.title.slice(0, 1).toUpperCase())}</span>`;
+}
+const bar = (v, max = 100) => `<span class="qbar"><i style="width:${clamp((v / max) * 100, 0, 100)}%"></i></span>`;
+const energyBar = () => `<div class="ebar"><i style="width:${S.energy}%"></i><span>${S.energy} / ${CONFIG.energy} Energie</span></div>`;
+
+let HL = null;
+/** Tipp vom Onkel: Was ist jetzt sinnvoll? Gibt Text und die App zurück, die leuchten soll. */
+function nextStep() {
+  const demos = S.songs.filter((x) => !x.released);
+  const released = S.songs.filter((x) => x.released);
+  if (!S.songs.length) return ['Öffne das Studio und nimm deinen ersten Song auf (10 Energie).', 'studio'];
+  const weak = demos.find((x) => Object.values(x.polish).some((p) => p < 3) && quality(x) < gear().cap - 8);
+  if (weak && S.energy >= CONFIG.cost.polish && !released.length) return [`„${weak.title}“ ist noch roh. Im Studio kannst du Text, Beat, Gesang und Mix verbessern.`, 'studio'];
+  if (demos.length && S.energy >= CONFIG.cost.release) return [`Veröffentliche „${demos[0].title}“ auf Tonspur – gern mit eigenem Cover-Bild.`, 'tonspur'];
+  const fresh = released.find((x) => x.releaseWeek === S.week);
+  if (fresh && !S.posts.some((p) => p.song === fresh.id) && S.energy >= CONFIG.cost.post) return [`Poste im Feed über „${fresh.title}“ – das bringt Hype und mehr Streams.`, 'feed'];
+  if (S.energy >= CONFIG.cost.gig && CONFIG.venues.some((v, i) => S.fans >= v.fans && !S.gigsThisWeek.includes(i))) return ['Spiel einen Auftritt – bringt Geld und Fans.', 'gigs'];
+  const next = CONFIG.gear[S.gear + 1];
+  if (next && S.cash >= next.price + 100) return [`Du kannst dir ${next.name} leisten – bessere Songs möglich.`, 'shop'];
+  if (S.energy >= CONFIG.cost.record) return [`Noch ${S.energy} Energie. Nimm noch einen Song auf oder belege einen Kurs.`, 'studio'];
+  return ['Energie fast leer. Tipp auf „Nächste Woche“ unten im Dock.', 'week'];
+}
+
 const ICONS = {
-  customers: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6"/><circle cx="16.5" cy="9" r="2.5"/><path d="M16 14c3 0 5 2 5 5"/>',
-  jobs: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM8 11h8M8 15h6"/>',
-  buy: '<path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
-  bude: '<path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/>',
-  shop: '<path d="M4 9h16l-1 11H5z"/><path d="M3 9l2-5h14l2 5M9 13h6"/>',
-  pocket: '<rect x="6" y="7" width="12" height="14" rx="3"/><path d="M9 7V5a3 3 0 0 1 6 0v2M9 13h6"/>',
-  bunker: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3M12 15v2"/>',
-  map: '<rect x="6" y="3" width="12" height="14" rx="3"/><path d="M6 11h12M8 21l2-3M16 21l-2-3"/><circle cx="9" cy="14" r=".6"/><circle cx="15" cy="14" r=".6"/>',
+  studio: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/>',
+  tonspur: '<circle cx="12" cy="12" r="9"/><path d="M7.5 9.5c3-1 6.5-.6 9 .8M8 12.8c2.4-.7 5.2-.4 7.3.7M8.6 15.8c1.9-.5 4-.3 5.6.5"/>',
+  charts: '<path d="M4 20V12M10 20V6M16 20v-9M3 20h18"/><path d="M14 4l2-1 2 1"/>',
+  feed: '<rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="12" cy="12" r="3.5"/><circle cx="16.5" cy="7.5" r=".7"/>',
+  gigs: '<path d="M4 20l4-10 4 10M6 15h4"/><path d="M14 20V8l6-2v10"/><circle cx="18" cy="16" r="2"/>',
+  courses: '<path d="M3 9l9-4 9 4-9 4z"/><path d="M7 11v5c3 2 7 2 10 0v-5"/>',
+  shop: '<path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
+  profile: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>',
   phone: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>',
-  status: '<path d="M4 20V11M10 20V5M16 20v-7M3 20h18"/>',
-  wait: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  week: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4M10 15h5l-2-2M15 15l-2 2"/>',
   help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.7"/><circle cx="12" cy="17" r=".6"/>',
 };
-/** Apps auf dem Startbildschirm: Seite, Name, Farbe, Zähler, gesperrt? */
 function apps() {
   return [
-    { page: 'jobs', name: 'Aufträge', color: '#ffa53b,#d9661a', badge: S.job ? '1' : S.rank === 0 && S.at === CONFIG.flavioAt ? S.jobs.length : 0 },
-    { page: 'buy', name: 'Flávio', color: '#ff5f5f,#c0262f', off: S.rank < 1 },
-    { page: 'pocket', name: 'Am Mann', color: '#9a7bff,#5a37c9', badge: carried() },
-    { page: 'bude', name: 'Bude', color: '#ff8f5a,#b84a14', off: S.rank < 1 },
-    { page: 'shop', name: 'Laden', color: '#ff7ab6,#c22b74' },
-    { page: 'bunker', name: 'Bunker', color: '#8f99a8,#4b5563', off: S.rank < 2 },
-    { page: 'status', name: 'Aufstieg', color: '#f3c84a,#c08a10' },
-    { page: 'help', name: 'Hilfe', color: '#36c6d3,#118a96' },
+    { page: 'studio', name: 'Studio', color: '#ff7a59,#c23a1a', badge: S.songs.filter((x) => !x.released).length },
+    { page: 'tonspur', name: 'Tonspur', color: '#2ee08a,#0f8a4f' },
+    { page: 'charts', name: 'Charts', color: '#ffd24a,#c98a10' },
+    { page: 'feed', name: 'Feed', color: '#ff6fb1,#9b2fd6' },
+    { page: 'gigs', name: 'Auftritte', color: '#6a8cff,#2a3fb8' },
+    { page: 'courses', name: 'Kurse', color: '#36c6d3,#118a96' },
+    { page: 'shop', name: 'Equipment', color: '#8f99a8,#4b5563' },
+    { page: 'profile', name: 'Profil', color: '#b58cff,#5a37c9', badge: S.offer ? 1 : 0 },
   ];
 }
 const DOCK = () => [
   { page: 'phone', name: 'Nachrichten', color: '#5ee07a,#1f9e40', badge: unread() },
-  { page: 'map', name: 'U-Bahn', color: '#5b84f0,#1f3fa8' },
-  { page: 'wait', name: 'Abwarten', color: '#4a4f59,#15171b' },
-  { page: 'customers', name: 'Kunden', color: '#3fbf5f,#1b7f39', badge: S.customers.filter((c) => !c.done).length, off: S.rank < 1 },
+  { page: 'help', name: 'Hilfe', color: '#4a4f59,#15171b' },
+  { page: 'tonspur', name: 'Tonspur', color: '#2ee08a,#0f8a4f' },
+  { page: 'week', name: 'Nächste Woche', color: '#ff5f5f,#b3202b' },
 ];
-const TITLES = { bude: 'Bude', shop: 'Kiez-Laden', customers: 'Kunden', jobs: 'Aufträge', buy: 'Einkauf bei Flávio', pocket: 'Am Mann', bunker: 'Bunker', map: 'U-Bahn', phone: 'Nachrichten', status: 'Aufstieg' };
+const TITLES = { studio: 'Studio', tonspur: 'Tonspur', charts: 'Charts', feed: 'Feed', gigs: 'Auftritte', courses: 'Kurse', shop: 'Equipment', profile: 'Profil', phone: 'Nachrichten' };
 
 function appIcon(a) {
   const [c1, c2] = a.color.split(',');
-  const act = a.page === 'wait' ? 'data-act="wait"' : a.page === 'help' ? 'data-act="intro"' : `data-page="${a.page}"`;
-  return `<button class="app ${HL === a.page ? 'hl' : ''}" ${act} ${a.off ? 'disabled' : ''}>
+  const act = a.page === 'week' ? 'data-act="week"' : a.page === 'help' ? 'data-act="intro"' : `data-page="${a.page}"`;
+  return `<button class="app ${HL === a.page ? 'hl' : ''}" ${act}>
     <span class="icon" style="background:linear-gradient(${c1},${c2})"><svg viewBox="0 0 24 24">${ICONS[a.page]}</svg></span>
     ${a.badge ? `<span class="badge-red">${a.badge}</span>` : ''}<span>${a.name}</span></button>`;
 }
 
 function pageHome() {
-  const k = kiez(S.at);
   const [tip, target] = S.tips ? nextStep() : [null, null];
   HL = target;
-  const push = tip ? `<button class="push" ${target ? `data-page="${target}"` : 'data-act="wait"'}><span class="pi">F</span>
-    <span><small>Tipp · Nächster Schritt</small>${tip}</span></button>` : '';
+  const push = tip ? `<button class="push" ${target === 'week' ? 'data-act="week"' : target ? `data-page="${target}"` : ''}><span class="pi">F</span>
+    <span><small>Onkel Flávio · Tipp</small>${esc(tip)}</span></button>` : '';
   return `<div class="springboard">
     <div class="widget">
-      <small>Standort</small><strong>${k.name}</strong>
+      <small>${esc(S.name)} · ${CONFIG.ranks[rankIdx()].name}</small><strong>Woche ${S.week}</strong>
       <div class="wstats">
-        <div><span>Geld</span><b>${eur(S.cash)}</b></div><div><span>Ruf</span><b>${S.rep}</b></div>
-        <div><span>Rang</span><b>${rank().short}</b></div><div><span>Heat</span><b>${Math.round(S.heat[S.at])} %</b></div>
+        <div><span>Geld</span><b>${eur(S.cash)}</b></div><div><span>Fans</span><b>${num(S.fans)}</b></div>
+        <div><span>Follower</span><b>${num(S.followers)}</b></div><div><span>Trend</span><b>${S.trend}</b></div>
       </div>
-      <div class="wheat"><i style="width:${S.heat[S.at]}%"></i></div>
+      <div class="wheat"><i style="width:${S.energy}%"></i></div>
+      <small class="wfoot">${S.energy} Energie übrig</small>
     </div>
     ${push}
     <div class="apps">${apps().map(appIcon).join('')}</div>
@@ -528,162 +512,144 @@ function pageHome() {
   </div>`;
 }
 
-function pageCustomers() {
-  const rows = S.customers.map((c, i) => {
-    const g = good(c.good);
-    const has = S.pocket[c.good] >= c.units;
-    return `<div class="row">
-      <div class="grow"><strong>${c.name}</strong>${c.regular ? '<span class="badge">Stammkunde</span>' : ''}<small>${c.type} · will ${c.units}× ${g.name} · zahlt ${eur(salePrice(c))} pro Einheit${(S.purity[c.good] ?? 100) < 100 ? ` (Qualität ${S.purity[c.good]} %)` : ''}</small></div>
-      <span class="num">${eur(c.units * salePrice(c))}</span>
-      ${c.done ? '<span class="good">Erledigt</span>' : `<button class="btn sm primary" data-act="sell:${i}" ${has ? '' : 'disabled'}>${has ? 'Verkaufen' : 'Nicht genug'}</button>`}
-    </div>`;
-  }).join('');
-  return `${head('Kunden')}<p class="hint">${kiez(S.at).name}, ${CONFIG.times[S.time]}. Jeder Verkauf macht den Kiez heißer – Stammkunden fallen weniger auf.</p>
-    <div class="list">${rows || '<div class="empty">Gerade niemand da. Abwarten oder den Kiez wechseln.</div>'}</div>`;
+function pageStudio() {
+  const demos = S.songs.filter((x) => !x.released);
+  return `${energyBar()}
+    <div class="card">
+      <h3>Neuer Song</h3>
+      <input id="title" maxlength="40" placeholder="Titel, z. B. ${esc(pick(CONFIG.titleIdeas))}" />
+      <button class="btn primary wide" data-act="record">Aufnehmen · ${CONFIG.cost.record} Energie</button>
+      <p class="fine">Genre: ${S.genre} · Equipment: ${gear().name} (max. Qualität ${gear().cap})</p>
+    </div>
+    <h3 class="sub">Deine Skills</h3>
+    <div class="list">${Object.entries(CONFIG.skills).map(([k, n]) => `<div class="row"><span class="grow">${n}</span>${bar(S.skills[k])}<span class="num">${Math.round(S.skills[k])}</span></div>`).join('')}</div>
+    <h3 class="sub">Unveröffentlicht (${demos.length})</h3>
+    <div class="list">${demos.length ? demos.map(songRow).join('') : '<div class="empty">Noch keine Aufnahmen.</div>'}</div>`;
+}
+const songRow = (sg) => `<button class="item" data-page="song:${sg.id}">${cover(sg, 44)}
+  <span class="txt"><strong>${esc(sg.title)}</strong><small>${sg.released ? `${num(sg.streams)} Streams${sg.peak ? ` · Peak #${sg.peak}` : ''}` : `Qualität ${quality(sg)} · ${qualityLabel(quality(sg))}`}</small></span><span class="chev">›</span></button>`;
+
+function pageSong(id) {
+  const sg = song(id);
+  if (!sg) return '<div class="empty">Song nicht gefunden.</div>';
+  const q = quality(sg);
+  const parts = Object.entries(CONFIG.parts).map(([k, n]) => `<div class="row part">
+    <span class="grow">${n}<small>${'●'.repeat(sg.polish[k])}${'○'.repeat(3 - sg.polish[k])} verbessert</small></span>${bar(sg.parts[k])}<span class="num">${Math.round(sg.parts[k])}</span>
+    ${sg.released ? '' : `<button class="btn sm" data-act="polish:${sg.id}:${k}" ${sg.polish[k] >= 3 || sg.parts[k] >= gear().cap - 0.5 ? 'disabled' : ''}>+ ${CONFIG.cost.polish}⚡</button>`}</div>`).join('');
+  const hist = sg.history.length ? `<h3 class="sub">Streams pro Woche</h3><div class="spark">${sg.history.map((v) => `<i style="height:${Math.max(4, (v / Math.max(...sg.history)) * 100)}%" title="${num(v)}"></i>`).join('')}</div>` : '';
+  return `${sg.released ? '' : energyBar()}
+    <div class="song-head">${cover(sg, 110)}
+      <div><h2>${esc(sg.title)}</h2><p>${esc(S.name)} · ${sg.genre}</p><p class="big">${q} <small>${qualityLabel(q)}</small></p></div></div>
+    <button class="btn wide" data-act="upload:cover:${sg.id}">${sg.cover ? 'Cover ändern' : 'Eigenes Cover hochladen'}</button>
+    <h3 class="sub">Teile</h3><div class="list">${parts}</div>
+    ${sg.released
+      ? `<div class="list"><div class="row"><span class="grow">Streams gesamt</span><span class="num">${num(sg.streams)}</span></div>
+         <div class="row"><span class="grow">Letzte Woche</span><span class="num">${num(sg.last)}</span></div>
+         <div class="row"><span class="grow">Bester Chartplatz</span><span class="num">${sg.peak ? `#${sg.peak}` : '–'}</span></div></div>${hist}`
+      : `<button class="btn primary wide" data-act="release:${sg.id}">Auf Tonspur veröffentlichen · ${CONFIG.cost.release} Energie</button>
+         <button class="btn wide ghost" data-act="del:${sg.id}">Aufnahme löschen</button>`}`;
 }
 
-function pageJobs() {
-  const here = S.at === CONFIG.flavioAt;
-  const active = S.job ? `<div class="row"><div class="grow"><strong>Aktiver Auftrag</strong><small>${S.job.units} Einheiten nach ${kiez(S.job.to).name} · ${eur(S.job.pay)}</small></div><span class="badge">fahr hin</span></div>` : '';
-  const rows = S.jobs.map((j, i) => `<div class="row">
-      <div class="grow"><strong>Nach ${kiez(j.to).name}</strong><small>${j.units} Einheiten · Risiko ${kiez(j.to).police > 1.2 ? 'hoch' : kiez(j.to).police > 0.9 ? 'mittel' : 'niedrig'}</small></div>
-      <span class="num">${eur(j.pay)}</span>
-      <button class="btn sm primary" data-act="job:${i}" ${here && !S.job && pocketFree() >= j.units ? '' : 'disabled'}>Annehmen</button></div>`).join('');
-  return `${head('Aufträge')}<p class="hint">${here ? 'Flávio hat Arbeit. Ware abholen, mit der U-Bahn hinbringen, Geld kassieren.' : 'Aufträge gibt es nur bei Flávio in der Oranienstraße.'}</p>
-    <div class="list">${active}${rows || '<div class="empty">Heute nichts mehr. Morgen gibt es neue Aufträge.</div>'}</div>`;
+function pageTonspur() {
+  const released = S.songs.filter((x) => x.released);
+  const demos = S.songs.filter((x) => !x.released);
+  const monthly = released.reduce((a, x) => a + x.last, 0);
+  return `<div class="ts-head">
+      <span class="ts-avatar">${esc(S.name.slice(0, 1).toUpperCase())}</span>
+      <div><h2>${esc(S.name)}</h2><p>${num(monthly * 4)} monatliche Hörer:innen</p></div></div>
+    ${demos.length ? `<h3 class="sub">Bereit zum Veröffentlichen</h3><div class="list">${demos.map(songRow).join('')}</div>` : ''}
+    <h3 class="sub">Beliebt</h3>
+    <div class="list">${released.length ? [...released].sort((a, b) => b.streams - a.streams).map((sg, i) => `<button class="item" data-page="song:${sg.id}">
+      <span class="rank">${i + 1}</span>${cover(sg, 44)}<span class="txt"><strong>${esc(sg.title)}</strong><small>${num(sg.streams)} Streams</small></span><span class="meta">${num(sg.last)}/Wo.</span></button>`).join('') : '<div class="empty">Noch nichts veröffentlicht.</div>'}</div>
+    <p class="fine">Pro Stream gibt es ${String(CONFIG.payPerStream).replace('.', ',')} €. Insgesamt: ${num(S.totalStreams)} Streams.</p>`;
 }
 
-function pageBuy() {
-  const here = S.at === CONFIG.flavioAt;
-  const rows = CONFIG.goods.map((g) => {
-    const locked = g.rank > S.rank + 1;
-    const p = buyPrice(g.id);
-    const max = Math.min(pocketFree(), Math.floor(S.cash / p));
-    return `<div class="row">
-      <div class="grow"><strong>${g.name}</strong>${locked ? `<span class="badge">ab ${CONFIG.ranks[g.rank - 1].name}</span>` : ''}<small>Einkauf ${eur(p)} · auf der Straße ca. ${eur(streetPrice(g.id))}</small></div>
-      ${locked ? '' : `<button class="btn sm" data-act="buy:${g.id}:1" ${here && max >= 1 ? '' : 'disabled'}>+1</button>
-      <button class="btn sm" data-act="buy:${g.id}:5" ${here && max >= 1 ? '' : 'disabled'}>+5</button>
-      <button class="btn sm primary" data-act="buy:${g.id}:999" ${here && max >= 1 ? '' : 'disabled'}>Max</button>`}</div>`;
-  }).join('');
-  return `${head('Einkauf')}<p class="hint">${here ? `Flávios Hinterzimmer. Noch ${pocketFree()} Einheiten Platz am Mann.` : 'Einkaufen kannst du nur bei Flávio in der Oranienstraße.'}${S.event && S.event.kind === 'short' ? ' <span class="badge warn">Lieferprobleme</span>' : ''}</p>
-    <div class="list">${rows}</div>`;
+function pageCharts() {
+  if (!S.charts) return '<div class="empty">Die ersten Charts kommen am Ende dieser Woche.</div>';
+  return `<p class="hint">Top 50 · Woche ${S.week - 1}${S.peak ? ` · dein bester Platz: #${S.peak}` : ''}</p>
+    <div class="list">${S.charts.map((e, i) => `<div class="row chart ${e.mine ? 'mine' : ''}"><span class="rank">${i + 1}</span>
+      <span class="grow"><b>${esc(e.title)}</b><small>${esc(e.artist)}</small></span><span class="num">${num(e.streams)}</span></div>`).join('')}</div>
+    ${S.charts.some((e) => e.mine) ? '' : '<p class="fine">Für Platz 50 brauchst du gerade etwa ' + num(S.charts[49].streams) + ' Streams in einer Woche.</p>'}`;
 }
 
-function scale(value, label) {
-  // Schlichte Waage: Schale, Säule, Digitalanzeige
-  return `<svg class="scale" viewBox="0 0 160 110" role="img" aria-label="Waage zeigt ${value}">
-    <rect x="20" y="70" width="120" height="32" rx="6" fill="#1f4fd1"/>
-    <rect x="44" y="78" width="72" height="18" rx="3" fill="#0b1f5c"/>
-    <text x="80" y="92" text-anchor="middle" class="lcd">${value}</text>
-    <ellipse cx="80" cy="62" rx="60" ry="8" fill="#c9d3e6"/>
-    <rect x="76" y="62" width="8" height="10" fill="#9aa8c2"/>
-    <text x="80" y="40" text-anchor="middle" class="sc-label">${label}</text></svg>`;
+function pageFeed() {
+  const released = S.songs.filter((x) => x.released);
+  return `${energyBar()}
+    <div class="card">
+      <h3>Neuer Post</h3>
+      ${pendingImg ? `<img class="post-img" src="${pendingImg}" alt=""><button class="btn sm" data-act="noimg">Bild entfernen</button>` : '<button class="btn wide" data-act="upload:post">Bild hochladen</button>'}
+      <input id="post-text" maxlength="120" placeholder="Was gibt's Neues?" />
+      <label for="post-song">Werbung für einen Song (optional)</label>
+      <select id="post-song"><option value="">– keiner –</option>${released.map((sg) => `<option value="${sg.id}">${esc(sg.title)}</option>`).join('')}</select>
+      <button class="btn primary wide" data-act="post">Posten · ${CONFIG.cost.post} Energie</button>
+    </div>
+    <h3 class="sub">${num(S.followers)} Follower</h3>
+    ${S.posts.length ? S.posts.map((p) => `<div class="post">
+      <div class="post-top"><span class="ts-avatar sm">${esc(S.name.slice(0, 1).toUpperCase())}</span><b>${esc(S.name)}</b><small>Woche ${p.week}</small>
+        <button class="x" data-act="delpost:${p.id}" aria-label="Post löschen">×</button></div>
+      ${p.img ? `<img class="post-img" src="${p.img}" alt="">` : ''}
+      ${p.text ? `<p>${esc(p.text)}</p>` : ''}
+      ${p.song && song(p.song) ? `<p class="fine">🎵 ${esc(song(p.song).title)}</p>` : ''}
+      <small class="likes">♥ ${num(p.likes)} · +${num(p.gained)} Follower</small></div>`).join('') : '<div class="empty">Noch keine Posts.</div>'}`;
 }
 
-function pageBude() {
-  const here = S.at === CONFIG.bude;
-  const goods = goodsForRank().filter((g) => S.pocket[g.id] > 0);
-  const rows = goods.map((g) => {
-    const p = S.purity[g.id] ?? 100;
-    const opts = CONFIG.stretch.map((st) => {
-      const pv = stretchPreview(g.id, st.id);
-      const ok = here && pv.add > 0 && pocketFree() >= pv.add;
-      return `<button class="btn sm ${st.id === 'strong' ? '' : 'primary'}" data-act="stretch:${g.id}:${st.id}" ${ok ? '' : 'disabled'}>${st.name}: ${pv.n} g → ${pv.n + pv.add} g · Qualität ${pv.purity} %</button>`;
-    }).join('');
-    return `<div class="row stretch-row">
-      <div class="grow"><strong>${g.name}</strong><small>Qualität ${p} %${p < CONFIG.badQuality ? ' <span class="badge warn">Kunden merken es</span>' : ''} · Kunden zahlen ${Math.round(qualityFactor(g.id) * 100)} % vom Preis</small></div>
-      ${scale(`${S.pocket[g.id]},0 g`, g.name)}
-      <div class="stretch-btns">${opts}</div></div>`;
-  }).join('');
-  return `<div class="where"><small>Deine Bude</small><strong>WG-Zimmer im ${kiez(CONFIG.bude).name}</strong><span>${here ? 'Du bist zuhause. Die Waage steht bereit.' : 'Fahr mit der U-Bahn in den Wrangelkiez, um hier zu arbeiten.'}</span></div>
-    <p class="hint">Strecken kostet nichts: Aus deiner Ware wird mehr Gewicht – aber die Qualität sinkt. Kunden zahlen weniger, und unter ${CONFIG.badQuality} % beschweren sich manche und springen ab. Flávios Auftragsware kannst du nicht strecken.</p>
-    <div class="list">${rows || '<div class="empty">Keine eigene Ware am Mann. Kauf erst bei Flávio ein.</div>'}</div>`;
+function pageGigs() {
+  return `${energyBar()}<p class="hint">Ein Auftritt kostet ${CONFIG.cost.gig} Energie. Jede Location einmal pro Woche.</p>
+    <div class="list">${CONFIG.venues.map((v, i) => {
+      const locked = S.fans < v.fans;
+      const done = S.gigsThisWeek.includes(i);
+      return `<button class="item" data-act="gig:${i}" ${locked || done ? 'disabled' : ''}><span class="code">${i + 1}</span>
+        <span class="txt"><strong>${v.name}</strong><small>${locked ? `ab ${num(v.fans)} Fans` : done ? 'diese Woche schon gespielt' : `ca. ${eur(v.pay)} · +${num(v.gain)} Fans`}</small></span><span class="chev">›</span></button>`;
+    }).join('')}</div>`;
+}
+
+function pageCourses() {
+  return `${energyBar()}<p class="hint">Bessere Skills = bessere Songs. Ein Kurs kostet ${CONFIG.cost.course} Energie.</p>
+    <div class="list">${CONFIG.courses.map((c) => `<button class="item" data-act="course:${c.id}" ${S.cash < coursePrice(c) ? 'disabled' : ''}>
+      <span class="txt"><strong>${c.name}</strong><small>${CONFIG.skills[c.skill]} ${Math.round(S.skills[c.skill])}</small></span><span class="meta">${eur(coursePrice(c))}</span><span class="chev">›</span></button>`).join('')}</div>`;
 }
 
 function pageShop() {
-  const bags = CONFIG.bags.slice(1).map((b, j) => {
-    const i = j + 1;
-    const owned = (S.bag ?? 0) >= i;
-    return `<div class="row"><div class="grow"><strong>${b.name}</strong>${(S.bag ?? 0) === i ? '<span class="badge">dabei</span>' : ''}<small>+${b.bonus} Plätze am Mann (dauerhaft)</small></div>
-      <span class="num">${owned ? '' : eur(b.price)}</span>
-      ${owned ? `<span class="good">${(S.bag ?? 0) === i ? 'Dabei' : 'Ersetzt'}</span>` : `<button class="btn sm primary" data-act="bag:${i}" ${S.cash >= b.price && i === (S.bag ?? 0) + 1 ? '' : 'disabled'}>Kaufen</button>`}</div>`;
-  }).join('');
-  const weapons = CONFIG.weapons.map((w) => {
-    const owned = (S.gear ?? []).includes(w.id);
-    return `<div class="row"><div class="grow"><strong>${w.name}</strong>${owned ? '<span class="badge">dabei</span>' : ''}<small>Schutz ${Math.round(w.defense * 100)} % · braucht ${w.slots} Platz · bei Kontrolle ${eur(w.fine)} Strafe</small></div>
-      <span class="num">${owned ? '' : eur(w.price)}</span>
-      ${owned ? `<button class="btn sm" data-act="drop:${w.id}">Loswerden (+${eur(Math.round(w.price * 0.4))})</button>` : `<button class="btn sm primary" data-act="weapon:${w.id}" ${S.cash >= w.price && pocketFree() >= w.slots ? '' : 'disabled'}>Kaufen</button>`}</div>`;
-  }).join('');
-  return `<p class="hint">Platz am Mann: ${carried()} von ${capacity()} (${rank().pocket} durch deinen Rang, +${bag().bonus} durch ${bag().name}).</p>
-    <h3 class="sub">Taschen</h3><div class="list">${bags}</div>
-    <h3 class="sub">Schutz</h3><p class="hint">Waffen helfen gegen Überfälle – es zählt die beste. Aber: Findet die Polizei eine Waffe, wird sie eingezogen und du wirst festgenommen, wenn du auch Ware dabei hast.</p>
-    <div class="list">${weapons}</div>`;
+  return `<p class="hint">Dein Equipment legt fest, wie gut ein Song höchstens werden kann. Guthaben: ${eur(S.cash)}</p>
+    <div class="list">${CONFIG.gear.map((g, i) => `<button class="item" data-act="gear:${i}" ${i !== S.gear + 1 || S.cash < g.price ? 'disabled' : ''}>
+      <span class="code">${i + 1}</span><span class="txt"><strong>${g.name}</strong><small>max. Qualität ${g.cap}${i <= S.gear ? ' · ✓ hast du' : ''}</small></span>
+      <span class="meta">${i <= S.gear ? '' : eur(g.price)}</span></button>`).join('')}</div>`;
 }
 
-function pagePocket() {
-  const rows = CONFIG.goods.filter((g) => S.pocket[g.id] > 0).map((g) => `<div class="row"><div class="grow"><strong>${g.name}</strong><small>Qualität ${S.purity[g.id] ?? 100} % · Straßenwert hier ca. ${eur(streetPrice(g.id))} pro Einheit</small></div><span class="num">${S.pocket[g.id]}</span></div>`).join('');
-  const job = S.job ? `<div class="row"><div class="grow"><strong>Flávios Ware</strong><small>Auftrag nach ${kiez(S.job.to).name}</small></div><span class="num">${S.job.units}</span></div>` : '';
-  const gear = (S.gear ?? []).map((id) => `<div class="row"><div class="grow"><strong>${weapon(id).name}</strong><small>Schutz ${Math.round(weapon(id).defense * 100)} %</small></div><span class="num">${weapon(id).slots} Platz</span></div>`).join('');
-  return `${head('Am Mann')}<p class="hint">${carried()} von ${capacity()} Plätzen · Tasche: ${bag().name}. Bei einer Kontrolle ist alles weg – ab ${CONFIG.arrestAt} Einheiten gibt es eine Festnahme.</p>
-    <div class="list">${job}${rows}${gear}${job || rows || gear ? '' : '<div class="empty">Nichts dabei. Sauber.</div>'}</div>`;
-}
-
-function pageBunker() {
-  if (!S.bunker) {
-    return `${head('Bunker')}<p class="hint">Ein Versteck, in dem Ware sicher liegt. Du kaufst es im Kiez, in dem du gerade bist.</p>
-      <div class="list"><div class="row"><div class="grow"><strong>Keller in ${kiez(S.at).name}</strong><small>Platz für ${CONFIG.bunker.capacity} Einheiten</small></div><span class="num">${eur(CONFIG.bunker.price)}</span>
-      <button class="btn sm primary" data-act="bunker" ${S.cash >= CONFIG.bunker.price ? '' : 'disabled'}>Kaufen</button></div></div>`;
-  }
-  const here = S.bunker.kiez === S.at;
-  const rows = goodsForRank().map((g) => `<div class="row"><div class="grow"><strong>${g.name}</strong><small>Am Mann ${S.pocket[g.id]} · im Bunker ${S.bunker.goods[g.id]}</small></div>
-      <button class="btn sm" data-act="in:${g.id}" ${here && S.pocket[g.id] ? '' : 'disabled'}>Einlagern</button>
-      <button class="btn sm primary" data-act="out:${g.id}" ${here && S.bunker.goods[g.id] ? '' : 'disabled'}>Mitnehmen</button></div>`).join('');
-  return `${head('Bunker')}<p class="hint">Versteck in ${kiez(S.bunker.kiez).name}. ${here ? 'Du bist vor Ort.' : 'Fahr hin, um Ware zu holen oder einzulagern.'}</p><div class="list">${rows}</div>`;
-}
-
-function pageMap() {
-  const line = CONFIG.lines.map(([a, b]) => `<line x1="${kiez(a).x}" y1="${kiez(a).y}" x2="${kiez(b).x}" y2="${kiez(b).y}" stroke="#fff" stroke-width="5" stroke-linecap="round" />`).join('');
-  const stops = CONFIG.kieze.map((k) => {
-    const here = k.id === S.at;
-    return `<g class="stop" data-go="${k.id}">
-      <circle cx="${k.x}" cy="${k.y}" r="${here ? 12 : 9}" fill="${here ? '#fff' : '#1f4fd1'}" stroke="#fff" stroke-width="4" />
-      <text x="${k.x}" y="${k.y + (k.ly ?? -18)}" text-anchor="middle">${k.name}</text></g>`;
-  }).join('');
-  const rows = CONFIG.kieze.filter((k) => k.id !== S.at).map((k) => `<button class="item" data-go="${k.id}">
-    <span class="code">${k.code}</span><span class="txt"><strong>${k.name}</strong><small>${k.people} · Heat ${Math.round(S.heat[k.id])} %${S.job && S.job.to === k.id ? ' · Auftragsziel' : ''}${S.bunker && S.bunker.kiez === k.id ? ' · dein Bunker' : ''}</small></span><span class="chev">›</span></button>`).join('');
-  return `${head('U-Bahn')}<p class="hint">Jede Fahrt kostet eine Tageszeit. Mit Ware am Mann kann es unterwegs Kontrollen geben.</p>
-    <div class="map"><svg viewBox="0 0 400 270" role="img" aria-label="Karte von Kreuzberg">${line}${stops}</svg></div>
-    <div class="list">${rows}</div>`;
+function pageProfile() {
+  const r = rankIdx();
+  return `${S.offer ? `<div class="card offer"><h3>Angebot von Wellenbrecher Records</h3><p>${eur(S.offer.advance)} Vorschuss, dafür ${Math.round(S.offer.cut * 100)} % deiner Streaming-Einnahmen.</p>
+      <button class="btn primary" data-act="label:1">Unterschreiben</button> <button class="btn" data-act="label:0">Ablehnen</button></div>` : ''}
+    <div class="list">
+      <div class="row"><span class="grow">Name</span><b>${esc(S.name)}</b></div>
+      <div class="row"><span class="grow">Genre</span><b>${S.genre}</b></div>
+      <div class="row"><span class="grow">Label</span><b>${S.label ? 'Wellenbrecher Records' : 'unabhängig'}</b></div>
+      <div class="row"><span class="grow">Streams gesamt</span><b>${num(S.totalStreams)}</b></div>
+      <div class="row"><span class="grow">Verdient gesamt</span><b>${eur(S.earned)}</b></div>
+      <div class="row"><span class="grow">Bester Chartplatz</span><b>${S.peak ? `#${S.peak}` : '–'}</b></div>
+    </div>
+    <h3 class="sub">Karriere</h3>
+    <ul class="steps">${CONFIG.ranks.map((k, i) => `<li class="${i === r ? 'now' : i > r ? 'locked' : ''}"><span>${k.name}</span><span>${num(k.fans)} Fans</span></li>`).join('')}</ul>
+    <label><input type="checkbox" data-act="tips" ${S.tips ? 'checked' : ''} style="width:auto"> Tipps vom Onkel anzeigen</label>
+    <button class="btn wide ghost" data-act="reset">Neu anfangen</button>`;
 }
 
 function pagePhone() {
-  S.phone.forEach((m) => (m.read = true));
-  const rows = S.phone.map((m) => `<div class="msg"><small>Tag ${m.day} · ${CONFIG.times[m.time]}</small><b>${m.from}:</b> ${m.body}</div>`).join('');
+  S.phone.forEach((m) => { m.read = true; });
   save();
-  return `${head('Handy')}<div class="list">${rows || '<div class="empty">Keine Nachrichten.</div>'}</div>`;
+  return S.phone.length ? `<div class="list">${S.phone.map((m) => `<div class="msg"><small>${esc(m.from)} · Woche ${m.week}</small>${esc(m.body)}</div>`).join('')}</div>` : '<div class="empty">Keine Nachrichten.</div>';
 }
 
-function pageStatus() {
-  const steps = CONFIG.ranks.map((r, i) => {
-    let need = '';
-    if (r.needs && !r.needs.locked) need = [r.needs.rep ? `Ruf ${r.needs.rep}` : '', r.needs.regulars ? `${r.needs.regulars} Stammkunden` : '', r.needs.cash ? eur(r.needs.cash) : ''].filter(Boolean).join(' · ');
-    if (r.needs && r.needs.locked) need = 'kommt bald';
-    return `<li class="${i === S.rank ? 'now' : r.needs && r.needs.locked ? 'locked' : ''}"><span>${i + 1}. ${r.name}</span><span>${i <= S.rank ? 'erreicht' : need}</span></li>`;
-  }).join('');
-  return `${head('Aufstieg')}
-    <p class="hint">Ruf ${S.rep} · Stammkunden ${regularCount()} · Geld ${eur(S.cash)}</p>
-    <ul class="steps">${steps}</ul>
-    <p class="hint">Bilanz: ${S.stats.sold} Einheiten verkauft · ${eur(S.stats.earned)} Umsatz · ${S.stats.jobs} Aufträge · ${S.stats.busts}× erwischt</p>
-    <div class="list"><div class="row"><div class="grow"><strong>Tipps</strong><small>„Nächster Schritt“ auf der Startseite</small></div>
-      <button class="btn sm ${S.tips ? 'primary' : ''}" data-act="tips">${S.tips ? 'An' : 'Aus'}</button>
-      <button class="btn sm" data-act="intro">Einführung</button></div></div>
-    <button class="btn sm" data-act="reset">Neues Spiel</button>`;
-}
-
-const PAGES = { bude: pageBude, shop: pageShop, home: pageHome, customers: pageCustomers, jobs: pageJobs, buy: pageBuy, pocket: pagePocket, bunker: pageBunker, map: pageMap, phone: pagePhone, status: pageStatus };
+const PAGES = { studio: pageStudio, tonspur: pageTonspur, charts: pageCharts, feed: pageFeed, gigs: pageGigs, courses: pageCourses, shop: pageShop, profile: pageProfile, phone: pagePhone };
 
 function render() {
-  $('clock').textContent = `Tag ${S.day} · ${CONFIG.times[S.time]}`;
+  $('clock').textContent = `Woche ${S.week} · ⚡${S.energy}`;
+  if (S.page.startsWith('song:')) {
+    const id = Number(S.page.split(':')[1]);
+    const back = song(id)?.released ? 'tonspur' : 'studio';
+    $('view').innerHTML = `<div class="navbar"><button class="nav-back" data-page="${back}">‹ ${TITLES[back]}</button><h2>Song</h2></div><div class="app-body">${pageSong(id)}</div>`;
+    return;
+  }
   if (S.page === 'home' || !PAGES[S.page]) {
     $('view').innerHTML = pageHome();
     return;
@@ -692,29 +658,39 @@ function render() {
     <div class="app-body">${PAGES[S.page]()}</div>`;
 }
 
-/* ========== 8. Start ========== */
-function save() { try { localStorage.setItem(CONFIG.saveKey, JSON.stringify(S)); } catch { /* privater Modus */ } }
+/* ========== 7. Start ========== */
+function save() {
+  try { localStorage.setItem(CONFIG.saveKey, JSON.stringify(S)); return true; } catch { return false; }
+}
 function load() { try { const r = localStorage.getItem(CONFIG.saveKey); return r ? JSON.parse(r) : null; } catch { return null; } }
 
 document.addEventListener('click', (e) => {
-  const go = e.target.closest('[data-go]');
-  if (go) { travel(go.dataset.go); return; }
   const page = e.target.closest('[data-page]');
   if (page && !page.disabled) { S.page = page.dataset.page; render(); $('view').scrollTop = 0; return; }
   const act = e.target.closest('[data-act]');
   if (!act || act.disabled) return;
   const [a, b, c] = act.dataset.act.split(':');
-  if (a === 'sell') sellTo(Number(b));
-  if (a === 'job') acceptJob(Number(b));
-  if (a === 'buy') buy(b, Number(c));
-  if (a === 'bunker') buyBunker();
-  if (a === 'in') stash(b, true);
-  if (a === 'out') stash(b, false);
-  if (a === 'wait') { advanceTime(false); return; }
-  if (a === 'bag') buyBag(Number(b));
-  if (a === 'stretch') stretch(b, c);
-  if (a === 'weapon') buyWeapon(b);
-  if (a === 'drop') dropWeapon(b);
+  if (a === 'record') recordSong($('title').value.trim().slice(0, 40));
+  if (a === 'polish') polishSong(Number(b), c);
+  if (a === 'release') releaseSong(Number(b));
+  if (a === 'del' && confirm('Aufnahme wirklich löschen?')) deleteSong(Number(b));
+  if (a === 'upload') startUpload(c ? `${b}:${c}` : b);
+  if (a === 'noimg') { pendingImg = null; render(); }
+  if (a === 'post') {
+    const t = $('post-text').value.trim().slice(0, 120);
+    const sid = Number($('post-song').value) || null;
+    if (!t && !pendingImg && !sid) { flash('Schreib etwas oder lade ein Bild hoch'); return; }
+    post(t, sid, pendingImg);
+  }
+  if (a === 'delpost') { S.posts = S.posts.filter((p) => p.id !== Number(b)); save(); render(); }
+  if (a === 'gig') playGig(Number(b));
+  if (a === 'course') takeCourse(b);
+  if (a === 'gear') buyGear(Number(b));
+  if (a === 'label') signLabel(b === '1');
+  if (a === 'week') {
+    if (S.energy >= 30 && !confirm(`Du hast noch ${S.energy} Energie übrig – die verfällt. Trotzdem nächste Woche?`)) return;
+    nextWeek();
+  }
   if (a === 'tips') { S.tips = !S.tips; save(); render(); }
   if (a === 'intro') intro();
   if (a === 'reset' && confirm('Wirklich neu anfangen? Der Spielstand geht verloren.')) {
@@ -724,23 +700,23 @@ document.addEventListener('click', (e) => {
 });
 
 $('m-ok').addEventListener('click', () => $('modal').classList.add('hidden'));
+$('genre').innerHTML = CONFIG.genres.map((g) => `<option>${g}</option>`).join('');
 $('start-btn').addEventListener('click', () => {
-  S = newState($('name').value.trim() || 'Kalle');
-  rollJobs();
-  text('Onkel Flávio', 'Du bist also der Neue. Komm in den Späti in der Oranienstraße. Ich hab Arbeit für dich.');
+  S = newState($('name').value.trim().slice(0, 24) || 'Flávinho', $('genre').value);
+  text('Onkel Flávio', `Na, ${S.name}! Ab heute bin ich dein Manager. Nimm im Studio deinen ersten Song auf, dann bringen wir ihn raus.`);
   save();
   start();
   intro();
 });
 
-/** Kurze Einführung beim ersten Start (und jederzeit unter „Aufstieg“). */
 function intro() {
   showModal('So läuft es', `
-    <p><b>1. Arbeite für Flávio.</b> In der Oranienstraße gibt es Aufträge: Ware abholen, mit der U-Bahn in einen anderen Kiez bringen, Geld und Ruf kassieren.</p>
-    <p><b>2. Werde Dealer.</b> Ab ${CONFIG.ranks[1].needs.rep} Ruf kaufst du bei Flávio selbst ein und verkaufst an Kunden – nachts kommen die meisten.</p>
-    <p><b>3. Bleib unter dem Radar.</b> Jeder Verkauf macht den Kiez heißer. Ist es heiß, fahr woanders hin. Bei einer Kontrolle ist die Ware am Mann weg.</p>
-    <p><b>4. Werde größer.</b> Stammkunden, Bunker, mehr Ware – die Stufen siehst du unter „Aufstieg“.</p>
-    <p>Die ersten ${CONFIG.graceDays} Tage gibt es keine Kontrollen. Die Mitteilung oben auf dem Startbildschirm sagt dir immer, was du als Nächstes tun kannst – die passende App leuchtet. Mit dem runden Knopf kommst du immer zurück.</p>`);
+    <p><b>1. Jede Woche ${CONFIG.energy} Energie.</b> Alles kostet Energie: Song aufnehmen ${CONFIG.cost.record}, Teil verbessern ${CONFIG.cost.polish}, veröffentlichen ${CONFIG.cost.release}, posten ${CONFIG.cost.post}, Auftritt ${CONFIG.cost.gig}, Kurs ${CONFIG.cost.course}.</p>
+    <p><b>2. Studio.</b> Nimm Songs auf und verbessere Text, Beat, Gesang und Mix – je Teil bis zu 3×.</p>
+    <p><b>3. Tonspur.</b> Veröffentliche Songs mit eigenem Cover-Bild. Gute Songs bringen Streams, Fans und Geld.</p>
+    <p><b>4. Feed.</b> Poste Bilder und mach Werbung für deine Songs – das bringt Follower und Hype.</p>
+    <p><b>5. Nächste Woche.</b> Dann werden Streams abgerechnet, die Charts kommen, und deine Energie ist wieder voll.</p>
+    <p>Onkel Flávio schreibt dir oben auf dem Startbildschirm immer, was gerade sinnvoll ist.</p>`);
 }
 
 function start() {
@@ -750,8 +726,5 @@ function start() {
 }
 
 S = load();
-if (S && S.tips === undefined) S.tips = true;
-if (S && S.bag === undefined) { S.bag = 0; S.gear = []; }
-if (S && !S.purity) S.purity = { kraut: 100, pillen: 100, pulver: 100 };
 if (S) start();
 else $('start').classList.remove('hidden');

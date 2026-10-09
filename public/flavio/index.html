@@ -15,24 +15,29 @@
     <div class="speaker" aria-hidden="true"></div>
     <div class="screen">
       <div class="statusbar">
-        <span class="sig" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>KiezNet</span>
+        <span class="sig" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>BeatNet</span>
         <span id="clock" class="clock"></span>
         <span class="batt" aria-hidden="true"><i></i></span>
       </div>
 
       <!-- Startbildschirm (erster Start) -->
       <section id="start" class="start hidden">
-        <p class="eyebrow">Ein Kiez-Spiel</p>
+        <p class="eyebrow">Ein Musik-Spiel</p>
         <h1>Onkel Flávio</h1>
-        <p>Kreuzberg. Du hast 100 Euro, dieses alte Handy und eine Nummer: die von Onkel Flávio.
-          Er sucht jemanden, der Sachen von A nach B bringt. Fang klein an – und werde größer.</p>
-        <label for="name">Wie nennen sie dich im Kiez?</label>
-        <input id="name" maxlength="20" autocomplete="off" placeholder="z. B. Kalle" />
+        <p>Berlin, ein altes Handy, ein billiges Mikro – und dein Onkel Flávio, der ab heute dein Manager ist.
+          Nimm Songs auf, bring sie raus, bau dir Fans auf und schaff es bis in die Charts.</p>
+        <label for="name">Dein Künstlername</label>
+        <input id="name" maxlength="24" autocomplete="off" placeholder="z. B. Flávinho" />
+        <label for="genre">Dein Genre</label>
+        <select id="genre"></select>
         <button id="start-btn" class="btn primary wide">Handy entsperren</button>
-        <p class="fine">Erfundene Geschichte, erfundene Ware. Ein Spiel – keine Anleitung.</p>
+        <p class="fine">Alle Künstler, Labels und Apps im Spiel sind erfunden.</p>
       </section>
 
       <main id="view" class="hidden"></main>
+
+      <div id="flash" class="flash hidden"></div>
+      <input id="file" type="file" accept="image/*" hidden />
 
       <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
         <div class="modal-card">

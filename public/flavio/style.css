@@ -1,4 +1,4 @@
-/* Onkel Flávio – schlicht, blau-weiß, ohne Emojis. */
+/* Onkel Flávio – Musikkarriere. Schlicht, blau-weiß, im Handy. */
 :root {
   --blue: #1f4fd1;
   --blue-dark: #12307f;
@@ -155,3 +155,51 @@ h3.sub { margin: 14px 0 4px; font-size: 15px; text-transform: uppercase; letter-
 .scale .sc-label { font-size: 13px; font-weight: 700; fill: var(--muted); }
 .stretch-btns { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 .stretch-btns .btn { text-align: left; }
+
+/* ---------- Musikkarriere ---------- */
+select { width: 100%; padding: 10px 12px; font: inherit; border: 2px solid var(--line); border-radius: 4px; background: #fff; }
+.widget .wfoot { display: block; margin-top: 4px; text-transform: none; letter-spacing: 0; font-size: 12px; }
+.ebar { position: relative; height: 26px; margin: 12px 0 4px; background: #dfe5f0; border-radius: 13px; overflow: hidden; }
+.ebar i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #ffb21c, #ff7a1a); transition: width .3s; }
+.ebar span { position: relative; display: block; text-align: center; font-weight: 800; font-size: 15px; line-height: 26px; }
+.card { background: #fff; border: 1px solid var(--line); padding: 12px 14px; margin: 10px 0; }
+.card h3 { font-size: 18px; margin-bottom: 8px; color: var(--blue-dark); }
+.card select, .card input { margin-top: 4px; }
+.card label { margin: 10px 0 2px; font-size: 15px; }
+.card.offer { border-left: 6px solid #ffb21c; }
+.qbar { flex: none; width: 90px; height: 8px; background: #e3e8f0; border-radius: 4px; overflow: hidden; }
+.qbar i { display: block; height: 100%; background: var(--blue); }
+.row .grow small { font-size: 12px; letter-spacing: .1em; color: var(--blue); }
+.cover { flex: none; display: inline-grid; place-items: center; border-radius: 6px; object-fit: cover; box-shadow: 0 2px 6px rgba(0, 0, 0, .2); }
+.cover.gen { color: #fff; font-weight: 800; font-size: 22px; text-shadow: 0 1px 3px rgba(0, 0, 0, .4); }
+.song-head { display: flex; gap: 14px; align-items: center; margin: 14px 0 4px; }
+.song-head .cover.gen { font-size: 48px; }
+.song-head h2 { font-size: 24px; font-weight: 800; color: var(--blue-dark); line-height: 1.1; }
+.song-head p { margin: 2px 0; color: var(--muted); }
+.song-head .big { font-size: 34px; font-weight: 800; color: var(--blue); }
+.song-head .big small { font-size: 15px; color: var(--muted); }
+.btn.ghost { border-color: transparent; color: var(--bad); }
+.spark { display: flex; align-items: flex-end; gap: 4px; height: 70px; padding: 8px; background: #fff; border: 1px solid var(--line); }
+.spark i { flex: 1; background: linear-gradient(#2ee08a, #0f8a4f); border-radius: 2px 2px 0 0; }
+.ts-head { display: flex; gap: 12px; align-items: center; margin: 14px -12px 0; padding: 18px 14px; color: #fff; background: linear-gradient(160deg, #1fbf74, #0b3d27); }
+.ts-head h2 { font-size: 26px; font-weight: 800; }
+.ts-head p { margin: 0; opacity: .85; }
+.ts-avatar { flex: none; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 26px; background: #fff; color: #0f8a4f; }
+.ts-avatar.sm { width: 30px; height: 30px; font-size: 15px; background: var(--blue); color: #fff; }
+.rank { flex: none; width: 26px; text-align: center; font-weight: 800; color: var(--muted); }
+.row.chart { flex-wrap: nowrap; padding: 8px 14px; }
+.row.chart .grow { min-width: 0; }
+.row.chart .grow b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row.chart .grow small { color: var(--muted); font-size: 14px; letter-spacing: 0; }
+.row.chart.mine { background: #e7fbef; box-shadow: inset 4px 0 0 #1fbf74; }
+.post { background: #fff; border: 1px solid var(--line); margin: 10px 0; padding: 10px 12px; }
+.post p { margin: 6px 0; }
+.post-top { display: flex; align-items: center; gap: 8px; }
+.post-top small { color: var(--muted); flex: 1; }
+.post-top .x { border: 0; background: none; font-size: 22px; color: var(--muted); cursor: pointer; }
+.post-img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; margin: 8px 0; border-radius: 4px; }
+.likes { color: #d6246e; font-weight: 700; }
+.flash { position: absolute; left: 50%; bottom: 24px; z-index: 30; transform: translateX(-50%); padding: 8px 16px; border-radius: 20px; background: rgba(14, 27, 44, .9); color: #fff; font-weight: 700; white-space: nowrap; pointer-events: none; }
+.row.part { display: grid; grid-template-columns: 1fr 70px 30px auto; flex-wrap: nowrap; gap: 8px; }
+.row.part .grow { min-width: 0; }
+.row.part .qbar { width: 70px; }
