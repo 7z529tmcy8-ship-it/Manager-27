@@ -11,7 +11,7 @@ const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 /** Store: Packs mit Coins kaufen. Das erste Gold-Pack ist gratis. */
 export default function Store({ onBack, onCollection }: { onBack: () => void; onCollection: () => void }) {
   const club = useClub();
-  const [opening, setOpening] = useState<{ result: PackResult; name: string; theme?: string } | null>(null);
+  const [opening, setOpening] = useState<{ result: PackResult; name: string; theme?: string; art?: string } | null>(null);
   const [mega, setMega] = useState(false);
   const [superPack, setSuperPack] = useState<PackResult | null>(null);
   const [superCharging, setSuperCharging] = useState(false);
@@ -21,7 +21,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
     if (!res) return;
     setClubState(free ? { ...res.club, welcomeClaimed: true } : res.club);
     const def = PACKS.find((p) => p.id === packId)!;
-    setOpening({ result: res.result, name: def.name, theme: def.event });
+    setOpening({ result: res.result, name: def.name, theme: def.event, art: PACK_ART[def.id] });
   };
 
   return (
@@ -80,7 +80,9 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
           const afford = club.coins >= p.price;
           return (
             <div key={p.id} className={`pack-card p-${p.id} ${p.event ? `ev-${p.event}` : ''}`}>
-              <div className="pack-art" aria-hidden="true"><span>{p.name.replace('-Pack', '')}</span></div>
+              {PACK_ART[p.id]
+                ? <div className="pack-art has-art" aria-hidden="true" style={{ backgroundImage: `url(${PACK_ART[p.id]})` }} />
+                : <div className="pack-art" aria-hidden="true"><span>{p.name.replace('-Pack', '')}</span></div>}
               <strong>{p.name}</strong>
               <small>{p.text}</small>
               <PackOddsLine pack={p} />
@@ -102,6 +104,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         <PackOpening
           name={opening.name}
           theme={opening.theme}
+          art={opening.art}
           result={opening.result}
           onClose={() => setOpening(null)}
           onCollection={() => { setOpening(null); onCollection(); }}
@@ -170,6 +173,12 @@ function MegaCrash({ onDone }: { onDone: () => void }) {
   );
 }
 
+/** Eigene Pack-Grafiken (Halloween). */
+const PACK_ART: Record<string, string> = {
+  pumpkin: `${import.meta.env.BASE_URL}pack-pumpkin.webp`,
+  ghosthour: `${import.meta.env.BASE_URL}pack-ghost.webp`,
+};
+
 type Phase = 'pack' | 'burst' | 'walkout' | 'reveal' | 'all';
 
 const FLIP_GAP = 140; // ms zwischen zwei Karten beim Aufdecken
@@ -178,7 +187,8 @@ const FLIP_GAP = 140; // ms zwischen zwei Karten beim Aufdecken
  * Pack-Öffnung: Das Pack lädt sich auf und leuchtet in der Farbe der besten Karte, reißt mit einem Blitz auf,
  * bei seltenen Karten folgt ein „Walkout“ (Nation → Position → Verein), dann die Karte – am Ende drehen sich alle Karten einzeln um.
  */
-export function PackOpening({ name, result, onClose, onCollection, theme }: { name: string; result: PackResult; onClose: () => void; onCollection: () => void; theme?: string }) {
+export function PackOpening({ name, result, onClose, onCollection, theme, art }: { name: string; result: PackResult; onClose: () => void; onCollection: () => void; theme?: string; art?: string }) {
+  const artStyle = art ? { backgroundImage: `url(${art})` } : undefined;
   const best = result.cards[0].card;
   const special = rarity(best) >= 200; // Elite, Ikone, Talent
   const tier = packTier(best);
@@ -246,7 +256,7 @@ export function PackOpening({ name, result, onClose, onCollection, theme }: { na
       {phase === 'pack' && (
         <div className="pack-stage" aria-hidden="true">
           <div className="pack-halo" />
-          <div className="pack-big"><span>{name}</span></div>
+          <div className={`pack-big ${art ? 'has-art' : ''}`} style={artStyle}><span>{name}</span></div>
           <div className="pack-sparks">{Array.from({ length: 10 }, (_, i) => <i key={i} style={{ '--i': i } as CSSProperties} />)}</div>
         </div>
       )}
@@ -254,8 +264,8 @@ export function PackOpening({ name, result, onClose, onCollection, theme }: { na
       {phase === 'burst' && (
         <div className="pack-stage" aria-hidden="true">
           <div className="pack-flash" />
-          <div className="pack-big half l"><span>{name}</span></div>
-          <div className="pack-big half r"><span>{name}</span></div>
+          <div className={`pack-big half l ${art ? 'has-art' : ''}`} style={artStyle}><span>{name}</span></div>
+          <div className={`pack-big half r ${art ? 'has-art' : ''}`} style={artStyle}><span>{name}</span></div>
           <div className="pack-ring" />
         </div>
       )}

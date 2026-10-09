@@ -2060,3 +2060,18 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 /* ----- SBC ----- */
 .lt-item.ev-halloween { border-color: #ff7a1a; background: linear-gradient(135deg, rgba(255, 122, 26, .2), rgba(124, 58, 237, .18) 60%, transparent), var(--surface); box-shadow: 0 0 20px rgba(255, 122, 26, .25); }
 .lt-item.ev-halloween .lt-req { color: #ffb066; }
+
+/* Eigene Pack-Grafiken (Halloween) */
+.pack-art.has-art { aspect-ratio: 596 / 887; background-color: transparent !important; background-size: contain; background-position: center; background-repeat: no-repeat; box-shadow: none !important; overflow: visible;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .55)); transition: transform .2s; }
+.pack-art.has-art::before, .pack-art.has-art::after { display: none; }
+.pack-card.p-pumpkin .pack-art.has-art { filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .55)) drop-shadow(0 0 16px rgba(255, 122, 26, .55)); animation: hw-art-glow 2.4s ease-in-out infinite; }
+.pack-card.p-ghosthour .pack-art.has-art { filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .55)) drop-shadow(0 0 16px rgba(120, 170, 255, .6)); animation: hw-art-float 3.2s ease-in-out infinite; }
+@keyframes hw-art-glow { 50% { transform: scale(1.03); } }
+@keyframes hw-art-float { 50% { transform: translateY(-6px); } }
+.pack-big.has-art, .pack-open.theme-halloween .pack-big.has-art {
+  width: 230px; aspect-ratio: 596 / 887; border-radius: 6px; padding: 0;
+  background-color: transparent !important; background-size: contain; background-position: center; background-repeat: no-repeat;
+}
+.pack-big.has-art::before, .pack-big.has-art::after, .pack-big.has-art span { display: none; }
+:root.reduce-motion .pack-art.has-art { animation: none; }
