@@ -1,5 +1,6 @@
 import { getClub } from '../data/leagues';
 import { currentClubId, formatMoney } from './player';
+import { isNationalTitle } from './season';
 import type { Career } from './types';
 
 // Große Momente der Karriere, die mit einer Animation gefeiert (oder betrauert) werden.
@@ -40,13 +41,18 @@ export function detectMoments(prev: Career, next: Career): Moment[] {
       out.push({ kind: 'ballon', title: 'Ballon d’Or!', sub: 'Der beste Spieler der Welt', extra: `${next.player.name} – Saison ${r.season}` });
     }
     const big = ['Champions League', 'Europa League', 'Conference League'];
-    const titles = [...r.trophies].sort((a, b) => Number(b === 'Champions League') - Number(a === 'Champions League') || Number(b.startsWith('Meister')) - Number(a.startsWith('Meister')));
+    const rank = (t: string) => (t.startsWith('Weltmeisterschaft') ? 3 : t === 'Champions League' ? 2 : t.startsWith('Meister') ? 1 : 0);
+    const titles = [...r.trophies].sort((a, b) => rank(b) - rank(a));
     if (titles.length) {
       const main = titles[0];
+      // Länderturniere gewinnt man mit der Nationalmannschaft – dort steht das Land, nicht der Verein.
+      const national = isNationalTitle(main);
+      const name = main.replace(/ \d{4}$/, '');
       out.push({
         kind: 'title',
-        title: big.includes(main) ? `${main}-Sieger!` : main.startsWith('Meister') ? 'Meister!' : `${main}!`,
-        sub: main.startsWith('Meister') ? main.replace(/^Meister \((.*)\)$/, '$1') : getClub(r.clubId).name,
+        title: name === 'Weltmeisterschaft' ? 'Weltmeister!' : name === 'Europameisterschaft' ? 'Europameister!' : national ? `${name}-Sieger!`
+          : big.includes(main) ? `${main}-Sieger!` : main.startsWith('Meister') ? 'Meister!' : `${main}!`,
+        sub: national ? `mit ${next.player.nation} · ${main}` : main.startsWith('Meister') ? main.replace(/^Meister \((.*)\)$/, '$1') : getClub(r.clubId).name,
         extra: titles.length > 1 ? `Dazu: ${titles.slice(1).join(' · ')}` : undefined,
       });
     }

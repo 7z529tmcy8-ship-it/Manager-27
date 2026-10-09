@@ -21,6 +21,15 @@ it('Torschützenkönig, Titel und Ballon d’Or werden erkannt', () => {
   expect(detectMoments(prev, next).find((m) => m.kind === 'title')!.title).toBe('Meister!');
 });
 
+it('WM-Titel wird mit dem Land gefeiert, nicht mit dem Verein', () => {
+  const prev = base();
+  const r = { season: '2029/30', clubId: prev.player.contract.clubId, goals: 5, awards: [], trophies: ['DFB-Pokal', 'Weltmeisterschaft 2030'] } as unknown as SeasonRecord;
+  const m = detectMoments(prev, { ...prev, phase: 'window', history: [r] }).find((x) => x.kind === 'title')!;
+  expect(m.title).toBe('Weltmeister!');
+  expect(m.sub).toContain('Deutschland');
+  expect(m.sub).not.toContain('Hannover');
+});
+
 it('Wertungssprünge über eine Pause, aber nicht durch Fähigkeiten', () => {
   const prev = base();
   const up = { ...prev, phase: 'winter' as const, player: { ...prev.player, ovr: 84 } };

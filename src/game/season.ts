@@ -389,11 +389,14 @@ const TITLE_ODDS: Record<string, number> = {
 const EUROPEAN = ['Deutschland', 'Österreich', 'Schweiz', 'Türkei', 'England', 'Frankreich', 'Spanien', 'Italien',
   'Portugal', 'Niederlande', 'Belgien', 'Kroatien', 'Polen', 'Norwegen', 'Schweden'];
 
+/** Titel mit der Nationalmannschaft (WM, EM, Copa América …) – gehören zum Land, nicht zum Verein. */
+export const isNationalTitle = (t: string) => /^(Weltmeisterschaft|Europameisterschaft|Copa América|Gold Cup|Asienmeisterschaft) /.test(t);
+
 function tournamentName(nation: string, summer: number): string | null {
   if (summer % 4 === 2) return `Weltmeisterschaft ${summer}`;
   if (summer % 4 !== 0) return null;
   if (EUROPEAN.includes(nation)) return `Europameisterschaft ${summer}`;
-  if (['Brasilien', 'Argentinien', 'Kolumbien'].includes(nation)) return `Copa América ${summer}`;
+  if (['Brasilien', 'Argentinien', 'Kolumbien', 'Uruguay'].includes(nation)) return `Copa América ${summer}`;
   if (nation === 'USA') return `Gold Cup ${summer}`;
   if (nation === 'Japan' || nation === 'Südkorea') return `Asienmeisterschaft ${summer}`;
   return null;

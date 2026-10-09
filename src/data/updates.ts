@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-09-wm-fix',
+    date: '09.10.2026',
+    title: '🛠️ Fehler behoben: WM-Titel',
+    items: [
+      '🌍 Gewinnst du die WM, EM oder Copa América, wird jetzt mit deinem Land gefeiert („Weltmeister! – mit Deutschland“) statt mit deinem Verein.',
+      '🏟️ Titel mit der Nationalmannschaft zählen nicht mehr für den Status als Vereinslegende.',
+      '🇺🇾 Spieler aus Uruguay spielen jetzt auch die Copa América.',
+    ],
+  },
+  {
     id: '2026-10-09-karriere-karte',
     date: '09.10.2026',
     title: '🏁 Karriereende: Du wählst deine Karte',

@@ -19,6 +19,7 @@ import {
   finishSeason,
   halfStats,
   initialEuropeSlots,
+  isNationalTitle,
   nationStrength,
   playHalf,
   playStage,
@@ -689,7 +690,8 @@ function captainAndLegend(career: Career, record: SeasonRecord): string[] {
     }];
     news.push(`${p.name} ist neuer Kapitän von ${club}!`);
   }
-  const titlesAtClub = atClub.reduce((a, h) => a + h.trophies.length, 0);
+  // Nur Vereinstitel – eine WM oder EM macht niemanden zur Vereinslegende.
+  const titlesAtClub = atClub.reduce((a, h) => a + h.trophies.filter((t) => !isNationalTitle(t)).length, 0);
   const legends = p.legendOf ?? [];
   if (!legends.includes(clubId) && (atClub.length >= 8 || (atClub.length >= 5 && titlesAtClub >= 3))) {
     p.legendOf = [...legends, clubId];
