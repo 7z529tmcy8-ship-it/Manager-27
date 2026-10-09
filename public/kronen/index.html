@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>Kronenkampf</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Startbildschirm -->
+  <section id="menu" class="menu">
+    <div class="menu-card">
+      <h1>Kronenkampf</h1>
+      <p class="sub">Elixier sammeln, Karten ausspielen, Türme stürzen.</p>
+      <div class="trophies"><span>Trophäen</span><b id="trophies">0</b></div>
+      <label>Gegner</label>
+      <div class="diff" id="diff">
+        <button data-d="easy">Leicht</button>
+        <button data-d="normal" class="on">Mittel</button>
+        <button data-d="hard">Schwer</button>
+      </div>
+      <button id="play" class="btn big">Kampf!</button>
+      <details>
+        <summary>So geht's</summary>
+        <ul>
+          <li>Tippe eine Karte an und dann aufs Spielfeld in deiner Hälfte.</li>
+          <li>Karten kosten Elixier, es füllt sich von allein (bis 10).</li>
+          <li>Zerstöre die Türme des Gegners: jeder Turm = 1 Krone, der König = alle 3.</li>
+          <li>Ist ein gegnerischer Turm gefallen, darfst du auf dieser Seite weiter vorn ausspielen.</li>
+          <li>In der letzten Minute gibt es doppeltes Elixier.</li>
+        </ul>
+      </details>
+      <div class="deck" id="deck-preview"></div>
+    </div>
+  </section>
+
+  <!-- Spiel -->
+  <section id="game" class="game hidden">
+    <div class="hud">
+      <div class="crowns enemy"><span>Gegner</span><b id="crowns-enemy">0</b></div>
+      <div class="clock"><small id="clock-label">Zeit</small><b id="clock">3:00</b></div>
+      <div class="crowns you"><span>Du</span><b id="crowns-you">0</b></div>
+    </div>
+    <div class="arena-wrap"><canvas id="arena"></canvas></div>
+    <div class="hand-wrap">
+      <div class="hand">
+        <div class="next"><small>Nächste</small><div id="next-card"></div></div>
+        <div id="cards" class="cards"></div>
+      </div>
+      <div class="elixir"><div id="elixir-fill"></div><b id="elixir-num">5</b></div>
+    </div>
+  </section>
+
+  <!-- Ergebnis -->
+  <div id="result" class="result hidden">
+    <div class="result-card">
+      <h2 id="result-title"></h2>
+      <div class="result-crowns"><span id="r-you"></span><i>:</i><span id="r-enemy"></span></div>
+      <p id="result-text"></p>
+      <button id="again" class="btn big">Nochmal</button>
+      <button id="to-menu" class="btn ghost">Menü</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

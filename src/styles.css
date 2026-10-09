@@ -2075,3 +2075,11 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 }
 .pack-big.has-art::before, .pack-big.has-art::after, .pack-big.has-art span { display: none; }
 :root.reduce-motion .pack-art.has-art { animation: none; }
+.secret-menu { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 12px 16px 24px; max-width: 520px; width: 100%; margin: 0 auto; }
+.secret-menu h1 { color: #fff; margin: 8px 0 4px; font-size: 2rem; }
+.secret-game { display: flex; flex-direction: column; gap: 6px; text-align: left; border: 0; border-radius: 18px; padding: 22px 18px; cursor: pointer; font: inherit; color: #fff; min-height: 130px; justify-content: flex-end; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+.secret-game strong { font-size: 1.6rem; font-weight: 900; }
+.secret-game span { opacity: .9; }
+.secret-game:active { transform: scale(.98); }
+.g-flavio { background: linear-gradient(150deg, #3b6cf0, #12307f); }
+.g-kronen { background: radial-gradient(circle at 80% 10%, rgba(255, 201, 60, .5), transparent 50%), linear-gradient(150deg, #5b3fb0, #1d1438); }
