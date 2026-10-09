@@ -11,7 +11,8 @@ import HalloweenDecor from './components/HalloweenDecor';
 import Trade from './components/Trade';
 import UpdateBanner, { unseenUpdates } from './components/UpdateBanner';
 import { UPDATES, type UpdateNote } from './data/updates';
-import { creditCareer } from './game/club';
+import { creditCareer, rewardPending } from './game/club';
+import CareerReward from './components/CareerReward';
 import { saveCareer } from './game/storage';
 import type { Career } from './game/types';
 import { getClubState, setClubState, useClub } from './clubStore';
@@ -58,11 +59,12 @@ export default function App() {
     let career = next;
     // Neue Saisons bringen Coins für den Club.
     const res = creditCareer(getClubState(), career);
-    if (res.gained > 0 || res.icon) {
+    if (res.gained > 0) {
       setClubState(res.club);
-      const coins = res.gained > 0 ? `+${res.gained.toLocaleString('de-DE')} Coins ${res.seasons === 0 ? 'aus Familie & Vermögen' : res.seasons === 1 ? 'für die Saison' : `für ${res.seasons} Saisons`}` : '';
-      setToast(res.icon ? `👑 Deine Ikonen-Karte (${res.icon.ovr}) liegt in der Sammlung!${coins ? ` ${coins}` : ''}` : coins);
+      setToast(`+${res.gained.toLocaleString('de-DE')} Coins ${res.seasons === 0 ? 'aus Familie & Vermögen' : res.seasons === 1 ? 'für die Saison' : `für ${res.seasons} Saisons`}`);
     }
+    // Karriere vorbei: Belohnungskarte wählen (Ikone oder Auszeichnung).
+    if (rewardPending(getClubState(), career)) setReward(career);
     // Verborgene Abhängigkeit: Das ganze Geld ist weg – ohne Erklärung.
     if (career.drainPending) {
       const lost = getClubState().coins;
@@ -75,6 +77,7 @@ export default function App() {
     setSaveFailed(!saveCareer(career));
     setScreen({ name: 'game', career });
   };
+  const [reward, setReward] = useState<Career | null>(null);
   const home = () => setScreen({ name: 'home' });
   const load = (career: Career) => setScreen({ name: 'game', career });
 
@@ -86,6 +89,7 @@ export default function App() {
         <div className="banner warn">Speichern im Browser nicht möglich (z. B. privater Modus) – der Fortschritt geht beim Schließen verloren.</div>
       )}
       {toast && <div className="coin-toast" role="status">🪙 {toast}</div>}
+      {reward && <CareerReward career={reward} onDone={() => { setToast('👑 Deine Karriere-Karte liegt in der Sammlung!'); setReward(null); }} />}
       {screen.name === 'home' && (
         <Hub
           onNews={() => setNews(UPDATES)}
@@ -99,6 +103,7 @@ export default function App() {
           onSbc={() => setScreen({ name: 'sbc' })}
           onFame={() => setScreen({ name: 'fame' })}
           onAchievements={() => setScreen({ name: 'achievements' })}
+          onReward={setReward}
         />
       )}
       {screen.name === 'store' && <Store onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}

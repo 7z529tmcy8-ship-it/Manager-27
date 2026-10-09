@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { getClub } from '../data/leagues';
-import { CARD_POOL, careerCard, creditCareer } from '../game/club';
+import { CARD_POOL, careerCard, creditCareer, rewardPending } from '../game/club';
 import { currentClubId, seasonLabel } from '../game/player';
 import { deleteCareer, listCareers, saveCareer } from '../game/storage';
 import type { Career } from '../game/types';
@@ -21,12 +21,14 @@ interface Props {
   onSbc: () => void;
   onFame: () => void;
   onAchievements: () => void;
+  /** Beendete Karriere, deren Belohnungskarte noch gewählt werden muss. */
+  onReward: (career: Career) => void;
 }
 
 const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 
 /** Hauptmenü im Stil eines Sammelkarten-Hubs: große Kacheln, Coins oben, die eigene Karte im Mittelpunkt. */
-export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTeam, onTrade, onDuels, onSbc, onFame, onAchievements }: Props) {
+export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTeam, onTrade, onDuels, onSbc, onFame, onAchievements, onReward }: Props) {
   const club = useClub();
   const [saves, setSaves] = useState(listCareers);
   const [showSaves, setShowSaves] = useState(false);
@@ -35,6 +37,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   const latest = [...saves].sort((a, b) => b.updatedAt - a.updatedAt)[0];
   const owned = Object.keys(club.cards).length + club.specials.length;
   const hasHistory = saves.some((c) => c.history.length > 0);
+  const pendingReward = saves.find((c) => rewardPending(club, c));
   const freePacks = (club.welcomeClaimed ? 0 : 1) + (club.megaXxlClaimed ? 0 : 1) + (club.megaSuperClaimed ? 0 : 1);
 
   const remove = (c: Career) => {
@@ -53,12 +56,17 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
         <button className="hub-icon" onClick={() => setSettings(true)} aria-label="Einstellungen">⚙️</button>
       </header>
 
+      {pendingReward && (
+        <button className="reward-call" onClick={() => onReward(pendingReward)}>
+          🏁 Karriere von {pendingReward.player.name} beendet – jetzt deine Karte wählen ›
+        </button>
+      )}
       <div className="hub-grid">
         <section className="hub-tile hero" onClick={() => (latest ? onLoad(latest) : onNew())} role="button" tabIndex={0}
           onKeyDown={(e) => e.key === 'Enter' && (latest ? onLoad(latest) : onNew())}>
           {latest ? (
             <>
-              <UtCard card={careerCard(latest)} size="lg" shine={latest.player.ovr >= 85 || latest.phase === 'retired'} />
+              <UtCard card={careerCard(latest, club)} size="lg" shine={latest.player.ovr >= 85 || latest.phase === 'retired'} />
               <div className="hero-text">
                 <span className="hub-kicker">Karriere fortsetzen</span>
                 <strong>{latest.player.name}</strong>

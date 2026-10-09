@@ -15,7 +15,7 @@ const FILTERS: { id: Filter; label: string; test: (c: CollectCard) => boolean; t
   { id: 'wonder', label: 'Wunderkinder', test: (c) => c.age !== undefined && c.age <= 21, total: true },
   { id: 'talent', label: 'Was wäre wenn', test: (c) => c.variant === 'talent', total: true },
   { id: 'debut', label: 'Debüts', test: (c) => c.variant === 'debut', total: true },
-  { id: 'special', label: 'Sonderkarten', test: (c) => ['tots', 'potm', 'record', 'champion', 'moment', 'present', 'halloween'].includes(c.variant) },
+  { id: 'special', label: 'Sonderkarten', test: (c) => ['tots', 'potm', 'record', 'champion', 'moment', 'present', 'halloween', 'ballondor', 'poty', 'topscorer', 'goldenboy', 'ucl', 'worldcup'].includes(c.variant) },
   { id: 'dupes', label: 'Doppelte', test: () => true },
 ];
 

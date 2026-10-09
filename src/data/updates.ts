@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-09-karriere-karte',
+    date: '09.10.2026',
+    title: '🏁 Karriereende: Du wählst deine Karte',
+    items: [
+      '👑 Nach dem Karriereende bekommst du nicht mehr automatisch die Ikone – du wählst: Ikone oder eine Karte für einen großen Moment deiner Karriere.',
+      '🏆 Zur Wahl stehen je nach Karriere: Ballon d’Or, Weltmeister, Champions League, Spieler des Jahres, Torschützenkönig und Golden Boy – jede mit eigenem Design.',
+      '📈 Grundlage ist deine beste Saison mit dieser Auszeichnung, mehrfache Gewinne geben einen Bonus. Die Wahl ist endgültig – genau eine Karte pro Karriere.',
+    ],
+  },
+  {
     id: '2026-10-09-debuts',
     date: '09.10.2026',
     title: '⭐ Neue Weltstars & Debüt-Karten',

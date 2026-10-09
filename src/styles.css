@@ -2087,3 +2087,27 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 }
 .ucard.v-debut .ucard-badge { background: #00897b; color: #fff; opacity: 1; padding: 1px 6px; border-radius: 4px; }
 .ucard.v-debut .ucard-club { font-family: Georgia, 'Times New Roman', serif; font-style: italic; color: #00695c; opacity: 1; }
+
+/* ----- Karriereende: Belohnungskarte wählen ----- */
+.reward { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; align-content: center; padding: 16px; background: rgba(4, 6, 16, .82); backdrop-filter: blur(6px); overflow-y: auto; }
+.reward-card { width: 100%; max-width: 640px; display: grid; gap: 12px; padding: 20px; border-radius: 22px; background: linear-gradient(160deg, #1d1a3a, #0b0c18); border: 1px solid rgba(255, 215, 106, .35); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); }
+.reward-card h2 { margin: 0; font-size: 1.8rem; }
+.reward-options { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 8px 4px 10px; margin: 0 -4px; }
+.reward-options > * { flex: none; scroll-snap-align: center; }
+.reward-options:has(> :only-child), .reward-options:has(> :nth-child(2):last-child) { justify-content: center; }
+.reward-card > .btn.primary { position: sticky; bottom: 0; }
+.reward-hint { margin: -4px 0 0; font-size: .85rem; opacity: .7; text-align: center; }
+.reward-opt { border: 2px solid transparent; border-radius: 18px; padding: 6px; background: none; cursor: pointer; opacity: .65; transition: opacity .15s, transform .15s, border-color .15s; }
+.reward-opt.on { opacity: 1; border-color: #ffd76a; transform: translateY(-4px); }
+.reward-call { display: block; width: calc(100% - 32px); max-width: 1100px; margin: 0 auto 12px; padding: 12px 16px; border-radius: 14px; border: 1px solid rgba(255, 215, 106, .5);
+  background: linear-gradient(90deg, rgba(255, 215, 106, .18), rgba(255, 215, 106, .05)); color: #ffe7a3; font: inherit; font-weight: 800; text-align: left; cursor: pointer; }
+
+/* ----- Auszeichnungs-Karten (Karriereende) ----- */
+.ucard.v-ballondor { --a: #fff3c4; --b: #b8860b; --ink: #2a1a00; --edge: rgba(255, 223, 120, .95); --glow: rgba(255, 210, 90, .7);
+  background: radial-gradient(circle at 50% 36%, rgba(255, 255, 255, .7) 0 18%, transparent 40%), repeating-conic-gradient(from 0deg at 50% 36%, rgba(255, 255, 255, .18) 0 4deg, transparent 4deg 18deg), linear-gradient(165deg, var(--a), var(--b)); }
+.ucard.v-poty { --a: #1b2a6b; --b: #070b24; --ink: #e9eeff; --edge: rgba(150, 180, 255, .9); --glow: rgba(110, 150, 255, .55); }
+.ucard.v-topscorer { --a: #6b1b1b; --b: #120404; --ink: #ffd2a6; --edge: rgba(255, 140, 60, .9); --glow: rgba(255, 110, 40, .55); }
+.ucard.v-goldenboy { --a: #fff7e0; --b: #e2b13c; --ink: #3a2400; --edge: rgba(255, 255, 255, .9); --glow: rgba(255, 220, 120, .55); }
+.ucard.v-ucl { --a: #0d1b4c; --b: #01040f; --ink: #dfe9ff; --edge: rgba(200, 220, 255, .9); --glow: rgba(160, 190, 255, .55);
+  background: radial-gradient(circle at 50% 36%, rgba(200, 220, 255, .25) 0 22%, transparent 23%), radial-gradient(rgba(255, 255, 255, .5) 1px, transparent 1.5px) 0 0 / 14px 14px, linear-gradient(165deg, var(--a), var(--b)); }
+.ucard.v-worldcup { --a: #0f5e3a; --b: #04170e; --ink: #ffe27a; --edge: rgba(255, 215, 90, .95); --glow: rgba(255, 200, 60, .6); }

@@ -11,7 +11,9 @@ import type { Career, CoachSeason, Position, SeasonRecord, SpecialCard, SpecialT
 // „Club“ über alle Karrieren hinweg: Coins, gesammelte Karten, Items. Angelehnt an Karten-Sammelmodi,
 // aber mit eigenen Namen und Designs. Coins verdient man nur im Karrieremodus – kein echtes Geld.
 
-export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | SpecialType;
+/** Auszeichnungs-Karten, die man am Karriereende statt der Ikone wählen kann. */
+export type AwardVariant = 'ballondor' | 'poty' | 'topscorer' | 'goldenboy' | 'ucl' | 'worldcup';
+export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | AwardVariant | SpecialType;
 
 export interface CollectCard {
   id: string;
@@ -75,6 +77,8 @@ export interface ClubState {
   formation?: import('./squad').FormationId;
   /** Abgeschlossene Trades in der Tauschbörse. */
   tradesDone?: number;
+  /** Karriereende: gewählte Belohnungskarte je Karriere (Karriere-ID → Karten-ID). */
+  rewardChosen?: Record<string, string>;
 }
 
 export const START_COINS = 3000;
@@ -117,7 +121,7 @@ export const getCard = (id: string) => CARD_POOL.find((c) => c.id === id);
 
 /** Schnellverkaufswert einer Karte in Coins. */
 export function sellValue(c: CollectCard): number {
-  if (c.variant === 'icon') return 4000;
+  if (c.variant === 'icon' || ['ballondor', 'poty', 'topscorer', 'goldenboy', 'ucl', 'worldcup'].includes(c.variant)) return 4000;
   if (c.variant === 'talent') return 800;
   if (c.variant === 'cult' || c.variant === 'debut') return 1500;
   if (c.variant === 'gold-rare') return 900 + (c.ovr - 85) * 150;
@@ -127,7 +131,7 @@ export function sellValue(c: CollectCard): number {
 
 /** Seltenheit für Sortierung und „bester Zug“. */
 export function rarity(c: CollectCard): number {
-  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
+  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
   return base * 100 + c.ovr;
 }
 
@@ -339,7 +343,8 @@ export function seasonCoins(r: SeasonRecord, specials: number): number {
 
 /**
  * Noch nicht ausgezahlte Saisons (als Spieler und als Trainer) gutschreiben.
- * Sonderkarten einzelner Saisons gibt es nicht mehr – dafür nach dem Karriereende genau eine eigene Ikonen-Karte.
+ * Sonderkarten einzelner Saisons gibt es nicht mehr – nach dem Karriereende wählt man genau eine eigene Karte
+ * (Ikone oder eine Auszeichnungs-Karte, siehe careerRewardOptions). Das passiert nicht hier, sondern über chooseCareerReward.
  */
 export function creditCareer(
   club: ClubState,
@@ -364,21 +369,63 @@ export function creditCareer(
   const hhFresh = hhTotal - (club.credited[hhKey] ?? 0);
   gained += hhFresh;
 
-  const icon = career.phase === 'retired' && career.history.length && !club.specials.some((c) => c.id === iconId(career))
-    ? careerIcon(career)
-    : null;
-  if (!fresh.length && !coachFresh.length && !icon && !hhFresh) return { club, gained: 0, seasons: 0, icon: null };
+  if (!fresh.length && !coachFresh.length && !hhFresh) return { club, gained: 0, seasons: 0, icon: null };
   return {
     club: {
       ...club,
       coins: Math.max(0, club.coins + gained),
-      specials: icon ? [...club.specials, icon] : club.specials,
       credited: { ...club.credited, [career.id]: career.history.length, [coachKey]: coachSeasons.length, [hhKey]: hhTotal },
     },
     gained,
     seasons: fresh.length + coachFresh.length,
-    icon,
+    icon: null,
   };
+}
+
+/** Wartet diese beendete Karriere noch auf die Wahl der Belohnungskarte? (Alte Spielstände mit Ikone zählen als erledigt.) */
+export function rewardPending(club: ClubState, career: Career): boolean {
+  return career.phase === 'retired' && career.history.length > 0 && !club.rewardChosen?.[career.id] &&
+    !club.specials.some((c) => c.id === iconId(career));
+}
+
+/**
+ * Wahl am Karriereende: immer die eigene Ikone, dazu je eine Karte für jede große Auszeichnung der Karriere.
+ * Grundlage ist die beste Saison mit dieser Auszeichnung, mehrfache Gewinne geben etwas mehr.
+ */
+export function careerRewardOptions(career: Career): CollectCard[] {
+  const p = career.player;
+  const opts: CollectCard[] = [careerIcon(career)];
+  const add = (variant: AwardVariant, test: (r: SeasonRecord) => boolean, bonus: number, one: (season: string) => string, many: (n: number) => string) => {
+    const hits = career.history.filter(test);
+    if (!hits.length) return;
+    const best = [...hits].sort((a, b) => b.ovrEnd - a.ovrEnd)[0];
+    const club = getClub(best.clubId);
+    opts.push({
+      id: `own-award-${career.id}-${variant}`,
+      name: p.name, position: p.position, nation: p.nation,
+      club: club.name, league: getLeague(club.leagueId).name,
+      ovr: Math.min(99, best.ovrEnd + bonus + Math.min(3, hits.length - 1)),
+      variant,
+      label: hits.length > 1 ? many(hits.length) : one(best.season),
+      avatar: p.avatar,
+    });
+  };
+  const year = (r: SeasonRecord, prefix: string) => r.trophies.find((t) => t.startsWith(prefix))?.slice(prefix.length).trim() ?? r.season;
+  add('ballondor', (r) => r.awards.includes('Ballon d’Or'), 3, (s) => `Ballon d’Or ${s}`, (n) => `${n}× Ballon d’Or`);
+  add('worldcup', (r) => r.trophies.some((t) => t.startsWith('Weltmeisterschaft')), 3,
+    (s) => `Weltmeister ${year(career.history.find((r) => r.season === s)!, 'Weltmeisterschaft')}`, (n) => `${n}× Weltmeister`);
+  add('ucl', (r) => r.trophies.includes('Champions League'), 2, (s) => `Champions League ${s}`, (n) => `${n}× Champions League`);
+  add('poty', (r) => r.awards.some((a) => a.startsWith('Spieler der Saison')), 2, (s) => `Spieler des Jahres ${s}`, (n) => `${n}× Spieler des Jahres`);
+  add('topscorer', (r) => r.awards.some((a) => a.startsWith('Torschützenkönig')), 2, (s) => `Torschützenkönig ${s}`, (n) => `${n}× Torschützenkönig`);
+  add('goldenboy', (r) => r.awards.includes('Golden Boy'), 5, (s) => `Golden Boy ${s}`, () => 'Golden Boy');
+  return opts;
+}
+
+/** Belohnungskarte wählen: kommt in die Sammlung, die Wahl ist endgültig. */
+export function chooseCareerReward(club: ClubState, career: Career, cardId: string): ClubState {
+  const card = careerRewardOptions(career).find((c) => c.id === cardId);
+  if (!card || !rewardPending(club, career)) return club;
+  return { ...club, specials: [...club.specials, card], rewardChosen: { ...club.rewardChosen, [career.id]: card.id } };
 }
 
 /** Coins für eine Trainersaison: Grundbetrag, Platzierung über den Erwartungen und Titel. */
@@ -451,9 +498,14 @@ export function applyItem(prev: Career, kind: ItemKind): Career {
   return career;
 }
 
-/** Die aktuelle Karte des eigenen Spielers – nach dem Karriereende seine Ikonen-Karte. */
-export function careerCard(career: Career): CollectCard {
+/** Die aktuelle Karte des eigenen Spielers – nach dem Karriereende die gewählte Belohnungskarte (sonst die Ikone). */
+export function careerCard(career: Career, club?: ClubState): CollectCard {
   const p = career.player;
+  const chosen = club?.rewardChosen?.[career.id];
+  if (chosen) {
+    const card = club!.specials.find((c) => c.id === chosen);
+    if (card) return card;
+  }
   if (career.phase === 'retired' && career.history.length) return careerIcon(career);
   const tier = cardTier(p.ovr);
   return {
