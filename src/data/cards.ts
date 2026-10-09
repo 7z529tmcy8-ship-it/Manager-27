@@ -4,25 +4,16 @@ import type { Position } from '../game/types';
 // (Wechsel des Sommers 2025 geprüft); Wertungen sind eigene Schätzungen, keine offiziellen EA-FC-Werte.
 
 /** [Name, Nation, Position, Alter 2025, Wertung, Verein, Liga] */
+// Dembélé, Raphinha, Lautaro & Co. sind seit Oktober 2026 echte Karriere-Spieler (players.ts) und kommen von dort in den Kartenpool.
 export const EXTRA_STARS: [string, string, Position, number, number, string, string][] = [
-  ['Ousmane Dembélé', 'Frankreich', 'FL', 28, 90, 'Paris Saint-Germain', 'Ligue 1'],
-  ['Khvicha Kvaratskhelia', 'Georgien', 'FL', 24, 88, 'Paris Saint-Germain', 'Ligue 1'],
-  ['Achraf Hakimi', 'Marokko', 'AV', 26, 88, 'Paris Saint-Germain', 'Ligue 1'],
-  ['Alexander Isak', 'Schweden', 'ST', 25, 88, 'Liverpool FC', 'Premier League'],
   ['Virgil van Dijk', 'Niederlande', 'IV', 34, 89, 'Liverpool FC', 'Premier League'],
   ['Alisson', 'Brasilien', 'TW', 32, 88, 'Liverpool FC', 'Premier League'],
-  ['William Saliba', 'Frankreich', 'IV', 24, 88, 'Arsenal FC', 'Premier League'],
-  ['Martin Ødegaard', 'Norwegen', 'ZOM', 26, 87, 'Arsenal FC', 'Premier League'],
-  ['Phil Foden', 'England', 'ZOM', 25, 86, 'Manchester City', 'Premier League'],
   ['Bruno Fernandes', 'Portugal', 'ZOM', 30, 87, 'Manchester United', 'Premier League'],
   ['Trent Alexander-Arnold', 'England', 'AV', 26, 86, 'Real Madrid', 'LaLiga'],
-  ['Federico Valverde', 'Uruguay', 'ZM', 27, 89, 'Real Madrid', 'LaLiga'],
   ['Thibaut Courtois', 'Belgien', 'TW', 33, 89, 'Real Madrid', 'LaLiga'],
   ['Antonio Rüdiger', 'Deutschland', 'IV', 32, 86, 'Real Madrid', 'LaLiga'],
-  ['Raphinha', 'Brasilien', 'FL', 28, 89, 'FC Barcelona', 'LaLiga'],
   ['Robert Lewandowski', 'Polen', 'ST', 37, 87, 'FC Barcelona', 'LaLiga'],
   ['Marc-André ter Stegen', 'Deutschland', 'TW', 33, 86, 'FC Barcelona', 'LaLiga'],
-  ['Lautaro Martínez', 'Argentinien', 'ST', 28, 89, 'Inter Mailand', 'Serie A'],
   ['Kevin De Bruyne', 'Belgien', 'ZOM', 34, 87, 'SSC Neapel', 'Serie A'],
   ['Luka Modrić', 'Kroatien', 'ZM', 39, 85, 'AC Mailand', 'Serie A'],
   ['Lionel Messi', 'Argentinien', 'FL', 38, 88, 'Inter Miami', 'MLS'],
@@ -133,4 +124,31 @@ export const HALLOWEEN_CARDS: [string, string, Position, number, string][] = [
   ['Kevin-Prince Boateng', 'Ghana', 'ZM', 89, 'Zombie'],
   ['Mario Basler', 'Deutschland', 'ZM', 89, 'Mumie'],
   ['Nicklas Bendtner', 'Dänemark', 'ST', 88, 'Gespenst'],
+];
+
+/**
+ * Debüt-Karten: Stars als ihre junge Version aus dem ersten Pflichtspiel für die Profis.
+ * [Name, Nation, Position, Wertung, Verein beim Debüt, Jahr des Debüts]. Wertungen sind eigene Schätzungen.
+ */
+export const DEBUT_CARDS: [string, string, Position, number, string, number][] = [
+  ['Lionel Messi', 'Argentinien', 'FL', 89, 'FC Barcelona', 2004],
+  ['Ronaldinho', 'Brasilien', 'ZOM', 88, 'Grêmio', 1998],
+  ['Cristiano Ronaldo', 'Portugal', 'FL', 87, 'Sporting Lissabon', 2002],
+  ['Kylian Mbappé', 'Frankreich', 'ST', 87, 'AS Monaco', 2015],
+  ['Neymar', 'Brasilien', 'FL', 87, 'Santos FC', 2009],
+  ['Wayne Rooney', 'England', 'ST', 86, 'Everton FC', 2002],
+  ['Andrés Iniesta', 'Spanien', 'ZM', 86, 'FC Barcelona', 2002],
+  ['Gianluigi Buffon', 'Italien', 'TW', 86, 'Parma', 1995],
+  ['Lamine Yamal', 'Spanien', 'FL', 86, 'FC Barcelona', 2023],
+  ['Erling Haaland', 'Norwegen', 'ST', 85, 'Bryne FK', 2016],
+  ['Jamal Musiala', 'Deutschland', 'ZOM', 85, 'FC Bayern München', 2020],
+  ['Florian Wirtz', 'Deutschland', 'ZOM', 85, 'Bayer 04 Leverkusen', 2020],
+  ['Jude Bellingham', 'England', 'ZM', 85, 'Birmingham City', 2019],
+  ['Manuel Neuer', 'Deutschland', 'TW', 85, 'FC Schalke 04', 2006],
+  ['Toni Kroos', 'Deutschland', 'ZM', 85, 'FC Bayern München', 2007],
+  ['Kevin De Bruyne', 'Belgien', 'ZOM', 85, 'KRC Genk', 2008],
+  ['Vinícius Júnior', 'Brasilien', 'FL', 85, 'Flamengo', 2017],
+  ['Thierry Henry', 'Frankreich', 'ST', 85, 'AS Monaco', 1994],
+  ['Thomas Müller', 'Deutschland', 'ZOM', 84, 'FC Bayern München', 2008],
+  ['Mohamed Salah', 'Ägypten', 'FL', 84, 'El Mokawloon', 2010],
 ];

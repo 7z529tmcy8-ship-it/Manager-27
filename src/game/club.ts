@@ -1,7 +1,7 @@
 import type { Avatar } from './creator';
 import { FAILED_TALENTS, LEGENDS } from '../data/legends';
 import { REAL_PLAYERS } from '../data/players';
-import { CULT_HEROES, EXTRA_ICONS, EXTRA_STARS, EXTRA_TALENTS, HALLOWEEN_CARDS } from '../data/cards';
+import { CULT_HEROES, DEBUT_CARDS, EXTRA_ICONS, EXTRA_STARS, EXTRA_TALENTS, HALLOWEEN_CARDS } from '../data/cards';
 import { getClub, getLeague, slugify } from '../data/leagues';
 import { summarizeCareer } from './legacy';
 import { homeClubOf } from './offers';
@@ -11,7 +11,7 @@ import type { Career, CoachSeason, Position, SeasonRecord, SpecialCard, SpecialT
 // „Club“ über alle Karrieren hinweg: Coins, gesammelte Karten, Items. Angelehnt an Karten-Sammelmodi,
 // aber mit eigenen Namen und Designs. Coins verdient man nur im Karrieremodus – kein echtes Geld.
 
-export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | SpecialType;
+export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | SpecialType;
 
 export interface CollectCard {
   id: string;
@@ -111,6 +111,7 @@ export const CARD_POOL: CollectCard[] = [
   ...FAILED_TALENTS.map((l) => ({ id: cardId(l.name), name: l.name, position: l.position, nation: l.nation, club: 'Zweite Chance', ovr: l.potential, variant: 'talent' as const, label: 'Was wäre wenn' })),
   ...HALLOWEEN_CARDS.map(([name, nation, position, ovr, label]) => ({ id: cardId(`${name} Halloween`), name, position, nation, club: 'Halloween', ovr, variant: 'halloween' as const, label })),
   ...EXTRA_TALENTS.map(([name, nation, position, ovr]) => ({ id: cardId(name), name, position, nation, club: 'Zweite Chance', ovr, variant: 'talent' as const, label: 'Was wäre wenn' })),
+  ...DEBUT_CARDS.map(([name, nation, position, ovr, club, year]) => ({ id: cardId(`${name} Debüt`), name, position, nation, club, ovr, variant: 'debut' as const, label: `${club} · ${year}` })),
 ];
 export const getCard = (id: string) => CARD_POOL.find((c) => c.id === id);
 
@@ -118,7 +119,7 @@ export const getCard = (id: string) => CARD_POOL.find((c) => c.id === id);
 export function sellValue(c: CollectCard): number {
   if (c.variant === 'icon') return 4000;
   if (c.variant === 'talent') return 800;
-  if (c.variant === 'cult') return 1500;
+  if (c.variant === 'cult' || c.variant === 'debut') return 1500;
   if (c.variant === 'gold-rare') return 900 + (c.ovr - 85) * 150;
   if (c.variant === 'gold') return 250;
   return 80;
@@ -126,7 +127,7 @@ export function sellValue(c: CollectCard): number {
 
 /** Seltenheit für Sortierung und „bester Zug“. */
 export function rarity(c: CollectCard): number {
-  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
+  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
   return base * 100 + c.ovr;
 }
 
@@ -141,7 +142,7 @@ const TIERS: PackTier[] = ['silver', 'gold', 'rare', 'elite', 'special', 'icon']
 /** Stufe einer Karte für Packs: Silber < 75, Gold 75–82, Selten 83–86, Elite 87+, Spezial (Kult/Was wäre wenn), Ikone. */
 export function packTier(c: CollectCard): PackTier {
   if (c.variant === 'icon') return 'icon';
-  if (c.variant === 'talent' || c.variant === 'cult' || c.variant === 'halloween') return 'special';
+  if (c.variant === 'talent' || c.variant === 'cult' || c.variant === 'halloween' || c.variant === 'debut') return 'special';
   return c.ovr >= 87 ? 'elite' : c.ovr >= 83 ? 'rare' : c.ovr >= 75 ? 'gold' : 'silver';
 }
 
@@ -222,6 +223,10 @@ export const PACKS: PackDef[] = [
   {
     id: 'cult', name: 'Kult-Pack', price: 36000, size: 2, text: '1 garantierter Kult-Held (Riquelme, Ailton, Quaresma …) plus eine Gold-Karte.',
     odds: GOLD_FILL, first: { odds: { special: 100 }, filter: (c) => c.variant === 'cult' },
+  },
+  {
+    id: 'debut', name: 'Debüt-Pack', price: 45000, size: 3, text: '1 garantierte Debüt-Karte (Messi 2004, Mbappé 2015, Yamal 2023 …) plus zwei Gold-Karten.',
+    odds: GOLD_FILL, first: { odds: { special: 100 }, filter: (c) => c.variant === 'debut' },
   },
   {
     id: 'worldstar', name: 'Weltstar-Pack', price: 90000, size: 2, text: '2 Karten, die beste ab 83 oder Ikone – gute Chance auf einen Weltstar ab 87.',

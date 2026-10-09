@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-09-debuts',
+    date: '09.10.2026',
+    title: '⭐ Neue Weltstars & Debüt-Karten',
+    items: [
+      '🌍 19 neue Spieler im Karrieremodus: Dembélé, Raphinha, Lautaro, Valverde, Kvaratskhelia, Hakimi, Isak, Saliba, Ødegaard, Foden, Gvardiol, Barella, Bastoni, Nico Williams, Gavi, Fermín, Olmo, Mbeumo und Ekitike – Vereine nach dem Transfersommer 2026.',
+      '📰 Neue Kartenart „Debüt“: 20 Stars als ihre junge Version aus dem ersten Profispiel – Messi 2004 in Barcelona, Ronaldo 2002 bei Sporting, Haaland 2016 bei Bryne, Yamal 2023 …',
+      '🎟️ Neu im Store: das Debüt-Pack mit einer garantierten Debüt-Karte. In der Sammlung gibt es den Filter „Debüts“.',
+    ],
+  },
+  {
     id: '2026-10-09-halloween',
     date: '09.10.2026',
     title: '🎃 Halloween ist da – nur bis 2. November!',

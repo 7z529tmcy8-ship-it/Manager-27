@@ -4,7 +4,7 @@ import { getClubState, setClubState, useClub } from '../clubStore';
 import UtCard from './UtCard';
 import { cardById } from '../game/squad';
 
-type Filter = 'all' | 'elite' | 'icon' | 'cult' | 'wonder' | 'talent' | 'special' | 'dupes';
+type Filter = 'all' | 'elite' | 'icon' | 'cult' | 'wonder' | 'talent' | 'debut' | 'special' | 'dupes';
 
 /** Filter der Sammlung; bei Kartenarten mit fester Anzahl zeigt der Chip „gesammelt/insgesamt“. */
 const FILTERS: { id: Filter; label: string; test: (c: CollectCard) => boolean; total?: boolean }[] = [
@@ -14,6 +14,7 @@ const FILTERS: { id: Filter; label: string; test: (c: CollectCard) => boolean; t
   { id: 'cult', label: 'Kult-Helden', test: (c) => c.variant === 'cult', total: true },
   { id: 'wonder', label: 'Wunderkinder', test: (c) => c.age !== undefined && c.age <= 21, total: true },
   { id: 'talent', label: 'Was wäre wenn', test: (c) => c.variant === 'talent', total: true },
+  { id: 'debut', label: 'Debüts', test: (c) => c.variant === 'debut', total: true },
   { id: 'special', label: 'Sonderkarten', test: (c) => ['tots', 'potm', 'record', 'champion', 'moment', 'present', 'halloween'].includes(c.variant) },
   { id: 'dupes', label: 'Doppelte', test: () => true },
 ];

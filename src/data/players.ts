@@ -179,7 +179,32 @@ const ADDITIONS_2026: typeof RAW = [
   ['Sverre Nypan', 'Norwegen', 'ZM', 18, 72, 85, 'Manchester City'],
 ];
 
-export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026, ...ADDITIONS_2026].map(
+// Paket A (Oktober 2026): Weltstars, die es bisher nur als Sammelkarte gab, jetzt auch als Karriere-Start.
+// Vereine nach dem Transfersommer 2026 per Websuche geprüft (Rafael Leão ist zu Galatasaray gewechselt –
+// die Süper Lig gibt es nicht, deshalb fehlt er hier). Alter zum Start 2025/26, Wertungen eigene Schätzungen.
+const WORLD_STARS_2026: typeof RAW = [
+  ['Ousmane Dembélé', 'Frankreich', 'FL', 28, 90, 90, 'Paris Saint-Germain'],
+  ['Raphinha', 'Brasilien', 'FL', 28, 89, 89, 'FC Barcelona'],
+  ['Lautaro Martínez', 'Argentinien', 'ST', 28, 89, 89, 'Inter Mailand'],
+  ['Federico Valverde', 'Uruguay', 'ZM', 27, 89, 89, 'Real Madrid'],
+  ['Khvicha Kvaratskhelia', 'Georgien', 'FL', 24, 88, 90, 'Paris Saint-Germain'],
+  ['Achraf Hakimi', 'Marokko', 'AV', 26, 88, 88, 'Paris Saint-Germain'],
+  ['Alexander Isak', 'Schweden', 'ST', 25, 88, 89, 'Liverpool FC'],
+  ['William Saliba', 'Frankreich', 'IV', 24, 88, 90, 'Arsenal FC'],
+  ['Martin Ødegaard', 'Norwegen', 'ZOM', 26, 87, 88, 'Arsenal FC'],
+  ['Phil Foden', 'England', 'ZOM', 25, 86, 88, 'Manchester City'],
+  ['Joško Gvardiol', 'Kroatien', 'IV', 23, 85, 88, 'Manchester City'],
+  ['Nicolò Barella', 'Italien', 'ZM', 28, 86, 86, 'Inter Mailand'],
+  ['Alessandro Bastoni', 'Italien', 'IV', 26, 86, 87, 'Inter Mailand'],
+  ['Nico Williams', 'Spanien', 'FL', 23, 84, 88, 'Athletic Club'],
+  ['Gavi', 'Spanien', 'ZM', 21, 83, 89, 'FC Barcelona'],
+  ['Fermín López', 'Spanien', 'ZOM', 22, 81, 86, 'FC Barcelona'],
+  ['Dani Olmo', 'Spanien', 'ZOM', 27, 85, 85, 'FC Barcelona'],
+  ['Bryan Mbeumo', 'Kamerun', 'FL', 26, 84, 85, 'Manchester United'],
+  ['Hugo Ekitike', 'Frankreich', 'ST', 23, 83, 87, 'Liverpool FC'],
+];
+
+export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026, ...ADDITIONS_2026, ...WORLD_STARS_2026].map(
   ([name, nation, position, age, ovr, potential, club]) => ({
     name, nation, position, age, ovr, potential, clubId: slugify(club),
   }),
@@ -226,6 +251,10 @@ export const NATIONS: Nation[] = [
   { name: 'Sierra Leone', callUp: 62 },
   { name: 'Libanon', callUp: 60 },
   { name: 'Malawi', callUp: 58 },
+  { name: 'Uruguay', callUp: 78 },
+  { name: 'Marokko', callUp: 76 },
+  { name: 'Georgien', callUp: 72 },
+  { name: 'Kamerun', callUp: 73 },
 ];
 
 export function getNation(name: string): Nation {

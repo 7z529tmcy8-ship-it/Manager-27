@@ -843,6 +843,7 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .pack-card small { color: var(--muted); font-size: .8rem; flex: 1; }
 .pack-odds { font-size: .7rem; font-weight: 700; color: var(--gold); line-height: 1.35; }
 .p-cult .pack-art { background: linear-gradient(150deg, #0f6b63, #1a0d2e); color: #ffb347; }
+.p-debut .pack-art { background: radial-gradient(rgba(29, 43, 58, .14) 1px, transparent 1.4px) 0 0 / 6px 6px, linear-gradient(150deg, #f6eedb, #c9b68a); color: #00695c; }
 .pack-card .btn { width: 100%; font-size: .85rem; padding: 9px 10px; }
 .pack-art {
   aspect-ratio: 3 / 4; border-radius: 12px; display: grid; place-items: center; font-weight: 900; text-transform: uppercase;
@@ -2075,3 +2076,14 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 }
 .pack-big.has-art::before, .pack-big.has-art::after, .pack-big.has-art span { display: none; }
 :root.reduce-motion .pack-art.has-art { animation: none; }
+
+/* ----- Debüt-Karten: Zeitungspapier, Eintrittskarte vom ersten Spiel ----- */
+.ucard.v-debut {
+  --a: #f6eedb; --b: #d9c9a3; --ink: #1d2b3a; --edge: rgba(0, 150, 136, .85); --glow: rgba(0, 190, 170, .35);
+  background:
+    radial-gradient(circle at 50% 36%, rgba(0, 150, 136, .22) 0 24%, transparent 25%),
+    radial-gradient(rgba(29, 43, 58, .12) 1px, transparent 1.4px) 0 0 / 6px 6px,
+    linear-gradient(165deg, var(--a) 0%, var(--b) 100%);
+}
+.ucard.v-debut .ucard-badge { background: #00897b; color: #fff; opacity: 1; padding: 1px 6px; border-radius: 4px; }
+.ucard.v-debut .ucard-club { font-family: Georgia, 'Times New Roman', serif; font-style: italic; color: #00695c; opacity: 1; }
