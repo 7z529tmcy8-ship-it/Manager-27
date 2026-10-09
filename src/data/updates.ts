@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-09-duelle-hart',
+    date: '09.10.2026',
+    title: '⚔️ Duelle: jetzt richtig schwer',
+    items: [
+      '💪 Die Gegner starten bei Stärke 90 und gehen bis 110 – Stufe 10 „Die Besten der Welt“ ist selbst mit einer perfekten Elf kaum zu schlagen.',
+      '📉 Stärke zählt mehr: Als Außenseiter gewinnst du seltener als vorher.',
+      '🪙 Dafür mehr Coins pro Sieg: von 1.050 (Stufe 1) bis 5.100 (Stufe 10). Deine freigeschalteten Stufen bleiben.',
+    ],
+  },
+  {
     id: '2026-10-09-pack-nochmal',
     date: '09.10.2026',
     title: '🔁 Packs: direkt nochmal',

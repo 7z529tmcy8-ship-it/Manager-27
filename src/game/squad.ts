@@ -165,15 +165,19 @@ export function setSlot(club: ClubState, slot: number, cardId: string | null): C
 // ---------- Duelle ----------
 export const DUEL_LEVELS = 10;
 export interface DuelOpponent { level: number; name: string; strength: number; reward: number }
-const OPP_NAMES = ['Kreisliga-Kicker', 'Dorfverein United', 'Bolzplatz-Legenden', 'Vorstadt-Rebellen', 'Regionalliga-Auswahl',
-  'Zweitliga-Express', 'Europapokal-Schreck', 'Meister-Kombinat', 'Galaktische Auswahl', 'Weltauswahl'];
+const OPP_NAMES = ['Europapokal-Schreck', 'Meister-Kombinat', 'Champions-League-Elite', 'Galaktische Auswahl', 'Ballon-d’Or-Gala',
+  'Weltauswahl', 'Legenden-Elf', 'Die Unsterblichen', 'Götter des Fußballs', 'Die Besten der Welt'];
 
+/** Gegner von Stärke 90 (Stufe 1) bis 110 (Stufe 10) – selbst mit einer perfekten 99er-Elf ist die letzte Stufe kaum zu packen. */
 export const opponent = (level: number): DuelOpponent => ({
   level,
   name: OPP_NAMES[level - 1],
-  strength: 60 + level * 3.2,
-  reward: 250 + level * 150,
+  strength: 90 + ((level - 1) * 20) / (DUEL_LEVELS - 1),
+  reward: 600 + level * 450,
 });
+
+/** Wie stark ein Stärke-Unterschied durchschlägt (kleiner = Außenseiter haben weniger Chancen). */
+const DUEL_SPREAD = 10;
 
 export interface DuelResult { own: number; opp: number; outcome: 'win' | 'draw' | 'loss'; coins: number; goals: { minute: number; own: boolean }[] }
 
@@ -182,8 +186,8 @@ export function playDuel(club: ClubState, level: number): { club: ClubState; res
   if (cards.filter(Boolean).length < 11 || level > club.duelLevel) return null;
   const opp = opponent(level);
   const diff = teamStrength(cards, slotsOf(club)) - opp.strength;
-  const own = poisson(clamp(1.4 * Math.exp(diff / 14), 0.2, 4));
-  const against = poisson(clamp(1.4 * Math.exp(-diff / 14), 0.2, 4));
+  const own = poisson(clamp(1.4 * Math.exp(diff / DUEL_SPREAD), 0.2, 4));
+  const against = poisson(clamp(1.4 * Math.exp(-diff / DUEL_SPREAD), 0.2, 4));
   const outcome = own > against ? 'win' : own === against ? 'draw' : 'loss';
   const coins = outcome === 'win' ? opp.reward : outcome === 'draw' ? Math.round(opp.reward / 4) : 0;
   const goals = [
