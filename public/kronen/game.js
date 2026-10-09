@@ -21,6 +21,8 @@ const SAVE = 'kronenkampf-v1';
 const MATCH = 180; // Sekunden
 const OVERTIME = 60;
 const ELIXIR_SEC = 2.8; // ein Elixier alle 2,8 s
+const SPEED = 1.3; // Lauftempo aller Truppen (1 = ursprünglich, war zu zäh)
+const INTRO = 3; // Countdown vor dem Anpfiff
 const DIFF = { easy: { rate: 0.8, think: 1.6 }, normal: { rate: 1, think: 1.0 }, hard: { rate: 1.15, think: 0.6 } };
 
 const TOWER = {
@@ -66,11 +68,12 @@ function newMatch() {
     deck: { you: makeDeck(PLAYER_DECK), enemy: makeDeck(botDeck) },
     units: [],
     towers: [
-      tower('you', 'princess', 80, 490), tower('you', 'princess', 280, 490), tower('you', 'king', 180, 555),
-      tower('enemy', 'princess', 80, 110), tower('enemy', 'princess', 280, 110), tower('enemy', 'king', 180, 45),
+      tower('you', 'princess', 80, 478), tower('you', 'princess', 280, 478), tower('you', 'king', 180, 540),
+      tower('enemy', 'princess', 80, 122), tower('enemy', 'princess', 280, 122), tower('enemy', 'king', 180, 60),
     ],
     fx: [], // Effekte: Treffer, Zauber, Explosionen, Schadenszahlen
     spells: [], // Zauber im Flug – sie schlagen erst kurz nach dem Ausspielen ein
+    intro: INTRO,
     shake: 0,
     botTimer: 2,
   };
@@ -81,7 +84,7 @@ function makeDeck(keys) {
 }
 function tower(side, kind, x, y) {
   const d = TOWER[kind];
-  return { side, kind, x, y, hp: d.hp, maxHp: d.hp, shownHp: d.hp, hitT: 0, cd: 0, active: kind === 'princess', size: d.size, isTower: true, building: true };
+  return { side, kind, x, y, hp: d.hp, maxHp: d.hp, shownHp: d.hp, hitT: 0, swing: 0, aim: side === 'you' ? -Math.PI / 2 : Math.PI / 2, cd: 0, active: kind === 'princess', size: d.size, isTower: true, building: true };
 }
 
 /* ========== 3. Hilfen ========== */
@@ -115,7 +118,7 @@ function spawn(side, key, x, y) {
     G.units.push({
       side, key, x: ux, y: uy, px: ux, py: uy, // px/py: Position im letzten Schritt (für weiches Zeichnen)
       hp: c.hp, maxHp: c.hp, shownHp: c.hp, hitT: 0, cd: 0.5, size: c.size, flying: !!c.flying, building: c.type === 'building',
-      life: c.lifetime ?? null, born: G.t, walk: Math.random() * 10, lunge: 0, lx: 0, ly: 0, busy: false,
+      life: c.lifetime ?? null, born: G.t, walk: Math.random() * 10, lunge: 0, lx: 0, ly: 0, busy: false, swing: 0, face: side === 'you' ? 1 : -1, aim: side === 'you' ? -Math.PI / 2 : Math.PI / 2,
     });
   }
 }
@@ -167,10 +170,13 @@ function updateUnit(u, dt) {
   const reach = (c.range ?? 15) + target.size + u.size * 0.3;
   const d = dist(u, target);
   u.busy = d <= reach;
+  u.aim = Math.atan2(target.y - u.y, target.x - u.x);
+  if (Math.abs(target.x - u.x) > 2) u.face = target.x < u.x ? -1 : 1;
   if (u.busy) {
     if (u.cd <= 0) {
       attack(u, c, target);
       u.cd = c.hitSpeed;
+      u.swing = 1;
       // kleiner Ausfallschritt Richtung Ziel
       if ((c.range ?? 0) < 40) u.lunge = 1;
       u.lx = (target.x - u.x) / (d || 1); u.ly = (target.y - u.y) / (d || 1);
@@ -194,7 +200,8 @@ function updateUnit(u, dt) {
   const dx = tx - u.x;
   const dy = ty - u.y;
   const len = Math.hypot(dx, dy) || 1;
-  const move = Math.min(c.speed * dt, len);
+  const move = Math.min(c.speed * SPEED * dt, len);
+  if (Math.abs(dx) > 1) u.face = dx < 0 ? -1 : 1;
   u.x += (dx / len) * move;
   u.y += (dy / len) * move;
   u.walk += move;
@@ -210,6 +217,7 @@ function attack(src, c, target) {
     }
   } else hurt(target, dmg);
   const ranged = (c.range ?? 0) > 40;
+  sfx(c.splash ? 'boom' : ranged ? 'shot' : 'hit');
   G.fx.push({ kind: ranged ? 'shot' : 'hit', x1: src.x, y1: src.y, x2: target.x, y2: target.y, side: src.side, t: 0, life: ranged ? 0.18 : 0.15, splash: c.splash });
 }
 
@@ -217,10 +225,11 @@ function hurt(e, dmg) {
   e.hp -= dmg;
   e.hitT = 0.12; // kurzes Aufblitzen
   if (e.isTower && e.kind === 'king') e.active = true;
-  G.fx.push({ kind: 'num', x: e.x + (Math.random() * 10 - 5), y: e.y - e.size, text: String(Math.round(dmg)), t: 0, life: 0.7 });
+  if (e.isTower) G.fx.push({ kind: 'num', x: e.x + (Math.random() * 10 - 5), y: e.y - e.size * 1.6, text: String(Math.round(dmg)), t: 0, life: 0.7 });
   if (e.hp <= 0 && e.isTower) {
     G.fx.push({ kind: 'boom', x: e.x, y: e.y, t: 0, life: 0.9 });
     G.shake = 0.35;
+    sfx('tower');
     // Fällt eine Prinzessin, wacht der König auf.
     for (const k of G.towers) if (k.side === e.side && k.kind === 'king') k.active = true;
   }
@@ -232,9 +241,11 @@ function castSpell(side, key, x, y) {
   const king = G.towers.find((t) => t.side === side && t.kind === 'king');
   const flight = key === 'fireball' ? 0.5 : 0.35;
   G.spells.push({ side, key, x, y, fx: king.x, fy: king.y, t: 0, life: flight });
+  sfx('whoosh');
 }
 function landSpell(side, key, x, y) {
   const c = CARDS[key];
+  sfx(key === 'fireball' ? 'boom' : 'hit');
   for (const e of [...G.units, ...G.towers]) {
     if (e.side === side || !alive(e)) continue;
     if (dist(e, { x, y }) <= c.radius + e.size * 0.5) hurt(e, e.isTower ? c.dmg * c.towerFactor : c.dmg);
@@ -256,7 +267,10 @@ function updateTower(t, dt) {
   }
   if (!best) return;
   hurt(best, d.dmg);
-  G.fx.push({ kind: 'shot', x1: t.x, y1: t.y - 10, x2: best.x, y2: best.y, side: t.side, t: 0, life: 0.15 });
+  t.swing = 1;
+  t.aim = Math.atan2(best.y - t.y, best.x - t.x);
+  sfx('shot');
+  G.fx.push({ kind: 'shot', x1: t.x, y1: t.y - t.size - 6, x2: best.x, y2: best.y, side: t.side, t: 0, life: 0.15 });
   t.cd = d.hitSpeed;
 }
 
@@ -312,7 +326,6 @@ const ctx = canvas.getContext('2d');
 let scale = 1;
 let dpr = 1;
 const bg = document.createElement('canvas'); // fertig gezeichnete Arena, wird nur bei Größenänderung neu gemalt
-const sprites = new Map(); // Emoji einmal vorrendern statt in jedem Bild neu
 
 function resize() {
   const wrap = canvas.parentElement;
@@ -329,24 +342,6 @@ function resize() {
   const b = bg.getContext('2d');
   b.setTransform(s * dpr, 0, 0, s * dpr, 0, 0);
   paintArena(b);
-}
-
-function sprite(icon) {
-  let c = sprites.get(icon);
-  if (!c) {
-    c = document.createElement('canvas');
-    c.width = c.height = 96;
-    const x = c.getContext('2d');
-    x.font = '72px serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
-    x.fillText(icon, 48, 52);
-    sprites.set(icon, c);
-  }
-  return c;
-}
-function drawIcon(icon, x, y, size, alpha = 1) {
-  ctx.globalAlpha = alpha;
-  ctx.drawImage(sprite(icon), x - size / 2, y - size / 2, size, size);
-  ctx.globalAlpha = 1;
 }
 
 function paintArena(c) {
@@ -399,19 +394,44 @@ function drawZone() {
 
 function drawTower(t) {
   const blue = t.side === 'you';
+  const [team, dark] = blue ? ['#2f6bff', '#1f3f9a'] : ['#e23b3b', '#8f1f1f'];
+  const s = t.size;
   if (!alive(t)) {
-    ctx.fillStyle = 'rgba(60, 40, 30, .6)';
-    ctx.beginPath(); ctx.arc(t.x, t.y, t.size, 0, Math.PI * 2); ctx.fill();
+    // Trümmer
+    ctx.fillStyle = 'rgba(60, 40, 30, .55)';
+    ctx.beginPath(); ctx.ellipse(t.x, t.y + s * 0.4, s, s * 0.55, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#7d7d8e';
+    for (const [ox, oy, r] of [[-8, 2, 5], [6, 5, 6], [-1, 9, 4], [10, -2, 3]]) { ctx.beginPath(); ctx.arc(t.x + ox, t.y + oy, r, 0, Math.PI * 2); ctx.fill(); }
     return;
   }
-  const s = t.size;
-  ctx.fillStyle = t.hitT > 0 ? '#b8b8c8' : '#8c8c9e'; ctx.fillRect(t.x - s, t.y - s * 0.6, s * 2, s * 1.6);
-  ctx.fillStyle = blue ? '#2f6bff' : '#e23b3b'; ctx.fillRect(t.x - s - 3, t.y - s * 0.95, s * 2 + 6, s * 0.55);
-  // Zinnen
-  ctx.fillStyle = '#6d6d80';
-  for (let i = -s; i < s; i += 8) ctx.fillRect(t.x + i, t.y - s * 0.6, 5, 5);
-  drawIcon(t.kind === 'king' ? '👑' : '🏰', t.x, t.y + 3, t.kind === 'king' ? 28 : 21, t.kind === 'king' && !t.active ? 0.7 : 1);
-  hpBar(t.x, t.y - s - 8, s * 2, t.hp / t.maxHp, t.shownHp / t.maxHp, blue);
+  const flash = t.hitT > 0;
+  // Schatten und Mauerwerk
+  ctx.fillStyle = 'rgba(0, 0, 0, .25)';
+  ctx.beginPath(); ctx.ellipse(t.x, t.y + s * 0.95, s * 1.1, s * 0.35, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = flash ? '#c4c4d4' : '#9a9aad';
+  ctx.beginPath(); ctx.roundRect(t.x - s, t.y - s * 0.45, s * 2, s * 1.4, 4); ctx.fill();
+  ctx.strokeStyle = 'rgba(40, 30, 60, .35)'; ctx.lineWidth = 1;
+  for (let row = 0; row < 3; row++) {
+    const y = t.y - s * 0.45 + (row + 1) * s * 0.35;
+    ctx.beginPath(); ctx.moveTo(t.x - s, y); ctx.lineTo(t.x + s, y); ctx.stroke();
+  }
+  // Plattform mit Zinnen in Teamfarbe
+  ctx.fillStyle = team;
+  ctx.beginPath(); ctx.roundRect(t.x - s - 3, t.y - s * 0.75, s * 2 + 6, s * 0.42, 3); ctx.fill();
+  ctx.fillStyle = dark;
+  for (let i = -s - 3; i < s + 3; i += 7) ctx.fillRect(t.x + i, t.y - s * 0.95, 4, s * 0.22);
+  // Turmwache oben drauf
+  const o = { team, dark, face: Math.cos(t.aim) < 0 ? -1 : 1, walk: 0, moving: false, atk: t.swing, t: G.t, aim: t.aim };
+  // Turmwache steht auf den Zinnen
+  const size = t.kind === 'king' ? 10 : 8.5;
+  const fy = t.y - s * 0.95 - 0.9 * size;
+  drawFigure(ctx, t.kind === 'king' ? 'king' : 'archer', t.x, fy, size, o);
+  if (t.kind === 'king' && !t.active) {
+    ctx.fillStyle = 'rgba(255, 255, 255, .85)'; ctx.font = 'bold 9px Nunito, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText('z', t.x + 10, fy - 6 - Math.sin(G.t * 2) * 2);
+    ctx.fillText('z', t.x + 15, fy - 12 - Math.sin(G.t * 2 + 1) * 2);
+  }
+  hpBar(t.x, fy - size * 1.75, s * 2, t.hp / t.maxHp, t.shownHp / t.maxHp, blue);
 }
 
 /** Lebensbalken: weißer Rest zeigt kurz den gerade verlorenen Schaden. */
@@ -424,29 +444,33 @@ function hpBar(x, y, w, f, shown, blue) {
 function drawUnit(u, a) {
   const c = CARDS[u.key];
   const blue = u.side === 'you';
+  const [team, dark] = blue ? ['#2f6bff', '#1f3f9a'] : ['#e23b3b', '#8f1f1f'];
   const pop = Math.min(1, (G.t - u.born) * 5);
   const r = u.size * (0.6 + 0.4 * pop);
   // weiche Position zwischen den Rechenschritten
   let x = u.px + (u.x - u.px) * a;
   let y = u.py + (u.y - u.py) * a;
-  // Ausfallschritt beim Zuschlagen, Wippen beim Laufen
+  // Ausfallschritt beim Zuschlagen, kurzes Zucken bei Treffern
   const l = u.lunge * u.lunge * 4;
   x += u.lx * l; y += u.ly * l;
-  const bob = u.building || u.busy ? 0 : Math.abs(Math.sin(u.walk * 0.22)) * (u.flying ? 1.5 : 2.5);
-  const lift = u.flying ? 8 + Math.sin(G.t * 3 + u.walk) * 1.5 : 0;
-  // Schatten
+  if (u.hitT > 0) x += Math.sin(u.hitT * 120) * 0.8;
+  const moving = !u.building && !u.busy;
+  const bob = moving ? Math.abs(Math.sin(u.walk * 0.22)) * (u.flying ? 0 : 1.6) : 0;
+  const lift = u.flying ? 14 + Math.sin(G.t * 3 + u.walk) * 2 : 0;
+  // Schatten und Teamring am Boden
   ctx.fillStyle = 'rgba(0, 0, 0, .22)';
-  ctx.beginPath(); ctx.ellipse(x, y + r * 0.8, r * 0.95, r * 0.38, 0, 0, Math.PI * 2); ctx.fill();
-  const dy = y - lift - bob;
-  ctx.fillStyle = blue ? '#2f6bff' : '#e23b3b';
-  ctx.beginPath(); ctx.arc(x, dy, r + 2, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = u.hitT > 0 ? '#ffffff' : '#fff6e0';
-  ctx.beginPath(); ctx.arc(x, dy, r, 0, Math.PI * 2); ctx.fill();
-  drawIcon(c.icon, x, dy, r * 2.1);
-  if (u.hp < u.maxHp) hpBar(x, dy - r - 7, Math.max(16, r * 2), u.hp / u.maxHp, u.shownHp / u.maxHp, blue);
+  ctx.beginPath(); ctx.ellipse(x, y + r * 0.7, r * 0.95, r * 0.36, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = team; ctx.lineWidth = 1.6; ctx.globalAlpha = 0.75;
+  ctx.beginPath(); ctx.ellipse(x, y + r * 0.7, r * 0.85, r * 0.3, 0, 0, Math.PI * 2); ctx.stroke();
+  ctx.globalAlpha = 1;
+  const size = r * (u.key === 'giant' ? 1.25 : 1.15);
+  const fy = y + r * 0.7 - 0.9 * size - lift - bob;
+  drawFigure(ctx, u.key, x, fy, size, { team, dark, face: u.face, walk: u.walk * 0.22, moving, atk: u.swing, t: G.t + u.born, aim: u.aim });
+  const top = fy - size * 1.2;
+  if (u.hp < u.maxHp) hpBar(x, top - 4, Math.max(16, r * 2), u.hp / u.maxHp, u.shownHp / u.maxHp, blue);
   if (u.life !== null) {
     ctx.strokeStyle = 'rgba(255, 255, 255, .7)'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(x, dy, r + 5, -Math.PI / 2, -Math.PI / 2 + (u.life / c.lifetime) * Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, y, r + 5, -Math.PI / 2, -Math.PI / 2 + (u.life / c.lifetime) * Math.PI * 2); ctx.stroke();
   }
 }
 
@@ -468,9 +492,11 @@ function drawFx(f) {
     ctx.beginPath(); ctx.arc(f.x, f.y, 20 + k * 40, 0, Math.PI * 2); ctx.fill();
   } else if (f.kind === 'poof') {
     // Einheit verschwindet: schrumpft, verblasst, kleine Staubwolke
-    ctx.fillStyle = `rgba(255, 255, 255, ${0.5 * (1 - k)})`;
-    ctx.beginPath(); ctx.arc(f.x, f.y, f.size * (1 + k), 0, Math.PI * 2); ctx.fill();
-    drawIcon(f.icon, f.x, f.y - k * 10, f.size * 2 * (1 - k * 0.6), 1 - k);
+    ctx.fillStyle = `rgba(235, 235, 245, ${0.7 * (1 - k)})`;
+    for (let i = 0; i < 5; i++) {
+      const ang = i * 1.256 + f.size;
+      ctx.beginPath(); ctx.arc(f.x + Math.cos(ang) * f.size * k * 1.4, f.y - k * 8 + Math.sin(ang) * f.size * k * 0.8, f.size * 0.55 * (1 - k * 0.5), 0, Math.PI * 2); ctx.fill();
+    }
   } else if (f.kind === 'num') {
     ctx.fillStyle = `rgba(255, 255, 255, ${1 - k})`; ctx.font = 'bold 11px Nunito, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(f.text, f.x, f.y - k * 18);
@@ -482,15 +508,24 @@ function drawSpellFlight(sp) {
   const x = sp.fx + (sp.x - sp.fx) * k;
   const y = sp.fy + (sp.y - sp.fy) * k - Math.sin(k * Math.PI) * 40;
   if (sp.key === 'fireball') {
-    ctx.fillStyle = 'rgba(255, 140, 40, .35)';
-    ctx.beginPath(); ctx.arc(x, y, 14, 0, Math.PI * 2); ctx.fill();
-    drawIcon('☄️', x, y, 24);
+    // Feuerball mit Schweif
+    for (let i = 4; i >= 1; i--) {
+      const kk = Math.max(0, k - i * 0.05);
+      const tx = sp.fx + (sp.x - sp.fx) * kk;
+      const ty = sp.fy + (sp.y - sp.fy) * kk - Math.sin(kk * Math.PI) * 40;
+      ctx.fillStyle = `rgba(255, ${120 + i * 20}, 40, ${0.5 - i * 0.1})`;
+      ctx.beginPath(); ctx.arc(tx, ty, 9 - i * 1.4, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(255, 140, 40, .4)';
+    ctx.beginPath(); ctx.arc(x, y, 15, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ff7a1a'; ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffe14a'; ctx.beginPath(); ctx.arc(x - 2, y - 2, 4.5, 0, Math.PI * 2); ctx.fill();
   } else {
     ctx.strokeStyle = '#fff3c4'; ctx.lineWidth = 1.5;
-    for (let i = 0; i < 6; i++) {
-      const ox = Math.cos(i * 1.7) * 18;
-      const oy = Math.sin(i * 2.3) * 10;
-      ctx.beginPath(); ctx.moveTo(x + ox, y + oy - 6); ctx.lineTo(x + ox, y + oy + 6); ctx.stroke();
+    for (let i = 0; i < 7; i++) {
+      const ox = Math.cos(i * 1.7) * 20;
+      const oy = Math.sin(i * 2.3) * 12;
+      ctx.beginPath(); ctx.moveTo(x + ox, y + oy - 7); ctx.lineTo(x + ox, y + oy + 7); ctx.stroke();
     }
   }
   // Zielkreis am Boden
@@ -509,11 +544,15 @@ function drawGhost() {
   if (c.type === 'spell') {
     ctx.fillStyle = 'rgba(255, 255, 255, .15)'; ctx.strokeStyle = 'rgba(255, 255, 255, .8)'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(ghost.x, ghost.y, c.radius, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.globalAlpha = 0.85;
+    drawSpellIcon(ctx, key, ghost.x, ghost.y, 12);
   } else {
-    ctx.fillStyle = ok ? 'rgba(47, 107, 255, .45)' : 'rgba(255, 60, 60, .45)';
-    ctx.beginPath(); ctx.arc(ghost.x, ghost.y, c.size + 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = ok ? 'rgba(47, 107, 255, .35)' : 'rgba(255, 60, 60, .4)';
+    ctx.beginPath(); ctx.ellipse(ghost.x, ghost.y + 6, c.size + 6, (c.size + 6) * 0.45, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = ok ? 0.75 : 0.35;
+    drawFigure(ctx, key, ghost.x, ghost.y - 4, c.size * 1.15, { team: '#2f6bff', dark: '#1f3f9a', face: 1, walk: 0, moving: false, atk: 0, t: G.t, aim: -Math.PI / 2 });
   }
-  drawIcon(c.icon, ghost.x, ghost.y, 26, ok ? 0.85 : 0.4);
+  ctx.globalAlpha = 1;
 }
 
 function draw(a = 1) {
@@ -528,6 +567,24 @@ function draw(a = 1) {
   for (const f of G.fx) drawFx(f);
   for (const sp of G.spells) drawSpellFlight(sp);
   drawGhost();
+  drawIntro();
+}
+
+function drawIntro() {
+  const k = G.intro > 0 ? G.intro : G.t < 0.8 ? -G.t : null;
+  if (k === null) return;
+  const text = k > 0 ? String(Math.ceil(k)) : 'Kampf!';
+  const frac = k > 0 ? k - Math.floor(k) || 1 : 1 + k / 0.8; // 1 → 0 innerhalb jeder Sekunde
+  ctx.save();
+  ctx.translate(W / 2, H / 2);
+  const sc = 0.8 + frac * 0.5;
+  ctx.scale(sc, sc);
+  ctx.globalAlpha = Math.min(1, frac * 2);
+  ctx.font = `${k > 0 ? 64 : 46}px 'Lilita One', 'Nunito', sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.lineWidth = 8; ctx.strokeStyle = '#3a2400'; ctx.strokeText(text, 0, 0);
+  ctx.fillStyle = '#ffc93c'; ctx.fillText(text, 0, 0);
+  ctx.restore();
 }
 
 /* ========== 8. Steuerung, Hand & Ablauf ========== */
@@ -571,10 +628,12 @@ function arenaPoint(e) {
 }
 function tryPlay(x, y) {
   const key = G.deck.you.hand[selected];
-  if (!canPlace(key, x, y)) { flash('Hier nicht – nur in deiner Hälfte!'); return false; }
-  if (G.elixir.you < CARDS[key].cost) { flash('Zu wenig Elixier'); return false; }
+  if (G.intro > 0) { sfx('nope'); return false; }
+  if (!canPlace(key, x, y)) { sfx('nope'); flash('Hier nicht – nur in deiner Hälfte!'); return false; }
+  if (G.elixir.you < CARDS[key].cost) { sfx('nope'); flash('Zu wenig Elixier'); return false; }
   fresh = selected;
   play('you', key, x, y);
+  if (CARDS[key].type !== 'spell') sfx('deploy');
   selected = null;
   ghost = null;
   renderHand();
@@ -632,7 +691,7 @@ function flash(text) {
 
 function cardHtml(key, i, cls = '') {
   const c = CARDS[key];
-  return `<button class="card ${cls}" data-i="${i}"><i class="charge"></i><b>${c.cost}</b><span class="ic">${c.icon}</span><span class="nm">${c.name}</span></button>`;
+  return `<button class="card ${cls}" data-i="${i}"><i class="charge"></i><b>${c.cost}</b><img class="ic" src="${cardArt(key)}" alt="" draggable="false"><span class="nm">${c.name}</span></button>`;
 }
 
 /** Hand neu aufbauen – nur wenn sich Karten oder Auswahl ändern, nicht in jedem Bild. */
@@ -675,6 +734,16 @@ function updateHud() {
 }
 
 function step(dt) {
+  if (G.intro > 0) {
+    // Countdown 3 – 2 – 1 – Kampf!
+    const before = Math.ceil(G.intro);
+    G.intro -= dt;
+    if (G.intro <= 0) sfx('go');
+    else if (Math.ceil(G.intro) !== before) sfx('tick');
+    for (const f of G.fx) f.t += dt;
+    G.fx = G.fx.filter((f) => f.t < f.life);
+    return;
+  }
   G.t += dt;
   // Positionen merken – gezeichnet wird zwischen altem und neuem Stand
   for (const u of G.units) { u.px = u.x; u.py = u.y; }
@@ -717,6 +786,7 @@ function step(dt) {
     e.shownHp += (Math.max(0, e.hp) - e.shownHp) * ease;
     e.hitT = Math.max(0, e.hitT - dt);
     if (e.lunge) e.lunge = Math.max(0, e.lunge - dt * 6);
+    if (e.swing) e.swing = Math.max(0, e.swing - dt * 4);
   }
   G.shake = Math.max(0, G.shake - dt);
   for (const u of G.units) if (!alive(u)) G.fx.push({ kind: 'poof', x: u.x, y: u.flying ? u.y - 8 : u.y, icon: CARDS[u.key].icon, size: u.size, t: 0, life: 0.35 });
@@ -759,16 +829,30 @@ function finish(you, enemy) {
   $('r-you').textContent = you;
   $('r-enemy').textContent = enemy;
   $('result-text').textContent = `${delta > 0 ? '+' : ''}${delta} Trophäen · jetzt ${save.trophies}`;
-  setTimeout(() => $('result').classList.remove('hidden'), 700);
+  setTimeout(() => { $('result').classList.remove('hidden'); sfx(draw ? 'tick' : win ? 'win' : 'lose'); }, 700);
 }
 
 // Feste Rechenschritte (60 pro Sekunde) – das Spiel läuft auf jedem Gerät gleich schnell,
 // gezeichnet wird so oft der Bildschirm kann, mit Zwischenpositionen.
 const TICK = 1 / 60;
 let acc = 0;
+// Leistungsanzeige (nur im Entwicklermodus der Hauptseite oder mit ?fps in der Adresse)
+const perfOn = (() => {
+  try { return location.search.includes('fps') || JSON.parse(localStorage.getItem('fc-manager-settings') ?? '{}').dev === true; } catch { return false; }
+})();
+const perf = { frames: 0, work: 0, worst: 0, since: 0 };
+function perfTick(now, workMs, dt) {
+  perf.frames++; perf.work += workMs; perf.worst = Math.max(perf.worst, dt * 1000);
+  if (now - perf.since < 500) return;
+  const secs = (now - perf.since) / 1000;
+  $('perf').textContent = `${Math.round(perf.frames / secs)} FPS · ${(perf.work / perf.frames).toFixed(1)} ms · max ${Math.round(perf.worst)} ms`;
+  Object.assign(perf, { frames: 0, work: 0, worst: 0, since: now });
+}
+
 function loop(now) {
   const dt = Math.min(0.25, (now - last) / 1000 || 0);
   last = now;
+  const w0 = perfOn ? performance.now() : 0;
   let a = 1;
   if (G && !G.over) {
     acc += dt;
@@ -783,6 +867,7 @@ function loop(now) {
     G.shake = Math.max(0, G.shake - dt);
   }
   if (G) draw(a);
+  if (perfOn && G) perfTick(now, performance.now() - w0, dt);
   requestAnimationFrame(loop);
 }
 
@@ -816,8 +901,19 @@ $('diff').addEventListener('click', (e) => {
   difficulty = b.dataset.d;
   document.querySelectorAll('#diff button').forEach((x) => x.classList.toggle('on', x === b));
 });
-$('play').addEventListener('click', start);
-$('again').addEventListener('click', start);
+$('play').addEventListener('click', () => { audioUnlock(); start(); });
+$('again').addEventListener('click', () => { audioUnlock(); start(); });
+window.addEventListener('pointerdown', audioUnlock, { once: true });
+function renderMute() { $('mute').textContent = save.muted ? '🔇' : '🔊'; }
+$('mute').addEventListener('click', () => {
+  save.muted = !save.muted;
+  setMuted(save.muted);
+  storeSave();
+  renderMute();
+});
+setMuted(!!save.muted);
+renderMute();
+if (perfOn) $('perf').classList.remove('hidden');
 $('to-menu').addEventListener('click', showMenu);
 new ResizeObserver(() => G && resize()).observe(canvas.parentElement);
 

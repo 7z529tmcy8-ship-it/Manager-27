@@ -28,7 +28,7 @@ details li { margin: 4px 0; color: #e5ddff; }
 
 .card { position: relative; min-width: 0; border-radius: 10px; padding: 4px 2px 6px; text-align: center; cursor: pointer;
   background: linear-gradient(#5b3fb0, #2a1f4a); border: 2px solid #8a6cff; color: #fff; font: inherit; transition: transform .12s; }
-.card .ic { font-size: 1.7rem; line-height: 1.1; display: block; }
+.card .ic { width: 2.6rem; height: 2.6rem; display: block; margin: 0 auto; pointer-events: none; -webkit-user-drag: none; }
 .card .nm { font-size: .62rem; font-weight: 800; display: block; line-height: 1.1; min-height: 1.4em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card b { position: absolute; top: -8px; left: -6px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: .95rem;
   background: radial-gradient(circle at 35% 30%, #ff9ff3, #b21fa8); border: 2px solid #fff; }
@@ -68,3 +68,8 @@ details li { margin: 4px 0; color: #e5ddff; }
 .result-card h2 { margin: 0; font-size: 2.2rem; color: var(--gold); }
 .result-crowns { font-family: 'Lilita One', sans-serif; font-size: 2.6rem; margin: 8px 0; }
 .result-crowns span:first-child { color: #8fb0ff; } .result-crowns span:last-child { color: #ff9a9a; } .result-crowns i { margin: 0 10px; font-style: normal; }
+
+.mute { position: absolute; top: 6px; right: 8px; z-index: 2; width: 34px; height: 34px; border-radius: 50%; border: 0; font-size: 1rem; cursor: pointer;
+  background: rgba(20, 13, 38, .6); color: #fff; }
+.perf { position: absolute; top: 6px; left: 8px; z-index: 2; padding: 3px 8px; border-radius: 6px; font: 700 .7rem/1.2 ui-monospace, monospace;
+  background: rgba(0, 0, 0, .65); color: #8dff9a; pointer-events: none; }

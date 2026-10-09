@@ -26,7 +26,7 @@
       <details>
         <summary>So geht's</summary>
         <ul>
-          <li>Tippe eine Karte an und dann aufs Spielfeld in deiner Hälfte.</li>
+          <li>Ziehe eine Karte aufs Spielfeld in deiner Hälfte – oder tippe sie an und dann aufs Feld.</li>
           <li>Karten kosten Elixier, es füllt sich von allein (bis 10).</li>
           <li>Zerstöre die Türme des Gegners: jeder Turm = 1 Krone, der König = alle 3.</li>
           <li>Ist ein gegnerischer Turm gefallen, darfst du auf dieser Seite weiter vorn ausspielen.</li>
@@ -44,7 +44,7 @@
       <div class="clock"><small id="clock-label">Zeit</small><b id="clock">3:00</b></div>
       <div class="crowns you"><span>Du</span><b id="crowns-you">0</b></div>
     </div>
-    <div class="arena-wrap"><canvas id="arena"></canvas></div>
+    <div class="arena-wrap"><canvas id="arena"></canvas><button id="mute" class="mute" aria-label="Ton an/aus">🔊</button><div id="perf" class="perf hidden"></div></div>
     <div class="hand-wrap">
       <div class="hand">
         <div class="next"><small>Nächste</small><div id="next-card"></div></div>
@@ -65,6 +65,8 @@
     </div>
   </div>
 
+  <script src="sound.js"></script>
+  <script src="figures.js"></script>
   <script src="game.js"></script>
 </body>
 </html>
