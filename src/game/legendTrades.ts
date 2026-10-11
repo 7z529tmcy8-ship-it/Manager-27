@@ -1,4 +1,5 @@
-import { getCard, halloweenActive, withUpgrade, type ClubState, type CollectCard } from './club';
+import { BALLON_WINNER_2026 } from '../data/cards';
+import { CARD_POOL, eventActive, getCard, withUpgrade, type ClubState, type CollectCard, type EventId } from './club';
 
 // Spezial-Tausche: Legendäre Momente als Karten (91–93). Man gibt genau 11 Karten ab – und die Regeln sind hart.
 // Jede Karte gibt es nur einmal. Ausfüllen muss man selbst, Karte für Karte.
@@ -23,7 +24,7 @@ export interface MomentSbc {
   /** Erst freigeschaltet, wenn dieser Tausch erledigt ist. */
   after?: string;
   /** Nur während eines Events verfügbar. */
-  event?: 'halloween';
+  event?: EventId;
 }
 
 const isIcon = (c: CollectCard) => c.variant === 'icon';
@@ -35,7 +36,38 @@ const pos = (p: string, min = 0) => (c: CollectCard) => c.position === p && c.ov
 const card = (id: string, name: string, position: CollectCard['position'], nat: string, club: string, lg: string, ovr: number, label: string): CollectCard =>
   ({ id: `moment-${id}`, name, position, nation: nat, club, league: lg, ovr, variant: 'moment', label });
 
+/** Ballon-d’Or-Sieger 2026 als SBC – erst, wenn der Sieger eingetragen ist. */
+function galaWinnerSbc(): MomentSbc[] {
+  if (!BALLON_WINNER_2026) return [];
+  const base = CARD_POOL.find((c) => c.variant === 'gala' && c.name === BALLON_WINNER_2026);
+  if (!base) return [];
+  return [{
+    id: 'moment-ballondor-2026',
+    event: 'gala',
+    reward: { ...base, id: 'moment-ballondor-2026', ovr: 96, label: 'Ballon d’Or 2026' },
+    story: `London, 26. Oktober 2026: ${BALLON_WINNER_2026} gewinnt den Ballon d’Or. Die Siegerkarte gibt es nur in der Gala-Woche.`,
+    minAvg: 87, minEach: 84,
+    needs: [
+      { label: 'Gala-Nominierte', count: 2, test: (c) => c.variant === 'gala' },
+      { label: 'Ikonen', count: 2, test: isIcon },
+    ],
+  }];
+}
+
 export const MOMENTS: MomentSbc[] = [
+  ...galaWinnerSbc(),
+  {
+    id: 'moment-suarez-geisternacht',
+    event: 'geisternacht',
+    reward: { id: 'moment-suarez-geisternacht', name: 'Luis Suárez', position: 'ST', nation: 'Uruguay', club: 'Geisternacht', league: 'LaLiga', ovr: 94, variant: 'halloween', label: 'Der Beißer' },
+    story: 'Geisternacht-SBC: Nur zwei Nächte lang kommt der Stürmer mit dem berüchtigtsten Biss des Fußballs zurück – als Vampir. Am 1. November ist er wieder verschwunden.',
+    minAvg: 86, minEach: 83,
+    needs: [
+      { label: 'Halloween-Kostümkarten', count: 2, test: (c) => c.variant === 'halloween' },
+      { label: 'Kult-Helden', count: 3, test: isCult },
+      { label: 'Ikone', count: 1, test: isIcon },
+    ],
+  },
   {
     id: 'moment-adriano-halloween',
     event: 'halloween',
@@ -158,9 +190,9 @@ export const MOMENTS: MomentSbc[] = [
 
 export const momentDone = (club: ClubState, m: MomentSbc) => (club.tasksDone[m.id] ?? 0) > 0;
 export const momentOpen = (club: ClubState, m: MomentSbc) =>
-  !momentDone(club, m) && (!m.after || (club.tasksDone[m.after] ?? 0) > 0) && (!m.event || halloweenActive());
+  !momentDone(club, m) && (!m.after || (club.tasksDone[m.after] ?? 0) > 0) && (!m.event || eventActive(m.event));
 /** Sichtbar: normale Momente immer, Event-Momente nur im Event (oder wenn schon erledigt). */
-export const momentVisible = (club: ClubState, m: MomentSbc) => !m.event || halloweenActive() || momentDone(club, m);
+export const momentVisible = (club: ClubState, m: MomentSbc) => !m.event || eventActive(m.event) || momentDone(club, m);
 
 /** Karten, die man abgeben darf: gezogene Karten (je Karte einmal), keine eigenen Sonderkarten. */
 export const momentCandidates = (club: ClubState): CollectCard[] =>

@@ -2090,7 +2090,7 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 
 /* ----- Karriereende: Belohnungskarte wählen ----- */
 .reward { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; align-content: center; padding: 16px; background: rgba(4, 6, 16, .82); backdrop-filter: blur(6px); overflow-y: auto; }
-.reward-card { width: 100%; max-width: 640px; display: grid; gap: 12px; padding: 20px; border-radius: 22px; background: linear-gradient(160deg, #1d1a3a, #0b0c18); border: 1px solid rgba(255, 215, 106, .35); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); }
+.reward-card { width: 100%; max-width: 640px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 20px; border-radius: 22px; background: linear-gradient(160deg, #1d1a3a, #0b0c18); border: 1px solid rgba(255, 215, 106, .35); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); }
 .reward-card h2 { margin: 0; font-size: 1.8rem; }
 .reward-options { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 8px 4px 10px; margin: 0 -4px; }
 .reward-options > * { flex: none; scroll-snap-align: center; }
@@ -2114,3 +2114,37 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .pack-actions .pack-half { flex: 1 1 0; max-width: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
 .pack-actions .pack-half small { font-size: .75rem; font-weight: 700; opacity: .8; margin-top: 2px; }
 .pack-actions .pack-half:disabled { opacity: .5; }
+
+/* ----- Geisternacht (30./31.10.): wie Halloween, nur grünlich-fahl ----- */
+.pack-card.ev-geisternacht { position: relative; border-color: #39ff9c; background: linear-gradient(180deg, rgba(57, 255, 156, .12), transparent 40%), var(--surface);
+  box-shadow: 0 0 0 1px rgba(57, 255, 156, .5), 0 0 26px rgba(57, 255, 156, .3), 0 0 46px rgba(124, 58, 237, .3); animation: hw-border 3s ease-in-out infinite; }
+.pack-card.ev-geisternacht strong { color: #8dffc4; }
+.p-geisternacht .pack-art { background: radial-gradient(circle at 50% 35%, rgba(57, 255, 156, .55), transparent 45%), linear-gradient(170deg, #0f2a1d, #070312 70%); color: #b9ffd9; text-shadow: 0 0 12px #39ff9c; }
+.lt-item.ev-geisternacht { border-color: #39ff9c; background: linear-gradient(135deg, rgba(57, 255, 156, .16), rgba(124, 58, 237, .18) 60%, transparent), var(--surface); }
+
+/* ----- Ballon d’Or 2026: Gala-Karten, Gala-Pack, Tipp ----- */
+.ucard.v-gala { --a: #2a2416; --b: #050505; --ink: #f6d77a; --edge: rgba(246, 215, 122, .95); --glow: rgba(246, 215, 122, .55);
+  background: radial-gradient(circle at 50% 30%, rgba(246, 215, 122, .35) 0 16%, transparent 34%), repeating-linear-gradient(115deg, rgba(246, 215, 122, .07) 0 2px, transparent 2px 12px), linear-gradient(165deg, var(--a), var(--b)); }
+.ucard.v-gala .ucard-club { color: #f6d77a; letter-spacing: .08em; text-transform: uppercase; }
+.pack-card.ev-gala { border-color: #f6d77a; background: linear-gradient(180deg, rgba(246, 215, 122, .12), transparent 40%), var(--surface); box-shadow: 0 0 0 1px rgba(246, 215, 122, .5), 0 0 26px rgba(246, 215, 122, .25); }
+.pack-card.ev-gala strong { color: #f6d77a; }
+.p-gala .pack-art { background: radial-gradient(circle at 50% 30%, rgba(246, 215, 122, .5), transparent 40%), linear-gradient(170deg, #2a2416, #050505); color: #f6d77a; }
+.lt-item.ev-gala { border-color: #f6d77a; background: linear-gradient(135deg, rgba(246, 215, 122, .16), transparent 60%), var(--surface); }
+.pack-open.theme-gala { --pg: #f6d77a; background: radial-gradient(600px 500px at 50% 45%, #3a3016, #050505 75%); }
+.gala-call { border-color: rgba(246, 215, 122, .6); background: linear-gradient(90deg, rgba(246, 215, 122, .2), rgba(246, 215, 122, .04)); color: #f9e3a0; }
+.gala-tip .btn.on { border-color: #f6d77a; color: #f6d77a; }
+
+/* ----- Duell-Saison ----- */
+.season { display: grid; gap: 8px; margin: 0 16px 14px; padding: 14px; border-radius: 18px; border: 1px solid var(--hairline); background: rgba(127, 127, 127, .06); }
+.season-head { display: flex; align-items: center; gap: 12px; }
+.season-icon { font-size: 2rem; }
+.season-head small { display: block; opacity: .7; font-size: .8rem; }
+.season-head strong { font-size: 1.15rem; }
+.season-bar { height: 8px; border-radius: 4px; background: rgba(127, 127, 127, .2); overflow: hidden; }
+.season-bar i { display: block; height: 100%; background: linear-gradient(90deg, #19e3c2, #ffd76a); }
+.season-claim { padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255, 215, 106, .6); background: rgba(255, 215, 106, .14); color: #ffe7a3; font: inherit; font-weight: 800; text-align: left; cursor: pointer; }
+.season-more summary { cursor: pointer; font-weight: 800; }
+.season-ranks, .season-board { list-style: none; padding: 0; margin: 8px 0; display: grid; gap: 4px; }
+.season-ranks li, .season-board li { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; padding: 6px 10px; border-radius: 8px; background: rgba(127, 127, 127, .08); font-size: .9rem; }
+.season-board li { grid-template-columns: 2em 1fr auto; }
+.season-ranks li.on, .season-board li.me { outline: 1px solid #19e3c2; background: rgba(25, 227, 194, .1); }

@@ -12,6 +12,7 @@ const VARIANT_LABEL: Partial<Record<CollectCard['variant'], string>> = {
   present: 'Geschenk',
   halloween: 'Halloween',
   debut: 'Debüt',
+  gala: 'Gala',
   ballondor: 'Ballon d’Or',
   poty: 'Spieler des Jahres',
   topscorer: 'Torjäger',

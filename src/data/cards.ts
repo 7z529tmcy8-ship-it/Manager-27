@@ -152,3 +152,33 @@ export const DEBUT_CARDS: [string, string, Position, number, string, number][] =
   ['Thomas Müller', 'Deutschland', 'ZOM', 84, 'FC Bayern München', 2008],
   ['Mohamed Salah', 'Ägypten', 'FL', 84, 'El Mokawloon', 2010],
 ];
+
+/**
+ * Geisternacht (30./31.10.2026): zweite Halloween-Welle, nur zwei Tage. Wieder nur lebende Spieler im Kostüm.
+ * [Name, Nation, Position, Wertung, Kostüm]
+ */
+export const GEISTERNACHT_CARDS: [string, string, Position, number, string][] = [
+  ['Ronaldo Nazário', 'Brasilien', 'ST', 97, 'Schattenkönig'],
+  ['Wayne Rooney', 'England', 'ST', 94, 'Frankenstein'],
+  ['Andrea Pirlo', 'Italien', 'ZM', 94, 'Phantom der Oper'],
+  ['Gianluigi Buffon', 'Italien', 'TW', 93, 'Nachtwächter'],
+  ['Edgar Davids', 'Niederlande', 'ZDM', 92, 'Skelett-Pirat'],
+  ['Peter Crouch', 'England', 'ST', 89, 'Riesenskelett'],
+];
+
+/**
+ * Ballon d’Or 2026 (Verleihung 26.10.2026 in London): bekannteste Nominierte der echten 30er-Liste
+ * (per Websuche geprüft). Gala-Karten mit Event-Wertung; Verein kommt aus der normalen Karte. [Name, Gala-Wertung]
+ */
+export const GALA_NOMINEES: [string, number][] = [
+  ['Lamine Yamal', 94],
+  ['Harry Kane', 94],
+  ['Kylian Mbappé', 94],
+  ['Ousmane Dembélé', 93],
+  ['Erling Haaland', 93],
+  ['Michael Olise', 92],
+  ['Vitinha', 92],
+  ['Lionel Messi', 91],
+];
+/** Sieger der Wahl – wird nach der Verleihung eingetragen (bis dahin null). */
+export const BALLON_WINNER_2026: string | null = null;

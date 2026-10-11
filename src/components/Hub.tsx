@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { getClub } from '../data/leagues';
-import { CARD_POOL, careerCard, creditCareer, rewardPending } from '../game/club';
+import { CARD_POOL, ballonTipCorrect, ballonTipOpen, careerCard, claimBallonTip, creditCareer, eventActive, halloweenActive, rewardPending, type PackResult } from '../game/club';
+import { BALLON_WINNER_2026 } from '../data/cards';
+import BallonTip from './BallonTip';
+import { PackOpening } from './Store';
 import { currentClubId, seasonLabel } from '../game/player';
 import { deleteCareer, listCareers, saveCareer } from '../game/storage';
 import type { Career } from '../game/types';
@@ -34,6 +37,13 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   const [showSaves, setShowSaves] = useState(false);
   const [settings, setSettings] = useState(false);
   const [backup, setBackup] = useState(false);
+  const [tipOpen, setTipOpen] = useState(false);
+  const [tipPack, setTipPack] = useState<PackResult | null>(null);
+  const tipWon = ballonTipCorrect(club) === true && !club.ballonTipClaimed;
+  // Event-Hinweis oben: das gerade wichtigste Event
+  const chip = eventActive('geisternacht') ? '👻 Geisternacht – nur bis 31.10.'
+    : eventActive('gala') ? '🏅 Gala-Woche bis 9.11.'
+    : halloweenActive() ? '🎃 Halloween bis 2.11.' : null;
   const latest = [...saves].sort((a, b) => b.updatedAt - a.updatedAt)[0];
   const owned = Object.keys(club.cards).length + club.specials.length;
   const hasHistory = saves.some((c) => c.history.length > 0);
@@ -50,12 +60,29 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
     <main className="hub">
       <header className="hub-top">
         <img className="hub-logo" src="/logo.webp" alt="Manager Sim" width="640" height="624" />
-        <span className="hw-chip">🎃 Halloween bis 2.11.</span>
+        {chip && <span className="hw-chip">{chip}</span>}
         <span className="hub-coins" title="Coins – verdienst du im Karrieremodus">🪙 {fmtCoins(club.coins)}</span>
         <button className="hub-icon" onClick={onNews} aria-label="Neuigkeiten" title="Neuigkeiten">📣</button>
         <button className="hub-icon" onClick={() => setSettings(true)} aria-label="Einstellungen">⚙️</button>
       </header>
 
+      {ballonTipOpen() && (
+        <button className="reward-call gala-call" onClick={() => setTipOpen(true)}>
+          {club.ballonTip
+            ? `🏅 Dein Ballon-d’Or-Tipp: ${club.ballonTip === 'other' ? 'jemand anderes' : club.ballonTip} – ändern bis 26.10. ›`
+            : '🏅 Ballon d’Or 2026: Wer gewinnt? Tippe bis 26.10. – richtig getippt = Gala-Pack gratis ›'}
+        </button>
+      )}
+      {tipWon && (
+        <button className="reward-call gala-call" onClick={() => {
+          const res = claimBallonTip(getClubState());
+          if (!res) return;
+          setClubState(res.club);
+          setTipPack(res.result);
+        }}>
+          🎉 Richtig getippt: {BALLON_WINNER_2026} gewinnt den Ballon d’Or! Dein Gala-Pack abholen ›
+        </button>
+      )}
       {pendingReward && (
         <button className="reward-call" onClick={() => onReward(pendingReward)}>
           🏁 Karriere von {pendingReward.player.name} beendet – jetzt deine Karte wählen ›
@@ -143,6 +170,8 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
         />
       )}
       {backup && <Backup onClose={() => setBackup(false)} />}
+      {tipOpen && <BallonTip onClose={() => setTipOpen(false)} />}
+      {tipPack && <PackOpening name="Gala-Pack" theme="gala" result={tipPack} onClose={() => setTipPack(null)} onCollection={() => { setTipPack(null); onCollection(); }} />}
     </main>
   );
 }

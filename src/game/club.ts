@@ -1,7 +1,7 @@
 import type { Avatar } from './creator';
 import { FAILED_TALENTS, LEGENDS } from '../data/legends';
 import { REAL_PLAYERS } from '../data/players';
-import { CULT_HEROES, DEBUT_CARDS, EXTRA_ICONS, EXTRA_STARS, EXTRA_TALENTS, HALLOWEEN_CARDS } from '../data/cards';
+import { BALLON_WINNER_2026, CULT_HEROES, DEBUT_CARDS, EXTRA_ICONS, EXTRA_STARS, EXTRA_TALENTS, GALA_NOMINEES, GEISTERNACHT_CARDS, HALLOWEEN_CARDS } from '../data/cards';
 import { getClub, getLeague, slugify } from '../data/leagues';
 import { summarizeCareer } from './legacy';
 import { homeClubOf } from './offers';
@@ -13,7 +13,7 @@ import type { Career, CoachSeason, Position, SeasonRecord, SpecialCard, SpecialT
 
 /** Auszeichnungs-Karten, die man am Karriereende statt der Ikone wählen kann. */
 export type AwardVariant = 'ballondor' | 'poty' | 'topscorer' | 'goldenboy' | 'ucl' | 'worldcup';
-export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | AwardVariant | SpecialType;
+export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | 'gala' | AwardVariant | SpecialType;
 
 export interface CollectCard {
   id: string;
@@ -79,6 +79,12 @@ export interface ClubState {
   tradesDone?: number;
   /** Karriereende: gewählte Belohnungskarte je Karriere (Karriere-ID → Karten-ID). */
   rewardChosen?: Record<string, string>;
+  /** Ballon-d’Or-Tipp (Spielername oder 'other') und ob die Belohnung abgeholt wurde. */
+  ballonTip?: string;
+  ballonTipClaimed?: boolean;
+  /** Duell-Saison: Punkte je Saison (z. B. '2026-10' → 340) und abgeholte Saison-Belohnungen. */
+  duelSeasons?: Record<string, number>;
+  duelSeasonClaimed?: string[];
 }
 
 export const START_COINS = 3000;
@@ -115,8 +121,15 @@ export const CARD_POOL: CollectCard[] = [
   ...FAILED_TALENTS.map((l) => ({ id: cardId(l.name), name: l.name, position: l.position, nation: l.nation, club: 'Zweite Chance', ovr: l.potential, variant: 'talent' as const, label: 'Was wäre wenn' })),
   ...HALLOWEEN_CARDS.map(([name, nation, position, ovr, label]) => ({ id: cardId(`${name} Halloween`), name, position, nation, club: 'Halloween', ovr, variant: 'halloween' as const, label })),
   ...EXTRA_TALENTS.map(([name, nation, position, ovr]) => ({ id: cardId(name), name, position, nation, club: 'Zweite Chance', ovr, variant: 'talent' as const, label: 'Was wäre wenn' })),
+  ...GEISTERNACHT_CARDS.map(([name, nation, position, ovr, label]) => ({ id: cardId(`${name} Geisternacht`), name, position, nation, club: 'Geisternacht', ovr, variant: 'halloween' as const, label })),
   ...DEBUT_CARDS.map(([name, nation, position, ovr, club, year]) => ({ id: cardId(`${name} Debüt`), name, position, nation, club, ovr, variant: 'debut' as const, label: `${club} · ${year}` })),
 ];
+// Gala-Karten (Ballon d’Or 2026): Verein und Position wie die normale Karte, höhere Event-Wertung.
+for (const [name, ovr] of GALA_NOMINEES) {
+  const base = CARD_POOL.find((c) => c.name === name && ['silver', 'gold', 'gold-rare'].includes(c.variant))!;
+  CARD_POOL.push({ id: cardId(`${name} Gala 2026`), name, position: base.position, nation: base.nation, club: base.club, league: base.league, ovr, variant: 'gala',
+    label: BALLON_WINNER_2026 === name ? 'Ballon d’Or 2026' : 'Nominiert 2026' });
+}
 export const getCard = (id: string) => CARD_POOL.find((c) => c.id === id);
 
 /** Schnellverkaufswert einer Karte in Coins. */
@@ -131,7 +144,7 @@ export function sellValue(c: CollectCard): number {
 
 /** Seltenheit für Sortierung und „bester Zug“. */
 export function rarity(c: CollectCard): number {
-  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
+  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, gala: 3.9, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
   return base * 100 + c.ovr;
 }
 
@@ -146,7 +159,7 @@ const TIERS: PackTier[] = ['silver', 'gold', 'rare', 'elite', 'special', 'icon']
 /** Stufe einer Karte für Packs: Silber < 75, Gold 75–82, Selten 83–86, Elite 87+, Spezial (Kult/Was wäre wenn), Ikone. */
 export function packTier(c: CollectCard): PackTier {
   if (c.variant === 'icon') return 'icon';
-  if (c.variant === 'talent' || c.variant === 'cult' || c.variant === 'halloween' || c.variant === 'debut') return 'special';
+  if (c.variant === 'talent' || c.variant === 'cult' || c.variant === 'halloween' || c.variant === 'debut' || c.variant === 'gala') return 'special';
   return c.ovr >= 87 ? 'elite' : c.ovr >= 83 ? 'rare' : c.ovr >= 75 ? 'gold' : 'silver';
 }
 
@@ -166,7 +179,7 @@ export interface PackDef {
   /** … außer der ersten, wenn die eigene Chancen bzw. eine eigene Auswahl hat (Garantie). */
   first?: { odds: PackOdds; filter?: (c: CollectCard) => boolean };
   /** Event-Pack: nur im Event-Zeitraum im Store, nur hier gibt es die Event-Karten. */
-  event?: 'halloween';
+  event?: EventId;
 }
 
 const BL = (c: CollectCard) => c.league === 'Bundesliga';
@@ -207,6 +220,16 @@ export const PACKS: PackDef[] = [
     id: 'ghosthour', name: 'Geisterstunde-Pack', price: 150_000, size: 6, event: 'halloween',
     text: '6 Karten ab 83 – garantiert ein Top-Kostüm ab 92. Nur bis 2. November!',
     odds: { rare: 78, elite: 18, special: 4 }, first: { odds: { special: 100 }, filter: (c) => c.variant === 'halloween' && c.ovr >= 92 },
+  },
+  {
+    id: 'geisternacht', name: 'Geisternacht-Pack', price: 75_000, size: 5, event: 'geisternacht',
+    text: '5 Karten – garantiert eine Geisternacht-Karte (89–97): R9 als Schattenkönig, Rooney als Frankenstein … Nur 30. und 31. Oktober!',
+    odds: { gold: 70, rare: 25, elite: 5 }, first: { odds: { special: 100 }, filter: (c) => eventOfCard(c) === 'geisternacht' },
+  },
+  {
+    id: 'gala', name: 'Gala-Pack', price: 50_000, size: 4, event: 'gala',
+    text: '4 Karten – garantiert ein Ballon-d’Or-Nominierter als Gala-Karte (91–94). Nur in der Gala-Woche!',
+    odds: GOLD_FILL, first: { odds: { special: 100 }, filter: (c) => c.variant === 'gala' },
   },
   {
     id: 'mystery', name: 'Wundertüte', price: 9000, size: 1, text: '1 völlig zufällige Karte – von Silber bis Ikone ist alles drin.',
@@ -295,8 +318,8 @@ export function openPack(club: ClubState, packId: string, rand = Math.random, fr
   const pack = PACKS.find((p) => p.id === packId);
   if (!pack || (!free && club.coins < pack.price)) return null;
   const chosen: CollectCard[] = [];
-  // Event-Karten (Halloween) gibt es nur in Event-Packs.
-  const allowed = (c: CollectCard) => !!pack.event || c.variant !== 'halloween';
+  // Event-Karten gibt es nur im Pack ihres Events.
+  const allowed = (c: CollectCard) => { const e = eventOfCard(c); return !e || e === pack.event; };
   const base = (c: CollectCard) => allowed(c) && (pack.filter ? pack.filter(c) : true);
   for (let i = 0; i < pack.size; i++) {
     const slot = i === 0 ? pack.first : undefined;
@@ -584,9 +607,47 @@ export function openMegaSuper(club: ClubState, rand = Math.random): { club: Club
   return { club: { ...club, cards, specials, megaSuperClaimed: true, packsOpened: club.packsOpened + 1 }, result };
 }
 
-// ---------- Halloween-Event ----------
+// ---------- Events ----------
 /** Letzter Tag des Halloween-Events (Ortszeit des Geräts). */
 export const HALLOWEEN_END = new Date(2026, 10, 2, 23, 59, 59);
 export const halloweenActive = (now = new Date()) => now <= HALLOWEEN_END;
+/** Ballon-d’Or-Verleihung 2026: 26.10., 21 Uhr (Tipps bis dahin). */
+export const BALLON_CEREMONY = new Date(2026, 9, 26, 21, 0, 0);
+
+export type EventId = 'halloween' | 'geisternacht' | 'gala';
+/** Zeitfenster der Events (Ortszeit des Geräts). */
+export const EVENTS: Record<EventId, { start: Date; end: Date }> = {
+  halloween: { start: new Date(2026, 9, 1), end: HALLOWEEN_END },
+  // Zweite Halloween-Welle – still, ohne Ankündigung: nur zwei Tage.
+  geisternacht: { start: new Date(2026, 9, 30, 0, 0, 0), end: new Date(2026, 9, 31, 23, 59, 59) },
+  gala: { start: BALLON_CEREMONY, end: new Date(2026, 10, 9, 23, 59, 59) },
+};
+export const eventActive = (e: EventId, now = new Date()) => now >= EVENTS[e].start && now <= EVENTS[e].end;
+/** Zu welchem Event eine Karte gehört (nur in dessen Packs ziehbar). */
+export function eventOfCard(c: CollectCard): EventId | null {
+  if (c.variant === 'gala') return 'gala';
+  if (c.variant === 'halloween') return c.club === 'Geisternacht' ? 'geisternacht' : 'halloween';
+  return null;
+}
 /** Packs, die gerade im Store stehen (Event-Packs nur im Event-Zeitraum). */
-export const activePacks = (now = new Date()) => PACKS.filter((p) => !p.event || (p.event === 'halloween' && halloweenActive(now)));
+export const activePacks = (now = new Date()) => PACKS.filter((p) => !p.event || eventActive(p.event, now));
+
+// ---------- Ballon d’Or 2026: Tipp ----------
+/** Tippen geht bis zur Verleihung. */
+export const ballonTipOpen = (now = new Date()) => now < BALLON_CEREMONY;
+export function setBallonTip(club: ClubState, tip: string, now = new Date()): ClubState {
+  if (!ballonTipOpen(now)) return club;
+  return { ...club, ballonTip: tip };
+}
+/** Richtig getippt? (null = Sieger noch nicht bekannt) */
+export function ballonTipCorrect(club: ClubState, winner = BALLON_WINNER_2026): boolean | null {
+  if (!winner || !club.ballonTip) return null;
+  return club.ballonTip === winner;
+}
+/** Belohnung für den richtigen Tipp: ein Gala-Pack gratis (einmalig). */
+export function claimBallonTip(club: ClubState, rand = Math.random, winner = BALLON_WINNER_2026): { club: ClubState; result: PackResult } | null {
+  if (club.ballonTipClaimed || ballonTipCorrect(club, winner) !== true) return null;
+  const res = openPack(club, 'gala', rand, true);
+  if (!res) return null;
+  return { club: { ...res.club, ballonTipClaimed: true }, result: res.result };
+}

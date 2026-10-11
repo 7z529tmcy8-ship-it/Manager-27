@@ -21,7 +21,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
     if (!res) return;
     setClubState(free ? { ...res.club, welcomeClaimed: true } : res.club);
     const def = PACKS.find((p) => p.id === packId)!;
-    setOpening((o) => ({ result: res.result, name: def.name, theme: def.event, art: PACK_ART[def.id], packId, free, n: (o?.n ?? 0) + 1 }));
+    setOpening((o) => ({ result: res.result, name: def.name, theme: def.event === 'geisternacht' ? 'halloween' : def.event, art: PACK_ART[def.id], packId, free, n: (o?.n ?? 0) + 1 }));
   };
 
   return (

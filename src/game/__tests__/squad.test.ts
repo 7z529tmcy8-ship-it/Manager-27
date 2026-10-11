@@ -74,3 +74,19 @@ it('Kartenwerte sind stabil und plausibel', () => {
   expect(cardAttrs(c)).toHaveLength(6);
   for (const v of cardAttrs(c)) expect(v).toBeGreaterThanOrEqual(25);
 });
+
+it('Duell-Saison: Punkte pro Monat, Rang, Belohnung erst im nächsten Monat und nur einmal', async () => {
+  const { claimSeason, duelPoints, seasonId, seasonRank, unclaimedSeasons } = await import('../squad');
+  expect(duelPoints(5, 'win')).toBe(50);
+  expect(duelPoints(5, 'draw')).toBe(15);
+  expect(duelPoints(5, 'loss')).toBe(0);
+  expect(seasonId(new Date(2026, 9, 11))).toBe('2026-10');
+  expect(seasonRank(320).name).toBe('Gold');
+  const club = { ...freshClub(), duelSeasons: { '2026-10': 320 } };
+  expect(unclaimedSeasons(club, new Date(2026, 9, 20))).toHaveLength(0);
+  const nov = new Date(2026, 10, 2);
+  expect(unclaimedSeasons(club, nov)).toHaveLength(1);
+  const paid = claimSeason(club, '2026-10', nov);
+  expect(paid.coins).toBe(club.coins + 6000);
+  expect(claimSeason(paid, '2026-10', nov).coins).toBe(paid.coins);
+});

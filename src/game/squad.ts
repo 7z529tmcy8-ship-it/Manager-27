@@ -179,9 +179,47 @@ export const opponent = (level: number): DuelOpponent => ({
 /** Wie stark ein Stärke-Unterschied durchschlägt (kleiner = Außenseiter haben weniger Chancen). */
 const DUEL_SPREAD = 10;
 
-export interface DuelResult { own: number; opp: number; outcome: 'win' | 'draw' | 'loss'; coins: number; goals: { minute: number; own: boolean }[] }
+export interface DuelResult { own: number; opp: number; outcome: 'win' | 'draw' | 'loss'; coins: number; goals: { minute: number; own: boolean }[]; points?: number }
 
-export function playDuel(club: ClubState, level: number): { club: ClubState; result: DuelResult } | null {
+// ---------- Duell-Saison ----------
+// Jeder Kalendermonat ist eine Saison. Siege bringen Punkte (je höher die Stufe, desto mehr),
+// am Ende gibt es je nach erreichtem Rang eine Belohnung – abholbar ab dem nächsten Monat.
+export const seasonId = (now = new Date()) => `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+export const seasonName = (id: string) => `${MONTHS[Number(id.slice(5)) - 1]} ${id.slice(0, 4)}`;
+/** Punkte für ein Duell: Sieg 10 × Stufe, Unentschieden 3 × Stufe. */
+export const duelPoints = (level: number, outcome: DuelResult['outcome']) => (outcome === 'win' ? 10 * level : outcome === 'draw' ? 3 * level : 0);
+
+export interface SeasonRank { name: string; icon: string; min: number; coins: number }
+export const SEASON_RANKS: SeasonRank[] = [
+  { name: 'Bronze', icon: '🥉', min: 0, coins: 0 },
+  { name: 'Silber', icon: '🥈', min: 100, coins: 2_000 },
+  { name: 'Gold', icon: '🥇', min: 300, coins: 6_000 },
+  { name: 'Elite', icon: '💎', min: 700, coins: 15_000 },
+  { name: 'Weltklasse', icon: '🌍', min: 1_500, coins: 35_000 },
+  { name: 'Legende', icon: '👑', min: 3_000, coins: 80_000 },
+];
+export const seasonRank = (points: number) => [...SEASON_RANKS].reverse().find((r) => points >= r.min)!;
+export const nextRank = (points: number) => SEASON_RANKS.find((r) => r.min > points) ?? null;
+export const seasonPoints = (club: ClubState, id = seasonId()) => club.duelSeasons?.[id] ?? 0;
+
+/** Vergangene Saisons, deren Belohnung noch abgeholt werden kann. */
+export function unclaimedSeasons(club: ClubState, now = new Date()): { id: string; points: number; rank: SeasonRank }[] {
+  const current = seasonId(now);
+  const done = club.duelSeasonClaimed ?? [];
+  return Object.entries(club.duelSeasons ?? {})
+    .filter(([id]) => id < current && !done.includes(id))
+    .map(([id, points]) => ({ id, points, rank: seasonRank(points) }))
+    .filter((s) => s.rank.coins > 0)
+    .sort((a, b) => a.id.localeCompare(b.id));
+}
+export function claimSeason(club: ClubState, id: string, now = new Date()): ClubState {
+  const s = unclaimedSeasons(club, now).find((x) => x.id === id);
+  if (!s) return club;
+  return { ...club, coins: club.coins + s.rank.coins, duelSeasonClaimed: [...(club.duelSeasonClaimed ?? []), id] };
+}
+
+export function playDuel(club: ClubState, level: number, now = new Date()): { club: ClubState; result: DuelResult } | null {
   const cards = club.squad.map((id) => cardById(club, id));
   if (cards.filter(Boolean).length < 11 || level > club.duelLevel) return null;
   const opp = opponent(level);
@@ -196,7 +234,10 @@ export function playDuel(club: ClubState, level: number): { club: ClubState; res
   ].sort((a, b) => a.minute - b.minute);
   const duels = { ...club.duels, [outcome === 'win' ? 'w' : outcome === 'draw' ? 'd' : 'l']: club.duels[outcome === 'win' ? 'w' : outcome === 'draw' ? 'd' : 'l'] + 1 };
   const duelLevel = outcome === 'win' && level === club.duelLevel ? Math.min(DUEL_LEVELS, level + 1) : club.duelLevel;
-  return { club: { ...club, coins: club.coins + coins, duels, duelLevel }, result: { own, opp: against, outcome, coins, goals } };
+  const points = duelPoints(level, outcome);
+  const sid = seasonId(now);
+  const duelSeasons = points ? { ...club.duelSeasons, [sid]: (club.duelSeasons?.[sid] ?? 0) + points } : club.duelSeasons;
+  return { club: { ...club, coins: club.coins + coins, duels, duelLevel, duelSeasons }, result: { own, opp: against, outcome, coins, goals, points } };
 }
 
 // ---------- Tauschaufgaben ----------

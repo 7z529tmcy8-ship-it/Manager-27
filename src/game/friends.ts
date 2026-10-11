@@ -1,6 +1,7 @@
 import { clamp, poisson, randInt, uid } from './random';
 import { FORMATION, cardById, slotsOf, teamRating, teamStrength, chemistry, type DuelResult } from './squad';
 import type { ClubState } from './club';
+import { seasonId, seasonPoints } from './squad';
 import type { Position } from './types';
 
 // Freunde-Duell ohne Server: Die eigene Elf wird als Text-Code exportiert (z. B. per WhatsApp verschickt).
@@ -20,6 +21,8 @@ export interface FriendTeam {
   rating: number;
   chemistry: number;
   players: { name: string; ovr: number; position: Position }[];
+  /** Punkte in der Duell-Saison beim Teilen (für die Freunde-Rangliste). */
+  season?: { id: string; points: number };
 }
 
 function checksum(text: string): string {
@@ -48,7 +51,7 @@ export function exportTeam(club: ClubState, name: string): string | null {
     chemistry: chemistry(cards, slotsOf(club)).total,
     players: cards.map((c) => ({ name: c!.name, ovr: c!.ovr, position: c!.position })),
   };
-  const body = toBase64(JSON.stringify([team.name, team.strength, team.rating, team.chemistry, team.players.map((p) => [p.name, p.ovr, p.position]), ownerIdOf(club)]));
+  const body = toBase64(JSON.stringify([team.name, team.strength, team.rating, team.chemistry, team.players.map((p) => [p.name, p.ovr, p.position]), ownerIdOf(club), seasonId(), seasonPoints(club)]));
   return `${PREFIX}${body}.${checksum(body)}`;
 }
 
@@ -59,7 +62,7 @@ export function importTeam(code: string): FriendTeam | string {
   const [body, sum] = clean.slice(PREFIX.length).split('.');
   if (!body || !sum || checksum(body) !== sum) return 'Der Code ist unvollständig oder wurde verändert.';
   try {
-    const [name, strength, rating, chem, players, owner] = JSON.parse(fromBase64(body)) as [string, number, number, number, [string, number, Position][], string?];
+    const [name, strength, rating, chem, players, owner, sid, pts] = JSON.parse(fromBase64(body)) as [string, number, number, number, [string, number, Position][], string?, string?, number?];
     if (players.length !== 11 || typeof strength !== 'number' || strength < 30 || strength > 110) return 'Der Code enthält kein gültiges Team.';
     return {
       owner: typeof owner === 'string' && owner ? owner.slice(0, 24) : undefined,
@@ -68,6 +71,7 @@ export function importTeam(code: string): FriendTeam | string {
       rating,
       chemistry: chem,
       players: players.map(([n, o, p]) => ({ name: String(n).slice(0, 40), ovr: clamp(Number(o) || 0, 1, 99), position: p })),
+      ...(typeof sid === 'string' && /^\d{4}-\d{2}$/.test(sid) && typeof pts === 'number' ? { season: { id: sid, points: clamp(Math.round(pts), 0, 1_000_000) } } : {}),
     };
   } catch {
     return 'Der Code konnte nicht gelesen werden.';

@@ -7,6 +7,7 @@ import {
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { FRIEND_REWARD, SLOT_LABELS, exportTeam, importTeam, playFriendDuel, record, removeFriend, resultText, saveFriend, withOwnerId, type FriendTeam } from '../game/friends';
 import { motionReduced } from '../settings';
+import { SEASON_RANKS, claimSeason, nextRank, seasonId, seasonName, seasonPoints, seasonRank, unclaimedSeasons } from '../game/squad';
 import { PackOpening } from './Store';
 import UtCard from './UtCard';
 import LegendTrades from './LegendTrades';
@@ -71,8 +72,66 @@ export function DuelsScreen({ onBack, onTeam }: { onBack: () => void; onTeam: ()
         <div><small>Stufe</small><strong>{club.duelLevel}<em>/{DUEL_LEVELS}</em></strong></div>
         <div><small>Bilanz</small><strong>{club.duels.w}<em>S</em> {club.duels.d}<em>U</em> {club.duels.l}<em>N</em></strong></div>
       </div>
+      <DuelSeason />
       <Duels full={full} onSquad={onTeam} />
     </main>
+  );
+}
+
+/** Duell-Saison: Punkte im laufenden Monat, Rang, offene Belohnungen und Freunde-Rangliste. */
+function DuelSeason() {
+  const club = useClub();
+  const sid = seasonId();
+  const pts = seasonPoints(club, sid);
+  const rank = seasonRank(pts);
+  const next = nextRank(pts);
+  const open = unclaimedSeasons(club);
+  const progress = next ? ((pts - rank.min) / (next.min - rank.min)) * 100 : 100;
+  const board = [
+    { name: club.teamName || 'Du', points: pts, me: true },
+    ...(club.friends ?? []).filter((f) => f.team.season?.id === sid).map((f) => ({ name: f.team.name, points: f.team.season!.points, me: false })),
+  ].sort((a, b) => b.points - a.points);
+  const daysLeft = (() => {
+    const now = new Date();
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return Math.ceil((end.getTime() - now.getTime()) / 86_400_000);
+  })();
+  return (
+    <section className="season">
+      {open.map((s) => (
+        <button key={s.id} className="season-claim" onClick={() => setClubState(claimSeason(getClubState(), s.id))}>
+          {s.rank.icon} Saison {seasonName(s.id)} beendet: {s.rank.name} mit {s.points} Punkten – 🪙 {s.rank.coins.toLocaleString('de-DE')} abholen ›
+        </button>
+      ))}
+      <div className="season-head">
+        <span className="season-icon" aria-hidden="true">{rank.icon}</span>
+        <div>
+          <small>Duell-Saison {seasonName(sid)} · noch {daysLeft} {daysLeft === 1 ? 'Tag' : 'Tage'}</small>
+          <strong>{rank.name} · {pts} Punkte</strong>
+        </div>
+      </div>
+      <div className="season-bar"><i style={{ width: `${progress}%` }} /></div>
+      <p className="hint">
+        {next ? `Noch ${next.min - pts} Punkte bis ${next.icon} ${next.name} (🪙 ${next.coins.toLocaleString('de-DE')} am Saisonende).` : 'Höchster Rang erreicht!'}
+        {' '}Sieg = 10 × Stufe, Unentschieden = 3 × Stufe.
+      </p>
+      <details className="season-more">
+        <summary>Ränge & Rangliste</summary>
+        <ul className="season-ranks">
+          {SEASON_RANKS.map((r) => (
+            <li key={r.name} className={r.name === rank.name ? 'on' : ''}>
+              <span>{r.icon} {r.name}</span><span>ab {r.min}</span><span>{r.coins ? `🪙 ${r.coins.toLocaleString('de-DE')}` : '–'}</span>
+            </li>
+          ))}
+        </ul>
+        <ol className="season-board">
+          {board.map((b, i) => (
+            <li key={`${b.name}-${i}`} className={b.me ? 'me' : ''}><span>{i + 1}.</span><span>{b.name}</span><strong>{b.points}</strong></li>
+          ))}
+        </ol>
+        <p className="hint">Freunde erscheinen hier, wenn sie dir in diesem Monat einen neuen Team-Code schicken (unter „Mein Team“ › Freunde).</p>
+      </details>
+    </section>
   );
 }
 
@@ -242,6 +301,7 @@ function DuelLive({ name, result, onClose, onShare }: { name: string; result: Du
           <>
             <p className={`duel-result ${result.outcome}`}>
               {result.outcome === 'win' ? (result.coins ? `Sieg! +${result.coins} Coins` : 'Sieg!') : result.outcome === 'draw' ? (result.coins ? `Unentschieden · +${result.coins} Coins` : 'Unentschieden') : 'Niederlage – stell dein Team um und versuch es nochmal.'}
+              {result.points ? ` · +${result.points} Saisonpunkte` : ''}
             </p>
             {onShare && <button className="btn secondary big" onClick={onShare}>📤 Ergebnis teilen</button>}
             <button className="btn primary big" onClick={onClose}>Weiter</button>

@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-11-ballondor-saison',
+    date: '11.10.2026',
+    title: '🏅 Ballon d’Or 2026 & Duell-Saison',
+    items: [
+      '🏅 Am 26. Oktober wird in London der Ballon d’Or vergeben. Tippe im Hauptmenü, wer gewinnt – liegst du richtig, bekommst du ein Gala-Pack gratis.',
+      '✨ Ab der Verleihung: Gala-Woche bis 9. November mit dem Gala-Pack (Yamal, Kane, Mbappé, Dembélé, Haaland … als Gala-Karten bis 94) und einer SBC für den echten Sieger.',
+      '⚔️ Neu: Duell-Saison. Jeder Monat ist eine Saison – Siege bringen Punkte (10 × Stufe), Ränge von Bronze bis Legende und am Monatsende bis zu 80.000 Coins.',
+      '🏆 Rangliste mit Freunden: Wer dir diesen Monat einen Team-Code schickt, erscheint mit seinen Saisonpunkten.',
+    ],
+  },
+  {
     id: '2026-10-09-duelle-hart',
     date: '09.10.2026',
     title: '⚔️ Duelle: jetzt richtig schwer',
