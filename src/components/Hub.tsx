@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { getClub } from '../data/leagues';
-import { CARD_POOL, ballonTipCorrect, ballonTipOpen, careerCard, claimBallonTip, creditCareer, eventActive, halloweenActive, rewardPending, type PackResult } from '../game/club';
+import { ballonTipCorrect, collectionProgress, ballonTipOpen, careerCard, claimBallonTip, creditCareer, eventActive, halloweenActive, rewardPending, type PackResult } from '../game/club';
 import { BALLON_WINNER_2026 } from '../data/cards';
 import BallonTip from './BallonTip';
 import { PackOpening } from './Store';
@@ -45,7 +45,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
     : eventActive('gala') ? '🏅 Gala-Woche bis 9.11.'
     : halloweenActive() ? '🎃 Halloween bis 2.11.' : null;
   const latest = [...saves].sort((a, b) => b.updatedAt - a.updatedAt)[0];
-  const owned = Object.keys(club.cards).length + club.specials.length;
+  const progress = collectionProgress(club);
   const hasHistory = saves.some((c) => c.history.length > 0);
   const pendingReward = saves.find((c) => rewardPending(club, c));
   const freePacks = (club.welcomeClaimed ? 0 : 1) + (club.megaXxlClaimed ? 0 : 1) + (club.megaSuperClaimed ? 0 : 1);
@@ -118,7 +118,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
         <Tile icon="⚽" title="Neue Karriere" sub="Eigener Spieler, Profi, Legende oder zweite Chance" onClick={onNew} />
         <Tile icon="🎁" title="Store" sub={!club.megaSuperClaimed ? 'MEGA SUPER XXL Pack gratis!' : !club.megaXxlClaimed ? 'MEGA-XXL-Pack gratis!' : club.welcomeClaimed ? 'Packs mit Coins öffnen' : 'Gratis-Pack wartet!'}
           badge={freePacks ? String(freePacks) : undefined} onClick={onStore} accent />
-        <Tile icon="🗂️" title="Sammlung" sub={`${owned} von ${CARD_POOL.length}+ Karten`} onClick={onCollection} />
+        <Tile icon="🗂️" title="Sammlung" sub={`${progress.label} gesammelt · ${progress.have} von ${progress.total} Karten`} onClick={onCollection} />
         <Tile icon="🛡️" title="Mein Team" sub="Aufstellung und Freunde-Duelle" onClick={onTeam} />
         <Tile icon="⚔️" title="Duelle" sub={`Stufe ${club.duelLevel} · ${club.duels.w} Siege`} onClick={onDuels} />
         <Tile icon="🧩" title="SBC" sub="Legendäre Momente 91–93 und Pack-Tausche" onClick={onSbc} />

@@ -2135,7 +2135,7 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .gala-tip .btn.on { border-color: #f6d77a; color: #f6d77a; }
 
 /* ----- Duell-Saison ----- */
-.season { display: grid; gap: 8px; margin: 0 16px 14px; padding: 14px; border-radius: 18px; border: 1px solid var(--hairline); background: rgba(127, 127, 127, .06); }
+.season { display: grid; gap: 8px; margin: 0 0 14px; padding: 14px; border-radius: 18px; border: 1px solid var(--hairline); background: rgba(127, 127, 127, .06); }
 .season-head { display: flex; align-items: center; gap: 12px; }
 .season-icon { font-size: 2rem; }
 .season-head small { display: block; opacity: .7; font-size: .8rem; }
@@ -2148,3 +2148,11 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .season-ranks li, .season-board li { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; padding: 6px 10px; border-radius: 8px; background: rgba(127, 127, 127, .08); font-size: .9rem; }
 .season-board li { grid-template-columns: 2em 1fr auto; }
 .season-ranks li.on, .season-board li.me { outline: 1px solid #19e3c2; background: rgba(25, 227, 194, .1); }
+
+/* ----- Sammlung: Fortschritt in Prozent ----- */
+.collect-progress { margin: 0 0 6px; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--hairline); background: rgba(127, 127, 127, .06); }
+.collect-progress-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.collect-progress-top strong { font-size: 1.8rem; font-weight: 900; }
+.collect-progress-top span { opacity: .75; }
+.collect-bar { height: 10px; border-radius: 5px; background: rgba(127, 127, 127, .2); overflow: hidden; }
+.collect-bar i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, #19e3c2, #ffd76a); transition: width .4s; }

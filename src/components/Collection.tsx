@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CARD_POOL, MAX_CARD_OVR, costTo99, getCard, rarity, sellDuplicates, sellValue, upgradeCard, upgradeCost, withUpgrade, type CollectCard } from '../game/club';
+import { CARD_POOL, MAX_CARD_OVR, collectionProgress, costTo99, getCard, rarity, sellDuplicates, sellValue, upgradeCard, upgradeCost, withUpgrade, type CollectCard } from '../game/club';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import UtCard from './UtCard';
 import { cardById } from '../game/squad';
@@ -31,6 +31,7 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
     ...Object.entries(club.cards).filter(([id]) => getCard(id)).map(([id, count]) => ({ card: withUpgrade(club, getCard(id)!), count })),
   ].sort((a, b) => rarity(b.card) - rarity(a.card));
 
+  const progress = collectionProgress(club);
   const active = FILTERS.find((f) => f.id === filter)!;
   const shown = owned.filter(({ card, count }) => (filter === 'dupes' ? count > 1 : active.test(card)));
   const chipLabel = (f: (typeof FILTERS)[number]) => {
@@ -53,9 +54,11 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
         <span className="hub-coins">🪙 {club.coins.toLocaleString('de-DE')}</span>
       </header>
       <h1 className="hub-title">Sammlung</h1>
-      <p className="hub-sub">
-        {Object.keys(club.cards).length} von {CARD_POOL.length} Karten gesammelt · {club.specials.length} eigene Karten · {club.packsOpened} Packs geöffnet
-      </p>
+      <div className="collect-progress" aria-label={`${progress.label} der Sammlung`}>
+        <div className="collect-progress-top"><strong>{progress.label}</strong><span>{progress.have} von {progress.total} Karten gesammelt</span></div>
+        <div className="collect-bar"><i style={{ width: `${Math.max(progress.percent, progress.have ? 1 : 0)}%` }} /></div>
+      </div>
+      <p className="hub-sub">{club.specials.length} eigene Karten · {club.packsOpened} Packs geöffnet</p>
 
       <div className="hub-row">
         <div className="chips">

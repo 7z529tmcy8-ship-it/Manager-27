@@ -132,6 +132,16 @@ for (const [name, ovr] of GALA_NOMINEES) {
 }
 export const getCard = (id: string) => CARD_POOL.find((c) => c.id === id);
 
+/** Sammel-Fortschritt: wie viele verschiedene Karten aus dem Kartenpool man hat (eigene Sonderkarten zählen nicht). */
+export function collectionProgress(club: ClubState): { have: number; total: number; percent: number; label: string } {
+  const have = Object.keys(club.cards).filter((id) => (club.cards[id] ?? 0) > 0 && getCard(id)).length;
+  const total = CARD_POOL.length;
+  const percent = total ? (have / total) * 100 : 0;
+  // Unter 10 % mit einer Nachkommastelle, damit man auch kleine Fortschritte sieht.
+  const label = `${percent < 10 && percent > 0 ? percent.toFixed(1).replace('.', ',') : Math.floor(percent)} %`;
+  return { have, total, percent, label };
+}
+
 /** Schnellverkaufswert einer Karte in Coins. */
 export function sellValue(c: CollectCard): number {
   if (c.variant === 'icon' || ['ballondor', 'poty', 'topscorer', 'goldenboy', 'ucl', 'worldcup'].includes(c.variant)) return 4000;

@@ -19,6 +19,12 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-11-sammlung-prozent',
+    date: '11.10.2026',
+    title: '🗂️ Sammlung in Prozent',
+    items: ['📊 Im Hauptmenü und in der Sammlung siehst du jetzt, wie viel Prozent aller Karten du schon gesammelt hast – mit Fortschrittsbalken.'],
+  },
+  {
     id: '2026-10-11-ballondor-saison',
     date: '11.10.2026',
     title: '🏅 Ballon d’Or 2026 & Duell-Saison',
