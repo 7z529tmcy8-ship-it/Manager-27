@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-11-sonderkarten-design',
+    date: '11.10.2026',
+    title: '✨ Neues Design für alle Sonderkarten',
+    items: [
+      '🎨 Jede Kartenart hat jetzt ihr eigenes Muster: Strahlenkranz für Ikonen, Retro-Karos für Kult-Helden, Glitch-Look für „Was wäre wenn“, Filmstreifen für Momente, Flammen für Torjäger, Globus für Weltmeister …',
+      '🏷️ Neues Emblem oben rechts auf jeder Sonderkarte – so erkennst du die Art auf einen Blick.',
+      '🌈 Holo-Schimmer und leuchtender Doppelring ums Bild. (Ruhiger, wenn „Animationen“ in den Einstellungen aus sind.)',
+    ],
+  },
+  {
     id: '2026-10-11-sammlung-prozent',
     date: '11.10.2026',
     title: '🗂️ Sammlung in Prozent',

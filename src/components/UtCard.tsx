@@ -24,6 +24,12 @@ const VARIANT_LABEL: Partial<Record<CollectCard['variant'], string>> = {
   record: 'Rekordjäger',
   champion: 'Titelheld',
 };
+/** Sonderkarten bekommen ein Emblem, Holo-Schimmer und ein eigenes Muster (siehe styles.css). */
+const EMBLEM: Partial<Record<CollectCard['variant'], string>> = {
+  icon: '👑', cult: '⚡', talent: '✦', debut: '🎟️', moment: '🎬', present: '🎁', halloween: '🎃', gala: '🏅',
+  tots: '⭐', potm: '📅', record: '📈', champion: '🏆',
+  ballondor: '🥇', worldcup: '🌍', ucl: '✪', poty: '🎙️', topscorer: '👟', goldenboy: '✨',
+};
 const OUTFIELD = ['TEM', 'SCH', 'PAS', 'DRI', 'DEF', 'PHY'];
 const KEEPER = ['HEC', 'HAN', 'ABS', 'REF', 'TEM', 'STE'];
 
@@ -57,12 +63,15 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick 
   const labels = card.position === 'TW' ? KEEPER : OUTFIELD;
   const big = size === 'md' || size === 'lg';
   const Tag = onClick ? 'button' : 'div';
+  const emblem = EMBLEM[card.variant];
   return (
     <Tag
-      className={`ucard v-${card.variant} ${size} ${shine ? 'shine' : ''} ${onClick ? 'clickable' : ''}`}
+      className={`ucard v-${card.variant} ${size} ${emblem ? 'special' : ''} ${shine ? 'shine' : ''} ${onClick ? 'clickable' : ''}`}
       aria-label={`${card.name}, ${card.ovr} ${card.position}`}
       onClick={onClick}
     >
+      {emblem && <span className="ucard-foil" aria-hidden="true" />}
+      {emblem && size !== 'xs' && <span className="ucard-emblem" aria-hidden="true">{emblem}</span>}
       <div className="ucard-top">
         <span className="ucard-ovr">{card.ovr}</span>
         <span className="ucard-pos">{card.position}</span>

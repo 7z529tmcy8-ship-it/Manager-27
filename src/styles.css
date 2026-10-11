@@ -2156,3 +2156,91 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .collect-progress-top span { opacity: .75; }
 .collect-bar { height: 10px; border-radius: 5px; background: rgba(127, 127, 127, .2); overflow: hidden; }
 .collect-bar i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, #19e3c2, #ffd76a); transition: width .4s; }
+
+/* =========================================================================
+   Sonderkarten 2.0: jede Kartenart mit eigenem Muster, Emblem und Holo-Schimmer.
+   Die Farben (--a, --b, --ink, --edge, --glow) kommen weiter aus den v-…-Regeln oben;
+   hier kommen Muster (--pat) und die gemeinsamen Effekte dazu.
+   ========================================================================= */
+.ucard.special {
+  --pat: none;
+  background: var(--pat), radial-gradient(120% 55% at 50% 0%, rgba(255, 255, 255, .28), transparent 60%), linear-gradient(160deg, var(--a) 0%, var(--b) 100%);
+}
+/* doppelte Innenkante */
+.ucard.special::before { inset: 4px; border: 2px solid var(--edge); box-shadow: inset 0 0 0 3px transparent, inset 0 0 0 4px color-mix(in srgb, var(--edge) 45%, transparent); }
+/* Bild-Kreis mit leuchtendem Doppelring */
+.ucard.special .ucard-art {
+  box-shadow: 0 0 0 2px var(--edge), 0 0 0 5px color-mix(in srgb, var(--edge) 25%, transparent), 0 0 18px var(--glow);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .5), rgba(255, 255, 255, .1) 55%, color-mix(in srgb, var(--b) 60%, transparent) 72%);
+}
+.ucard.special .ucard-badge { opacity: 1; color: var(--ink); text-shadow: 0 0 6px var(--glow); }
+/* Namensband */
+.ucard.special .ucard-name { position: relative; z-index: 1; padding: 1px 6px; text-shadow: 0 1px 0 rgba(0, 0, 0, .25), 0 0 10px var(--glow); }
+/* Emblem oben rechts */
+.ucard-emblem {
+  position: absolute; top: 8%; right: 11%; z-index: 2; width: 26px; height: 26px; display: grid; place-items: center; font-size: .85rem; line-height: 1;
+  border-radius: 50%; background: color-mix(in srgb, var(--b) 70%, #000); box-shadow: 0 0 0 1.5px var(--edge), 0 0 10px var(--glow); color: var(--ink);
+}
+.ucard.sm .ucard-emblem { width: 18px; height: 18px; font-size: .6rem; top: 7%; right: 10%; }
+.ucard.lg .ucard-emblem { width: 34px; height: 34px; font-size: 1.1rem; }
+/* Holo-Schimmer: wandernder Regenbogen, sehr dezent */
+.ucard-foil {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none; mix-blend-mode: overlay; opacity: .55;
+  background: linear-gradient(115deg, transparent 20%, rgba(255, 0, 170, .35) 32%, rgba(0, 220, 255, .35) 42%, rgba(255, 240, 0, .3) 52%, transparent 64%);
+  background-size: 250% 250%; animation: ucard-foil 5s ease-in-out infinite alternate;
+}
+@keyframes ucard-foil { from { background-position: 100% 0; } to { background-position: 0 100%; } }
+:root.reduce-motion .ucard-foil { animation: none; }
+@media (prefers-reduced-motion: reduce) { .ucard-foil { animation: none; } }
+.ucard.special > .ucard-top, .ucard.special > .ucard-art, .ucard.special > .ucard-badge, .ucard.special > .ucard-attrs, .ucard.special > .ucard-club { position: relative; z-index: 1; }
+.ucard.special > .ucard-top { position: absolute; }
+
+/* ---- Muster je Kartenart ---- */
+/* Ikone: Strahlenkranz hinter dem Bild, Gold-Rahmen */
+.ucard.v-icon.special { --a: #fffaf0; --b: #d6bf8a; --edge: #c9a24a; --glow: rgba(255, 220, 140, .6);
+  --pat: repeating-conic-gradient(from 0deg at 62% 30%, rgba(201, 162, 74, .16) 0 6deg, transparent 6deg 15deg); }
+/* Kult-Held: Retro-Karos der 2000er */
+.ucard.v-cult.special { --pat: repeating-conic-gradient(rgba(255, 179, 71, .1) 0 25%, transparent 0 50%) 0 0 / 18px 18px; }
+/* „Was wäre wenn“: Glitch – versetzte Farbkanten, gestrichelter Rahmen */
+.ucard.v-talent.special { --a: #2a3150; --b: #0c0f1c; --edge: #a7c4ff;
+  --pat: repeating-linear-gradient(0deg, rgba(167, 196, 255, .07) 0 2px, transparent 2px 5px); }
+.ucard.v-talent.special::before { border-style: dashed; }
+.ucard.v-talent.special .ucard-name { text-shadow: -2px 0 rgba(255, 60, 120, .7), 2px 0 rgba(60, 220, 255, .7); }
+.ucard.v-talent.special .ucard-art span { text-shadow: -2px 0 rgba(255, 60, 120, .6), 2px 0 rgba(60, 220, 255, .6); }
+/* Debüt: Zeitungsraster + Eintrittskarten-Kerben */
+.ucard.v-debut.special { --pat: radial-gradient(rgba(29, 43, 58, .14) 1px, transparent 1.4px) 0 0 / 6px 6px; }
+.ucard.v-debut.special .ucard-attrs { border-top-style: dashed; }
+/* Moment: Filmstreifen an den Seiten */
+.ucard.v-moment.special { --pat:
+  repeating-linear-gradient(180deg, transparent 0 4px, rgba(255, 255, 255, .45) 4px 8px, transparent 8px 13px) 3% 0 / 3% 100% no-repeat,
+  repeating-linear-gradient(180deg, transparent 0 4px, rgba(255, 255, 255, .45) 4px 8px, transparent 8px 13px) 97% 0 / 3% 100% no-repeat,
+  linear-gradient(90deg, rgba(0, 0, 0, .6) 0 8%, transparent 8% 92%, rgba(0, 0, 0, .6) 92%),
+  radial-gradient(circle at 62% 30%, rgba(255, 59, 59, .3) 0 20%, transparent 40%); }
+/* Geschenk: Neon-Raster */
+.ucard.v-present.special { --pat: linear-gradient(rgba(0, 229, 255, .12) 1px, transparent 1px) 0 0 / 100% 14px, linear-gradient(90deg, rgba(255, 43, 214, .12) 1px, transparent 1px) 0 0 / 14px 100%; }
+/* Halloween: Spinnennetz in der Ecke */
+.ucard.v-halloween.special { --a: #3a0d4a; --b: #07020c; --pat: radial-gradient(60% 34% at 50% 34%, rgba(255, 170, 60, .45), transparent 70%), repeating-radial-gradient(circle at 100% 0, transparent 0 14px, rgba(255, 170, 60, .16) 14px 15px),
+  repeating-conic-gradient(from 180deg at 100% 0, rgba(255, 170, 60, .14) 0 1deg, transparent 1deg 15deg); }
+/* Gala: Goldfunken */
+.ucard.v-gala.special { --pat: radial-gradient(rgba(246, 215, 122, .7) 1px, transparent 1.5px) 0 0 / 23px 19px, radial-gradient(rgba(246, 215, 122, .45) 1px, transparent 1.5px) 9px 7px / 31px 27px; }
+/* Team der Saison: Sternenfeld */
+.ucard.v-tots.special { --pat: radial-gradient(rgba(255, 215, 106, .55) 1px, transparent 1.6px) 0 0 / 17px 17px; }
+/* Spieler des Monats: Kalender-Raster */
+.ucard.v-potm.special { --pat: linear-gradient(rgba(255, 255, 255, .08) 1px, transparent 1px) 0 0 / 100% 20%, linear-gradient(90deg, rgba(255, 255, 255, .08) 1px, transparent 1px) 0 0 / 14.28% 100%; }
+/* Rekordjäger: Tempo-Streifen */
+.ucard.v-record.special { --pat: repeating-linear-gradient(160deg, rgba(255, 255, 255, .09) 0 3px, transparent 3px 22px); }
+/* Titelheld: Pokal-Strahlen von unten */
+.ucard.v-champion.special { --pat: repeating-conic-gradient(from 0deg at 50% 100%, rgba(255, 255, 255, .1) 0 4deg, transparent 4deg 12deg); }
+/* Ballon d’Or (Karriere): goldene Sonne */
+.ucard.v-ballondor.special { --pat: radial-gradient(circle at 62% 30%, rgba(255, 255, 255, .75) 0 12%, transparent 34%), repeating-conic-gradient(from 0deg at 62% 30%, rgba(255, 255, 255, .22) 0 4deg, transparent 4deg 16deg); }
+/* Weltmeister: Globus-Linien */
+.ucard.v-worldcup.special { --pat: repeating-radial-gradient(ellipse 60% 100% at 50% 50%, transparent 0 16px, rgba(255, 215, 90, .14) 16px 17px),
+  repeating-linear-gradient(0deg, transparent 0 18px, rgba(255, 215, 90, .1) 18px 19px); }
+/* Königsklasse: Sternenball */
+.ucard.v-ucl.special { --pat: radial-gradient(circle at 62% 30%, rgba(200, 220, 255, .28) 0 20%, transparent 21%), radial-gradient(rgba(255, 255, 255, .55) 1px, transparent 1.5px) 0 0 / 14px 14px; }
+/* Spieler des Jahres: Scheinwerfer */
+.ucard.v-poty.special { --pat: conic-gradient(from 160deg at 50% -10%, transparent 0 10deg, rgba(200, 215, 255, .22) 10deg 40deg, transparent 40deg); }
+/* Torjäger: Flammen von unten */
+.ucard.v-topscorer.special { --pat: radial-gradient(120% 45% at 50% 105%, rgba(255, 120, 30, .55), transparent 70%), radial-gradient(40% 30% at 25% 100%, rgba(255, 200, 60, .35), transparent 70%), radial-gradient(40% 30% at 75% 100%, rgba(255, 200, 60, .35), transparent 70%); }
+/* Golden Boy: Glitzer */
+.ucard.v-goldenboy.special { --pat: radial-gradient(rgba(255, 255, 255, .9) 1px, transparent 1.6px) 0 0 / 19px 23px, radial-gradient(rgba(255, 210, 90, .6) 1px, transparent 1.6px) 7px 11px / 27px 21px; }
