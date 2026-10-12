@@ -29,7 +29,7 @@ type Tab = 'own' | 'real' | 'legends' | 'cult' | 'failed' | 'h96';
 /** Reiter: [ID, langer Name, kurzer Name fürs Handy]. */
 const TABS: [Tab, string, string][] = [
   ['own', 'Eigener Spieler', '✏️ Eigener'],
-  ['real', 'Echter Spieler', '👤 Echter'],
+  ['real', 'Echter Spieler', '🎽 Echter'],
   ['legends', '⭐ Legenden', '⭐ Legenden'],
   ['cult', '🧡 Kult-Helden', '🧡 Kult'],
   ['failed', '💔 Zweite Chance', '💔 2. Chance'],

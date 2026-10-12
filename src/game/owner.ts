@@ -96,7 +96,7 @@ export type Investment = 'stars' | 'stadium' | 'coach' | 'statue';
 
 export const INVESTMENTS: Record<Investment, { label: string; cost: number; hint: string }> = {
   stars: { label: '⭐ Stars einkaufen', cost: 40e6, hint: '+2 Vereinsstärke (ab nächster Saison)' },
-  coach: { label: '🧑‍💼 Trainer feuern', cost: 10e6, hint: 'Der Neue weiß, wer ihn bezahlt: Trainervertrauen maximal' },
+  coach: { label: '💼 Trainer feuern', cost: 10e6, hint: 'Der Neue weiß, wer ihn bezahlt: Trainervertrauen maximal' },
   stadium: { label: '✨ Stadion vergolden', cost: 25e6, hint: 'Bringt sportlich nichts. Glänzt aber.' },
   statue: { label: '🗿 Statue von dir aufstellen', cost: 5e6, hint: 'Vor dem Haupteingang, 12 Meter hoch' },
 };

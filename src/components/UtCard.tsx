@@ -80,7 +80,7 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick 
       </div>
       {big && (
         <div className={`ucard-art ${card.avatar ? 'face' : ''}`} aria-hidden="true">
-          {card.avatar ? <AvatarFace avatar={card.avatar} size={size === 'lg' ? 104 : 72} /> : <span>{initials(card.name)}</span>}
+          {card.avatar ? <AvatarFace avatar={card.avatar} size={size === 'lg' ? 104 : 72} /> : <Jersey text={initials(card.name)} />}
         </div>
       )}
       {big && <div className="ucard-badge">{VARIANT_LABEL[card.variant] ?? (card.variant === 'gold' ? 'Gold' : 'Silber')}</div>}
@@ -101,5 +101,16 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick 
       {count !== undefined && count > 1 && <span className="ucard-count">×{count}</span>}
       {(card.boost ?? 0) > 0 && <span className="ucard-boost" title={`Um ${card.boost} verbessert`}>▲{card.boost}</span>}
     </Tag>
+  );
+}
+
+/** Trikot-Symbol statt eines Porträts (keine Gesichter auf Karten). */
+function Jersey({ text }: { text: string }) {
+  return (
+    <svg className="ucard-jersey" viewBox="0 0 100 100" aria-hidden="true">
+      <path className="j-body" d="M34 14 L22 18 L8 32 L18 46 L26 40 L26 88 L74 88 L74 40 L82 46 L92 32 L78 18 L66 14 Q58 24 50 24 Q42 24 34 14Z" />
+      <path className="j-trim" d="M34 14 Q42 26 50 26 Q58 26 66 14" />
+      <text x="50" y="67" textAnchor="middle">{text}</text>
+    </svg>
   );
 }

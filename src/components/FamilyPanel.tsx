@@ -81,7 +81,7 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
           <button className="nav-back" onClick={onClose}>‹ Zurück</button>
           <span className="hub-coins">🪙 {fmt(club.coins)}</span>
         </header>
-        <h2 className="fam-title">👨‍👧 Familie</h2>
+        <h2 className="fam-title">🏡 Familie</h2>
 
         {deal && (
           <div className="life-pop" role="dialog" aria-modal="true" aria-label="Ergebnis der Verhandlung">

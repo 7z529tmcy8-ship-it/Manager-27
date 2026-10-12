@@ -169,7 +169,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       {/* Familie und Vermögen */}
       <div className="cs-life">
         <button className="cs-life-btn" onClick={() => setPanel('family')}>
-          👨‍👧 Familie{kids ? ` (${kids})` : ''}
+          🏡 Familie{kids ? ` (${kids})` : ''}
         </button>
         <button className="cs-life-btn" onClick={() => setPanel('invest')}>💼 Vermögen</button>
         <button className="cs-life-btn" onClick={() => setPanel('clinic')}>💎 Klinik{career.glam ? ` ✨${career.glam}` : ''}</button>

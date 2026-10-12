@@ -163,7 +163,7 @@ export function playFriendDuel(club: ClubState, team: FriendTeam, now = Date.now
 
 /** Text zum Teilen eines Ergebnisses (z. B. per WhatsApp). */
 export function resultText(ownName: string, team: FriendTeam, r: DuelResult): string {
-  const verb = r.outcome === 'win' ? 'gewonnen 😎' : r.outcome === 'draw' ? 'unentschieden gespielt 🤝' : 'verloren 😤 – Revanche folgt';
+  const verb = r.outcome === 'win' ? 'gewonnen 🕶️' : r.outcome === 'draw' ? 'unentschieden gespielt 🤝' : 'verloren 💢 – Revanche folgt';
   return `⚽ FC Karriere: ${ownName || 'Meine Elf'} ${r.own}:${r.opp} ${team.name} – ich habe ${verb}! Schick mir deinen neuen Team-Code.`;
 }
 

@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-12-neon-design',
+    date: '12.10.2026',
+    title: '🌌 Neues Design: Neon-Stadion',
+    items: [
+      '✨ Das ganze Spiel im neuen Look: Nachthimmel in Schwarz, Midnight Blue und Violett, Neon in Cyan, Magenta und Grün.',
+      '🪟 Milchglas-Kacheln mit leuchtenden Kanten, metallische Karten, Flutlicht-Spielfeld und neue Buttons.',
+      '🎽 Karten zeigen jetzt ein Trikot statt Initialen, dein eigener Spieler erscheint als Silhouette ohne Gesicht.',
+      '🧭 Alles bleibt, wo es war – nur schöner. Die Designs „Hell“ und „Dunkel“ gibt es weiter in den Einstellungen.',
+    ],
+  },
+  {
     id: '2026-10-12-totw',
     date: '12.10.2026',
     title: '🏟️ Team der Woche & 35 neue Spieler',
@@ -109,7 +120,7 @@ export const UPDATES: UpdateNote[] = [
     items: [
       '🦇 Das ganze Spiel im Halloween-Look: Fledermäuse, Nebel, Kürbis-Orange. (Abschaltbar in den Einstellungen.)',
       '🎃 Neu im Store: das Kürbis-Pack und das Geisterstunde-Pack – mit schauriger Öffnung, Gewitter und 10 Legenden im Kostüm (88–96): Ronaldinho als Kürbiskopf, Zlatan als Vampir, Kahn als Werwolf …',
-      '🧟 Halloween-SBC „Die Nacht der lebenden Toten“: Adriano als Zombie-Imperator (93) – nur mit Kult-Helden, „Was wäre wenn“-Talenten und einer Ikone.',
+      '🧪 Halloween-SBC „Die Nacht der lebenden Toten“: Adriano als Zombie-Imperator (93) – nur mit Kult-Helden, „Was wäre wenn“-Talenten und einer Ikone.',
       '⏳ Am 3. November verschwinden Packs und SBC wieder – deine Karten bleiben.',
     ],
   },
@@ -158,7 +169,7 @@ export const UPDATES: UpdateNote[] = [
     title: 'Karriere: Der Weg nach oben dauert länger',
     items: [
       '📈 Spieler entwickeln sich langsamer und länger – die meisten erreichen ihr Bestes erst mit 25 bis 27.',
-      '🧗 Weltklasse ist schwer: Ab etwa 86 wird jeder Punkt zäher, ab 94 kommt kaum noch etwas dazu. Eine 99 ist auf natürlichem Weg nicht mehr drin.',
+      '⛰️ Weltklasse ist schwer: Ab etwa 86 wird jeder Punkt zäher, ab 94 kommt kaum noch etwas dazu. Eine 99 ist auf natürlichem Weg nicht mehr drin.',
       '🌳 Fähigkeiten heben die Wertung nur noch bis 94, Trainingslager und Spezialtraining wirken an der Spitze nur noch selten.',
     ],
   },
@@ -217,7 +228,7 @@ export const UPDATES: UpdateNote[] = [
     items: [
       '🤝 Neu im Hauptmenü: Tausche Karten mit echten Spielern aus der Community. Leg 3 Karten rein – dein Tauschpartner legt auch 3 rein.',
       '⭐ Alle Tauschpartner sind verifiziert und haben Top-Bewertungen. Wirklich.',
-      '🔒 Abgeschickt ist abgeschickt. Viel Glück 😇',
+      '🔒 Abgeschickt ist abgeschickt. Viel Glück 🌟',
     ],
   },
   {
@@ -237,7 +248,7 @@ export const UPDATES: UpdateNote[] = [
     items: [
       '🏟️ Unter „Vermögen → Klub-Anteile“ kannst du jetzt in Projekte investieren: neues Stadion, Jugendakademie, Trainingszentrum, Scouting-Netzwerk, Fanshop & Marketing.',
       '⏳ Projekte brauchen Bauzeit, manchmal gibt es Verzögerungen – und nicht jedes Projekt wird gleich gut. Dafür bleibt das Geld dem Klub erhalten.',
-      '🤫 Was genau sie bringen, steht nirgends. Probier es aus.',
+      '🔒 Was genau sie bringen, steht nirgends. Probier es aus.',
     ],
   },
   {
@@ -286,7 +297,7 @@ export const UPDATES: UpdateNote[] = [
     date: '06.10.2026',
     title: 'Freundesliste & Duell-Verlauf',
     items: [
-      '👥 Freunde speichern: Team-Code einfügen → „Speichern“. Schickt dein Freund später einen neuen Code, wird sein Team automatisch aktualisiert.',
+      '🔗 Freunde speichern: Team-Code einfügen → „Speichern“. Schickt dein Freund später einen neuen Code, wird sein Team automatisch aktualisiert.',
       '📜 Verlauf und Bilanz gegen jeden Freund: Siege, Unentschieden, Niederlagen, Tore und die letzten Ergebnisse.',
       '🏆 Rangliste: Wer hat die stärkste Elf in eurer Runde?',
       '📤 Teilen per Knopf (z. B. WhatsApp): deinen Team-Code und nach dem Spiel das Ergebnis – „2:1 gegen dich, Revanche?“',
@@ -375,7 +386,7 @@ export const UPDATES: UpdateNote[] = [
     title: 'Familie, Vermögen, Landesliga & mehr Gefühl',
     items: [
       '🏟️ Neue 6. Liga: die Landesliga Hannover mit allen 17 Vereinen – von SC Hemmingen-Westerfeld bis VfR Germania Ochtersum.',
-      '👨‍👧 Familie: Einmal pro Karriere laden dich Brasilianerinnen zur After-Party ein … Kinder erziehst du mit festen Regeln (Verein, Schule, Zocken, Essen). Mit 18 kann dein Kind Profi werden und Coins verdienen.',
+      '🏡 Familie: Einmal pro Karriere laden dich Brasilianerinnen zur After-Party ein … Kinder erziehst du mit festen Regeln (Verein, Schule, Zocken, Essen). Mit 18 kann dein Kind Profi werden und Coins verdienen.',
       '💼 Vermögen: Kauf Immobilien und Anteile an Fußballklubs – und steck Geld in deine Klubs.',
       '🎬 Große Momente: Animationen für Torschützenkönig, Titel, Wechsel, Durchbruch und Formkrise.',
       '📋 Trainer: Ein Klick oben auf „Nächste Saison spielen“ – Details nur noch, wenn du willst.',

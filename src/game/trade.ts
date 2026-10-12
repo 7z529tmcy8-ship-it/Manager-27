@@ -14,12 +14,12 @@ export interface Trader {
 
 const NAMES = ['Alex der Yogi', 'Hamudi California', 'Rene Dost', 'Dore65', 'Karsten Boss', 'Alpha67', 'Yo Olli', 'Barello', 'Arafat', 'Paulm67', 'Leontin-296', 'Masi'];
 let lastName = '';
-const AVATARS = ['😎', '🤠', '🧢', '🐸', '🦊', '🤑', '🥸', '👽', '🐒', '🧌'];
+const AVATARS = ['🕶️', '🌵', '🧢', '🐸', '🦊', '💸', '🎭', '🛸', '🐒', '🪨'];
 
 export const TRADER_LINES = {
   hello: ['jo', 'GiG!', 'sei mal leise ya ayri', 'du piç', 'fairer tausch?', 'na'],
   adding: ['die ist selten', 'warte', 'sei mal leise ya ayri', 'GiG!', 'du piç', 'beste karte'],
-  done: ['Anik Achu Sharmuta 😂', 'GiG!', 'sei mal leise ya ayri', 'du piç', 'gg ez', 'fair 🤝'],
+  done: ['Anik Achu Sharmuta 🎉', 'GiG!', 'sei mal leise ya ayri', 'du piç', 'gg ez', 'fair 🤝'],
 };
 
 /** Kennzahlen – frei erfunden. Die Bewertung ist immer mies (1,0–2,3 Sterne). */
@@ -39,7 +39,7 @@ export function randomTrader(rand: () => number = Math.random): Trader {
 // Geheimer Tauschpartner: Wer in der Spielersuche „ChefJakob“ eingibt, bekommt einen, der nur Ikonen reinlegt.
 export const SECRET_NAME = 'ChefJakob';
 export const isSecretTrader = (name: string) => name.trim().toLowerCase() === SECRET_NAME.toLowerCase();
-export const CHEF: Trader = { name: SECRET_NAME, avatar: '👨‍🍳', rating: '5,0', trades: 7 };
+export const CHEF: Trader = { name: SECRET_NAME, avatar: '🍳', rating: '5,0', trades: 7 };
 export const CHEF_LINES = { hello: ['hey 👑'], adding: ['für dich'], done: ['viel spaß damit 👑'] };
 
 /** Ikonen, aber nicht die ganz großen (bis 90). */

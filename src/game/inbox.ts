@@ -12,7 +12,7 @@ export const INBOX_ICONS: Record<InboxItem['kind'], string> = {
   contract: '📝',
   transfer: '✈️',
   event: '⚡',
-  decision: '🤔',
+  decision: '💭',
   press: '🎙️',
   achievement: '🏅',
   lotto: '🎟️',

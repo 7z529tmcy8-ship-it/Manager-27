@@ -360,7 +360,7 @@ function Friends({ full, onSquad }: { full: boolean; onSquad: () => void }) {
     if (!pasted || typeof pasted === 'string') return;
     const res = saveFriend(getClubState(), pasted);
     if (res.status === 'self') {
-      setMsg('Das ist dein eigener Code 😄');
+      setMsg('Das ist dein eigener Code ✨');
       return;
     }
     setClubState(res.club);
@@ -432,7 +432,7 @@ function Friends({ full, onSquad }: { full: boolean; onSquad: () => void }) {
 
       {friends.length > 0 && (
         <section className="backup-box">
-          <h3>👥 Deine Freunde ({friends.length})</h3>
+          <h3>🔗 Deine Freunde ({friends.length})</h3>
           <ul className="friend-list">
             {friends.map((f) => {
               const r = record(f);

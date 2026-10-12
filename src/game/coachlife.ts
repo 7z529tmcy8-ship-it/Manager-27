@@ -71,7 +71,7 @@ export const emptyProfile = (): CoachProfile => ({ kabine: 0, medien: 0, konsequ
 /** Trainertyp aus dem Profil – für die Anzeige. */
 export function coachStyle(p: CoachProfile): string {
   if (p.konsequenz >= 70 && p.kabine < 0) return '🧊 Harter Hund';
-  if (p.kabine >= 30 && p.medien >= 10) return '🤗 Spielerversteher';
+  if (p.kabine >= 30 && p.medien >= 10) return '💗 Spielerversteher';
   if (p.medien <= -30) return '🔥 Skandaltrainer';
   if (p.konsequenz >= 70) return '📏 Mann mit Prinzipien';
   if (p.konsequenz <= 30) return '🎲 Wetterfahne';

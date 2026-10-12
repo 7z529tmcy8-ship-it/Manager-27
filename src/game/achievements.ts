@@ -55,7 +55,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
   { id: 'ballon', icon: '🌟', name: 'Ballon d’Or', description: 'Werde Weltfußballer.', progress: (c) => [Math.min(1, count(awards(c), (a) => a.startsWith('Ballon'))), 1] },
   { id: 'ballon3', icon: '💫', name: 'Seriensieger', description: 'Gewinne den Ballon d’Or dreimal.', progress: (c) => [count(awards(c), (a) => a.startsWith('Ballon')), 3] },
-  { id: 'golden_boy', icon: '🧒', name: 'Golden Boy', description: 'Werde bester U21-Spieler.', progress: (c) => has(awards(c).includes('Golden Boy')) },
+  { id: 'golden_boy', icon: '🌟', name: 'Golden Boy', description: 'Werde bester U21-Spieler.', progress: (c) => has(awards(c).includes('Golden Boy')) },
   { id: 'top_scorer', icon: '👟', name: 'Torschützenkönig', description: 'Werde Torschützenkönig einer Liga.', progress: (c) => has(awards(c).some((a) => a.startsWith('Torschützenkönig'))) },
   { id: 'promotion', icon: '📈', name: 'Aufsteiger', description: 'Steige als Meister einer unteren Liga auf.', progress: (c) => has(trophies(c).some((t) => t.includes('Aufstieg'))) },
   { id: 'captain', icon: '©️', name: 'Kapitän', description: 'Trage die Kapitänsbinde.', progress: (c) => has(!!c.player.captainOf || c.history.some((s) => (s.events ?? []).some((e) => e.title === 'Kapitän!'))) },

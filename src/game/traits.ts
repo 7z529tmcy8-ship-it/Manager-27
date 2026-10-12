@@ -14,9 +14,9 @@ export const TRAITS: Trait[] = [
   { id: 'hothead', icon: '🌋', name: 'Heißsporn', description: 'Rote Karten, Sperren und Zoff mit dem Trainer – aber volle Leidenschaft.' },
   { id: 'showman', icon: '🎩', name: 'Showman', description: 'Liebt die große Bühne: etwas mehr Tore, spektakuläre Momente in Finals.' },
   { id: 'party', icon: '🍾', name: 'Partylöwe', description: 'Das Nachtleben ruft: langsamere Entwicklung, früherer Abbau, Schlagzeilen.' },
-  { id: 'diva', icon: '💅', name: 'Diva', description: 'Auf der Bank wird geschmollt – und öffentlich über Wechsel geredet.' },
+  { id: 'diva', icon: '💎', name: 'Diva', description: 'Auf der Bank wird geschmollt – und öffentlich über Wechsel geredet.' },
   { id: 'leader', icon: '🦁', name: 'Anführer', description: 'Wird schneller Kapitän, das Trainervertrauen fällt nie ganz ab.' },
-  { id: 'professional', icon: '🧘', name: 'Vollprofi', description: 'Lebt für den Fußball: weniger Ausrutscher, langsamerer Abbau im Alter.' },
+  { id: 'professional', icon: '🎯', name: 'Vollprofi', description: 'Lebt für den Fußball: weniger Ausrutscher, langsamerer Abbau im Alter.' },
   { id: 'fragile', icon: '🩹', name: 'Verletzungsanfällig', description: 'Der Körper spielt nicht immer mit: deutlich höheres Verletzungsrisiko.' },
   { id: 'clutch', icon: '🧊', name: 'Eiskalt', description: 'Wenn es zählt, ist er da: bessere Chancen in Finals und im Elfmeterschießen.' },
 ];

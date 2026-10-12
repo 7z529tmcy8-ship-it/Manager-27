@@ -85,7 +85,7 @@ export const RULES: Rule[] = [
     { id: 'home', label: 'Hausmannskost', effects: { fitness: 1 } },
     { id: 'plan', label: 'Ernährungsplan', effects: { fitness: 4 }, cost: 400 },
   ] },
-  { id: 'friends', icon: '👫', name: 'Freunde', minAge: 3, default: 'normal', options: [
+  { id: 'friends', icon: '💞', name: 'Freunde', minAge: 3, default: 'normal', options: [
     { id: 'outside', label: 'Viel draußen mit Freunden', effects: { social: 4, fitness: 1, technique: 1, discipline: -1 } },
     { id: 'normal', label: 'Normal', effects: { social: 2 } },
     { id: 'home', label: 'Lieber zu Hause lernen', effects: { social: -2, school: 2 } },
@@ -427,7 +427,7 @@ export const KID_EVENTS: KidEvent[] = [
     { label: 'Große Party schmeißen (500 🪙)', cost: 500, effects: { happiness: 6, social: 3 }, note: 'Feier mit der ganzen Mannschaft.' },
     { label: 'Loben – und weiter trainieren', effects: { discipline: 3, technique: 1 }, note: 'Bleibt am Boden.' },
   ] },
-  { id: 'coachfight', minAge: 8, icon: '😤', title: 'Streit mit dem Jugendtrainer', text: (n) => `${n} kommt weinend nach Hause: Der Jugendtrainer hat ${n} auf die Bank gesetzt.`, options: [
+  { id: 'coachfight', minAge: 8, icon: '💢', title: 'Streit mit dem Jugendtrainer', text: (n) => `${n} kommt weinend nach Hause: Der Jugendtrainer hat ${n} auf die Bank gesetzt.`, options: [
     { label: 'Trainer unterstützen', effects: { discipline: 4, happiness: -3 }, note: 'Lernt, sich durchzubeißen.' },
     { label: 'Mit dem Trainer reden', effects: { happiness: 3, discipline: -1 }, note: 'Spielt wieder – aber die Teamkollegen tuscheln.' },
     { label: 'Verein wechseln', effects: { happiness: 4, technique: -2, social: -2 }, note: 'Neuer Verein, neue Freunde suchen.' },
@@ -453,7 +453,7 @@ export const KID_EVENTS: KidEvent[] = [
     { label: 'Unterstützen', effects: { social: 5, happiness: 4, technique: -2, discipline: -2 }, note: 'Dreht jetzt jeden Tag Videos.' },
     { label: 'Fokus auf Fußball', effects: { discipline: 3, happiness: -3, technique: 1 }, note: 'Handy bleibt beim Training im Spind.' },
   ] },
-  { id: 'agent', minAge: 15, icon: '🕴️', title: 'Ein Berater klopft an', text: (n) => `Ein bekannter Spielerberater will ${n} unter Vertrag nehmen – mit Goldkette und großen Versprechen.`, options: [
+  { id: 'agent', minAge: 15, icon: '💼', title: 'Ein Berater klopft an', text: (n) => `Ein bekannter Spielerberater will ${n} unter Vertrag nehmen – mit Goldkette und großen Versprechen.`, options: [
     { label: 'Unterschreiben', effects: { happiness: 4, discipline: -3 }, note: 'Hat jetzt einen Berater – und große Träume.' },
     { label: 'Ablehnen – Papa regelt das', effects: { discipline: 2 }, note: 'Vertraut auf dich.' },
   ] },

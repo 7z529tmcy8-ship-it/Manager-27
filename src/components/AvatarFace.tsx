@@ -1,10 +1,9 @@
 import { HAIR_COLORS, SKIN_TONES, type Avatar } from '../game/creator';
 
-/** Einfach gezeichnetes Spielergesicht (SVG) aus den Avatar-Einstellungen. */
+/** Spieler-Silhouette (SVG) aus den Avatar-Einstellungen – Kopfform, Frisur, Bart und Trikot, aber keine Gesichtszüge. */
 export default function AvatarFace({ avatar, size = 64 }: { avatar: Avatar; size?: number }) {
   const skin = SKIN_TONES[avatar.skin] ?? SKIN_TONES[1];
   const hair = HAIR_COLORS[avatar.hairColor] ?? HAIR_COLORS[0];
-  const shade = 'rgba(0,0,0,.18)';
   return (
     <svg viewBox="0 0 100 100" width={size} height={size} aria-hidden="true" className="avatar-face">
       {/* Hinterkopf-Haare (lang, Afro) */}
@@ -21,12 +20,8 @@ export default function AvatarFace({ avatar, size = 64 }: { avatar: Avatar; size
       {avatar.beard === 'stubble' && <path d="M28 56 Q30 78 50 80 Q70 78 72 56 Q66 70 50 71 Q34 70 28 56Z" fill={hair} opacity=".35" />}
       {avatar.beard === 'full' && <path d="M26 50 Q26 82 50 84 Q74 82 74 50 Q70 66 62 66 Q56 60 50 61 Q44 60 38 66 Q30 66 26 50Z" fill={hair} />}
       {avatar.beard === 'goatee' && <path d="M43 66 Q50 63 57 66 Q57 79 50 80 Q43 79 43 66Z" fill={hair} />}
-      {/* Gesicht */}
-      <ellipse cx="40" cy="47" rx="3.2" ry="3.6" fill="#1b1410" />
-      <ellipse cx="60" cy="47" rx="3.2" ry="3.6" fill="#1b1410" />
-      <path d="M35 40 Q40 37 45 40 M55 40 Q60 37 65 40" stroke={hair} strokeWidth="2.6" fill="none" strokeLinecap="round" />
-      <path d="M50 50 Q47 58 51 59" stroke={shade} strokeWidth="2" fill="none" strokeLinecap="round" />
-      <path d="M43 66 Q50 71 57 66" stroke="#7a3b2b" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+      {/* Bewusst ohne Gesichtszüge: nur Silhouette, Frisur und Trikot. Ein Lichtreflex gibt Form. */}
+      <ellipse cx="42" cy="38" rx="9" ry="12" fill="#fff" opacity=".14" />
       {/* Frisur oben */}
       {avatar.hair === 'buzz' && <path d="M24 42 Q26 16 50 16 Q74 16 76 42 Q70 28 50 27 Q30 28 24 42Z" fill={hair} opacity=".55" />}
       {avatar.hair === 'short' && <path d="M23 44 Q22 14 50 14 Q78 14 77 44 Q72 26 56 25 Q40 30 30 30 Q25 34 23 44Z" fill={hair} />}

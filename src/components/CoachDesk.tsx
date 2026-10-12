@@ -69,7 +69,7 @@ export function CoachLine({ career, onChange }: { career: Career; onChange: (c: 
                 {p.options.map((o) => (
                   <button key={o.id} role="radio" aria-checked={current === o.id} className={current === o.id ? 'on' : ''} title={o.text} onClick={() => onChange(setPolicy(career, p.id, o.id))}>{o.label}</button>
                 ))}
-                <button role="radio" aria-checked={current === ASK} className={current === ASK ? 'on' : ''} onClick={() => onChange(setPolicy(career, p.id, ASK))}>🤔 Selbst entscheiden</button>
+                <button role="radio" aria-checked={current === ASK} className={current === ASK ? 'on' : ''} onClick={() => onChange(setPolicy(career, p.id, ASK))}>💭 Selbst entscheiden</button>
               </div>
             </div>
           );

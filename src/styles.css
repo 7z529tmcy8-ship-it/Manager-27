@@ -2255,3 +2255,231 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .totw-head small { opacity: .7; }
 .totw-row { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px; scroll-snap-type: x proximity; }
 .totw-row > * { scroll-snap-align: start; }
+
+
+/* =========================================================================
+   NEON-STADION (Standard-Design „Arena“, Oktober 2026)
+   Futuristischer Look für das bestehende Spiel – nur Optik, gleiche Struktur.
+   Schwarz · Midnight Blue · Violett, Neon in Cyan / Magenta / Grün,
+   Milchglas-Flächen, leuchtende Kanten, metallische Karten, feine Geometrie.
+   ========================================================================= */
+:root[data-theme="arena"] {
+  --bg: #05060f;
+  --surface: rgba(18, 22, 54, .62);
+  --surface-2: rgba(28, 30, 78, .62);
+  --surface-3: rgba(52, 46, 118, .55);
+  --hairline: rgba(150, 190, 255, .16);
+  --text: #f7f8ff;
+  --text-2: #dfe4ff;
+  --muted: #9aa4d6;
+  --accent: #19f0ff;
+  --accent-hover: #6ff6ff;
+  --accent-ink: #021018;
+  --link: #5ff3ff;
+  --up: #39ff88;
+  --down: #ff4d8d;
+  --gold: #ffd76a;
+  --neon-c: #19f0ff;
+  --neon-m: #ff2fd1;
+  --neon-g: #39ff88;
+  --glass: rgba(10, 12, 34, .72);
+  --sheet: rgba(12, 14, 40, .94);
+  --shadow: 0 14px 34px rgba(0, 0, 0, .55), 0 2px 6px rgba(0, 0, 0, .4);
+  --glass-bg: linear-gradient(155deg, rgba(40, 46, 120, .38), rgba(14, 16, 44, .62) 55%, rgba(30, 12, 64, .55));
+  --glass-edge: linear-gradient(135deg, rgba(25, 240, 255, .55), rgba(150, 120, 255, .18) 40%, rgba(255, 47, 209, .45));
+  --display: 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Hintergrund: Nachthimmel über dem Stadion – Lichtkegel, Violett-Nebel, feines Raster */
+:root[data-theme="arena"] body {
+  background:
+    radial-gradient(700px 420px at 12% -8%, rgba(25, 240, 255, .16), transparent 60%),
+    radial-gradient(760px 480px at 100% 6%, rgba(255, 47, 209, .14), transparent 60%),
+    radial-gradient(900px 640px at 50% 112%, rgba(110, 60, 255, .28), transparent 62%),
+    linear-gradient(180deg, #05060f 0%, #0a1030 46%, #160a36 100%);
+  background-attachment: fixed;
+}
+:root[data-theme="arena"] body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    linear-gradient(rgba(120, 160, 255, .05) 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(90deg, rgba(120, 160, 255, .05) 1px, transparent 1px) 0 0 / 44px 44px;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+}
+:root[data-theme="arena"] #root { position: relative; z-index: 1; }
+
+/* Typografie: kantige Display-Schrift für Überschriften, klares Weiß */
+:root[data-theme="arena"] h1, :root[data-theme="arena"] h2, :root[data-theme="arena"] .hub-title,
+:root[data-theme="arena"] .hub-tile strong, :root[data-theme="arena"] .hero-text strong, :root[data-theme="arena"] .overlay-title,
+:root[data-theme="arena"] .cs-club, :root[data-theme="arena"] .team-stats strong, :root[data-theme="arena"] .pack-card > strong {
+  font-family: var(--display); letter-spacing: .02em;
+}
+:root[data-theme="arena"] .hub-title { font-weight: 700; text-shadow: 0 0 22px rgba(25, 240, 255, .35), 0 2px 0 rgba(0, 0, 0, .4); }
+:root[data-theme="arena"] .hub-kicker { color: var(--neon-c); text-shadow: 0 0 10px rgba(25, 240, 255, .55); }
+:root[data-theme="arena"] .hub-sub, :root[data-theme="arena"] .hint, :root[data-theme="arena"] .muted { color: var(--muted); }
+
+/* Milchglas-Flächen mit leuchtender Verlaufskante */
+:root[data-theme="arena"] :is(.hub-tile, .panel, .pack-card, .cs-window, .team-stats > div, .season, .collect-progress, .totw, .cs-head, .backup-box, .upgrade-box, .lt-item, .duel-list > li) {
+  position: relative; background: var(--glass-bg); border: 1px solid transparent;
+  -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+:root[data-theme="arena"] :is(.hub-tile, .panel, .pack-card, .cs-window, .team-stats > div, .season, .collect-progress, .totw, .cs-head, .lt-item)::after {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: var(--glass-edge);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: .7;
+}
+
+/* Hub-Kacheln: geometrische Ecke, Neon-Icon, Glow beim Antippen */
+:root[data-theme="arena"] .hub-tile { border-radius: 22px; overflow: hidden; }
+:root[data-theme="arena"] .hub-tile::before {
+  content: ''; position: absolute; right: -30px; top: -30px; width: 110px; height: 110px; pointer-events: none;
+  background: repeating-linear-gradient(135deg, rgba(25, 240, 255, .10) 0 2px, transparent 2px 9px);
+  -webkit-mask-image: radial-gradient(circle at 70% 30%, #000 0 40%, transparent 70%); mask-image: radial-gradient(circle at 70% 30%, #000 0 40%, transparent 70%);
+}
+:root[data-theme="arena"] .hub-tile-icon {
+  width: 46px; height: 46px; display: grid; place-items: center; border-radius: 14px; font-size: 1.45rem;
+  background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, .22), rgba(25, 240, 255, .10) 55%, rgba(10, 12, 34, .6));
+  box-shadow: 0 0 0 1px rgba(25, 240, 255, .35), 0 0 18px rgba(25, 240, 255, .25), inset 0 -6px 12px rgba(0, 0, 0, .35);
+}
+:root[data-theme="arena"] .hub-tile strong { font-size: 1.2rem; font-weight: 700; }
+:root[data-theme="arena"] .hub-tile:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .6), 0 0 0 1px rgba(25, 240, 255, .7), 0 0 28px rgba(25, 240, 255, .28);
+}
+:root[data-theme="arena"] .hub-tile:disabled { opacity: .5; filter: saturate(.6); }
+/* Store-Kachel: metallischer Neon-Verlauf mit Lichtreflex */
+:root[data-theme="arena"] .hub-tile.accent {
+  background:
+    linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .22) 45%, transparent 60%),
+    linear-gradient(140deg, #ff2fd1 0%, #7b3cff 48%, #19f0ff 100%);
+  box-shadow: 0 16px 36px rgba(123, 60, 255, .45), 0 0 26px rgba(255, 47, 209, .3);
+}
+:root[data-theme="arena"] .hub-tile.accent .hub-tile-icon { background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .45); }
+/* Hero-Kachel: Bühne für die eigene Karte */
+:root[data-theme="arena"] .hub-tile.hero {
+  background:
+    radial-gradient(420px 260px at 22% 50%, rgba(25, 240, 255, .22), transparent 70%),
+    radial-gradient(360px 240px at 90% 0%, rgba(255, 47, 209, .18), transparent 70%),
+    conic-gradient(from 200deg at 22% 120%, rgba(57, 255, 136, .10), transparent 25%),
+    linear-gradient(150deg, rgba(26, 30, 86, .85), rgba(10, 10, 30, .9));
+}
+:root[data-theme="arena"] .hub-cta { color: var(--neon-g); text-shadow: 0 0 12px rgba(57, 255, 136, .5); }
+
+/* Kopfleiste: Coins und Icons als Glas-Pillen */
+:root[data-theme="arena"] :is(.hub-coins, .hub-icon) {
+  background: rgba(14, 18, 46, .6); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border: 1px solid rgba(25, 240, 255, .35); box-shadow: 0 0 14px rgba(25, 240, 255, .18), inset 0 1px 0 rgba(255, 255, 255, .1); color: var(--text);
+}
+:root[data-theme="arena"] .hub-coins { font-family: var(--display); font-size: 1.05rem; letter-spacing: .03em; }
+:root[data-theme="arena"] :is(.hub-back, .cs-link, .nav-back) { color: var(--neon-c); text-shadow: 0 0 10px rgba(25, 240, 255, .4); }
+
+/* Buttons: Neon-Primär, Glas-Sekundär */
+:root[data-theme="arena"] .btn { border-radius: 14px; font-weight: 700; letter-spacing: .01em; }
+:root[data-theme="arena"] .btn.primary {
+  color: #03121a; background: linear-gradient(135deg, #39ff88 0%, #19f0ff 100%);
+  box-shadow: 0 8px 22px rgba(25, 240, 255, .35), 0 0 0 1px rgba(255, 255, 255, .25) inset, inset 0 -3px 0 rgba(0, 0, 0, .18);
+}
+:root[data-theme="arena"] .btn.primary:hover { background: linear-gradient(135deg, #6dffa8 0%, #63f5ff 100%); box-shadow: 0 10px 28px rgba(25, 240, 255, .5); }
+:root[data-theme="arena"] .btn.primary:disabled { background: linear-gradient(135deg, #2a3360, #232a52); color: #8f99c6; box-shadow: none; }
+:root[data-theme="arena"] .btn.secondary {
+  color: var(--text); background: rgba(25, 240, 255, .08); box-shadow: inset 0 0 0 1px rgba(25, 240, 255, .55), 0 0 14px rgba(25, 240, 255, .15);
+}
+:root[data-theme="arena"] .btn.secondary:hover { background: rgba(25, 240, 255, .16); }
+
+/* Chips, Tabs, Eingaben */
+:root[data-theme="arena"] .chip { background: rgba(255, 255, 255, .06); color: var(--text-2); box-shadow: inset 0 0 0 1px rgba(150, 190, 255, .18); }
+:root[data-theme="arena"] .chip:hover { background: rgba(25, 240, 255, .1); }
+:root[data-theme="arena"] .chip.active { background: rgba(25, 240, 255, .16); color: #fff; box-shadow: inset 0 0 0 1px var(--neon-c), 0 0 14px rgba(25, 240, 255, .35); }
+:root[data-theme="arena"] :is(.tabs, .segmented) { background: rgba(10, 12, 34, .55); box-shadow: inset 0 0 0 1px rgba(150, 190, 255, .16); }
+:root[data-theme="arena"] :is(.tabs, .segmented) button { color: var(--muted); }
+:root[data-theme="arena"] :is(.tabs, .segmented) button.active {
+  color: #fff; background: linear-gradient(135deg, rgba(25, 240, 255, .22), rgba(255, 47, 209, .18));
+  box-shadow: inset 0 0 0 1px rgba(25, 240, 255, .6), 0 0 16px rgba(25, 240, 255, .25);
+}
+:root[data-theme="arena"] :is(input, select) { background: rgba(8, 10, 30, .7); border: 1px solid rgba(150, 190, 255, .2); color: var(--text); }
+:root[data-theme="arena"] :is(input, select):focus { border-color: var(--neon-c); box-shadow: 0 0 0 3px rgba(25, 240, 255, .2); background: rgba(8, 10, 30, .85); }
+
+/* Statistik-Kacheln */
+:root[data-theme="arena"] .team-stats > div { border-radius: 16px; }
+:root[data-theme="arena"] .team-stats strong { font-size: 1.7rem; color: #fff; text-shadow: 0 0 14px rgba(25, 240, 255, .35); }
+:root[data-theme="arena"] .team-stats small { color: var(--neon-c); opacity: .85; }
+
+/* Spielfeld: Nachtspiel unter Flutlicht, Neon-Linien */
+:root[data-theme="arena"] .pitch {
+  background:
+    radial-gradient(70% 40% at 50% 0%, rgba(25, 240, 255, .14), transparent 70%),
+    repeating-linear-gradient(180deg, rgba(57, 255, 136, .06) 0 9%, transparent 9% 18%),
+    linear-gradient(180deg, #06331f, #04140f);
+  box-shadow: inset 0 0 0 1px rgba(57, 255, 136, .45), 0 0 30px rgba(57, 255, 136, .12), var(--shadow);
+}
+:root[data-theme="arena"] .pitch-lines i { border-color: rgba(57, 255, 136, .45); box-shadow: 0 0 8px rgba(57, 255, 136, .25); }
+:root[data-theme="arena"] .pitch-lines .circle::before { border-top-color: rgba(57, 255, 136, .45); }
+
+/* Karriere-Kopf und Zeilen */
+:root[data-theme="arena"] .cs-head { border-radius: 22px; }
+:root[data-theme="arena"] .cs-row { background: rgba(255, 255, 255, .04); border-color: rgba(150, 190, 255, .14); }
+:root[data-theme="arena"] .cs-agebox { background: linear-gradient(135deg, #7b3cff, #19a0ff); box-shadow: 0 0 10px rgba(123, 60, 255, .45); }
+:root[data-theme="arena"] .cs-pos { background: linear-gradient(135deg, #ff2fd1, #ff4d6d); box-shadow: 0 0 10px rgba(255, 47, 209, .45); }
+
+/* Store: Pack-Kacheln */
+:root[data-theme="arena"] .pack-card { border-radius: 20px; }
+:root[data-theme="arena"] .pack-art { box-shadow: 0 12px 26px rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(255, 255, 255, .12); }
+:root[data-theme="arena"] .pack-odds { color: var(--neon-g); }
+
+/* Overlays (Karriere-Unterseiten, Pack-Öffnung) */
+:root[data-theme="arena"] .overlay { background: linear-gradient(180deg, #05060f, #0a1030 50%, #160a36); }
+
+/* ---- Sammelkarten: metallische Grundkarten, holografischer Glanz ---- */
+:root[data-theme="arena"] .ucard { filter: drop-shadow(0 14px 22px rgba(0, 0, 0, .55)) drop-shadow(0 0 14px var(--glow)); }
+:root[data-theme="arena"] .ucard.v-silver {
+  --a: #eef1f6; --b: #8d97a8; --edge: rgba(255, 255, 255, .7);
+  background:
+    repeating-linear-gradient(100deg, rgba(255, 255, 255, .0) 0 3px, rgba(255, 255, 255, .12) 3px 4px),
+    radial-gradient(120% 55% at 50% 0%, rgba(255, 255, 255, .55), transparent 60%),
+    linear-gradient(160deg, var(--a), var(--b));
+}
+:root[data-theme="arena"] .ucard.v-gold {
+  --a: #fff1bf; --b: #b8862a; --edge: rgba(255, 245, 200, .85); --glow: rgba(255, 210, 90, .18);
+  background:
+    repeating-linear-gradient(100deg, rgba(255, 255, 255, 0) 0 3px, rgba(255, 255, 255, .14) 3px 4px),
+    radial-gradient(120% 55% at 50% 0%, rgba(255, 255, 255, .55), transparent 60%),
+    linear-gradient(160deg, var(--a), var(--b));
+}
+:root[data-theme="arena"] .ucard.v-gold-rare {
+  --a: #2b2d38; --b: #040406; --ink: #ffd76a; --edge: rgba(255, 215, 106, .8); --glow: rgba(255, 215, 106, .35);
+  background:
+    linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, .12) 48%, transparent 60%),
+    repeating-linear-gradient(135deg, rgba(255, 215, 106, .07) 0 2px, transparent 2px 11px),
+    linear-gradient(160deg, var(--a), var(--b));
+}
+/* Bild-Bereich ohne Gesichter: Trikot-Symbol mit Initialen */
+.ucard-jersey { width: 78%; height: auto; display: block; }
+.ucard-jersey .j-body { fill: color-mix(in srgb, var(--ink) 14%, transparent); stroke: color-mix(in srgb, var(--ink) 70%, transparent); stroke-width: 2.5; }
+.ucard-jersey .j-trim { fill: none; stroke: color-mix(in srgb, var(--ink) 45%, transparent); stroke-width: 2; }
+.ucard-jersey text { fill: var(--ink); font-family: var(--display, sans-serif); font-weight: 700; font-size: 26px; letter-spacing: .02em; }
+:root[data-theme="arena"] .ucard-art { background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .35), rgba(255, 255, 255, .06) 60%, transparent 72%); }
+:root[data-theme="arena"] .ucard-ovr, :root[data-theme="arena"] .ucard-name { font-family: var(--display); }
+:root[data-theme="arena"] .ucard-ovr { font-weight: 700; }
+:root[data-theme="arena"] .ucard-name { font-weight: 700; letter-spacing: .03em; }
+
+/* Ruhiger, wenn Animationen aus sind */
+:root[data-theme="arena"].reduce-motion .hub-tile:hover:not(:disabled) { transform: none; }
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-theme="arena"] :is(.hub-tile, .panel, .pack-card, .cs-window, .team-stats > div, .season, .collect-progress, .totw, .cs-head, .lt-item) { background: #12163a; -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+/* Hintergrund auch auf kurzen Seiten bis ganz unten */
+:root[data-theme="arena"] { background: #05060f; }
+:root[data-theme="arena"] body { min-height: 100vh; min-height: 100dvh; }
+/* Hinweis-Leisten im Hauptmenü als Glas mit Neon-Kante */
+:root[data-theme="arena"] .reward-call:not(.gala-call) {
+  background: linear-gradient(90deg, rgba(25, 240, 255, .14), rgba(255, 47, 209, .08)); color: #e9fdff;
+  border: 1px solid rgba(25, 240, 255, .5); box-shadow: 0 0 18px rgba(25, 240, 255, .18); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+:root[data-theme="arena"] .gala-call { -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 0 18px rgba(246, 215, 122, .18); }
+/* eigene Spieler-Silhouette: holografischer Schimmer statt Porträt */
+:root[data-theme="arena"] .ucard-art.face { background: radial-gradient(circle at 50% 35%, rgba(25, 240, 255, .25), rgba(123, 60, 255, .12) 60%, transparent 72%); }
+:root[data-theme="arena"] .ucard-art.face .avatar-face { filter: saturate(.85) drop-shadow(0 0 6px rgba(25, 240, 255, .45)); }
