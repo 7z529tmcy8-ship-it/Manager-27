@@ -2244,3 +2244,14 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .ucard.v-topscorer.special { --pat: radial-gradient(120% 45% at 50% 105%, rgba(255, 120, 30, .55), transparent 70%), radial-gradient(40% 30% at 25% 100%, rgba(255, 200, 60, .35), transparent 70%), radial-gradient(40% 30% at 75% 100%, rgba(255, 200, 60, .35), transparent 70%); }
 /* Golden Boy: Glitzer */
 .ucard.v-goldenboy.special { --pat: radial-gradient(rgba(255, 255, 255, .9) 1px, transparent 1.6px) 0 0 / 19px 23px, radial-gradient(rgba(255, 210, 90, .6) 1px, transparent 1.6px) 7px 11px / 27px 21px; }
+
+/* ----- Team der Woche ----- */
+.ucard.v-totw.special { --a: #1c2333; --b: #04060b; --ink: #e8f4ff; --edge: #7fd3ff; --glow: rgba(127, 211, 255, .55);
+  --pat: repeating-linear-gradient(90deg, rgba(127, 211, 255, .08) 0 1px, transparent 1px 9px), radial-gradient(circle at 62% 30%, rgba(127, 211, 255, .3) 0 18%, transparent 40%); }
+.totw { display: grid; gap: 10px; margin: 0 0 18px; padding: 14px; border-radius: 18px; border: 1px solid rgba(127, 211, 255, .45);
+  background: linear-gradient(180deg, rgba(127, 211, 255, .12), transparent 60%), var(--surface); }
+.totw-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.totw-head strong { display: block; font-size: 1.15rem; }
+.totw-head small { opacity: .7; }
+.totw-row { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px; scroll-snap-type: x proximity; }
+.totw-row > * { scroll-snap-align: start; }

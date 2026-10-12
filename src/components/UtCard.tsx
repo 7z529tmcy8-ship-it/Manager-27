@@ -13,6 +13,7 @@ const VARIANT_LABEL: Partial<Record<CollectCard['variant'], string>> = {
   halloween: 'Halloween',
   debut: 'Debüt',
   gala: 'Gala',
+  totw: 'Team der Woche',
   ballondor: 'Ballon d’Or',
   poty: 'Spieler des Jahres',
   topscorer: 'Torjäger',
@@ -28,7 +29,7 @@ const VARIANT_LABEL: Partial<Record<CollectCard['variant'], string>> = {
 const EMBLEM: Partial<Record<CollectCard['variant'], string>> = {
   icon: '👑', cult: '⚡', talent: '✦', debut: '🎟️', moment: '🎬', present: '🎁', halloween: '🎃', gala: '🏅',
   tots: '⭐', potm: '📅', record: '📈', champion: '🏆',
-  ballondor: '🥇', worldcup: '🌍', ucl: '✪', poty: '🎙️', topscorer: '👟', goldenboy: '✨',
+  ballondor: '🥇', worldcup: '🌍', ucl: '✪', poty: '🎙️', topscorer: '👟', goldenboy: '✨', totw: '🏟️',
 };
 const OUTFIELD = ['TEM', 'SCH', 'PAS', 'DRI', 'DEF', 'PHY'];
 const KEEPER = ['HEC', 'HAN', 'ABS', 'REF', 'TEM', 'STE'];

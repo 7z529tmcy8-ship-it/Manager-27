@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { play } from '../sound';
-import { ITEMS, PACKS, activePacks, oddsAtLeast, openMegaSuper, openPack, packTier, rarity, type PackDef, type PackResult } from '../game/club';
+import { ITEMS, PACKS, TOTW_PACK, activePacks, isoWeek, oddsAtLeast, openMegaSuper, openPack, openTotwPack, packTier, rarity, teamOfTheWeek, type PackDef, type PackResult } from '../game/club';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { motionReduced } from '../settings';
 import Confetti from './Confetti';
@@ -17,6 +17,13 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
   const [superCharging, setSuperCharging] = useState(false);
 
   const buy = (packId: string, free = false) => {
+    if (packId === TOTW_PACK.id) {
+      const res = openTotwPack(getClubState());
+      if (!res) return;
+      setClubState(res.club);
+      setOpening((o) => ({ result: res.result, name: TOTW_PACK.name, packId, free: false, n: (o?.n ?? 0) + 1 }));
+      return;
+    }
     const res = openPack(getClubState(), packId, Math.random, free);
     if (!res) return;
     setClubState(free ? { ...res.club, welcomeClaimed: true } : res.club);
@@ -75,6 +82,8 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         </button>
       )}
 
+      <TotwSection coins={club.coins} onBuy={() => buy(TOTW_PACK.id)} />
+
       <div className="store-grid">
         {activePacks().map((p) => {
           const afford = club.coins >= p.price;
@@ -110,7 +119,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
           onClose={() => setOpening(null)}
           onCollection={() => { setOpening(null); onCollection(); }}
           again={opening.free ? undefined : (() => {
-            const price = PACKS.find((p) => p.id === opening.packId)!.price;
+            const price = opening.packId === TOTW_PACK.id ? TOTW_PACK.price : PACKS.find((p) => p.id === opening.packId)!.price;
             return { price, can: club.coins >= price, onClick: () => buy(opening.packId) };
           })()}
         />
@@ -357,4 +366,32 @@ function PackOddsLine({ pack }: { pack: PackDef }) {
   if (icon > 0 && icon < 100) parts.push(`Ikone: ${pct(icon)}`);
   if (!parts.length) return null;
   return <span className="pack-odds">{pack.first ? 'Beste Karte' : 'Pro Karte'} · {parts.join(' · ')}</span>;
+}
+
+/** Team der Woche: die Elf dieser Kalenderwoche und das passende Pack. */
+function TotwSection({ coins, onBuy }: { coins: number; onBuy: () => void }) {
+  const week = isoWeek();
+  const eleven = teamOfTheWeek();
+  const next = new Date(week.monday);
+  next.setDate(next.getDate() + 7);
+  const days = Math.max(1, Math.ceil((next.getTime() - Date.now()) / 86_400_000));
+  const afford = coins >= TOTW_PACK.price;
+  return (
+    <section className="totw">
+      <div className="totw-head">
+        <div>
+          <span className="hub-kicker">Team der Woche · KW {week.kw}</span>
+          <strong>11 Karten mit +3 – nur diese Woche</strong>
+          <small>Neue Elf in {days} {days === 1 ? 'Tag' : 'Tagen'} (Montag)</small>
+        </div>
+        <button className="btn primary" disabled={!afford} onClick={onBuy}>
+          {afford ? `Pack · 🪙 ${TOTW_PACK.price.toLocaleString('de-DE')}` : `Fehlen 🪙 ${(TOTW_PACK.price - coins).toLocaleString('de-DE')}`}
+        </button>
+      </div>
+      <div className="totw-row">
+        {eleven.map((c) => <UtCard key={c.id} card={c} size="sm" />)}
+      </div>
+      <p className="hint">Pack: 1 Karte aus dem Team der Woche (stärkere sind seltener) + 2 Gold-Karten. Schon vorhanden? Dann gibt es 2.000 Coins.</p>
+    </section>
+  );
 }

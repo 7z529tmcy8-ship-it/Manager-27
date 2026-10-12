@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-12-totw',
+    date: '12.10.2026',
+    title: '🏟️ Team der Woche & 35 neue Spieler',
+    items: [
+      '🏟️ Neu im Store: das Team der Woche – jeden Montag 11 neue Karten mit +3, nur in dieser Woche im Team-der-Woche-Pack.',
+      '🧤 9 neue Torhüter: Raya, Maignan, Oblak, Kobel, Diogo Costa, Svilar, Emiliano Martínez, Vicario und Unai Simón.',
+      '🇮🇹🇫🇷🇵🇹🇳🇱 Mehr Karten aus Serie A, Ligue 1, Portugal und Eredivisie – McTominay, Dimarco, Thuram, Pulisic, Gouiri, Hjulmand, Pavlidis, Til … Bessere Chemie für Teams aus diesen Ligen.',
+      '⚽ Alle neuen Spieler kannst du auch im Karrieremodus spielen. Vereine nach dem Transfersommer 2026.',
+    ],
+  },
+  {
     id: '2026-10-11-sonderkarten-design',
     date: '11.10.2026',
     title: '✨ Neues Design für alle Sonderkarten',

@@ -13,7 +13,7 @@ import type { Career, CoachSeason, Position, SeasonRecord, SpecialCard, SpecialT
 
 /** Auszeichnungs-Karten, die man am Karriereende statt der Ikone wählen kann. */
 export type AwardVariant = 'ballondor' | 'poty' | 'topscorer' | 'goldenboy' | 'ucl' | 'worldcup';
-export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | 'gala' | AwardVariant | SpecialType;
+export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | 'gala' | 'totw' | AwardVariant | SpecialType;
 
 export interface CollectCard {
   id: string;
@@ -154,7 +154,7 @@ export function sellValue(c: CollectCard): number {
 
 /** Seltenheit für Sortierung und „bester Zug“. */
 export function rarity(c: CollectCard): number {
-  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, gala: 3.9, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
+  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, gala: 3.9, totw: 3.1, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
   return base * 100 + c.ovr;
 }
 
@@ -641,6 +641,69 @@ export function eventOfCard(c: CollectCard): EventId | null {
 }
 /** Packs, die gerade im Store stehen (Event-Packs nur im Event-Zeitraum). */
 export const activePacks = (now = new Date()) => PACKS.filter((p) => !p.event || eventActive(p.event, now));
+
+// ---------- Team der Woche ----------
+// Jede Kalenderwoche (Mo–So) eine neue Elf im 4-3-3: echte Spieler aus dem Kartenpool mit +3 Wertung.
+// Auswahl rotiert automatisch (fest pro Woche, für alle gleich) – keine echten Spieltagsdaten.
+/** ISO-Kalenderwoche, z. B. { id: '2026-W42', kw: 42 }. */
+export function isoWeek(now = new Date()): { id: string; kw: number; monday: Date } {
+  const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  const day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day);
+  const year = d.getUTCFullYear();
+  const kw = Math.ceil(((d.getTime() - Date.UTC(year, 0, 1)) / 86_400_000 + 1) / 7);
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
+  return { id: `${year}-W${String(kw).padStart(2, '0')}`, kw, monday };
+}
+function seeded(seed: string): () => number {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+  return () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    h ^= h >>> 16;
+    return (h >>> 0) / 4294967296;
+  };
+}
+const TOTW_SLOTS: Position[][] = [['TW'], ['AV'], ['IV'], ['IV'], ['AV'], ['ZDM', 'ZM'], ['ZM'], ['ZOM', 'ZM'], ['FL'], ['ST'], ['FL']];
+export const TOTW_BOOST = 3;
+/** Die Elf der Woche. */
+export function teamOfTheWeek(now = new Date()): CollectCard[] {
+  const { id, kw } = isoWeek(now);
+  const rand = seeded(id);
+  const pool = CARD_POOL.filter((c) => (c.variant === 'gold' || c.variant === 'gold-rare') && c.ovr >= 80);
+  const used = new Set<string>();
+  return TOTW_SLOTS.map((positions) => {
+    const options = pool.filter((c) => positions.includes(c.position) && !used.has(c.name));
+    const base = options[Math.floor(rand() * options.length)];
+    used.add(base.name);
+    return { ...base, id: `totw-${id}-${base.id}`, ovr: Math.min(99, base.ovr + TOTW_BOOST), variant: 'totw' as const, label: `KW ${kw}`, age: undefined };
+  });
+}
+export const TOTW_PACK = { id: 'totw', name: 'Team-der-Woche-Pack', price: 40_000, size: 3 } as const;
+/** Pack der Woche: eine Karte aus dem Team der Woche (stärkere seltener) plus zwei Gold-Karten. Doppelte TOTW-Karte = 2.000 Coins. */
+export function openTotwPack(club: ClubState, rand = Math.random, now = new Date()): { club: ClubState; result: PackResult } | null {
+  if (club.coins < TOTW_PACK.price) return null;
+  const eleven = teamOfTheWeek(now);
+  const min = Math.min(...eleven.map((c) => c.ovr));
+  const total = eleven.reduce((a, c) => a + Math.exp(-(c.ovr - min) / 3), 0);
+  let r = rand() * total;
+  const pick = eleven.find((c) => (r -= Math.exp(-(c.ovr - min) / 3)) <= 0) ?? eleven[0];
+  const owned = club.specials.some((s) => s.id === pick.id);
+  const fill = openPack({ ...club, coins: club.coins - TOTW_PACK.price + PACKS.find((p) => p.id === 'gold')!.price }, 'gold', rand);
+  if (!fill) return null;
+  const gold = fill.result.cards.slice(0, 2);
+  // Gold-Pack hat 3 Karten – die dritte wieder herausnehmen.
+  const cards = { ...fill.club.cards };
+  for (const extra of fill.result.cards.slice(2)) {
+    cards[extra.card.id] -= 1;
+    if (cards[extra.card.id] <= 0) delete cards[extra.card.id];
+  }
+  return {
+    club: { ...fill.club, cards, coins: fill.club.coins + (owned ? 2000 : 0), specials: owned ? fill.club.specials : [...fill.club.specials, pick] },
+    result: { cards: [{ card: pick, duplicate: owned }, ...gold], items: [] },
+  };
+}
 
 // ---------- Ballon d’Or 2026: Tipp ----------
 /** Tippen geht bis zur Verleihung. */

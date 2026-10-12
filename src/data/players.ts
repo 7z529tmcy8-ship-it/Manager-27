@@ -204,7 +204,53 @@ const WORLD_STARS_2026: typeof RAW = [
   ['Hugo Ekitike', 'Frankreich', 'ST', 23, 83, 87, 'Liverpool FC'],
 ];
 
-export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026, ...ADDITIONS_2026, ...WORLD_STARS_2026].map(
+// Oktober 2026 (2): Torhüter, Sechser und Verteidiger sowie Spieler aus Serie A, Ligue 1, Portugal und Eredivisie –
+// dort gab es bisher kaum Karten (schwache Chemie). Vereine per Websuche nach dem Transfersommer 2026 geprüft
+// (z. B. E. Martínez zu Chelsea, Vicario auf Leihbasis bei Juve, de Roon zur Roma). Alter zum Start 2025/26, Wertungen eigene Schätzungen.
+const DEPTH_2026: typeof RAW = [
+  // Torhüter
+  ['David Raya', 'Spanien', 'TW', 29, 87, 87, 'Arsenal FC'],
+  ['Mike Maignan', 'Frankreich', 'TW', 30, 87, 87, 'AC Mailand'],
+  ['Jan Oblak', 'Slowenien', 'TW', 32, 86, 86, 'Atlético Madrid'],
+  ['Gregor Kobel', 'Schweiz', 'TW', 27, 86, 87, 'Borussia Dortmund'],
+  ['Diogo Costa', 'Portugal', 'TW', 25, 86, 88, 'FC Porto'],
+  ['Mile Svilar', 'Serbien', 'TW', 25, 85, 87, 'AS Rom'],
+  ['Emiliano Martínez', 'Argentinien', 'TW', 32, 85, 85, 'Chelsea FC'],
+  ['Guglielmo Vicario', 'Italien', 'TW', 28, 84, 84, 'Juventus Turin'],
+  ['Unai Simón', 'Spanien', 'TW', 28, 84, 84, 'Athletic Club'],
+  // Serie A
+  ['Scott McTominay', 'Schottland', 'ZM', 28, 86, 86, 'SSC Neapel'],
+  ['Federico Dimarco', 'Italien', 'AV', 27, 86, 86, 'Inter Mailand'],
+  ['Stanislav Lobotka', 'Slowakei', 'ZDM', 30, 85, 85, 'SSC Neapel'],
+  ['Marcus Thuram', 'Frankreich', 'ST', 28, 85, 86, 'Inter Mailand'],
+  ['Christian Pulisic', 'USA', 'FL', 26, 85, 86, 'AC Mailand'],
+  ['Marten de Roon', 'Niederlande', 'ZDM', 34, 81, 81, 'AS Rom'],
+  // Ligue 1
+  ['Amine Gouiri', 'Algerien', 'ST', 25, 82, 84, 'Olympique Marseille'],
+  ['Pierre-Emile Højbjerg', 'Dänemark', 'ZDM', 30, 81, 81, 'Olympique Marseille'],
+  ['Aleksandr Golovin', 'Russland', 'ZOM', 29, 81, 81, 'AS Monaco'],
+  ['Angel Gomes', 'England', 'ZM', 25, 80, 83, 'Olympique Marseille'],
+  ['Pavel Šulc', 'Tschechien', 'ZOM', 24, 80, 83, 'Olympique Lyon'],
+  ['Amine Harit', 'Marokko', 'ZOM', 28, 79, 79, 'Olympique Marseille'],
+  ['Olivier Giroud', 'Frankreich', 'ST', 38, 77, 77, 'OSC Lille'],
+  ['Hákon Haraldsson', 'Island', 'ZOM', 22, 77, 82, 'OSC Lille'],
+  ['Ernest Nuamah', 'Ghana', 'FL', 21, 76, 83, 'Olympique Lyon'],
+  ['Paris Brunner', 'Deutschland', 'FL', 19, 72, 85, 'AS Monaco'],
+  // Liga Portugal
+  ['Morten Hjulmand', 'Dänemark', 'ZDM', 26, 83, 85, 'Sporting Lissabon'],
+  ['Francisco Trincão', 'Portugal', 'FL', 25, 83, 84, 'Sporting Lissabon'],
+  ['Gonçalo Inácio', 'Portugal', 'IV', 24, 83, 86, 'Sporting Lissabon'],
+  ['Vangelis Pavlidis', 'Griechenland', 'ST', 26, 82, 83, 'Benfica Lissabon'],
+  ['Zeno Debast', 'Belgien', 'IV', 21, 78, 85, 'Sporting Lissabon'],
+  // Eredivisie
+  ['Guus Til', 'Niederlande', 'ZOM', 27, 80, 80, 'PSV Eindhoven'],
+  ['Anis Hadj Moussa', 'Algerien', 'FL', 23, 80, 85, 'Feyenoord Rotterdam'],
+  ['Luciano Valente', 'Niederlande', 'ZM', 21, 77, 83, 'Feyenoord Rotterdam'],
+  ['Gjivai Zechiël', 'Niederlande', 'ZM', 21, 76, 83, 'Feyenoord Rotterdam'],
+  ['Givairo Read', 'Niederlande', 'AV', 19, 75, 85, 'Feyenoord Rotterdam'],
+];
+
+export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026, ...ADDITIONS_2026, ...WORLD_STARS_2026, ...DEPTH_2026].map(
   ([name, nation, position, age, ovr, potential, club]) => ({
     name, nation, position, age, ovr, potential, clubId: slugify(club),
   }),
@@ -255,6 +301,15 @@ export const NATIONS: Nation[] = [
   { name: 'Marokko', callUp: 76 },
   { name: 'Georgien', callUp: 72 },
   { name: 'Kamerun', callUp: 73 },
+  { name: 'Slowenien', callUp: 70 },
+  { name: 'Serbien', callUp: 73 },
+  { name: 'Slowakei', callUp: 70 },
+  { name: 'Schottland', callUp: 72 },
+  { name: 'Algerien', callUp: 73 },
+  { name: 'Russland', callUp: 74 },
+  { name: 'Tschechien', callUp: 72 },
+  { name: 'Ghana', callUp: 72 },
+  { name: 'Griechenland', callUp: 71 },
 ];
 
 export function getNation(name: string): Nation {
