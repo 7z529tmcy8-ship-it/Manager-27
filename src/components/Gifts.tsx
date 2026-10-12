@@ -7,6 +7,7 @@ import { motionReduced } from '../settings';
 import { play } from '../sound';
 import Confetti from './Confetti';
 import { PackOpening } from './Store';
+import Icon from './Icon';
 
 const fmt = (n: number) => n.toLocaleString('de-DE');
 const BOX: Record<Gift['rarity'], string> = { bronze: 'Bronze-Box', silver: 'Silber-Box', gold: 'Gold-Box' };
@@ -18,11 +19,11 @@ export function GiftShelf({ career, onChange }: { career: Career; onChange: (c: 
   if (!gifts.length && !open) return null;
   return (
     <section className="gift-shelf">
-      <strong>🎁 {gifts.length === 1 ? 'Ein Geschenk' : `${gifts.length} Geschenke`} vom Aufsichtsrat</strong>
+      <strong>{gifts.length === 1 ? 'Ein Geschenk' : `${gifts.length} Geschenke`} vom Aufsichtsrat</strong>
       <div className="gift-row">
         {gifts.map((g) => (
           <button key={g.id} className={`gift-box r-${g.rarity}`} onClick={() => setOpen(g)} aria-label={`${BOX[g.rarity]} öffnen: ${giftTitle(g)}`}>
-            <span className="gift-icon" aria-hidden="true">🎁</span>
+            <span className="gift-icon" aria-hidden="true"><Icon name="gift" /></span>
             <b>{BOX[g.rarity]}</b>
             <small>{giftTitle(g)}</small>
           </button>
@@ -69,13 +70,13 @@ function GiftOpening({ gift, onPaid, onDone }: { gift: Gift; onPaid: () => void;
     <div className="life-pop" role="dialog" aria-modal="true" aria-label="Geschenk öffnen">
       <div className={`life-card gift-open r-${gift.rarity}`}>
         {phase === 'open' && <Confetti pieces={gift.rarity === 'gold' ? 120 : 60} />}
-        <div className={`gift-big ${phase}`} aria-hidden="true">{phase === 'shake' ? '🎁' : '✨'}</div>
+        <div className={`gift-big ${phase}`} aria-hidden="true"><Icon name={phase === 'shake' ? 'gift' : 'spark'} size={96} /></div>
         <small className="muted">{giftTitle(gift)}</small>
         {phase === 'shake' ? (
           <h2>{BOX[gift.rarity]} wird geöffnet …</h2>
         ) : (
           <>
-            <h2>+{fmt(content.coins)} 🪙</h2>
+            <h2>+{fmt(content.coins)} Coins</h2>
             {content.pack ? (
               <p>Und obendrauf: ein <b>{PACKS.find((p) => p.id === content.pack)!.name}</b>!</p>
             ) : (
@@ -83,7 +84,7 @@ function GiftOpening({ gift, onPaid, onDone }: { gift: Gift; onPaid: () => void;
             )}
             <div className="life-btns">
               {content.pack ? (
-                <button className="btn primary big" onClick={openGiftPack}>🃏 Pack öffnen</button>
+                <button className="btn primary big" onClick={openGiftPack}>Pack öffnen</button>
               ) : (
                 <button className="btn primary big" onClick={onDone}>Danke!</button>
               )}

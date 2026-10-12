@@ -27,9 +27,9 @@ export default function LegendTrades() {
                 <small>{m.story}</small>
                 <small className="lt-req">11 Karten · Schnitt {m.minAvg}+ · jede {m.minEach}+ · {m.needs.map((n) => `${n.count}× ${n.label}`).join(' · ')}</small>
                 {done ? (
-                  <span className="lt-badge">✓ Freigeschaltet</span>
+                  <span className="lt-badge">Freigeschaltet</span>
                 ) : locked ? (
-                  <span className="lt-badge muted">🔒 Erst nach {MOMENTS.find((x) => x.id === m.after)?.reward.name}</span>
+                  <span className="lt-badge muted">Erst nach {MOMENTS.find((x) => x.id === m.after)?.reward.name}</span>
                 ) : (
                   <button className="btn primary small" onClick={() => setOpen(m)}>Zusammenstellen</button>
                 )}

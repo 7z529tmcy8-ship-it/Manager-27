@@ -1,3 +1,4 @@
+import Icon, { Glyph } from './Icon';
 import { useMemo, useState } from 'react';
 import { CLUBS, LEAGUES, getClub, getLeague } from '../data/leagues';
 import { getClubState, setClubState, useClub } from '../clubStore';
@@ -56,28 +57,28 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
       <div className="overlay-inner">
         <header className="overlay-head">
           <button className="nav-back" onClick={onClose}>‹ Zurück</button>
-          <span className="hub-coins">🪙 {fmt(club.coins)}</span>
+          <span className="hub-coins"><Icon name="coin" size={16} className="coin-ic" />{fmt(club.coins)}</span>
         </header>
-        <h2 className="fam-title">💼 Vermögen</h2>
+        <h2 className="fam-title">Vermögen</h2>
         <GiftShelf career={career} onChange={onChange} />
 
         <div className="inv-summary">
-          <div><small>Wert</small><strong>🪙 {fmt(portfolioValue(career))}</strong></div>
-          <div><small>Einnahmen/Jahr</small><strong>~ 🪙 {fmt(expectedIncome(career))}</strong></div>
+          <div><small>Wert</small><strong><Icon name="coin" size={16} className="coin-ic" />{fmt(portfolioValue(career))}</strong></div>
+          <div><small>Einnahmen/Jahr</small><strong>~ <Icon name="coin" size={16} className="coin-ic" />{fmt(expectedIncome(career))}</strong></div>
         </div>
         {report && (report.rent > 0 || report.dividends > 0 || investNotes.length > 0) && (
           <div className="fam-report">
             <strong>Letztes Jahr</strong>
-            <span>Miete +{fmt(report.rent)} 🪙 · Dividenden +{fmt(report.dividends)} 🪙</span>
+            <span>Miete +{fmt(report.rent)} Coins · Dividenden +{fmt(report.dividends)} Coins</span>
             {investNotes.map((n) => <span key={n}>{n}</span>)}
           </div>
         )}
         <p className="muted">Einnahmen werden am Ende jeder Saison (bzw. jedes Ruhestandsjahres) in deinen Club gezahlt. Beim Verkauf fallen {SELL_FEE * 100} % Gebühren an.</p>
 
         <div className="chips inv-tabs">
-          <button className={`chip ${tab === 'home' ? 'active' : ''}`} onClick={() => setTab('home')}>🏠 Immobilien</button>
-          <button className={`chip ${tab === 'clubs' ? 'active' : ''}`} onClick={() => setTab('clubs')}>📈 Klub-Anteile</button>
-          <button className={`chip ${tab === 'casino' ? 'active' : ''}`} onClick={() => setTab('casino')}>🎰 Casino</button>
+          <button className={`chip ${tab === 'home' ? 'active' : ''}`} onClick={() => setTab('home')}>Immobilien</button>
+          <button className={`chip ${tab === 'clubs' ? 'active' : ''}`} onClick={() => setTab('clubs')}>Klub-Anteile</button>
+          <button className={`chip ${tab === 'casino' ? 'active' : ''}`} onClick={() => setTab('casino')}>Casino</button>
         </div>
 
         {tab === 'casino' && <CasinoTab career={career} onChange={onChange} />}
@@ -88,18 +89,18 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
               const diff = holding ? holding.value - holding.bought : 0;
               return (
                 <li key={p.id} className={holding ? 'owned' : ''}>
-                  <span className="inv-icon" aria-hidden="true">{p.icon}</span>
+                  <span className="inv-icon" aria-hidden="true"><Glyph e={p.icon} /></span>
                   <span className="grow">
                     <strong>{p.name}</strong>
                     <small>
                       Miete {Math.round(p.rent * 1000) / 10} %/Jahr · Schwankung {p.volatility >= 0.1 ? 'hoch' : p.volatility >= 0.06 ? 'mittel' : 'niedrig'}
-                      {holding && <> · Wert 🪙 {fmt(holding.value)} <b className={diff >= 0 ? 'up' : 'down'}>({diff >= 0 ? '+' : '−'}{fmt(Math.abs(diff))})</b></>}
+                      {holding && <> · Wert <Icon name="coin" size={16} className="coin-ic" />{fmt(holding.value)} <b className={diff >= 0 ? 'up' : 'down'}>({diff >= 0 ? '+' : '−'}{fmt(Math.abs(diff))})</b></>}
                     </small>
                   </span>
                   {holding ? (
                     <button className="btn secondary small" onClick={() => window.confirm(`${p.name} für ca. ${fmt(holding.value * (1 - SELL_FEE))} Coins verkaufen?`) && apply(sellProperty(career, p.id))}>Verkaufen</button>
                   ) : (
-                    <button className="btn primary small" disabled={club.coins < p.price} onClick={() => apply(buyProperty(career, p.id, getClubState().coins))}>🪙 {fmt(p.price)}</button>
+                    <button className="btn primary small" disabled={club.coins < p.price} onClick={() => apply(buyProperty(career, p.id, getClubState().coins))}><Icon name="coin" size={16} className="coin-ic" />{fmt(p.price)}</button>
                   )}
                 </li>
               );
@@ -124,7 +125,7 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
               </label>
               {target && (
                 <div className="inv-quote">
-                  <span>1 % von {getClub(target).name}: <b>🪙 {fmt(targetPrice)}</b>{career.europeSlots[target] ? ' · spielt europäisch (+Dividende)' : ''}</span>
+                  <span>1 % von {getClub(target).name}: <b><Icon name="coin" size={16} className="coin-ic" />{fmt(targetPrice)}</b>{career.europeSlots[target] ? ' · spielt europäisch (+Dividende)' : ''}</span>
                   <div className="inv-btns">
                     {[1, 5, 10].map((n) => (
                       <button key={n} className="btn primary small" disabled={owned + n > MAX_STAKE || club.coins < n * targetPrice} onClick={() => apply(buyShares(career, target, n, getClubState().coins))}>
@@ -145,23 +146,23 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
                 const diff = value - s.invested;
                 return (
                   <li key={s.clubId} className="owned">
-                    <span className="inv-icon" aria-hidden="true">📈</span>
+                    <span className="inv-icon" aria-hidden="true"><Icon name="chart" /></span>
                     <span className="grow">
                       <strong>{getClub(s.clubId).name} · {s.percent} %</strong>
                       <small>
-                        {stakeLabel(s.percent)} · {getLeague(clubLeagueId(career, s.clubId)).name} · Wert 🪙 {fmt(value)}{' '}
+                        {stakeLabel(s.percent)} · {getLeague(clubLeagueId(career, s.clubId)).name} · Wert <Icon name="coin" size={16} className="coin-ic" />{fmt(value)}{' '}
                         <b className={diff >= 0 ? 'up' : 'down'}>({diff >= 0 ? '+' : '−'}{fmt(Math.abs(diff))})</b>
                       </small>
                     </span>
                     <span className="inv-project">
                       <small>
-                        🏗️ Stärke <b>{Math.round(clubStrength(career, s.clubId))}</b>
+                        Stärke <b>{Math.round(clubStrength(career, s.clubId))}</b>
                         {(career.clubBacking?.[s.clubId] ?? 0) >= 0.5 && <> (davon +{Math.round(career.clubBacking![s.clubId])} durch dein Geld)</>}
-                        {(s.injected ?? 0) > 0 && <> · insgesamt investiert 🪙 {fmt(s.injected!)}</>}
+                        {(s.injected ?? 0) > 0 && <> · insgesamt investiert <Icon name="coin" size={16} className="coin-ic" />{fmt(s.injected!)}</>}
                       </small>
                       {(s.fund ?? 0) > 0 && (
                         <small>
-                          Ausbau-Budget 🪙 {fmt(s.fund!)} – reicht für ca. +{Math.max(1, Math.round(fundPreview(career, s.clubId, s.fund!)))} Stärke, verbaut über die nächsten Saisons (max. +{MAX_GAIN_PER_YEAR} pro Jahr).
+                          Ausbau-Budget <Icon name="coin" size={16} className="coin-ic" />{fmt(s.fund!)} – reicht für ca. +{Math.max(1, Math.round(fundPreview(career, s.clubId, s.fund!)))} Stärke, verbaut über die nächsten Saisons (max. +{MAX_GAIN_PER_YEAR} pro Jahr).
                         </small>
                       )}
                     </span>
@@ -174,12 +175,12 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
                           disabled={club.coins < a}
                           onClick={() => window.confirm(`${fmt(a)} Coins in ${getClub(s.clubId).name} stecken? Das Geld ist weg – der Klub baut damit Saison für Saison Kader und Umfeld aus (ca. +${Math.max(0.1, fundPreview(career, s.clubId, (s.fund ?? 0) + a) - fundPreview(career, s.clubId, s.fund ?? 0)).toFixed(1).replace('.', ',')} Stärke). Ohne weiteres Geld bröckelt es langsam wieder ab.`) && apply(injectMoney(career, s.clubId, a, getClubState().coins))}
                         >
-                          🪙 {fmt(a)}
+                          <Icon name="coin" size={16} className="coin-ic" />{fmt(a)}
                         </button>
                       ))}
                     </span>
                     <details className="inv-projects">
-                      <summary>🏗️ Bauprojekte{s.projects?.length ? ` (${s.projects.length})` : ''}</summary>
+                      <summary>Bauprojekte{s.projects?.length ? ` (${s.projects.length})` : ''}</summary>
                       <small className="muted">Anders als eine Finanzspritze bleibt ein Bauprojekt dem Klub erhalten. Was es genau bringt, zeigt sich erst über die Jahre.</small>
                       <ul>
                         {PROJECTS.map((def) => {
@@ -190,7 +191,7 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
                           return (
                             <li key={def.id} className={cur ? 'has' : ''}>
                               <span className="grow">
-                                <strong>{def.icon} {def.name}</strong>
+                                <strong><Glyph e={def.icon} /> {def.name}</strong>
                                 <small>{cur ? projectStatus(cur) : def.text}</small>
                               </span>
                               {label && (
@@ -205,7 +206,7 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
                                     apply({ career: r.career, delta: -r.cost });
                                   }}
                                 >
-                                  {check.ok ? `${label} · 🪙 ${fmt(check.cost)}` : check.reason}
+                                  {check.ok ? `${label} · ${fmt(check.cost)} Coins` : check.reason}
                                 </button>
                               )}
                             </li>

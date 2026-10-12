@@ -1,4 +1,5 @@
 import AvatarFace from './AvatarFace';
+import Icon, { type IconName } from './Icon';
 import { flagOf } from '../data/flags';
 import type { CollectCard } from '../game/club';
 import { cardAttrs } from '../game/squad';
@@ -26,10 +27,10 @@ const VARIANT_LABEL: Partial<Record<CollectCard['variant'], string>> = {
   champion: 'Titelheld',
 };
 /** Sonderkarten bekommen ein Emblem, Holo-Schimmer und ein eigenes Muster (siehe styles.css). */
-const EMBLEM: Partial<Record<CollectCard['variant'], string>> = {
-  icon: '👑', cult: '⚡', talent: '✦', debut: '🎟️', moment: '🎬', present: '🎁', halloween: '🎃', gala: '🏅',
-  tots: '⭐', potm: '📅', record: '📈', champion: '🏆',
-  ballondor: '🥇', worldcup: '🌍', ucl: '✪', poty: '🎙️', topscorer: '👟', goldenboy: '✨', totw: '🏟️',
+const EMBLEM: Partial<Record<CollectCard['variant'], IconName>> = {
+  icon: 'crown', cult: 'bolt', talent: 'spark', debut: 'ticket', moment: 'film', present: 'gift', halloween: 'pumpkin', gala: 'medal',
+  tots: 'star', potm: 'calendar', record: 'chart', champion: 'trophy',
+  ballondor: 'medal', worldcup: 'globe', ucl: 'star', poty: 'mic', topscorer: 'boot', goldenboy: 'spark', totw: 'stadium',
 };
 const OUTFIELD = ['TEM', 'SCH', 'PAS', 'DRI', 'DEF', 'PHY'];
 const KEEPER = ['HEC', 'HAN', 'ABS', 'REF', 'TEM', 'STE'];
@@ -72,7 +73,7 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick 
       onClick={onClick}
     >
       {emblem && <span className="ucard-foil" aria-hidden="true" />}
-      {emblem && size !== 'xs' && <span className="ucard-emblem" aria-hidden="true">{emblem}</span>}
+      {emblem && size !== 'xs' && <span className="ucard-emblem" aria-hidden="true"><Icon name={emblem} /></span>}
       <div className="ucard-top">
         <span className="ucard-ovr">{card.ovr}</span>
         <span className="ucard-pos">{card.position}</span>

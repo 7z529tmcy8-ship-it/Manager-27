@@ -1,3 +1,4 @@
+import Icon, { Glyph } from './Icon';
 import { useEffect, useState } from 'react';
 import { PACKS, openPack, rarity, type CollectCard, type PackResult } from '../game/club';
 import {
@@ -27,7 +28,7 @@ export default function Team({ onBack, onStore }: { onBack: () => void; onStore:
     <main className="hub">
       <header className="hub-top">
         <button className="hub-back" onClick={onBack}>‹ Hauptmenü</button>
-        <span className="hub-coins">🪙 {club.coins.toLocaleString('de-DE')}</span>
+        <span className="hub-coins"><Icon name="coin" size={16} className="coin-ic" />{club.coins.toLocaleString('de-DE')}</span>
       </header>
       <h1 className="hub-title">Mein Team</h1>
       <div className="team-stats">
@@ -52,7 +53,7 @@ function ScreenHead({ title, onBack }: { title: string; onBack: () => void }) {
     <>
       <header className="hub-top">
         <button className="hub-back" onClick={onBack}>‹ Hauptmenü</button>
-        <span className="hub-coins">🪙 {club.coins.toLocaleString('de-DE')}</span>
+        <span className="hub-coins"><Icon name="coin" size={16} className="coin-ic" />{club.coins.toLocaleString('de-DE')}</span>
       </header>
       <h1 className="hub-title">{title}</h1>
     </>
@@ -100,11 +101,11 @@ function DuelSeason() {
     <section className="season">
       {open.map((s) => (
         <button key={s.id} className="season-claim" onClick={() => setClubState(claimSeason(getClubState(), s.id))}>
-          {s.rank.icon} Saison {seasonName(s.id)} beendet: {s.rank.name} mit {s.points} Punkten – 🪙 {s.rank.coins.toLocaleString('de-DE')} abholen ›
+          <Glyph e={s.rank.icon} size={18} /> Saison {seasonName(s.id)} beendet: {s.rank.name} mit {s.points} Punkten – <Icon name="coin" size={16} className="coin-ic" />{s.rank.coins.toLocaleString('de-DE')} abholen ›
         </button>
       ))}
       <div className="season-head">
-        <span className="season-icon" aria-hidden="true">{rank.icon}</span>
+        <span className="season-icon" aria-hidden="true"><Glyph e={rank.icon} /></span>
         <div>
           <small>Duell-Saison {seasonName(sid)} · noch {daysLeft} {daysLeft === 1 ? 'Tag' : 'Tage'}</small>
           <strong>{rank.name} · {pts} Punkte</strong>
@@ -112,7 +113,7 @@ function DuelSeason() {
       </div>
       <div className="season-bar"><i style={{ width: `${progress}%` }} /></div>
       <p className="hint">
-        {next ? `Noch ${next.min - pts} Punkte bis ${next.icon} ${next.name} (🪙 ${next.coins.toLocaleString('de-DE')} am Saisonende).` : 'Höchster Rang erreicht!'}
+        {next ? `Noch ${next.min - pts} Punkte bis ${next.name} (${next.coins.toLocaleString('de-DE')} Coins am Saisonende).` : 'Höchster Rang erreicht!'}
         {' '}Sieg = 10 × Stufe, Unentschieden = 3 × Stufe.
       </p>
       <details className="season-more">
@@ -120,7 +121,7 @@ function DuelSeason() {
         <ul className="season-ranks">
           {SEASON_RANKS.map((r) => (
             <li key={r.name} className={r.name === rank.name ? 'on' : ''}>
-              <span>{r.icon} {r.name}</span><span>ab {r.min}</span><span>{r.coins ? `🪙 ${r.coins.toLocaleString('de-DE')}` : '–'}</span>
+              <span><Glyph e={r.icon} size={18} /> {r.name}</span><span>ab {r.min}</span><span>{r.coins ? `${r.coins.toLocaleString('de-DE')} Coins` : '–'}</span>
             </li>
           ))}
         </ul>
@@ -172,7 +173,7 @@ function Squad({ onStore }: { onStore: () => void }) {
         ))}
       </div>
       <div className="team-actions">
-        <button className="btn secondary small" onClick={() => setClubState({ ...getClubState(), squad: autoSquad(getClubState()) })}>⚡ Auto-Aufstellung</button>
+        <button className="btn secondary small" onClick={() => setClubState({ ...getClubState(), squad: autoSquad(getClubState()) })}>Auto-Aufstellung</button>
         <button className="btn ghost small" onClick={() => setClubState({ ...getClubState(), squad: Array(11).fill(null) })}>Leeren</button>
       </div>
       <div className="pitch">
@@ -266,8 +267,8 @@ function Duels({ full, onSquad }: { full: boolean; onSquad: () => void }) {
             <li key={o.level} className={`duel ${locked ? 'locked' : ''} ${o.level < club.duelLevel ? 'beaten' : ''}`}>
               <span className="duel-lvl">{o.level}</span>
               <span className="duel-name"><strong>{o.name}</strong><small>Stärke {Math.round(o.strength)} · {odds >= 3 ? 'Favorit' : odds <= -3 ? 'Außenseiter' : 'Ausgeglichen'}</small></span>
-              <span className="duel-reward">🪙 {o.reward}</span>
-              <button className="btn primary small" disabled={locked} onClick={() => play(o.level)}>{locked ? '🔒' : 'Spielen'}</button>
+              <span className="duel-reward"><Icon name="coin" size={16} className="coin-ic" />{o.reward}</span>
+              <button className="btn primary small" disabled={locked} onClick={() => play(o.level)}>{locked ? <Icon name="lock" size={18} /> : 'Spielen'}</button>
             </li>
           );
         })}
@@ -295,7 +296,7 @@ function DuelLive({ name, result, onClose, onShare }: { name: string; result: Du
         <small>{done ? 'Abpfiff' : `${minute}. Minute`}</small>
         <div className="duel-score"><span>Dein Team</span><strong>{own} : {opp}</strong><span>{name}</span></div>
         <ul className="duel-goals">
-          {shown.map((g, i) => <li key={i} className={g.own ? 'own' : 'opp'}>{g.minute}′ {g.own ? '⚽ Tor für dich!' : 'Gegentor'}</li>)}
+          {shown.map((g, i) => <li key={i} className={g.own ? 'own' : 'opp'}>{g.minute}′ {g.own ? 'Tor für dich!' : 'Gegentor'}</li>)}
         </ul>
         {done && (
           <>
@@ -303,7 +304,7 @@ function DuelLive({ name, result, onClose, onShare }: { name: string; result: Du
               {result.outcome === 'win' ? (result.coins ? `Sieg! +${result.coins} Coins` : 'Sieg!') : result.outcome === 'draw' ? (result.coins ? `Unentschieden · +${result.coins} Coins` : 'Unentschieden') : 'Niederlage – stell dein Team um und versuch es nochmal.'}
               {result.points ? ` · +${result.points} Saisonpunkte` : ''}
             </p>
-            {onShare && <button className="btn secondary big" onClick={onShare}>📤 Ergebnis teilen</button>}
+            {onShare && <button className="btn secondary big" onClick={onShare}>Ergebnis teilen</button>}
             <button className="btn primary big" onClick={onClose}>Weiter</button>
           </>
         )}
@@ -360,7 +361,7 @@ function Friends({ full, onSquad }: { full: boolean; onSquad: () => void }) {
     if (!pasted || typeof pasted === 'string') return;
     const res = saveFriend(getClubState(), pasted);
     if (res.status === 'self') {
-      setMsg('Das ist dein eigener Code ✨');
+      setMsg('Das ist dein eigener Code');
       return;
     }
     setClubState(res.club);
@@ -392,15 +393,15 @@ function Friends({ full, onSquad }: { full: boolean; onSquad: () => void }) {
   return (
     <div className="friends">
       <section className="backup-box">
-        <h3>📤 Dein Team-Code</h3>
+        <h3>Dein Team-Code</h3>
         <label className="friends-name">
           Teamname
           <input value={name} onChange={(e) => saveName(e.target.value)} placeholder="z. B. Ayris Allstars" maxLength={30} />
         </label>
         <small className="muted">Stärke {ownStrength.toFixed(1)} · Schick deinen Code nach jeder Änderung neu – Freunde sehen dann dein aktuelles Team.</small>
         <div className="dev-btns">
-          <button className="btn primary" disabled={!code} onClick={async () => setMsg(await shareText(code!))}>📤 Teilen</button>
-          <button className="btn secondary" disabled={!code} onClick={async () => { try { await navigator.clipboard.writeText(code!); setMsg('Code kopiert.'); } catch { setMsg('Markiere den Code unten und kopiere ihn selbst.'); } }}>📋 Kopieren</button>
+          <button className="btn primary" disabled={!code} onClick={async () => setMsg(await shareText(code!))}>Teilen</button>
+          <button className="btn secondary" disabled={!code} onClick={async () => { try { await navigator.clipboard.writeText(code!); setMsg('Code kopiert.'); } catch { setMsg('Markiere den Code unten und kopiere ihn selbst.'); } }}>Kopieren</button>
         </div>
         <details>
           <summary className="muted">Code anzeigen</summary>
@@ -409,7 +410,7 @@ function Friends({ full, onSquad }: { full: boolean; onSquad: () => void }) {
       </section>
 
       <section className="backup-box">
-        <h3>➕ Freund hinzufügen</h3>
+        <h3>Freund hinzufügen</h3>
         <textarea className="backup-text" value={paste} onChange={(e) => setPaste(e.target.value)} rows={2} placeholder="Team-Code deines Freundes hier einfügen" spellCheck={false} aria-label="Team-Code eines Freundes" />
         {typeof pasted === 'string' && <p className="cs-note bad">{pasted}</p>}
         {pasted && typeof pasted !== 'string' && (
@@ -422,8 +423,8 @@ function Friends({ full, onSquad }: { full: boolean; onSquad: () => void }) {
               {pasted.players.map((pl, i) => <li key={i}><b>{pl.ovr}</b> {pl.name} <small>{SLOT_LABELS[i]}</small></li>)}
             </ol>
             <div className="dev-btns">
-              <button className="btn primary" onClick={() => add(true)}>💾 Speichern & spielen</button>
-              <button className="btn secondary" onClick={() => add(false)}>💾 Nur speichern</button>
+              <button className="btn primary" onClick={() => add(true)}>Speichern & spielen</button>
+              <button className="btn secondary" onClick={() => add(false)}>Nur speichern</button>
             </div>
           </div>
         )}
@@ -432,7 +433,7 @@ function Friends({ full, onSquad }: { full: boolean; onSquad: () => void }) {
 
       {friends.length > 0 && (
         <section className="backup-box">
-          <h3>🔗 Deine Freunde ({friends.length})</h3>
+          <h3>Deine Freunde ({friends.length})</h3>
           <ul className="friend-list">
             {friends.map((f) => {
               const r = record(f);
@@ -452,8 +453,8 @@ function Friends({ full, onSquad }: { full: boolean; onSquad: () => void }) {
                     </span>
                   </div>
                   <div className="dev-btns">
-                    <button className="btn primary small" onClick={() => play(f.team)}>⚔️ Spielen</button>
-                    {f.results.length > 0 && <button className="btn secondary small" onClick={() => setOpen(open === f.id ? null : f.id)}>📜 Verlauf</button>}
+                    <button className="btn primary small" onClick={() => play(f.team)}>Spielen</button>
+                    {f.results.length > 0 && <button className="btn secondary small" onClick={() => setOpen(open === f.id ? null : f.id)}>Verlauf</button>}
                     <button className="btn ghost small" onClick={() => window.confirm(`${f.team.name} aus der Freundesliste entfernen?`) && setClubState(removeFriend(getClubState(), f.id))}>Entfernen</button>
                   </div>
                   {open === f.id && (
@@ -474,7 +475,7 @@ function Friends({ full, onSquad }: { full: boolean; onSquad: () => void }) {
 
       {friends.length > 0 && (
         <section className="backup-box">
-          <h3>🏆 Rangliste (Teamstärke)</h3>
+          <h3>Rangliste (Teamstärke)</h3>
           <ol className="friend-rank">
             {ranking.map((x, i) => (
               <li key={x.id} className={x.me ? 'me' : ''}><span>{i + 1}.</span><strong>{x.name}</strong><b>{x.strength.toFixed(1)}</b></li>

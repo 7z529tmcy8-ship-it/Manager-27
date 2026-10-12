@@ -11,6 +11,7 @@ import { getClubState, setClubState, useClub } from '../clubStore';
 import Backup from './Backup';
 import Settings from './Settings';
 import UtCard from './UtCard';
+import Icon from './Icon';
 
 interface Props {
   onNews: () => void;
@@ -41,9 +42,10 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   const [tipPack, setTipPack] = useState<PackResult | null>(null);
   const tipWon = ballonTipCorrect(club) === true && !club.ballonTipClaimed;
   // Event-Hinweis oben: das gerade wichtigste Event
-  const chip = eventActive('geisternacht') ? '👻 Geisternacht – nur bis 31.10.'
-    : eventActive('gala') ? '🏅 Gala-Woche bis 9.11.'
-    : halloweenActive() ? '🎃 Halloween bis 2.11.' : null;
+  const chip = eventActive('geisternacht') ? 'Geisternacht – nur bis 31.10.'
+    : eventActive('gala') ? 'Gala-Woche bis 9.11.'
+    : halloweenActive() ? 'Halloween bis 2.11.' : null;
+  const chipIcon = eventActive('geisternacht') ? 'ghost' : eventActive('gala') ? 'medal' : 'pumpkin';
   const latest = [...saves].sort((a, b) => b.updatedAt - a.updatedAt)[0];
   const progress = collectionProgress(club);
   const hasHistory = saves.some((c) => c.history.length > 0);
@@ -60,17 +62,18 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
     <main className="hub">
       <header className="hub-top">
         <img className="hub-logo" src="/logo.webp" alt="Manager Sim" width="640" height="624" />
-        {chip && <span className="hw-chip">{chip}</span>}
-        <span className="hub-coins" title="Coins – verdienst du im Karrieremodus">🪙 {fmtCoins(club.coins)}</span>
-        <button className="hub-icon" onClick={onNews} aria-label="Neuigkeiten" title="Neuigkeiten">📣</button>
-        <button className="hub-icon" onClick={() => setSettings(true)} aria-label="Einstellungen">⚙️</button>
+        {chip && <span className="hw-chip" title={chip}><Icon name={chipIcon} size={16} />{chip}</span>}
+        <span className="hub-coins" title="Coins – verdienst du im Karrieremodus"><Icon name="coin" size={18} />{fmtCoins(club.coins)}</span>
+        <button className="hub-icon" onClick={onNews} aria-label="Neuigkeiten" title="Neuigkeiten"><Icon name="news" size={20} /></button>
+        <button className="hub-icon" onClick={() => setSettings(true)} aria-label="Einstellungen"><Icon name="gear" size={20} /></button>
       </header>
 
       {ballonTipOpen() && (
         <button className="reward-call gala-call" onClick={() => setTipOpen(true)}>
+          <Icon name="medal" size={20} />
           {club.ballonTip
-            ? `🏅 Dein Ballon-d’Or-Tipp: ${club.ballonTip === 'other' ? 'jemand anderes' : club.ballonTip} – ändern bis 26.10. ›`
-            : '🏅 Ballon d’Or 2026: Wer gewinnt? Tippe bis 26.10. – richtig getippt = Gala-Pack gratis ›'}
+            ? `Dein Ballon-d’Or-Tipp: ${club.ballonTip === 'other' ? 'jemand anderes' : club.ballonTip} – ändern bis 26.10. ›`
+            : 'Ballon d’Or 2026: Wer gewinnt? Tippe bis 26.10. – richtig getippt = Gala-Pack gratis ›'}
         </button>
       )}
       {tipWon && (
@@ -80,12 +83,14 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
           setClubState(res.club);
           setTipPack(res.result);
         }}>
-          🎉 Richtig getippt: {BALLON_WINNER_2026} gewinnt den Ballon d’Or! Dein Gala-Pack abholen ›
+          <Icon name="trophy" size={20} />
+          Richtig getippt: {BALLON_WINNER_2026} gewinnt den Ballon d’Or! Dein Gala-Pack abholen ›
         </button>
       )}
       {pendingReward && (
         <button className="reward-call" onClick={() => onReward(pendingReward)}>
-          🏁 Karriere von {pendingReward.player.name} beendet – jetzt deine Karte wählen ›
+          <Icon name="flag" size={20} />
+          Karriere von {pendingReward.player.name} beendet – jetzt deine Karte wählen ›
         </button>
       )}
       <div className="hub-grid">
@@ -115,18 +120,22 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
           )}
         </section>
 
-        <Tile icon="⚽" title="Neue Karriere" sub="Eigener Spieler, Profi, Legende oder zweite Chance" onClick={onNew} />
-        <Tile icon="🎁" title="Store" sub={!club.megaSuperClaimed ? 'MEGA SUPER XXL Pack gratis!' : !club.megaXxlClaimed ? 'MEGA-XXL-Pack gratis!' : club.welcomeClaimed ? 'Packs mit Coins öffnen' : 'Gratis-Pack wartet!'}
+        <Tile icon="ball" title="Neue Karriere" sub="Eigener Spieler, Profi, Legende oder zweite Chance" onClick={onNew} />
+        <Tile icon="pack" title="Store" sub={!club.megaSuperClaimed ? 'MEGA SUPER XXL Pack gratis!' : !club.megaXxlClaimed ? 'MEGA-XXL-Pack gratis!' : club.welcomeClaimed ? 'Packs mit Coins öffnen' : 'Gratis-Pack wartet!'}
           badge={freePacks ? String(freePacks) : undefined} onClick={onStore} accent />
-        <Tile icon="🗂️" title="Sammlung" sub={`${progress.label} gesammelt · ${progress.have} von ${progress.total} Karten`} onClick={onCollection} />
-        <Tile icon="🛡️" title="Mein Team" sub="Aufstellung und Freunde-Duelle" onClick={onTeam} />
-        <Tile icon="⚔️" title="Duelle" sub={`Stufe ${club.duelLevel} · ${club.duels.w} Siege`} onClick={onDuels} />
-        <Tile icon="🧩" title="SBC" sub="Legendäre Momente 91–93 und Pack-Tausche" onClick={onSbc} />
-        <Tile icon="🔄" title="Tauschbörse" sub="Karten mit echten Spielern tauschen – 100 % fair*" onClick={onTrade} />
-        <Tile icon="🏠" title="Spielstände" sub={`${saves.length} gespeichert`} onClick={() => setShowSaves(true)} disabled={!saves.length} />
-        <Tile icon="🏆" title="Erfolge" sub="Karriereziele" onClick={onAchievements} disabled={!saves.length} />
-        <Tile icon="🏛️" title="Hall of Fame" sub="Deine besten Karrieren" onClick={onFame} disabled={!hasHistory} />
-        <Tile icon="💾" title="Sichern & Laden" sub="Spielstände exportieren und wieder einspielen" onClick={() => setBackup(true)} />
+        <Tile icon="cards" title="Sammlung" sub={`${progress.label} gesammelt · ${progress.have} von ${progress.total} Karten`} onClick={onCollection} />
+        <Tile icon="tactics" title="Mein Team" sub="Aufstellung und Freunde-Duelle" onClick={onTeam} />
+        <Tile icon="duel" title="Duelle" sub={`Stufe ${club.duelLevel} · ${club.duels.w} Siege`} onClick={onDuels} />
+        <Tile icon="puzzle" title="SBC" sub="Legendäre Momente 91–93 und Pack-Tausche" onClick={onSbc} />
+      </div>
+
+      <h2 className="hub-section">Mehr</h2>
+      <div className="hub-list">
+        <Row icon="swap" title="Tauschbörse" sub="Karten mit echten Spielern tauschen – 100 % fair*" onClick={onTrade} />
+        <Row icon="folder" title="Spielstände" sub={`${saves.length} gespeichert`} onClick={() => setShowSaves(true)} disabled={!saves.length} />
+        <Row icon="trophy" title="Erfolge" sub="Karriereziele" onClick={onAchievements} disabled={!saves.length} />
+        <Row icon="pillars" title="Hall of Fame" sub="Deine besten Karrieren" onClick={onFame} disabled={!hasHistory} />
+        <Row icon="cloud" title="Sichern & Laden" sub="Spielstände exportieren und wieder einspielen" onClick={() => setBackup(true)} />
       </div>
 
       <p className="disclaimer hub-disc">
@@ -179,10 +188,20 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
 function Tile({ icon, title, sub, onClick, disabled, badge, accent }: { icon: string; title: string; sub: string; onClick: () => void; disabled?: boolean; badge?: string; accent?: boolean }) {
   return (
     <button className={`hub-tile ${accent ? 'accent' : ''}`} onClick={onClick} disabled={disabled}>
-      <span className="hub-tile-icon" aria-hidden="true">{icon}</span>
+      <span className="hub-tile-icon" aria-hidden="true"><Icon name={icon} /></span>
       <strong>{title}</strong>
       <small>{sub}</small>
       {badge && <span className="hub-badge">{badge}</span>}
+    </button>
+  );
+}
+
+function Row({ icon, title, sub, onClick, disabled }: { icon: string; title: string; sub: string; onClick: () => void; disabled?: boolean }) {
+  return (
+    <button className="hub-link" onClick={onClick} disabled={disabled}>
+      <span className="hub-link-icon" aria-hidden="true"><Icon name={icon} size={20} /></span>
+      <span className="hub-link-text"><strong>{title}</strong><small>{sub}</small></span>
+      <Icon name="arrow" size={18} className="hub-link-go" />
     </button>
   );
 }

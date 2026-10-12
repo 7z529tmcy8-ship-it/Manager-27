@@ -6,6 +6,7 @@ import { motionReduced } from '../settings';
 import { play } from '../sound';
 import Confetti from './Confetti';
 import UtCard from './UtCard';
+import Icon from './Icon';
 
 type Phase = 'pick' | 'search' | 'found' | 'adding' | 'confirm' | 'done' | 'lost';
 
@@ -182,9 +183,9 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
         {!inTrade || phase === 'done' ? (
           <button className="hub-back" onClick={onBack}>‹ Hauptmenü</button>
         ) : (
-          <span className="hub-back muted">🔒 Trade läuft …</span>
+          <span className="hub-back muted">Trade läuft …</span>
         )}
-        <span className="hub-coins">🪙 {club.coins.toLocaleString('de-DE')}</span>
+        <span className="hub-coins"><Icon name="coin" size={16} className="coin-ic" />{club.coins.toLocaleString('de-DE')}</span>
       </header>
       <h1 className="hub-title">Tauschbörse</h1>
       {!inTrade && (
@@ -203,7 +204,7 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
               <span className="trade-ava" aria-hidden="true">{trader.avatar}</span>
               <span>
                 <strong>{trader.name}</strong>
-                <small>⭐ {trader.rating} · {trader.trades.toLocaleString('de-DE')} Trades · <b className="trade-verified">✔ Verifiziert</b></small>
+                <small>★ {trader.rating} · {trader.trades.toLocaleString('de-DE')} Trades · <b className="trade-verified">Verifiziert</b></small>
               </span>
               {phase === 'done' && <em className="trade-left">hat den Chat verlassen</em>}
             </div>
@@ -254,7 +255,7 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
                 <span className="trade-ava" aria-hidden="true">{partner.avatar}</span>
                 <span>
                   <strong>{partner.name}</strong>
-                  <small>⭐ {partner.rating} · {partner.trades} Trades · <b className="trade-verified">● online</b></small>
+                  <small>★ {partner.rating} · {partner.trades} Trades · <b className="trade-verified">● online</b></small>
                 </span>
                 <button className="btn ghost small" type="button" onClick={() => setPartner(null)} aria-label="Tauschpartner entfernen">✕</button>
               </div>
@@ -295,7 +296,7 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
       {phase === 'lost' && (
         <div className="net-lost" role="alertdialog" aria-modal="true" aria-label="Verbindung unterbrochen">
           <div className="net-box">
-            <div className="net-icon" aria-hidden="true">📡</div>
+            <div className="net-icon" aria-hidden="true"><Icon name="globe" size={36} /></div>
             {attempt <= RECONNECTS ? (
               <>
                 <h2>Verbindung unterbrochen</h2>
@@ -318,7 +319,7 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
         <div className="trade-confirm">
           <p><strong>{trader.name}</strong> hat den Tausch angenommen. Jetzt bist du dran!</p>
           <div className="trade-actions">
-            <button className="btn primary big" onClick={accept}>Annehmen ✅</button>
+            <button className="btn primary big" onClick={accept}>Annehmen</button>
             <button className="btn secondary big" onClick={accept}>Ablehnen</button>
           </div>
           <small className="trade-auto">Wird automatisch angenommen in {left} …</small>
@@ -328,7 +329,7 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
       {phase === 'done' && (
         <div className="trade-done">
           {!quick && <Confetti pieces={60} />}
-          <h2>Trade erfolgreich! 🤝</h2>
+          <h2>Trade erfolgreich!</h2>
           <p>Glückwunsch zu deinen neuen Karten. {trader.name} bedankt sich für {offer.map((c) => c.name).join(', ')}.</p>
           <div className="trade-rate">
             <strong>Wie war dein Trade mit {trader.name}?</strong>
@@ -339,7 +340,7 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
               ))}
             </div>
             {myStars > 0 && (
-              <small>Danke für deine Bewertung! Sie wird geprüft und in 4–6 Wochen berücksichtigt. Bewertung von {trader.name} aktuell: ⭐ {trader.rating}</small>
+              <small>Danke für deine Bewertung! Sie wird geprüft und in 4–6 Wochen berücksichtigt. Bewertung von {trader.name} aktuell: ★ {trader.rating}</small>
             )}
           </div>
           <div className="trade-actions">

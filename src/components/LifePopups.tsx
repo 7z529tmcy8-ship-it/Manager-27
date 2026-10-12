@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { useEffect, useState } from 'react';
 import { play } from '../sound';
 import { resolveFlirt, renameChild } from '../game/family';
@@ -30,7 +31,7 @@ export default function LifePopups({ career, onChange, onFamily }: { career: Car
       <div className="life-pop" role="dialog" aria-modal="true" aria-labelledby="birth-title">
         <Confetti pieces={70} />
         <div className="life-card birth">
-          <div className="life-emoji" aria-hidden="true">🍼</div>
+          <div className="life-emoji" aria-hidden="true"><Icon name="heart" size={56} /></div>
           <h2 id="birth-title">Überraschung – du wirst Vater!</h2>
           <p>Neun Monate nach der Party kommt die Nachricht aus Brasilien: Das Kind ist da. Unter „Familie“ legst du fest, wie es aufwächst – Verein, Schule, Zocken, Essen.</p>
           <label>
@@ -50,13 +51,13 @@ export default function LifePopups({ career, onChange, onFamily }: { career: Car
     return (
       <div className="life-pop" role="dialog" aria-modal="true" aria-labelledby="flirt-title">
         <div className="life-card flirt">
-          <div className="life-emoji" aria-hidden="true">🇧🇷🎶</div>
+          <div className="life-emoji" aria-hidden="true"><Icon name="music" size={56} /></div>
           <h2 id="flirt-title">Einladung zur After-Party</h2>
           <p>{h.flirt.text}</p>
           <p className="muted">Diese Einladung kommt nur ein einziges Mal. Wer mitgeht, riskiert Schlagzeilen – und neun Monate später kommt ein Baby.</p>
           <div className="life-btns">
-            <button className="btn secondary big" onClick={() => onChange(resolveFlirt(career, false))}>✋ Ablehnen</button>
-            <button className="btn primary big" onClick={() => onChange(resolveFlirt(career, true))}>🍾 Mitgehen</button>
+            <button className="btn secondary big" onClick={() => onChange(resolveFlirt(career, false))}>Ablehnen</button>
+            <button className="btn primary big" onClick={() => onChange(resolveFlirt(career, true))}>Mitgehen</button>
           </div>
         </div>
       </div>
@@ -67,7 +68,7 @@ export default function LifePopups({ career, onChange, onFamily }: { career: Car
     return (
       <div className="life-pop" role="dialog" aria-modal="true" aria-labelledby="offer-title">
         <div className="life-card">
-          <div className="life-emoji" aria-hidden="true">📝</div>
+          <div className="life-emoji" aria-hidden="true"><Icon name="pencil" size={56} /></div>
           <h2 id="offer-title">{offerChild.offer.round === 2 ? 'Letzte Chance für ' : 'Profi-Angebot für '}{offerChild.name}!</h2>
           <p>Ein Verein will {offerChild.name} unter Vertrag nehmen. Du verhandelst das Gehalt – zu hoch gepokert, und der Deal platzt.</p>
           <div className="life-btns">

@@ -1,3 +1,4 @@
+import { Glyph } from './Icon';
 import {
   ARCHETYPES,
   GENERAL_SKILLS,
@@ -36,7 +37,7 @@ export function ArchetypePicker({ career, onChange }: { career: Career; onChange
       <div className={`cs-choices n${Math.min(3, list.length)} sk-types`}>
         {list.map((a) => (
           <button key={a.id} className="cs-choice k-transfer" onClick={() => onChange(chooseArchetype(career, a.id))}>
-            <small>{a.icon} Spielertyp</small>
+            <small><Glyph e={a.icon} /> Spielertyp</small>
             <strong>{a.name}</strong>
             <span className="cs-choice-meta">{a.text}</span>
             <span className="cs-choice-league">{a.skills.filter((s) => s.tier === 5).map((s) => s.name).join(' · ')}</span>
@@ -55,7 +56,7 @@ export function LevelChip({ career, onOpen }: { career: Career; onOpen: () => vo
   const free = freePoints(career.player);
   return (
     <button className={`sk-chip ${free > 0 ? 'has-points' : ''}`} onClick={onOpen} aria-label="Fähigkeitenbaum öffnen">
-      <span>{getArchetype(sk.archetype).icon} Lv {info.level}</span>
+      <span><Glyph e={getArchetype(sk.archetype).icon} /> Lv {info.level}</span>
       <i style={{ width: `${Math.round((info.into / info.need) * 100)}%` }} aria-hidden="true" />
       {free > 0 && <b>{free} FP</b>}
     </button>
@@ -124,7 +125,7 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
         onContextMenu={(e) => e.preventDefault()}
         aria-label={`${s.name}: ${s.text}. ${owned ? 'Freigeschaltet' : reason ?? `Kostet ${s.cost} Punkte`}`}
       >
-        <span className="sk-icon" aria-hidden="true">{s.icon}</span>
+        <span className="sk-icon" aria-hidden="true"><Glyph e={s.icon} /></span>
         <strong>{s.name}</strong>
         <small>{s.text}</small>
         {max > 1 && (
@@ -133,7 +134,7 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
           </span>
         )}
         {can && <span className="sk-hold" aria-hidden="true" />}
-        <em>{owned ? '✓ aktiv' : can ? (holding === s.id ? 'Halten …' : `${s.cost} FP · gedrückt halten`) : reason === `${s.cost} FP nötig` ? `${s.cost} FP` : `🔒 ${reason}`}</em>
+        <em>{owned ? 'aktiv' : can ? (holding === s.id ? 'Halten …' : `${s.cost} FP · gedrückt halten`) : reason === `${s.cost} FP nötig` ? `${s.cost} FP` : `${reason}`}</em>
       </button>
     );
   };
@@ -162,7 +163,7 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
       <div className="overlay-inner">
         <header className="overlay-head"><button className="nav-back" onClick={onClose}>‹ Zurück</button></header>
         <div className="sk-head">
-          <span className="sk-big" aria-hidden="true">{type.icon}</span>
+          <span className="sk-big" aria-hidden="true"><Glyph e={type.icon} /></span>
           <div>
             <h2>{type.name}</h2>
             <p className="cs-sub">{type.text}</p>
@@ -174,7 +175,7 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
           <span>{info.into}/{info.need} EP</span>
         </div>
         <p className={`sk-points ${free > 0 ? 'has' : ''}`}>
-          {free > 0 ? `🎁 ${free} Fähigkeitspunkt${free === 1 ? '' : 'e'} frei` : 'Keine freien Punkte – spiel weiter, um EP zu sammeln.'}
+          {free > 0 ? `${free} Fähigkeitspunkt${free === 1 ? '' : 'e'} frei` : 'Keine freien Punkte – spiel weiter, um EP zu sammeln.'}
         </p>
 
         <div className="sk-bonus">
@@ -192,7 +193,7 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
         </div>
         {master && (
           <section className="sk-master-wrap">
-            <h3>👑 Meisterstück</h3>
+            <h3>Meisterstück</h3>
             <p className="sk-master-hint">Nur für die Größten: ein Ast komplett bis Stufe {MASTER_TOP}, der andere mindestens bis Stufe {MASTER_OTHER}.</p>
             {node(master, true)}
           </section>

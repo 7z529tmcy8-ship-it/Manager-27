@@ -10,6 +10,7 @@ import type { Career, Difficulty } from '../game/types';
 import { UNLOCK_KEY } from './PasswordGate';
 import { updateSettings, useSettings, type AppSettings } from '../settings';
 import { play } from '../sound';
+import Icon from './Icon';
 
 interface Props {
   /** Ohne Karriere (z. B. im Startmenü) gibt es nur die Geräte-Einstellungen. */
@@ -167,15 +168,15 @@ function DevPanel({ career, onChange, onLock }: { career?: Career; onChange?: (c
   };
   return (
     <section className="panel dev-panel">
-      <h2>🛠️ Entwickler</h2>
+      <h2>Entwickler</h2>
       <p className="hint">Wirkt sofort auf deinen Spielstand in diesem Browser. Tipp: vorher unter „Sichern & Laden“ eine Sicherung machen.</p>
 
       <div className="dev-group">
-        <span className="setting-label">Coins · aktuell 🪙 {club.coins.toLocaleString('de-DE')}</span>
+        <span className="setting-label">Coins · aktuell <Icon name="coin" size={16} className="coin-ic" />{club.coins.toLocaleString('de-DE')}</span>
         <div className="dev-btns">
           <button className="btn secondary small" onClick={() => club$((c) => devCoins(c, c.coins + 100_000), '+100.000 Coins')}>+100.000</button>
           <button className="btn secondary small" onClick={() => club$((c) => devCoins(c, c.coins + 1_000_000), '+1 Mio. Coins')}>+1 Mio.</button>
-          <button className="btn primary small" onClick={() => club$((c) => devCoins(c, INFINITE_COINS), 'Unendlich Coins ♾️')}>♾️ Unendlich</button>
+          <button className="btn primary small" onClick={() => club$((c) => devCoins(c, INFINITE_COINS), 'Unendlich Coins')}>Unendlich</button>
           <button className="btn ghost small" onClick={() => club$((c) => devCoins(c, 0), 'Coins auf 0')}>Auf 0</button>
         </div>
       </div>

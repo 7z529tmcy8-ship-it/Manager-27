@@ -3,6 +3,7 @@ import { CARD_POOL, MAX_CARD_OVR, collectionProgress, costTo99, getCard, rarity,
 import { getClubState, setClubState, useClub } from '../clubStore';
 import UtCard from './UtCard';
 import { cardById } from '../game/squad';
+import Icon from './Icon';
 
 type Filter = 'all' | 'elite' | 'icon' | 'cult' | 'wonder' | 'talent' | 'debut' | 'special' | 'dupes';
 
@@ -51,7 +52,7 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
     <main className="hub">
       <header className="hub-top">
         <button className="hub-back" onClick={onBack}>‹ Hauptmenü</button>
-        <span className="hub-coins">🪙 {club.coins.toLocaleString('de-DE')}</span>
+        <span className="hub-coins"><Icon name="coin" size={16} className="coin-ic" />{club.coins.toLocaleString('de-DE')}</span>
       </header>
       <h1 className="hub-title">Sammlung</h1>
       <div className="collect-progress" aria-label={`${progress.label} der Sammlung`}>
@@ -66,7 +67,7 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
             <button key={f.id} className={`chip ${filter === f.id ? 'active' : ''}`} onClick={() => setFilter(f.id)}>{chipLabel(f)}</button>
           ))}
         </div>
-        {dupeValue > 0 && <button className="btn secondary small" onClick={sell}>Doppelte verkaufen (+{dupeValue.toLocaleString('de-DE')} 🪙)</button>}
+        {dupeValue > 0 && <button className="btn secondary small" onClick={sell}>Doppelte verkaufen (+{dupeValue.toLocaleString('de-DE')} Coins)</button>}
       </div>
       {msg && <p className="hub-msg">{msg}</p>}
 
@@ -126,13 +127,13 @@ function CardDetail({ id, onClose }: { id: string; onClose: () => void }) {
               <li><span>{card.league ? 'Verein' : 'Kartentyp'}</span><span>{card.league ? `${card.club} · ${card.league}` : card.label ?? card.club}</span></li>
               <li><span>Im Besitz</span><span>{own ? 'eigene Sonderkarte' : `${count}×`}</span></li>
               <li><span>Im Team</span><span>{inSquad ? 'aufgestellt' : 'nein'}</span></li>
-              {!own && <li><span>Verkaufswert</span><span>🪙 {value.toLocaleString('de-DE')}</span></li>}
+              {!own && <li><span>Verkaufswert</span><span><Icon name="coin" size={16} className="coin-ic" />{value.toLocaleString('de-DE')}</span></li>}
             </ul>
             <UpgradeBox card={card} coins={club.coins} onUpgrade={() => {
               const next = upgradeCard(getClubState(), id);
               if (next) setClubState(next);
             }} />
-            {canSell && <button className="btn secondary" onClick={sellOne}>1× verkaufen (+{value.toLocaleString('de-DE')} 🪙)</button>}
+            {canSell && <button className="btn secondary" onClick={sellOne}>1× verkaufen (+{value.toLocaleString('de-DE')} Coins)</button>}
             {canSell && count === 1 && (card.boost ?? 0) > 0 && <p className="muted">Beim Verkauf der letzten Karte gehen die Verbesserungen verloren.</p>}
             {!canSell && !own && <p className="muted">Aufgestellt – zum Verkaufen erst aus dem Team nehmen.</p>}
           </div>
@@ -146,20 +147,20 @@ function CardDetail({ id, onClose }: { id: string; onClose: () => void }) {
 function UpgradeBox({ card, coins, onUpgrade }: { card: CollectCard; coins: number; onUpgrade: () => void }) {
   const fmt = (n: number) => n.toLocaleString('de-DE');
   if (card.ovr >= MAX_CARD_OVR) {
-    return <div className="upgrade-box max"><strong>👑 Maximal verbessert</strong><small>Diese Karte hat 99 erreicht.</small></div>;
+    return <div className="upgrade-box max"><strong>Maximal verbessert</strong><small>Diese Karte hat 99 erreicht.</small></div>;
   }
   const cost = upgradeCost(card.ovr);
   const afford = coins >= cost;
   return (
     <div className="upgrade-box">
       <div className="upgrade-head">
-        <strong>⬆️ Karte verbessern</strong>
+        <strong>Karte verbessern</strong>
         {(card.boost ?? 0) > 0 && <span className="upgrade-boost">bereits +{card.boost}</span>}
       </div>
       <button className="btn primary" disabled={!afford} onClick={onUpgrade}>
-        {card.ovr} → {card.ovr + 1} · 🪙 {fmt(cost)}
+        {card.ovr} → {card.ovr + 1} · <Icon name="coin" size={16} className="coin-ic" />{fmt(cost)}
       </button>
-      <small>{afford ? `Bis 99 insgesamt noch 🪙 ${fmt(costTo99(card.ovr))}` : `Dir fehlen 🪙 ${fmt(cost - coins)}`}</small>
+      <small>{afford ? `Bis 99 insgesamt noch ${fmt(costTo99(card.ovr))} Coins` : `Dir fehlen ${fmt(cost - coins)} Coins`}</small>
     </div>
   );
 }

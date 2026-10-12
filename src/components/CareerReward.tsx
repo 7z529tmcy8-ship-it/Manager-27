@@ -16,7 +16,7 @@ export default function CareerReward({ career, onDone }: { career: Career; onDon
   return (
     <div className="reward" role="dialog" aria-modal="true" aria-labelledby="reward-title">
       <div className="reward-card">
-        <span className="upd-badge">🏁 Karriereende · {career.player.name}</span>
+        <span className="upd-badge">Karriereende · {career.player.name}</span>
         <h2 id="reward-title">Wähle deine Karte</h2>
         <p className="muted">
           {options.length > 1

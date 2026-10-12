@@ -1,3 +1,4 @@
+import Icon, { Glyph } from './Icon';
 import { useEffect, useRef, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import {
@@ -60,7 +61,7 @@ export default function CasinoTab({ career, onChange }: { career: Career; onChan
     <div className="casino">
       {broke && (
         <section className="broke">
-          <h3>💸 Pleite</h3>
+          <h3>Pleite</h3>
           <p className="cs-sub">Die Karriere ist vorbei, das Geld ist weg. Aber das Fernsehen ruft …</p>
           <div className="vice-grid">
             {BROKE_OPTIONS.map((o) => {
@@ -75,7 +76,7 @@ export default function CasinoTab({ career, onChange }: { career: Career; onChan
                   setMsg(r.text);
                   play(r.coins >= 50_000 ? 'fanfare' : 'coin');
                 }}>
-                  <strong>{o.icon} {o.name}</strong>
+                  <strong><Glyph e={o.icon} /> {o.name}</strong>
                   <small>{o.text}</small>
                   {used && <em>Schon gemacht</em>}
                 </button>
@@ -87,8 +88,8 @@ export default function CasinoTab({ career, onChange }: { career: Career; onChan
       {msg && <p className="cs-note neutral">{msg}</p>}
 
       <div className="chips">
-        <button className={`chip ${game === 'roulette' ? 'active' : ''}`} onClick={() => setGame('roulette')}>🎡 Roulette</button>
-        <button className={`chip ${game === 'horses' ? 'active' : ''}`} onClick={() => setGame('horses')}>🏇 Pferdewetten</button>
+        <button className={`chip ${game === 'roulette' ? 'active' : ''}`} onClick={() => setGame('roulette')}>Roulette</button>
+        <button className={`chip ${game === 'horses' ? 'active' : ''}`} onClick={() => setGame('horses')}>Pferdewetten</button>
       </div>
 
       {game === 'roulette' ? (
@@ -104,7 +105,7 @@ export default function CasinoTab({ career, onChange }: { career: Career; onChan
           {HORSES.map((h, i) => (
             <li key={h.name}>
               <button className={`casino-pick ${horse === i ? 'on' : ''}`} onClick={() => setHorse(i)}>
-                <span>🐎 {h.name}</span><small>Quote {String(h.odds).replace('.', ',')}</small>
+                <span>{h.name}</span><small>Quote {String(h.odds).replace('.', ',')}</small>
               </button>
             </li>
           ))}
@@ -119,9 +120,9 @@ export default function CasinoTab({ career, onChange }: { career: Career; onChan
       </div>
       <div className="dev-btns">
         <button className="btn primary big" disabled={stake > club.coins || (!!anim && !revealed)} onClick={() => go(stake)}>
-          {game === 'roulette' ? '🎡 Drehen' : '🏁 Rennen starten'} · 🪙 {fmt(stake)}
+          {game === 'roulette' ? 'Drehen' : 'Rennen starten'} · <Icon name="coin" size={16} className="coin-ic" />{fmt(stake)}
         </button>
-        <button className="btn secondary" disabled={allIn <= 0 || (!!anim && !revealed)} onClick={() => go(allIn)}>🔥 Alles setzen</button>
+        <button className="btn secondary" disabled={allIn <= 0 || (!!anim && !revealed)} onClick={() => go(allIn)}>Alles setzen</button>
       </div>
 
       {anim && (
@@ -144,7 +145,7 @@ export default function CasinoTab({ career, onChange }: { career: Career; onChan
           {revealed && (
             <p className={`cs-note ${anim.res.win ? 'good' : 'bad'}`}>
               {anim.res.win
-                ? `Gewonnen! +${fmt(anim.res.payout)} Coins 🎉`
+                ? `Gewonnen! +${fmt(anim.res.payout)} Coins`
                 : anim.game === 'roulette'
                   ? `Die ${anim.res.outcome} – leider verloren (−${fmt(anim.stake)}).`
                   : `${HORSES[anim.res.outcome].name} gewinnt – dein Pferd nicht (−${fmt(anim.stake)}).`}

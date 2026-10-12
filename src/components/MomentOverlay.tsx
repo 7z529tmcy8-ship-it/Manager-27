@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { useEffect, useState } from 'react';
 import type { Moment } from '../game/moments';
 import { motionReduced } from '../settings';
@@ -5,7 +6,7 @@ import { play, type SoundId } from '../sound';
 import Confetti from './Confetti';
 
 const ICON: Record<Moment['kind'], string> = {
-  scorer: '👟', ballon: '🏅', title: '🏆', award: '⭐', transfer: '✍️', rise: '📈', fall: '📉',
+  scorer: 'boot', ballon: 'medal', title: 'trophy', award: 'star', transfer: 'pencil', rise: 'chart', fall: 'chart',
 };
 
 /** Zahl, die sichtbar hoch- oder runterzählt (z. B. Wertung 78 → 83). */
@@ -50,7 +51,7 @@ export default function MomentOverlay({ moments, onDone }: { moments: Moment[]; 
         </div>
       )}
       <div className="mo-card" key={i}>
-        <div className="mo-icon" aria-hidden="true">{ICON[m.kind]}</div>
+        <div className="mo-icon" aria-hidden="true"><Icon name={ICON[m.kind]} size={56} /></div>
         {m.kind === 'transfer' ? (
           <div className="mo-transfer">
             <span className="mo-old">{m.fromClub}</span>

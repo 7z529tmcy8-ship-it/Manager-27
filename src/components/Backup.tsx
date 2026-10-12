@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { backupText, describeBackup, parseBackup, restoreBackup, createBackup } from '../backup';
 import { storageUsedKb } from '../game/storage';
+import Icon from './Icon';
 
 const fmt = (n: number) => n.toLocaleString('de-DE');
 
@@ -58,7 +59,7 @@ export default function Backup({ onClose }: { onClose: () => void }) {
     <div className="overlay" role="dialog" aria-modal="true" aria-label="Sichern und Laden">
       <div className="overlay-inner backup">
         <header className="overlay-head"><button className="nav-back" onClick={onClose}>‹ Zurück</button></header>
-        <h1 className="overlay-title">💾 Sichern & Laden</h1>
+        <h1 className="overlay-title">Sichern & Laden</h1>
         <p className="cs-sub">
           Deine Spielstände liegen nur in diesem Browser. Wird der Verlauf gelöscht, sind sie weg – sichere sie deshalb ab und zu.
           Mit der Sicherung kannst du auch auf einem anderen Gerät weiterspielen.
@@ -66,11 +67,11 @@ export default function Backup({ onClose }: { onClose: () => void }) {
 
         <section className="backup-box">
           <h3>Sichern</h3>
-          <small className="muted">Aktuell: {now.careers} Karriere(n) · 🪙 {fmt(now.coins)} · Sammlung & Einstellungen</small>
+          <small className="muted">Aktuell: {now.careers} Karriere(n) · <Icon name="coin" size={16} className="coin-ic" />{fmt(now.coins)} · Sammlung & Einstellungen</small>
           <small className="muted">Belegter Speicher: ca. {fmt(storageUsedKb())} KB (Browser erlauben meist ca. 5.000 KB)</small>
           <div className="backup-btns">
-            <button className="btn primary" onClick={download}>⬇️ Als Datei herunterladen</button>
-            <button className="btn secondary" onClick={copy}>📋 Als Text kopieren</button>
+            <button className="btn primary" onClick={download}>Als Datei herunterladen</button>
+            <button className="btn secondary" onClick={copy}>Als Text kopieren</button>
           </div>
         </section>
 
@@ -78,7 +79,7 @@ export default function Backup({ onClose }: { onClose: () => void }) {
           <h3>Laden</h3>
           <small className="muted">Ersetzt alle Spieldaten in diesem Browser durch die Sicherung.</small>
           <div className="backup-btns">
-            <button className="btn primary" onClick={() => file.current?.click()}>📂 Datei auswählen</button>
+            <button className="btn primary" onClick={() => file.current?.click()}>Datei auswählen</button>
             <input ref={file} type="file" accept=".json,application/json,text/plain" hidden onChange={(e) => pickFile(e.target.files?.[0])} />
           </div>
           <textarea

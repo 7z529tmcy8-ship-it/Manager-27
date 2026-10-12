@@ -1,3 +1,4 @@
+import Icon, { Glyph } from './Icon';
 import { useState } from 'react';
 import { getClub, getLeague } from '../data/leagues';
 import {
@@ -37,10 +38,10 @@ export default function CoachPanel({ career, onChange, onExit }: { career: Caree
       <section className="cs-window">
         <h2>Karriereende</h2>
         <p className="cs-sub">{career.retiredReason}</p>
-        <p className="cs-sub">👑 Deine Ikonen-Karte liegt jetzt in der Sammlung.</p>
+        <p className="cs-sub">Deine Ikonen-Karte liegt jetzt in der Sammlung.</p>
         {canStartCoaching(career) && (
           <div className="coach-start">
-            <strong>📋 Trainer werden?</strong>
+            <strong>Trainer werden?</strong>
             <span>Starte als Trainer – mit deinem Ruf als Spieler beginnst du mit Trainerwert {startRating(career)}.</span>
             <button className="btn primary big cs-go" onClick={() => onChange(startCoaching(career))}>Trainerkarriere starten</button>
           </div>
@@ -60,7 +61,7 @@ export default function CoachPanel({ career, onChange, onExit }: { career: Caree
 
   return (
     <>
-      <h2 className="coach-title">📋 Trainerkarriere</h2>
+      <h2 className="coach-title">Trainerkarriere</h2>
       <div className="coach-head">
         <div className="cs-ovr top"><small>TW</small><strong>{coach.rating}</strong></div>
         <div>
@@ -84,7 +85,7 @@ export default function CoachPanel({ career, onChange, onExit }: { career: Caree
               <button className="btn secondary small cs-go" disabled={!!coach.pending?.length} onClick={() => onChange(playCoachHalf(career))}>Nur bis zur Winterpause</button>
             )}
             <details className="coach-more" open={coach.phase === 'winter'}>
-              <summary>⚙️ Selbst steuern{coach.phase === 'choose' ? ': Verein wählen' : coach.phase === 'winter' ? ': Winter-Entscheidung, Taktik, Transfers' : ': Taktik und Transfers'}</summary>
+              <summary>Selbst steuern{coach.phase === 'choose' ? ': Verein wählen' : coach.phase === 'winter' ? ': Winter-Entscheidung, Taktik, Transfers' : ': Taktik und Transfers'}</summary>
           {coach.phase === 'choose' && (
             <>
               <h2>{coach.history.length ? 'Sommerpause' : 'Erste Trainerstation'}</h2>
@@ -143,7 +144,7 @@ export default function CoachPanel({ career, onChange, onExit }: { career: Caree
               <span className="cs-agebox">{s.age}</span>
               <span className="cs-clubcell">
                 {getClub(s.clubId).name}
-                {s.trophies.length > 0 && <i className="cs-trophy" title={s.trophies.join(', ')}>{'🏆'.repeat(Math.min(3, s.trophies.length))}</i>}
+                {s.trophies.length > 0 && <i className="cs-trophy" title={s.trophies.join(', ')}>{Array.from({ length: Math.min(3, s.trophies.length) }, (_, i) => <Icon key={i} name="trophy" size={14} />)}</i>}
                 {s.sacked && <i className="cs-tag">entlassen</i>}
                 <small>{getLeague(s.leagueId).name}</small>
               </span>
@@ -207,7 +208,7 @@ function CoachSeasonView({ career, onChange }: { career: Career; onChange: (c: C
           <div className="cs-choices">
             {(Object.keys(WINTER_ACTIONS) as WinterAction[]).map((k) => (
               <button key={k} className="cs-choice k-camp" onClick={() => onChange(winterAction(career, k))}>
-                <small>{WINTER_ACTIONS[k].icon} Winter</small>
+                <small><Glyph e={WINTER_ACTIONS[k].icon} /> Winter</small>
                 <strong>{WINTER_ACTIONS[k].name}</strong>
                 <span className="cs-choice-meta">{WINTER_ACTIONS[k].text}</span>
               </button>
@@ -221,7 +222,7 @@ function CoachSeasonView({ career, onChange }: { career: Career; onChange: (c: C
         <div className="coach-tactics" role="radiogroup" aria-label="Taktik">
           {(Object.keys(TACTICS) as CoachTactic[]).map((k) => (
             <button key={k} role="radio" aria-checked={live.tactic === k} className={`coach-tactic ${live.tactic === k ? 'on' : ''}`} onClick={() => onChange(setTactic(career, k))}>
-              <strong>{TACTICS[k].icon} {TACTICS[k].name}</strong>
+              <strong><Glyph e={TACTICS[k].icon} /> {TACTICS[k].name}</strong>
               <small>{TACTICS[k].text}</small>
             </button>
           ))}

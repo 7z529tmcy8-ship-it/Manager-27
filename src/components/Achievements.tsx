@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { ACHIEVEMENTS } from '../game/achievements';
 import { listCareers } from '../game/storage';
+import { Glyph } from './Icon';
 
 /** Karriereziele über alle gespeicherten Karrieren. */
 export default function Achievements({ onBack }: { onBack: () => void }) {
@@ -28,7 +29,7 @@ export default function Achievements({ onBack }: { onBack: () => void }) {
       <div className="achievement-grid">
         {rows.map(({ a, holders, best }) => (
           <article key={a.id} className={`achievement ${holders.length ? 'done' : ''}`}>
-            <span className="ach-icon" aria-hidden="true">{a.icon}</span>
+            <span className="ach-icon" aria-hidden="true"><Glyph e={a.icon} /></span>
             <div>
               <strong>{a.name}</strong>
               <p>{a.description}</p>

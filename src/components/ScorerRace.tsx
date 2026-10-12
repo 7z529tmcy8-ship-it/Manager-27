@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { getLeague } from '../data/leagues';
 import { clubLeagueId, currentClubId, seasonLabel } from '../game/player';
 import { raceExcerpt, raceRank, scorerClubName, scorerRace, type ScorerEntry } from '../game/scorers';
@@ -42,7 +43,7 @@ export default function ScorerRace({ career }: { career: Career }) {
   const message =
     rank === 1
       ? final
-        ? `👑 Torjägerkanone! Mit ${me.goals} Toren vorne.`
+        ? `Torjägerkanone! Mit ${me.goals} Toren vorne.`
         : gap > 0
           ? `Du führst mit ${gap} ${gap === 1 ? 'Tor' : 'Toren'} Vorsprung.`
           : 'Du führst – punktgleich mit dem Verfolger.'
@@ -52,13 +53,13 @@ export default function ScorerRace({ career }: { career: Career }) {
   return (
     <details className="race" open={final && rank === 1}>
       <summary>
-        <span>⚽ Torjäger-Rennen <small>{leagueName}{final ? ' · Endstand' : ' · nach der Hinrunde'}</small></span>
-        <b className={rank === 1 ? 'lead' : ''}>{rank === 1 ? '👑 ' : ''}Platz {rank} · {me.goals} Tore</b>
+        <span>Torjäger-Rennen <small>{leagueName}{final ? ' · Endstand' : ' · nach der Hinrunde'}</small></span>
+        <b className={rank === 1 ? 'lead' : ''}>{rank === 1 ? '' : ''}Platz {rank} · {me.goals} Tore</b>
       </summary>
       <ol>
         {raceExcerpt(race).map(({ entry, rank: r }, i, arr) => (
           <li key={`${entry.name}-${entry.clubId}`} className={`${entry.you ? 'you' : ''} ${i > 0 && arr[i - 1].rank !== r - 1 ? 'gap' : ''}`}>
-            <span className="race-rank">{r === 1 ? '👑' : `${r}.`}</span>
+            <span className="race-rank">{r === 1 ? <Icon name="crown" size={16} /> : `${r}.`}</span>
             <span className="race-name"><strong>{entry.you ? `${entry.name} (du)` : entry.name}</strong><small>{scorerClubName(entry)}</small></span>
             <b>{entry.goals}</b>
           </li>

@@ -1,6 +1,7 @@
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { SCANDAL_FIRED, SCANDAL_SUSPENSION, SCANDAL_WARNING, VICES, canDoVice, doVice, viceUsedThisBreak } from '../game/vices';
 import type { Career } from '../game/types';
+import Icon, { Glyph } from './Icon';
 
 /** „Abseits des Platzes“: riskante Aktionen mit Skandal-Zähler (eine pro Pause). */
 export default function VicePanel({ career, onChange }: { career: Career; onChange: (c: Career) => void }) {
@@ -26,7 +27,7 @@ export default function VicePanel({ career, onChange }: { career: Career; onChan
   return (
     <details className="vice" open={!!note}>
       <summary>
-        <span>🌙 Abseits des Platzes</span>
+        <span>Abseits des Platzes</span>
         <span className={`vice-meter ${level}`} aria-label={`Skandal ${scandal} von ${SCANDAL_FIRED}`}>
           <i style={{ width: `${(scandal / SCANDAL_FIRED) * 100}%` }} />
         </span>
@@ -42,10 +43,10 @@ export default function VicePanel({ career, onChange }: { career: Career; onChan
           const ok = canDoVice(career, v.id) && !tooPoor;
           return (
             <button key={v.id} className={`vice-card ${v.id === 'bet' || v.id === 'doping' || v.id === 'drugs' ? 'danger' : ''}`} disabled={!ok} onClick={() => run(v.id)}>
-              <strong>{v.icon} {v.name}</strong>
-              {v.price && <span className="clinic-price">🪙 {v.price.toLocaleString('de-DE')}</span>}
-              <small className="vice-reward">✓ {v.reward}</small>
-              <small className="vice-risk">⚠ {v.risk}</small>
+              <strong><Glyph e={v.icon} /> {v.name}</strong>
+              {v.price && <span className="clinic-price"><Icon name="coin" size={16} className="coin-ic" />{v.price.toLocaleString('de-DE')}</span>}
+              <small className="vice-reward">{v.reward}</small>
+              <small className="vice-risk">{v.risk}</small>
               {!ok && <em>{used ? 'Erst in der nächsten Pause' : tooPoor ? 'Zu wenig Coins' : v.summerOnly ? 'Nur im Sommer' : 'Gerade nicht möglich'}</em>}
             </button>
           );

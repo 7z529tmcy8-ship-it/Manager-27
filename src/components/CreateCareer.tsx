@@ -1,3 +1,4 @@
+import { Glyph } from './Icon';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { play } from '../sound';
 import { motionReduced } from '../settings';
@@ -28,12 +29,12 @@ interface Props {
 type Tab = 'own' | 'real' | 'legends' | 'cult' | 'failed' | 'h96';
 /** Reiter: [ID, langer Name, kurzer Name fürs Handy]. */
 const TABS: [Tab, string, string][] = [
-  ['own', 'Eigener Spieler', '✏️ Eigener'],
-  ['real', 'Echter Spieler', '🎽 Echter'],
-  ['legends', '⭐ Legenden', '⭐ Legenden'],
-  ['cult', '🧡 Kult-Helden', '🧡 Kult'],
-  ['failed', '💔 Zweite Chance', '💔 2. Chance'],
-  ['h96', '🕰️ 96 von 2018', '🕰️ 96 (2018)'],
+  ['own', 'Eigener Spieler', 'Eigener'],
+  ['real', 'Echter Spieler', 'Echter'],
+  ['legends', 'Legenden', 'Legenden'],
+  ['cult', 'Kult-Helden', 'Kult'],
+  ['failed', 'Zweite Chance', '2. Chance'],
+  ['h96', '96 von 2018', '96 (2018)'],
 ];
 
 export default function CreateCareer({ onCancel, onCreate }: Props) {
@@ -128,8 +129,8 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
         <div className="create-preview-info">
           <strong>{previewCard.name}</strong>
           <small>Start ca. {preview.ovr} · Potenzial ~{preview.potential} ({scoutLabel(preview.potential)})</small>
-          <small>{origin ? `${getOrigin(origin).icon} ${getOrigin(origin).name}` : '🎡 Herkunft noch nicht ausgelost'}</small>
-          <button type="button" className="btn secondary small" onClick={randomize}>🎲 Zufallsspieler</button>
+          <small>{origin ? getOrigin(origin).name : 'Herkunft noch nicht ausgelost'}</small>
+          <button type="button" className="btn secondary small" onClick={randomize}>Zufallsspieler</button>
         </div>
       </div>
       <label>
@@ -256,7 +257,7 @@ function OriginWheel({ result, onResult }: { result: OriginId | null; onResult: 
                 y={50 - 30 * Math.cos((((from + to) / 2) * Math.PI) / 180) + 3}
                 textAnchor="middle" fontSize="9"
               >
-                {o.icon}
+                <Glyph e={o.icon} />
               </text>
             </g>
           ))}
@@ -266,16 +267,16 @@ function OriginWheel({ result, onResult }: { result: OriginId | null; onResult: 
       <div className="wheel-info">
         {shown ? (
           <div className="origin active">
-            <strong>{shown.icon} {shown.name}</strong>
+            <strong><Glyph e={shown.icon} /> {shown.name}</strong>
             <small>{shown.text}</small>
             <small className="muted">Ausgelost – das bleibt so.</small>
           </div>
         ) : (
           <>
-            <button type="button" className="btn primary" onClick={spin} disabled={!!spinning}>{spinning ? 'Dreht …' : '🎡 Glücksrad drehen'}</button>
+            <button type="button" className="btn primary" onClick={spin} disabled={!!spinning}>{spinning ? 'Dreht …' : 'Glücksrad drehen'}</button>
             <ul className="wheel-legend">
               {ORIGINS.map((o) => (
-                <li key={o.id}><i style={{ background: WHEEL_COLORS[o.id] }} /> {o.icon} {o.name} <small>{ORIGIN_ODDS[o.id]} %</small></li>
+                <li key={o.id}><i style={{ background: WHEEL_COLORS[o.id] }} /> <Glyph e={o.icon} /> {o.name} <small>{ORIGIN_ODDS[o.id]} %</small></li>
               ))}
             </ul>
           </>
@@ -340,7 +341,7 @@ function TraitChips({ selected, onToggle }: { selected: TraitId[]; onToggle: (id
             onClick={() => onToggle(t.id)}
             title={t.description}
           >
-            {t.icon} {t.name}
+            <Glyph e={t.icon} /> {t.name}
           </button>
         ))}
       </div>
@@ -379,7 +380,7 @@ function LegendPicker({ onCreate, list, intro, secondChance }: { onCreate: (c: C
                 <span className="legend-bio">{l.bio}</span>
                 <span className="trait-row">
                   {l.traits.map((t) => (
-                    <span key={t} className="pill trait" title={getTrait(t).description}>{getTrait(t).icon} {getTrait(t).name}</span>
+                    <span key={t} className="pill trait" title={getTrait(t).description}><Glyph e={getTrait(t).icon} /> {getTrait(t).name}</span>
                   ))}
                 </span>
               </span>

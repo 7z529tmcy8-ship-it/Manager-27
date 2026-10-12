@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { useEffect, useState } from 'react';
 import CoachPanel from './CoachPanel';
 import ScorerRace from './ScorerRace';
@@ -169,15 +170,15 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       {/* Familie und Vermögen */}
       <div className="cs-life">
         <button className="cs-life-btn" onClick={() => setPanel('family')}>
-          🏡 Familie{kids ? ` (${kids})` : ''}
+          Familie{kids ? ` (${kids})` : ''}
         </button>
-        <button className="cs-life-btn" onClick={() => setPanel('invest')}>💼 Vermögen</button>
-        <button className="cs-life-btn" onClick={() => setPanel('clinic')}>💎 Klinik{career.glam ? ` ✨${career.glam}` : ''}</button>
+        <button className="cs-life-btn" onClick={() => setPanel('invest')}>Vermögen</button>
+        <button className="cs-life-btn" onClick={() => setPanel('clinic')}>Klinik{career.glam ? ` · ${career.glam}` : ''}</button>
       </div>
 
       {(career.gifts?.length ?? 0) > 0 && (
         <button className="cs-note good sk-note gift-note" onClick={() => setPanel('invest')}>
-          🎁 {career.gifts!.length === 1 ? 'Ein Geschenk' : `${career.gifts!.length} Geschenke`} vom Aufsichtsrat – jetzt öffnen!
+          {career.gifts!.length === 1 ? 'Ein Geschenk' : `${career.gifts!.length} Geschenke`} vom Aufsichtsrat – jetzt öffnen!
         </button>
       )}
 
@@ -185,7 +186,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       {needType && <ArchetypePicker career={career} onChange={onChange} />}
 
       {!needType && xpNote && career.phase !== 'retired' && (
-        <button className="cs-note good sk-note" onClick={() => setTree(true)}>⭐ {xpNote}{p.skills && freePoints(p) > 0 ? ' → Fähigkeiten öffnen' : ''}</button>
+        <button className="cs-note good sk-note" onClick={() => setTree(true)}>{xpNote}{p.skills && freePoints(p) > 0 ? ' → Fähigkeiten öffnen' : ''}</button>
       )}
 
       {!needType && career.phase === 'window' && choices.length > 0 && (
@@ -265,7 +266,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       )}
 
       {retired && isBroke(career, coins) && (
-        <button className="cs-note bad sk-note" onClick={() => setPanel('invest')}>💸 Du bist pleite. Das Fernsehen hat angerufen … → Vermögen öffnen</button>
+        <button className="cs-note bad sk-note" onClick={() => setPanel('invest')}>Du bist pleite. Das Fernsehen hat angerufen … → Vermögen öffnen</button>
       )}
       {retired && <CoachPanel career={career} onChange={onChange} onExit={onExit} />}
 
@@ -276,7 +277,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       </div>
       <div className="cs-table" role="table" aria-label="Karriereverlauf">
         <div className="cs-row cs-th" role="row">
-          <span>Alter</span><span>Verein</span><span>OVR</span><span title="Spiele">👕</span><span title="Tore">⚽</span><span title="Vorlagen">👟</span>
+          <span>Alter</span><span>Verein</span><span>OVR</span><span title="Spiele">Sp</span><span title="Tore">T</span><span title="Vorlagen">V</span>
         </div>
         {hidden > 0 && (
           <button className="cs-row cs-more" onClick={() => setFull(true)}>
@@ -297,9 +298,9 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
               <>
                 <span className="cs-clubcell">{getClub(clubId).name}<small>{career.phase === 'winter' ? 'Winterpause' : half ? 'Rückrunde' : 'neue Saison'}</small></span>
                 <span><b className={`cs-pill ${ovrClass(p.ovr)}`}>{p.ovr}</b></span>
-                <span>{half ? `👕 ${half.apps}` : '–'}</span>
-                <span>{half ? `⚽ ${half.goals}` : '–'}</span>
-                <span>{half ? `👟 ${half.assists}` : '–'}</span>
+                <span>{half ? `${half.apps}` : '–'}</span>
+                <span>{half ? `${half.goals}` : '–'}</span>
+                <span>{half ? `${half.assists}` : '–'}</span>
               </>
             )}
           </div>
@@ -313,8 +314,8 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
             <span className="cs-flag">{flagOf(p.nation)}</span>
             <span className="cs-clubcell">{p.nation}<small>Nationalmannschaft</small></span>
             <span />
-            <span>👕 {p.caps}</span>
-            <span>⚽ {p.internationalGoals}</span>
+            <span>{p.caps}</span>
+            <span>{p.internationalGoals}</span>
             <span />
           </div>
         )}
@@ -343,19 +344,19 @@ function SeasonRow({ r, open, onToggle }: { r: SeasonRecord; open: boolean; onTo
         <span className="cs-clubcell">
           {getClub(r.clubId).name}
           {r.onLoan && <i className="cs-tag">Leihe</i>}
-          {titles.length > 0 && <i className="cs-trophy" title={titles.join(', ')}>{'🏆'.repeat(Math.min(3, r.trophies.length))}{r.awards.length ? '⭐' : ''}</i>}
+          {titles.length > 0 && <i className="cs-trophy" title={titles.join(', ')}>{Array.from({ length: Math.min(3, r.trophies.length) }, (_, i) => <Icon key={i} name="trophy" size={14} />)}{r.awards.length ? <Icon name="star" size={14} /> : null}</i>}
         </span>
         <span><b className={`cs-pill ${ovrClass(r.ovrEnd)}`}>{r.ovrEnd}</b></span>
-        <span>👕 {r.apps}</span>
-        <span>⚽ {r.goals}</span>
-        <span>👟 {r.assists}</span>
+        <span>{r.apps}</span>
+        <span>{r.goals}</span>
+        <span>{r.assists}</span>
       </button>
       {open && (
         <div className="cs-detail">
           <span>Saison {r.season} · {getLeague(r.leagueId).name} · Platz {r.leaguePosition}</span>
           <span>Ø-Note {r.avgRating?.toFixed(2) ?? '–'} · Wertung {r.ovrStart} → {r.ovrEnd} · Marktwert {formatMoney(r.marketValue)}</span>
-          {titles.length > 0 && <span>🏆 {titles.join(' · ')}</span>}
-          {(r.events ?? []).length > 0 && <span>⚡ {(r.events ?? []).map((e) => e.title).join(' · ')}</span>}
+          {titles.length > 0 && <span>{titles.join(' · ')}</span>}
+          {(r.events ?? []).length > 0 && <span>{(r.events ?? []).map((e) => e.title).join(' · ')}</span>}
         </div>
       )}
     </>
@@ -368,7 +369,7 @@ function ChoiceCard({ career, c, selected, onPick }: { career: Career; c: Choice
   return (
     <button className={`cs-choice k-${c.kind} ${selected ? 'on' : ''}`} onClick={onPick} aria-pressed={selected}>
       <small>{c.title}</small>
-      <strong>{c.kind === 'retire' ? 'Schuhe an den Nagel' : c.kind === 'camp' ? '☀️ Ab in den Süden' : choiceClub(career, c)}</strong>
+      <strong>{c.kind === 'retire' ? 'Schuhe an den Nagel' : c.kind === 'camp' ? 'Ab in den Süden' : choiceClub(career, c)}</strong>
       {league && <span className="cs-choice-league">{league}</span>}
       {o && (
         <span className="cs-choice-meta">
@@ -378,8 +379,8 @@ function ChoiceCard({ career, c, selected, onPick }: { career: Career; c: Choice
           {o.fee > 0 ? <><br />Ablöse {formatMoney(o.fee)}</> : null}
         </span>
       )}
-      {c.kind === 'home' && <span className="cs-choice-meta">🏠 Zurück, wo alles begann</span>}
-      {c.kind === 'exotic' && <span className="cs-choice-meta">✈️ Abenteuer mit Top-Gehalt</span>}
+      {c.kind === 'home' && <span className="cs-choice-meta">Zurück, wo alles begann</span>}
+      {c.kind === 'exotic' && <span className="cs-choice-meta">Abenteuer mit Top-Gehalt</span>}
       {c.kind === 'stay' && <span className="cs-choice-meta">Vertrag noch {career.player.contract.yearsLeft} J.</span>}
       {c.kind === 'retire' && <span className="cs-choice-meta">Mit {career.player.age} Jahren aufhören</span>}
       {c.kind === 'camp' && <span className="cs-choice-meta">Chance auf +1 Wertung – je mehr Spielpraxis, desto besser. Kleines Verletzungsrisiko.</span>}

@@ -2321,9 +2321,8 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 
 /* Milchglas-Flächen mit leuchtender Verlaufskante */
 :root[data-theme="arena"] :is(.hub-tile, .panel, .pack-card, .cs-window, .team-stats > div, .season, .collect-progress, .totw, .cs-head, .backup-box, .upgrade-box, .lt-item, .duel-list > li) {
-  position: relative; background: var(--glass-bg); border: 1px solid transparent;
-  -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
-  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, .08);
+  position: relative; background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05), 0 8px 24px rgba(0, 0, 0, .45);
 }
 :root[data-theme="arena"] :is(.hub-tile, .panel, .pack-card, .cs-window, .team-stats > div, .season, .collect-progress, .totw, .cs-head, .lt-item)::after {
   content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; pointer-events: none;
@@ -2483,3 +2482,149 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 /* eigene Spieler-Silhouette: holografischer Schimmer statt Porträt */
 :root[data-theme="arena"] .ucard-art.face { background: radial-gradient(circle at 50% 35%, rgba(25, 240, 255, .25), rgba(123, 60, 255, .12) 60%, transparent 72%); }
 :root[data-theme="arena"] .ucard-art.face .avatar-face { filter: saturate(.85) drop-shadow(0 0 6px rgba(25, 240, 255, .45)); }
+
+/* =====================================================================
+   Neon-Stadion v2 (Skill neon-game-design): Ruhe, Hierarchie, Linien-Icons
+   ===================================================================== */
+@font-face { font-family: 'Rajdhani'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/rajdhani-700.woff2') format('woff2'); }
+@font-face { font-family: 'Rajdhani'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/rajdhani-600.woff2') format('woff2'); }
+:root[data-theme="arena"] {
+  --panel: #0f1430; --panel-2: #161c40;
+  --line: rgba(160, 190, 255, .14); --line-strong: rgba(160, 190, 255, .32);
+  --text: #f6f8ff; --text-2: #a9b2dc; --muted: #a9b2dc;
+}
+.ic { display: inline-block; flex: none; vertical-align: -0.2em; }
+
+/* Verlaufskanten nur noch für Held-Flächen, sonst ruhige 1-px-Kante */
+:root[data-theme="arena"] :is(.hub-tile, .panel, .pack-card, .cs-window, .team-stats > div, .season, .collect-progress, .totw, .cs-head, .lt-item)::after { content: none; }
+:root[data-theme="arena"] :is(.hub-tile.hero, .totw)::after {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: var(--glass-edge); opacity: .8;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+:root[data-theme="arena"] body::before { opacity: .6; }
+
+/* Kopfleiste */
+:root[data-theme="arena"] .hub-top { gap: 8px; }
+:root[data-theme="arena"] :is(.hub-coins, .hub-icon) { background: var(--panel); border: 1px solid var(--line-strong); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+:root[data-theme="arena"] .hub-coins { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; font-size: 1.15rem; font-weight: 700; }
+:root[data-theme="arena"] .hub-coins .ic { color: var(--gold); }
+:root[data-theme="arena"] .hub-icon { width: 40px; height: 40px; display: grid; place-items: center; color: var(--text-2); padding: 0; }
+:root[data-theme="arena"] .hub-icon:hover { color: var(--neon-c); border-color: var(--neon-c); }
+:root[data-theme="arena"] .hw-chip, :root[data-theme="arena"].halloween .hw-chip {
+  display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 999px; font-size: .75rem; font-weight: 700;
+  background: rgba(255, 138, 31, .14); color: #ffd2a8; border: 1px solid rgba(255, 138, 31, .5); box-shadow: none; animation: none; white-space: nowrap;
+}
+@media (max-width: 480px) { :root[data-theme="arena"] .hw-chip { max-width: 34vw; overflow: hidden; text-overflow: ellipsis; } }
+
+/* Hinweis-Leisten: eine Zeile, Icon links, ruhig */
+:root[data-theme="arena"] .reward-call { display: flex; align-items: center; gap: 12px; text-align: left; font-size: .9rem; line-height: 1.35; font-weight: 600; border-radius: 14px; padding: 12px 16px; }
+:root[data-theme="arena"] .reward-call .ic { color: var(--gold); }
+:root[data-theme="arena"] .reward-call:not(.gala-call) { background: var(--panel); border: 1px solid rgba(25, 240, 255, .45); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+:root[data-theme="arena"] .reward-call:not(.gala-call) .ic { color: var(--neon-c); }
+:root[data-theme="arena"] .gala-call { background: linear-gradient(90deg, rgba(255, 215, 106, .12), var(--panel) 70%); border: 1px solid rgba(255, 215, 106, .45); color: #fbe7ae; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+/* Hauptaktionen: dunkle Fläche, kleines Neon-Icon-Kästchen */
+:root[data-theme="arena"] .hub-grid { gap: 12px; }
+:root[data-theme="arena"] .hub-tile { border-radius: 20px; padding: 16px; gap: 4px; min-height: 148px; transition: border-color .18s ease-out, transform .18s ease-out, background .18s ease-out; }
+:root[data-theme="arena"] .hub-tile::before { content: none; }
+:root[data-theme="arena"] .hub-tile-icon {
+  width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; margin-bottom: auto; font-size: 1.2rem;
+  color: var(--neon-c); background: rgba(25, 240, 255, .12); box-shadow: inset 0 0 0 1px rgba(25, 240, 255, .28);
+}
+:root[data-theme="arena"] .hub-tile strong { font-size: 1.3rem; line-height: 1.1; margin-top: 14px; letter-spacing: .03em; }
+:root[data-theme="arena"] .hub-tile small { color: var(--text-2); font-size: .8125rem; line-height: 1.4; }
+:root[data-theme="arena"] .hub-tile:hover:not(:disabled) { transform: translateY(-2px); background: linear-gradient(180deg, #1b2250, var(--panel-2)); border-color: rgba(25, 240, 255, .55); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); }
+:root[data-theme="arena"] .hub-badge { top: 14px; right: 14px; min-width: 24px; height: 24px; display: grid; place-items: center; padding: 0 7px; font-family: var(--display); font-size: .9rem; background: var(--neon-m); color: #fff; }
+/* Store: einzige farbige Kachel – Magenta als Kante und Licht, kein Vollverlauf */
+:root[data-theme="arena"] .hub-tile.accent {
+  background: radial-gradient(120% 90% at 100% 0%, rgba(255, 47, 209, .28), transparent 60%), linear-gradient(180deg, #1d1440, var(--panel));
+  border-color: rgba(255, 47, 209, .5); box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+}
+:root[data-theme="arena"] .hub-tile.accent .hub-tile-icon { color: var(--neon-m); background: rgba(255, 47, 209, .14); box-shadow: inset 0 0 0 1px rgba(255, 47, 209, .4); }
+:root[data-theme="arena"] .hub-tile.accent small { color: #f3c6ec; }
+:root[data-theme="arena"] .hub-tile.accent:hover:not(:disabled) { border-color: var(--neon-m); }
+
+/* Held: die einzige Fläche mit echtem Leuchten */
+:root[data-theme="arena"] .hub-tile.hero {
+  min-height: 0; padding: 24px;
+  background:
+    radial-gradient(70% 120% at 0% 0%, rgba(25, 240, 255, .20), transparent 60%),
+    radial-gradient(60% 90% at 100% 100%, rgba(123, 60, 255, .30), transparent 65%),
+    linear-gradient(160deg, #141a48, #0b0e2a);
+  box-shadow: 0 0 24px rgba(25, 240, 255, .18), 0 12px 32px rgba(0, 0, 0, .5);
+}
+:root[data-theme="arena"] .hero-text strong { font-size: clamp(1.75rem, 6vw, 2.25rem); line-height: 1.05; margin: 2px 0 4px; font-weight: 700; }
+:root[data-theme="arena"] .hero-text small { color: var(--text-2); font-size: .9375rem; }
+:root[data-theme="arena"] .hub-kicker { font-size: .75rem; letter-spacing: .14em; text-shadow: none; }
+:root[data-theme="arena"] .hub-cta {
+  align-self: flex-start; margin-top: 16px; height: 44px; padding: 0 20px; display: inline-flex; align-items: center; border-radius: 14px;
+  font-family: var(--display); font-size: 1.1rem; letter-spacing: .04em; text-transform: uppercase; text-shadow: none;
+  color: #03121a; background: linear-gradient(135deg, var(--neon-g), var(--neon-c)); box-shadow: 0 6px 20px rgba(25, 240, 255, .3);
+}
+
+/* Nebenfunktionen: kompakte Liste */
+.hub-section { margin: 28px 4px 10px; font-size: .8125rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+:root[data-theme="arena"] .hub-section { font-family: var(--display); font-size: .9375rem; color: var(--text-2); }
+.hub-list { display: flex; flex-direction: column; border-radius: 20px; overflow: hidden; border: 1px solid var(--hairline); background: var(--surface); }
+:root[data-theme="arena"] .hub-list { border-color: var(--line); background: var(--panel); box-shadow: 0 8px 24px rgba(0, 0, 0, .4); }
+.hub-link { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px 16px; background: none; border: 0; color: inherit; text-align: left; cursor: pointer; font: inherit; }
+.hub-link + .hub-link { border-top: 1px solid var(--hairline); }
+:root[data-theme="arena"] .hub-link + .hub-link { border-top-color: var(--line); }
+.hub-link:hover:not(:disabled) { background: rgba(255, 255, 255, .04); }
+.hub-link:disabled { opacity: .45; cursor: default; }
+.hub-link-icon { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; color: var(--accent); background: rgba(127, 127, 127, .12); flex: none; }
+:root[data-theme="arena"] .hub-link-icon { color: var(--text-2); background: rgba(160, 190, 255, .08); box-shadow: inset 0 0 0 1px var(--line); }
+:root[data-theme="arena"] .hub-link:hover:not(:disabled) .hub-link-icon { color: var(--neon-c); }
+.hub-link-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.hub-link-text strong { font-size: 1rem; }
+:root[data-theme="arena"] .hub-link-text strong { font-family: var(--display); font-size: 1.125rem; letter-spacing: .03em; text-transform: uppercase; }
+.hub-link-text small { color: var(--muted); font-size: .8125rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hub-link-go { color: var(--muted); }
+
+/* Buttons: Sekundär ohne Leuchten, nur Kante */
+:root[data-theme="arena"] .btn.secondary { background: transparent; box-shadow: inset 0 0 0 1px var(--line-strong); }
+:root[data-theme="arena"] .btn.secondary:hover { background: rgba(25, 240, 255, .08); box-shadow: inset 0 0 0 1px var(--neon-c); }
+:root[data-theme="arena"] .btn.primary { box-shadow: 0 6px 20px rgba(25, 240, 255, .28), inset 0 -3px 0 rgba(0, 0, 0, .18); }
+:root[data-theme="arena"] .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+
+/* Chips & Tabs: aktiv = gefüllt, ohne Außenleuchten */
+:root[data-theme="arena"] .chip.active { box-shadow: inset 0 0 0 1px var(--neon-c); }
+:root[data-theme="arena"] :is(.tabs, .segmented) { background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); }
+:root[data-theme="arena"] :is(.tabs, .segmented) button.active { background: rgba(25, 240, 255, .16); box-shadow: inset 0 0 0 1px rgba(25, 240, 255, .6); }
+:root[data-theme="arena"] .team-stats strong { text-shadow: none; }
+:root[data-theme="arena"] .team-stats small { color: var(--text-2); }
+:root[data-theme="arena"] :is(.hub-back, .cs-link, .nav-back) { text-shadow: none; }
+:root[data-theme="arena"] .hub-title { text-shadow: none; letter-spacing: .03em; }
+:root[data-theme="arena"] .hub-kicker { text-shadow: none; }
+:root[data-theme="arena"] .pitch { box-shadow: inset 0 0 0 1px rgba(57, 255, 136, .35), 0 8px 24px rgba(0, 0, 0, .45); }
+:root[data-theme="arena"] .pitch-lines i { box-shadow: none; }
+:root[data-theme="arena"] :is(.cs-agebox, .cs-pos) { box-shadow: none; }
+/* Karten-Emblem als Linien-Icon */
+.ucard-emblem .ic { width: 1em; height: 1em; display: block; }
+.coin-ic { color: var(--gold, #f5c542); margin-right: 4px; vertical-align: -0.18em; }
+.season-icon .ic, .ach-icon .ic, .sk-icon .ic, .inv-icon .ic { width: 1em; height: 1em; }
+:root[data-theme="arena"] :is(.season-icon, .ach-icon, .sk-icon, .inv-icon, .gift-icon) { color: var(--neon-c); }
+:root[data-theme="arena"] :is(.life-emoji, .mo-icon, .gift-big, .crash-icon, .net-icon) { color: var(--neon-c); }
+:root[data-theme="arena"] :is(.life-emoji, .mo-icon) .ic { filter: drop-shadow(0 0 12px rgba(25, 240, 255, .35)); }
+.cs-trophy .ic { color: var(--gold, #f5c542); margin-right: 1px; }
+.race-rank .ic { color: var(--gold, #f5c542); }
+.mx-bolt .ic { width: 1em; height: 1em; }
+/* Korrekturrunde: Event-Deko hinter die Inhalte, Kopfleiste am Handy, kompakte Kennzahlen */
+:root[data-theme="arena"].halloween .hw-decor { z-index: 0; }
+:root[data-theme="arena"] .app > :is(main, .screen, .hub, .cs, .store) { position: relative; z-index: 2; }
+:root[data-theme="arena"] .hw-bat { opacity: .7; }
+:root[data-theme="arena"] .hub-icon { flex: none; }
+@media (max-width: 480px) {
+  :root[data-theme="arena"] .hw-chip { width: 32px; padding: 0; justify-content: center; font-size: 0; gap: 0; }
+  :root[data-theme="arena"] .hw-chip .ic { width: 16px; height: 16px; }
+  :root[data-theme="arena"] .hub-coins { padding: 0 12px; font-size: 1.05rem; }
+}
+:root[data-theme="arena"] .team-stats > div { padding: 12px; }
+:root[data-theme="arena"] .team-stats strong { font-size: 1.5rem; white-space: nowrap; display: block; line-height: 1.2; margin-top: 4px; }
+:root[data-theme="arena"] .team-stats em { font-size: .6875rem; margin: 0 4px 0 1px; }
+@media (max-width: 480px) {
+  :root[data-theme="arena"].halloween .hw-chip, :root[data-theme="arena"] .hw-chip { width: 32px; height: 32px; padding: 0; justify-content: center; font-size: 0; gap: 0; }
+}
+:root[data-theme="arena"] .reward-call { width: 100%; }

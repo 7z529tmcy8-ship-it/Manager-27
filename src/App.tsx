@@ -17,6 +17,7 @@ import { saveCareer } from './game/storage';
 import type { Career } from './game/types';
 import { getClubState, setClubState, useClub } from './clubStore';
 import { installClickSound, play } from './sound';
+import Icon, { noEmoji } from './components/Icon';
 
 type Screen =
   | { name: 'home' }
@@ -70,7 +71,7 @@ export default function App() {
       const lost = getClubState().coins;
       if (lost > 0) {
         setClubState({ ...getClubState(), coins: 0 });
-        setToast(`💸 Dein Konto ist leer (−${lost.toLocaleString('de-DE')} Coins). Wo ist das ganze Geld nur hin …?`);
+        setToast(`Dein Konto ist leer (−${lost.toLocaleString('de-DE')} Coins). Wo ist das ganze Geld nur hin …?`);
       }
       career = { ...career, drainPending: 0, squandered: (career.squandered ?? 0) + lost };
     }
@@ -88,8 +89,8 @@ export default function App() {
       {saveFailed && (
         <div className="banner warn">Speichern im Browser nicht möglich (z. B. privater Modus) – der Fortschritt geht beim Schließen verloren.</div>
       )}
-      {toast && <div className="coin-toast" role="status">🪙 {toast}</div>}
-      {reward && <CareerReward career={reward} onDone={() => { setToast('👑 Deine Karriere-Karte liegt in der Sammlung!'); setReward(null); }} />}
+      {toast && <div className="coin-toast" role="status"><Icon name="coin" size={16} className="coin-ic" />{noEmoji(toast)}</div>}
+      {reward && <CareerReward career={reward} onDone={() => { setToast('Deine Karriere-Karte liegt in der Sammlung!'); setReward(null); }} />}
       {screen.name === 'home' && (
         <Hub
           onNews={() => setNews(UPDATES)}

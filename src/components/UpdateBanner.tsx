@@ -1,3 +1,4 @@
+import { noEmoji } from './Icon';
 import { useState } from 'react';
 import { GREETING, RETIRED_IDS, UPDATES, type UpdateNote } from '../data/updates';
 import Confetti from './Confetti';
@@ -39,11 +40,11 @@ export default function UpdateBanner({ notes, onClose }: { notes: UpdateNote[]; 
     <div className="upd" role="dialog" aria-modal="true" aria-labelledby="upd-greeting">
       <Confetti pieces={60} />
       <div className="upd-card">
-        <span className="upd-badge">📣 Update · {note.date}</span>
+        <span className="upd-badge">Update · {note.date}</span>
         <h2 id="upd-greeting">{GREETING}</h2>
-        <h3>{note.title}</h3>
+        <h3>{noEmoji(note.title)}</h3>
         <ul>
-          {note.items.map((t) => <li key={t}>{t}</li>)}
+          {note.items.map((t) => <li key={t}>{noEmoji(t)}</li>)}
         </ul>
         <div className="upd-actions">
           {i + 1 < notes.length && <button className="btn secondary big" onClick={() => setI(i + 1)}>Ältere Neuigkeiten</button>}

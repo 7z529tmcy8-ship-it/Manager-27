@@ -1,3 +1,4 @@
+import Icon, { Glyph } from './Icon';
 import { getClub } from '../data/leagues';
 import { useClub } from '../clubStore';
 import { useEffect, useState } from 'react';
@@ -29,7 +30,7 @@ import type { Career, Child, ChildStats } from '../game/types';
 const fmt = (n: number) => n.toLocaleString('de-DE');
 
 const STATUS: Record<Child['status'], string> = {
-  kid: 'Kind', offer: '📝 Vertragsverhandlung', pro: '⚽ Fußballprofi', amateur: 'Kein Profi', retired: 'Karriere beendet',
+  kid: 'Kind', offer: 'Vertragsverhandlung', pro: 'Fußballprofi', amateur: 'Kein Profi', retired: 'Karriere beendet',
 };
 
 /** Kurzer Text zur Wirkung pro Jahr, z. B. „+4 Technik · −2 Disziplin“. */
@@ -57,9 +58,9 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
     const after = next.household!.children.find((x) => x.id === childId)!;
     const ok = after.status === 'pro' && !after.angry;
     const tone = ok ? 'good' : after.angry ? 'angry' : 'bad';
-    const title = ok ? '✅ Deal!' : after.angry ? '💔 Deal geplatzt' : '❌ Abgelehnt';
+    const title = ok ? 'Deal!' : after.angry ? 'Deal geplatzt' : 'Abgelehnt';
     const text = ok
-      ? `${getClub(after.clubId!).name} akzeptiert „${label}“. ${before.name} wird Profi und verdient ${fmt(Math.round(kidWage(after.ovr!) * (after.wageFactor ?? 1)))} 🪙 pro Jahr.`
+      ? `${getClub(after.clubId!).name} akzeptiert „${label}“. ${before.name} wird Profi und verdient ${fmt(Math.round(kidWage(after.ovr!) * (after.wageFactor ?? 1)))} Coins pro Jahr.`
       : (after.log[0] ?? '').replace(/^[^\s]+\s/, '');
     setDeal({ phase: 'wait', name: before.name, demand: label, tone, title, text });
     play('packShake');
@@ -79,22 +80,22 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
       <div className="overlay-inner">
         <header className="overlay-head">
           <button className="nav-back" onClick={onClose}>‹ Zurück</button>
-          <span className="hub-coins">🪙 {fmt(club.coins)}</span>
+          <span className="hub-coins"><Icon name="coin" size={16} className="coin-ic" />{fmt(club.coins)}</span>
         </header>
-        <h2 className="fam-title">🏡 Familie</h2>
+        <h2 className="fam-title">Familie</h2>
 
         {deal && (
           <div className="life-pop" role="dialog" aria-modal="true" aria-label="Ergebnis der Verhandlung">
             <div className={`life-card deal ${deal.phase === 'done' ? deal.tone : ''}`}>
               {deal.phase === 'wait' ? (
                 <>
-                  <div className="life-emoji deal-phone" aria-hidden="true">📞</div>
+                  <div className="life-emoji deal-phone" aria-hidden="true"><Icon name="chat" size={56} /></div>
                   <h2>Der Verein überlegt …</h2>
                   <p>Deine Forderung für {deal.name}: <b>{deal.demand}</b></p>
                 </>
               ) : (
                 <>
-                  <div className="life-emoji" aria-hidden="true">{deal.tone === 'good' ? '🤝' : deal.tone === 'angry' ? '💔' : '🚪'}</div>
+                  <div className="life-emoji" aria-hidden="true"><Icon name={deal.tone === 'good' ? 'handshake' : deal.tone === 'angry' ? 'broken' : 'close'} size={56} /></div>
                   <h2>{deal.title}</h2>
                   <p>{deal.text}</p>
                   <button className="btn primary big" onClick={() => setDeal(null)}>Weiter</button>
@@ -113,8 +114,8 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
         {report && (report.kidIncome > 0 || (report.kidCosts ?? 0) > 0 || report.notes.some((n) => !/^[📉📈🏆]/u.test(n))) && (
           <div className="fam-report">
             <strong>Letztes Jahr</strong>
-            {report.kidIncome > 0 && <span>Gehalt deiner Kinder: +{fmt(report.kidIncome)} 🪙</span>}
-            {(report.kidCosts ?? 0) > 0 && <span>Kosten für Verein, Training & Co.: −{fmt(report.kidCosts!)} 🪙</span>}
+            {report.kidIncome > 0 && <span>Gehalt deiner Kinder: +{fmt(report.kidIncome)} Coins</span>}
+            {(report.kidCosts ?? 0) > 0 && <span>Kosten für Verein, Training & Co.: −{fmt(report.kidCosts!)} Coins</span>}
             {report.notes.filter((n) => !/^[📉📈🏆]/u.test(n)).map((n) => <span key={n}>{n}</span>)}
           </div>
         )}
@@ -145,7 +146,7 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
                     <b className="cs-pill gold">{child.ovr}</b>
                     <small>
                       {child.clubId ? getClub(child.clubId).name : ''}<br />
-                      {child.angry ? '💔 sauer – zahlt nichts' : `+${fmt(Math.round(kidWage(child.ovr) * (child.wageFactor ?? 1)))} 🪙/Jahr`}
+                      {child.angry ? 'sauer – zahlt nichts' : `+${fmt(Math.round(kidWage(child.ovr) * (child.wageFactor ?? 1)))} Coins/Jahr`}
                     </small>
                   </div>
                 )}
@@ -154,13 +155,13 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
 
               {child.status === 'offer' && child.offer && (
                 <div className="kid-offer">
-                  <strong>📝 {child.offer.round === 2 ? 'Letzte Chance: ' : ''}Angebot von {getClub(child.offer.clubId).name}</strong>
-                  <small>Wertung {child.ovr} · Grundgehalt {fmt(child.offer.base)} 🪙 pro Jahr. Du verhandelst für {child.name} – pokerst du zu hoch, platzt der Deal.</small>
+                  <strong>{child.offer.round === 2 ? 'Letzte Chance: ' : ''}Angebot von {getClub(child.offer.clubId).name}</strong>
+                  <small>Wertung {child.ovr} · Grundgehalt {fmt(child.offer.base)} Coins pro Jahr. Du verhandelst für {child.name} – pokerst du zu hoch, platzt der Deal.</small>
                   <div className="kid-demands">
                     {DEMANDS.map((d) => (
                       <button key={d.factor} className={`btn ${d.factor === 1 ? 'primary' : 'secondary'} small`} onClick={() => negotiate(child.id, d.factor, d.label)}>
                         {d.label}
-                        <small>{fmt(Math.round(child.offer!.base * d.factor))} 🪙 · {Math.round(demandChance(child, d.factor) * 100)} %</small>
+                        <small>{fmt(Math.round(child.offer!.base * d.factor))} Coins · {Math.round(demandChance(child, d.factor) * 100)} %</small>
                       </button>
                     ))}
                   </div>
@@ -182,7 +183,7 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
                   <div className="fam-rules">
                     <div className="fam-rules-head">
                       <h4>Erziehung</h4>
-                      <small>{cost > 0 ? `Kosten: ${fmt(cost)} 🪙 pro Jahr` : 'kostenlos'}</small>
+                      <small>{cost > 0 ? `Kosten: ${fmt(cost)} Coins pro Jahr` : 'kostenlos'}</small>
                     </div>
                     <p className="muted">Einmal einstellen – wirkt jedes Jahr automatisch, bis du es änderst.</p>
                     {RULES.map((rule) => {
@@ -191,7 +192,7 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
                       return (
                         <div key={rule.id} className={`fam-rule ${active ? '' : 'later'}`}>
                           <div className="fam-rule-name">
-                            <span>{rule.icon} {rule.name}</span>
+                            <span><Glyph e={rule.icon} /> {rule.name}</span>
                             {!active && <small>{age < rule.minAge ? `ab ${rule.minAge} Jahren` : 'vorbei'}</small>}
                           </div>
                           <div className="fam-seg" role="radiogroup" aria-label={rule.name}>
@@ -207,7 +208,7 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
                                   onClick={() => onChange(setRule(career, child.id, rule.id, o.id))}
                                   title={locked ? `ab ${o.minAge} Jahren` : effectText(o)}
                                 >
-                                  {o.label}{o.cost ? ` · ${fmt(o.cost)} 🪙` : ''}{locked ? ` (ab ${o.minAge})` : ''}
+                                  {o.label}{o.cost ? ` · ${fmt(o.cost)} Coins` : ''}{locked ? ` (ab ${o.minAge})` : ''}
                                 </button>
                               );
                             })}
@@ -220,7 +221,7 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
                                 {!child.youthClubId && <option value="">– wählen –</option>}
                                 {youthClubs(current.id).map((id) => <option key={id} value={id}>{getClub(id).name}</option>)}
                               </select>
-                              <small className="muted">{youthClubCost(child) ? `Vereinsbeitrag ${fmt(youthClubCost(child))} 🪙/Jahr · stärkere Förderung` : 'Kein Extra-Beitrag'}{current.id !== 'village' ? ' · bietet mit 18 bevorzugt den ersten Vertrag an' : ''}</small>
+                              <small className="muted">{youthClubCost(child) ? `Vereinsbeitrag ${fmt(youthClubCost(child))} Coins/Jahr · stärkere Förderung` : 'Kein Extra-Beitrag'}{current.id !== 'village' ? ' · bietet mit 18 bevorzugt den ersten Vertrag an' : ''}</small>
                             </label>
                           )}
                         </div>
@@ -229,7 +230,7 @@ export default function FamilyPanel({ career, onChange, onClose }: { career: Car
                   </div>
                 </>
               )}
-              {child.earned > 0 && <p className="cs-sub">Bisher verdient: {fmt(child.earned)} 🪙</p>}
+              {child.earned > 0 && <p className="cs-sub">Bisher verdient: {fmt(child.earned)} Coins</p>}
 
               {child.log.length > 0 && (
                 <ul className="fam-log">{child.log.slice(0, 4).map((l, k) => <li key={k}>{l}</li>)}</ul>
@@ -257,7 +258,7 @@ export function KidEventBox({ career, onChange }: { career: Career; onChange: (c
   };
   return (
     <div className="incident kid-event">
-      <strong>{def.icon} {def.title} · {child.name}</strong>
+      <strong><Glyph e={def.icon} /> {def.title} · {child.name}</strong>
       <p>{def.text(child.name)}</p>
       <div className="incident-opts">
         {def.options.map((o, i) => (

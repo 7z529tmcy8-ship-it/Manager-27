@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-12-clean-icons',
+    date: '12.10.2026',
+    title: 'Design-Feinschliff: klarer, ruhiger, ohne Emojis',
+    items: [
+      'Alle bunten Emojis in Menüs, Buttons, Tabs und auf Sonderkarten sind ersetzt – durch einheitliche Linien-Icons im Neon-Stil.',
+      'Hauptmenü mit klarer Reihenfolge: oben deine Karriere, darunter die sechs Hauptbereiche, Nebenfunktionen kompakt unter „Mehr“.',
+      'Ruhigere Flächen statt Glas überall, nur noch ein Element leuchtet pro Bildschirm, eigene Spiel-Schrift ist jetzt fest eingebaut.',
+      'Alle Funktionen bleiben, wo sie waren – nur aufgeräumter.',
+    ],
+  },
+  {
     id: '2026-10-12-neon-design',
     date: '12.10.2026',
     title: '🌌 Neues Design: Neon-Stadion',

@@ -5,6 +5,7 @@ import { getClubState, setClubState, useClub } from '../clubStore';
 import { motionReduced } from '../settings';
 import Confetti from './Confetti';
 import UtCard from './UtCard';
+import Icon, { Glyph } from './Icon';
 
 const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 
@@ -35,7 +36,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
     <main className="hub">
       <header className="hub-top">
         <button className="hub-back" onClick={onBack}>‹ Hauptmenü</button>
-        <span className="hub-coins">🪙 {fmtCoins(club.coins)}</span>
+        <span className="hub-coins"><Icon name="coin" size={16} className="coin-ic" />{fmtCoins(club.coins)}</span>
       </header>
       <h1 className="hub-title">Store</h1>
       <p className="hub-sub">Coins verdienst du in deinen Karrieren: pro Saison für Spiele, Tore, Vorlagen, Titel, Erfolge und Sonderkarten.</p>
@@ -48,13 +49,13 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
           setSuperPack(res.result);
           setSuperCharging(true);
         }}>
-          <span className="mx-bolt l" aria-hidden="true">⚡</span>
+          <span className="mx-bolt l" aria-hidden="true"><Icon name="bolt" /></span>
           <span className="mx-text">
             <small>Einmalig · Gratis</small>
             <strong>MEGA SUPER XXL PACK</strong>
             <em>8 Karten ab 85 + Sonderkarte Gervinho (89)</em>
           </span>
-          <span className="mx-bolt r" aria-hidden="true">⚡</span>
+          <span className="mx-bolt r" aria-hidden="true"><Icon name="bolt" /></span>
         </button>
       )}
 
@@ -64,19 +65,19 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
           setClubState({ ...getClubState(), megaXxlClaimed: true });
           setMega(true);
         }}>
-          <span className="mx-bolt l" aria-hidden="true">⚡</span>
+          <span className="mx-bolt l" aria-hidden="true"><Icon name="bolt" /></span>
           <span className="mx-text">
             <small>Einmalig · Gratis</small>
             <strong>MEGA XXL PACK</strong>
             <em>50 Karten · garantiert 10 Ikonen</em>
           </span>
-          <span className="mx-bolt r" aria-hidden="true">⚡</span>
+          <span className="mx-bolt r" aria-hidden="true"><Icon name="bolt" /></span>
         </button>
       )}
 
       {!club.welcomeClaimed && (
         <button className="hub-tile accent welcome" onClick={() => buy('gold', true)}>
-          <span className="hub-tile-icon" aria-hidden="true">🎁</span>
+          <span className="hub-tile-icon" aria-hidden="true"><Icon name="gift" /></span>
           <strong>Willkommens-Pack</strong>
           <small>Ein Gold-Pack geschenkt – jetzt öffnen!</small>
         </button>
@@ -96,7 +97,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
               <small>{p.text}</small>
               <PackOddsLine pack={p} />
               <button className="btn primary" disabled={!afford} onClick={() => buy(p.id)}>
-                {afford ? `Öffnen · 🪙 ${fmtCoins(p.price)}` : `Fehlen 🪙 ${fmtCoins(p.price - club.coins)}`}
+                {afford ? `Öffnen · ${fmtCoins(p.price)} Coins` : `Fehlen ${fmtCoins(p.price - club.coins)} Coins`}
               </button>
             </div>
           );
@@ -174,7 +175,7 @@ function MegaCrash({ onDone }: { onDone: () => void }) {
       )}
       {stage !== 'charge' && (
         <div className="crash-box">
-          <p className="crash-icon" aria-hidden="true">⚠️</p>
+          <p className="crash-icon" aria-hidden="true"><Icon name="warn" size={40} /></p>
           <h2>{stage === 'crash' ? 'Interner Serverfehler (500)' : 'Verbindung wird wiederhergestellt …'}</h2>
           <p>{stage === 'crash'
             ? 'Beim Öffnen des Packs ist der Pack-Server abgestürzt. Zu viele Anfragen gleichzeitig.'
@@ -328,7 +329,7 @@ export function PackOpening({ name, result, onClose, onCollection, theme, art, a
             ))}
           </div>
           {result.items.map((k, i) => (
-            <p key={i} className="pack-item">{ITEMS[k].icon} {ITEMS[k].name}: {ITEMS[k].text}</p>
+            <p key={i} className="pack-item"><Glyph e={ITEMS[k].icon} /> {ITEMS[k].name}: {ITEMS[k].text}</p>
           ))}
           <div className="pack-actions">
             {flipping && result.cards.length > 1 && <button className="btn secondary big" onClick={() => setInstant(true)}>Alle aufdecken</button>}
@@ -336,7 +337,7 @@ export function PackOpening({ name, result, onClose, onCollection, theme, art, a
               <>
                 <button className="btn secondary big pack-half" onClick={onClose}>Fertig</button>
                 <button className="btn primary big pack-half" disabled={!again.can} onClick={again.onClick}>
-                  Noch ein Pack<small>{again.can ? `🪙 ${again.price.toLocaleString('de-DE')}` : 'zu wenig Coins'}</small>
+                  Noch ein Pack<small>{again.can ? `${again.price.toLocaleString('de-DE')} Coins` : 'zu wenig Coins'}</small>
                 </button>
               </>
             ) : (
@@ -385,7 +386,7 @@ function TotwSection({ coins, onBuy }: { coins: number; onBuy: () => void }) {
           <small>Neue Elf in {days} {days === 1 ? 'Tag' : 'Tagen'} (Montag)</small>
         </div>
         <button className="btn primary" disabled={!afford} onClick={onBuy}>
-          {afford ? `Pack · 🪙 ${TOTW_PACK.price.toLocaleString('de-DE')}` : `Fehlen 🪙 ${(TOTW_PACK.price - coins).toLocaleString('de-DE')}`}
+          {afford ? `Pack · ${TOTW_PACK.price.toLocaleString('de-DE')} Coins` : `Fehlen ${(TOTW_PACK.price - coins).toLocaleString('de-DE')} Coins`}
         </button>
       </div>
       <div className="totw-row">
