@@ -96,8 +96,8 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
               <strong>{p.name}</strong>
               <small>{p.text}</small>
               <PackOddsLine pack={p} />
-              <button className="btn primary" disabled={!afford} onClick={() => buy(p.id)}>
-                {afford ? `Öffnen · ${fmtCoins(p.price)} Coins` : `Fehlen ${fmtCoins(p.price - club.coins)} Coins`}
+              <button className="btn primary" disabled={!afford} onClick={() => buy(p.id)} aria-label={afford ? `${p.name} öffnen für ${fmtCoins(p.price)} Coins` : `Dir fehlen ${fmtCoins(p.price - club.coins)} Coins`}>
+                <Icon name="coin" size={16} className="coin-ic" />{afford ? fmtCoins(p.price) : `−${fmtCoins(p.price - club.coins)}`}
               </button>
             </div>
           );
@@ -270,12 +270,12 @@ export function PackOpening({ name, result, onClose, onCollection, theme, art, a
 
   return (
     <div className={`pack-open ph-${phase} tier-${tier} ${special ? 'special' : ''} ${theme ? `theme-${theme}` : ''}`} role="dialog" aria-modal="true" aria-label={`${name} öffnen`}>
-      {phase !== 'all' && <button className="pack-skip" onClick={() => setPhase('all')}>Überspringen</button>}
+      {phase !== 'all' && <button className="pack-skip" onClick={() => setPhase('all')}>Überspringen <Icon name="arrow" size={16} /></button>}
 
       {phase === 'pack' && (
         <div className="pack-stage" aria-hidden="true">
           <div className="pack-halo" />
-          <div className={`pack-big ${art ? 'has-art' : ''}`} style={artStyle}><span>{name}</span></div>
+          <div className={`pack-big ${art ? 'has-art' : ''}`} style={artStyle}><PackFace name={name} /></div>
           <div className="pack-sparks">{Array.from({ length: 10 }, (_, i) => <i key={i} style={{ '--i': i } as CSSProperties} />)}</div>
         </div>
       )}
@@ -283,8 +283,8 @@ export function PackOpening({ name, result, onClose, onCollection, theme, art, a
       {phase === 'burst' && (
         <div className="pack-stage" aria-hidden="true">
           <div className="pack-flash" />
-          <div className={`pack-big half l ${art ? 'has-art' : ''}`} style={artStyle}><span>{name}</span></div>
-          <div className={`pack-big half r ${art ? 'has-art' : ''}`} style={artStyle}><span>{name}</span></div>
+          <div className={`pack-big half l ${art ? 'has-art' : ''}`} style={artStyle}><PackFace name={name} /></div>
+          <div className={`pack-big half r ${art ? 'has-art' : ''}`} style={artStyle}><PackFace name={name} /></div>
           <div className="pack-ring" />
         </div>
       )}
@@ -306,6 +306,7 @@ export function PackOpening({ name, result, onClose, onCollection, theme, art, a
           {special && <div className="beams" aria-hidden="true" />}
           {special && <Confetti pieces={90} />}
           <div className="pack-ring" aria-hidden="true" />
+          <div className="reveal-floor" aria-hidden="true" />
           <div className="reveal-card"><UtCard card={best} size="lg" shine={special} /></div>
           <p className="reveal-name">{best.name}</p>
           <button className="btn primary big" onClick={() => setPhase('all')}>
@@ -332,7 +333,7 @@ export function PackOpening({ name, result, onClose, onCollection, theme, art, a
             <p key={i} className="pack-item"><Glyph e={ITEMS[k].icon} /> {ITEMS[k].name}: {ITEMS[k].text}</p>
           ))}
           <div className="pack-actions">
-            {flipping && result.cards.length > 1 && <button className="btn secondary big" onClick={() => setInstant(true)}>Alle aufdecken</button>}
+            {flipping && result.cards.length > 1 && <button className="btn secondary big pack-revealall" onClick={() => setInstant(true)}>Alle aufdecken</button>}
             {again ? (
               <>
                 <button className="btn secondary big pack-half" onClick={onClose}>Fertig</button>
@@ -350,6 +351,19 @@ export function PackOpening({ name, result, onClose, onCollection, theme, art, a
         </div>
       )}
     </div>
+  );
+}
+
+/** Vorderseite des Packs: Folie mit Falzkanten, Logo-Blitz und Name. */
+function PackFace({ name }: { name: string }) {
+  return (
+    <>
+      <i className="pack-crimp t" aria-hidden="true" />
+      <i className="pack-crimp b" aria-hidden="true" />
+      <span className="pack-kicker">Manager Sim</span>
+      <span className="pack-logo" aria-hidden="true"><Icon name="bolt" size={40} /></span>
+      <span>{name}</span>
+    </>
   );
 }
 

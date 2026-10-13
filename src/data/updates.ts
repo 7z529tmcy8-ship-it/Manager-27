@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-13-pack-opening',
+    date: '13.10.2026',
+    title: 'Neue Pack-Öffnung',
+    items: [
+      'Packs sehen jetzt aus wie echte Folien-Packs: Metall-Glanz, Falzkanten und Blitz-Logo – Spezial-Packs in Schwarz-Gold.',
+      'Beim Aufreißen gibt es einen klaren Lichtblitz in der Farbe deiner besten Karte, beim Walkout große Schrift und Lichtstrahlen.',
+      'Deine beste Karte steht auf einem leuchtenden Podest auf einer Neon-Bühne.',
+      'Aufgeräumte Buttons am Ende, und die Preise im Store werden am Handy nicht mehr abgeschnitten.',
+    ],
+  },
+  {
     id: '2026-10-12-clean-icons',
     date: '12.10.2026',
     title: 'Design-Feinschliff: klarer, ruhiger, ohne Emojis',

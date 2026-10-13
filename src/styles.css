@@ -2628,3 +2628,112 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
   :root[data-theme="arena"].halloween .hw-chip, :root[data-theme="arena"] .hw-chip { width: 32px; height: 32px; padding: 0; justify-content: center; font-size: 0; gap: 0; }
 }
 :root[data-theme="arena"] .reward-call { width: 100%; }
+
+/* ===== Pack-Öffnung im Neon-Stadion-Look (Skill neon-game-design) ===== */
+.pack-crimp, .pack-kicker, .pack-logo { display: none; }
+.pack-big.has-art .pack-crimp, .pack-open[class*="theme-"] .pack-big :is(.pack-crimp, .pack-kicker, .pack-logo) { display: none !important; }
+:root[data-theme="arena"] .pack-open:not([class*="theme-"]) {
+  background:
+    radial-gradient(50% 38% at 50% 44%, color-mix(in srgb, var(--pg) 16%, transparent), transparent 70%),
+    radial-gradient(120% 60% at 50% 110%, rgba(123, 60, 255, .35), transparent 60%),
+    linear-gradient(180deg, #05060f, #0a1030 55%, #120a2e);
+}
+/* Bühne: Boden-Raster in Perspektive */
+:root[data-theme="arena"] .pack-open:not([class*="theme-"])::before {
+  content: ''; position: fixed; left: -50%; right: -50%; bottom: -10%; height: 46%; pointer-events: none; z-index: 0;
+  background:
+    linear-gradient(rgba(25, 240, 255, .16) 1px, transparent 1px) 0 0 / 100% 36px,
+    linear-gradient(90deg, rgba(25, 240, 255, .16) 1px, transparent 1px) 0 0 / 36px 100%;
+  transform: perspective(380px) rotateX(62deg); transform-origin: 50% 0;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 40%); mask-image: linear-gradient(180deg, transparent, #000 40%);
+}
+:root[data-theme="arena"] .pack-open > * { position: relative; z-index: 1; }
+:root[data-theme="arena"] .pack-skip {
+  position: absolute; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px;
+  border: 1px solid var(--line-strong); background: rgba(10, 12, 34, .72); color: var(--text-2); font-size: .8125rem; font-weight: 600;
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+}
+:root[data-theme="arena"] .pack-skip:hover { color: var(--text); border-color: var(--neon-c); }
+
+/* Das Pack: Metallfolie mit Falzkanten oben/unten */
+:root[data-theme="arena"] .pack-big:not(.has-art) {
+  width: 212px; border-radius: 14px; padding: 28px 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--display); font-weight: 700; font-size: 1.5rem; line-height: 1.05; letter-spacing: .05em; color: #2a1c00;
+  background:
+    linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, .45) 46%, transparent 58%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .08) 0 1px, transparent 1px 4px),
+    radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, .55), transparent 60%),
+    linear-gradient(165deg, #fff1bf 0%, #e2b34c 42%, #9c6714 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5), inset 0 -18px 30px rgba(80, 40, 0, .25);
+}
+:root[data-theme="arena"] .pack-open.special .pack-big:not(.has-art) {
+  color: #ffd76a;
+  background:
+    linear-gradient(115deg, transparent 32%, rgba(255, 215, 106, .22) 46%, transparent 58%),
+    repeating-linear-gradient(135deg, rgba(255, 215, 106, .07) 0 2px, transparent 2px 10px),
+    radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, .14), transparent 60%),
+    linear-gradient(165deg, #2c2f3c, #08080c);
+  box-shadow: inset 0 0 0 1px rgba(255, 215, 106, .6), inset 0 -18px 30px rgba(0, 0, 0, .4);
+}
+:root[data-theme="arena"] .pack-big:not(.has-art) .pack-crimp {
+  display: block; position: absolute; left: 0; right: 0; height: 16px;
+  background: repeating-linear-gradient(90deg, rgba(0, 0, 0, .22) 0 3px, rgba(255, 255, 255, .28) 3px 6px);
+}
+:root[data-theme="arena"] .pack-big .pack-crimp.t { top: 0; border-bottom: 1px solid rgba(0, 0, 0, .2); }
+:root[data-theme="arena"] .pack-big .pack-crimp.b { bottom: 0; border-top: 1px solid rgba(0, 0, 0, .2); }
+:root[data-theme="arena"] .pack-big:not(.has-art) .pack-kicker { display: block; font-size: .75rem; letter-spacing: .24em; opacity: .7; }
+:root[data-theme="arena"] .pack-big:not(.has-art) .pack-logo {
+  display: grid; place-items: center; width: 76px; height: 76px; border-radius: 50%;
+  border: 2px solid currentColor; box-shadow: inset 0 0 0 6px rgba(255, 255, 255, .12); opacity: .9;
+}
+:root[data-theme="arena"] .pack-big:not(.has-art) > span:last-child { overflow-wrap: anywhere; max-width: 100%; }
+
+/* Riss-Moment: klarer Lichtblitz statt grauem Nebel */
+:root[data-theme="arena"] .pack-open:not([class*="theme-"]) .pack-flash {
+  background: radial-gradient(circle at 50% 46%, #fff 0 6%, color-mix(in srgb, var(--pg) 75%, #fff) 14%, color-mix(in srgb, var(--pg) 30%, transparent) 30%, transparent 52%);
+}
+:root[data-theme="arena"] .pack-ring { border-width: 2px; box-shadow: 0 0 24px var(--pg), inset 0 0 24px var(--pg); }
+
+/* Walkout: große Display-Schrift, Lichtstrahlen in Kartenfarbe, nach außen ausgeblendet */
+:root[data-theme="arena"] .pack-open:not([class*="theme-"]) .beams {
+  opacity: .9;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--pg) 20%, transparent) 0deg 5deg, transparent 5deg 15deg);
+  -webkit-mask-image: radial-gradient(circle, #000 0 18%, transparent 42%); mask-image: radial-gradient(circle, #000 0 18%, transparent 42%);
+}
+:root[data-theme="arena"] .walk-step { opacity: .3; }
+:root[data-theme="arena"] .walk-step.now { opacity: 1; }
+:root[data-theme="arena"] .walk-step small { font-family: var(--display); font-size: .9375rem; letter-spacing: .3em; color: var(--pg); }
+:root[data-theme="arena"] .walk-step strong { font-family: var(--display); font-weight: 700; font-size: clamp(2.25rem, 11vw, 3.5rem); letter-spacing: .04em; line-height: 1; }
+:root[data-theme="arena"] .walk-step.now strong { text-shadow: 0 0 24px color-mix(in srgb, var(--pg) 45%, transparent); }
+
+/* Einzelkarte: steht auf einem leuchtenden Podest */
+.reveal-floor { display: none; }
+:root[data-theme="arena"] .reveal-floor {
+  display: block; position: absolute; left: 50%; top: 300px; width: 300px; height: 70px; margin-left: -150px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--pg) 55%, transparent), transparent);
+  border: 1px solid color-mix(in srgb, var(--pg) 50%, transparent); transform: perspective(300px) rotateX(60deg);
+}
+:root[data-theme="arena"] .reveal-name { font-family: var(--display); font-weight: 700; font-size: 1.75rem; letter-spacing: .04em; margin-top: 6px; }
+:root[data-theme="arena"] .reveal .pack-ring { top: 30%; }
+
+/* Übersicht aller Karten */
+:root[data-theme="arena"] .pack-all h2 { font-family: var(--display); font-size: 1.5rem; letter-spacing: .08em; margin-bottom: 20px; }
+:root[data-theme="arena"] .pack-cards { gap: 16px 12px; }
+:root[data-theme="arena"] .pack-tag { font-family: var(--display); font-size: .8125rem; letter-spacing: .1em; padding: 2px 10px; }
+:root[data-theme="arena"] .pack-tag.new { background: var(--neon-g); color: #03121a; }
+:root[data-theme="arena"] .pack-tag.dup { background: transparent; color: var(--text-2); box-shadow: inset 0 0 0 1px var(--line-strong); }
+:root[data-theme="arena"] .card-back {
+  background:
+    radial-gradient(circle at 50% 45%, transparent 0 13%, rgba(25, 240, 255, .7) 13.5% 15%, transparent 15.5%),
+    linear-gradient(rgba(25, 240, 255, .08) 1px, transparent 1px) 0 0 / 100% 12px,
+    linear-gradient(160deg, #161c40, #05060f);
+}
+:root[data-theme="arena"] .pack-actions { gap: 12px; margin-top: 28px; }
+:root[data-theme="arena"] .pack-actions .btn.big { min-height: 52px; }
+/* „Alle aufdecken“ als leiser Textlink über den Buttons */
+:root[data-theme="arena"] .pack-actions > .pack-revealall {
+  flex: 1 0 100%; order: -1; min-height: 0; background: none; box-shadow: none; color: var(--neon-c); font-size: .9375rem; padding: 4px;
+}
+:root[data-theme="arena"] .pack-actions .pack-half small { font-family: var(--display); font-size: .875rem; letter-spacing: .03em; }
+:root[data-theme="arena"] .pack-card .btn .coin-ic { color: currentColor; }
+:root[data-theme="arena"] .pack-open:not([class*="theme-"]) .pack-flash { animation-duration: .45s; }
