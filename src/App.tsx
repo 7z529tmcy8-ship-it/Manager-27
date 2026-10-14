@@ -43,6 +43,14 @@ export default function App() {
     return () => clearTimeout(t);
   }, [toast]);
 
+  // Coin-Verbesserungen gibt es nicht mehr: einmalige Erstattung anzeigen und dauerhaft speichern.
+  useEffect(() => {
+    const c = getClubState();
+    if (!c.refundNotice) return;
+    setClubState({ ...c, refundNotice: undefined });
+    setToast(`Karten-Verbesserung per Coins gibt es nicht mehr – du bekommst ${c.refundNotice.toLocaleString('de-DE')} Coins zurück. Neu: Evolutions!`);
+  }, []);
+
   // Sounds: Klick bei jedem Knopf, Münzen beim Verdienen, Kasse beim Ausgeben.
   useEffect(() => installClickSound(), []);
   const coins = useClub().coins;

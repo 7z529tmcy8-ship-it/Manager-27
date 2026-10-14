@@ -182,3 +182,34 @@ export const GALA_NOMINEES: [string, number][] = [
 ];
 /** Sieger der Wahl – wird nach der Verleihung eingetragen (bis dahin null). */
 export const BALLON_WINNER_2026: string | null = null;
+
+/**
+ * Comeback-Karten: Rückkehr nach schwerer Verletzung, Krankheit oder Rückschlag.
+ * [Name, Nation, Position, Wertung, Verein/Team beim Comeback, Jahr]. Wertungen sind eigene Schätzungen.
+ */
+export const COMEBACK_CARDS: [string, string, Position, number, string, number][] = [
+  ['Ronaldo Nazário', 'Brasilien', 'ST', 98, 'Seleção', 2002], // nach zwei Knieverletzungen Weltmeister mit 8 WM-Toren
+  ['Arjen Robben', 'Niederlande', 'FL', 93, 'FC Bayern München', 2013], // Elfer 2012 verschossen, CL-Siegtor 2013
+  ['Virgil van Dijk', 'Niederlande', 'IV', 91, 'Liverpool FC', 2021], // Kreuzbandriss Oktober 2020
+  ['Henrik Larsson', 'Schweden', 'ST', 90, 'Celtic Glasgow', 2001], // Beinbruch 1999, Goldener Schuh 2001 (35 Ligatore)
+  ['Radamel Falcao', 'Kolumbien', 'ST', 89, 'AS Monaco', 2017], // Kreuzbandriss 2014, Meister 2017
+  ['Christian Eriksen', 'Dänemark', 'ZOM', 88, 'FC Brentford', 2022], // Herzstillstand EM 2021
+  ['Santi Cazorla', 'Spanien', 'ZM', 87, 'FC Villarreal', 2018], // 636 Tage verletzt
+  ['Sébastien Haller', 'Elfenbeinküste', 'ST', 86, 'Elfenbeinküste', 2024], // Hodenkrebs 2022, Siegtor Afrika-Cup-Finale 2024
+];
+
+/**
+ * Rückblende-Karten: Spieler in der Form ihrer besten Saison – mit dem Verein von damals.
+ * [Name, Nation, Position, Wertung, Verein in der Saison, Saison]. Wertungen sind eigene Schätzungen.
+ */
+export const FLASHBACK_CARDS: [string, string, Position, number, string, string][] = [
+  ['Lionel Messi', 'Argentinien', 'FL', 98, 'FC Barcelona', '2011/12'], // 73 Pflichtspieltore
+  ['Cristiano Ronaldo', 'Portugal', 'ST', 97, 'Real Madrid', '2014/15'], // 48 Liga-Tore
+  ['Robert Lewandowski', 'Polen', 'ST', 96, 'FC Bayern München', '2020/21'], // 41 Bundesliga-Tore
+  ['Luka Modrić', 'Kroatien', 'ZM', 95, 'Real Madrid', '2018'], // WM-Finale und Ballon d’Or
+  ['Mohamed Salah', 'Ägypten', 'FL', 95, 'Liverpool FC', '2017/18'], // 32 Premier-League-Tore
+  ['Kevin De Bruyne', 'Belgien', 'ZOM', 95, 'Manchester City', '2019/20'], // 20 Liga-Vorlagen
+  ['Harry Kane', 'England', 'ST', 95, 'FC Bayern München', '2023/24'], // 36 Bundesliga-Tore
+  ['Neymar', 'Brasilien', 'FL', 94, 'FC Barcelona', '2014/15'], // Triple
+  ['Thomas Müller', 'Deutschland', 'ZOM', 93, 'FC Bayern München', '2019/20'], // 21 Vorlagen, Triple
+];

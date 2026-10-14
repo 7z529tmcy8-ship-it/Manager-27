@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { CARD_POOL, MAX_CARD_OVR, collectionProgress, costTo99, getCard, rarity, sellDuplicates, sellValue, upgradeCard, upgradeCost, withUpgrade, type CollectCard } from '../game/club';
+import { CARD_POOL, collectionProgress, getCard, rarity, sellDuplicates, sellValue, withUpgrade, type CollectCard } from '../game/club';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import UtCard from './UtCard';
 import { cardById } from '../game/squad';
 import Icon from './Icon';
+import { EVO_CAP, EVO_FEE, EVO_PATHS, EVO_VARIANTS, cancelEvo, evoBlocker, evoGained, getPath, startEvo, stepText } from '../game/evolutions';
 
-type Filter = 'all' | 'elite' | 'icon' | 'cult' | 'wonder' | 'talent' | 'debut' | 'special' | 'dupes';
+type Filter = 'all' | 'elite' | 'icon' | 'cult' | 'wonder' | 'talent' | 'debut' | 'comeback' | 'flashback' | 'special' | 'dupes';
 
 /** Filter der Sammlung; bei Kartenarten mit fester Anzahl zeigt der Chip „gesammelt/insgesamt“. */
 const FILTERS: { id: Filter; label: string; test: (c: CollectCard) => boolean; total?: boolean }[] = [
@@ -16,6 +17,8 @@ const FILTERS: { id: Filter; label: string; test: (c: CollectCard) => boolean; t
   { id: 'wonder', label: 'Wunderkinder', test: (c) => c.age !== undefined && c.age <= 21, total: true },
   { id: 'talent', label: 'Was wäre wenn', test: (c) => c.variant === 'talent', total: true },
   { id: 'debut', label: 'Debüts', test: (c) => c.variant === 'debut', total: true },
+  { id: 'comeback', label: 'Comebacks', test: (c) => c.variant === 'comeback', total: true },
+  { id: 'flashback', label: 'Rückblenden', test: (c) => c.variant === 'flashback', total: true },
   { id: 'special', label: 'Sonderkarten', test: (c) => ['tots', 'potm', 'record', 'champion', 'moment', 'present', 'halloween', 'gala', 'totw', 'ballondor', 'poty', 'topscorer', 'goldenboy', 'ucl', 'worldcup'].includes(c.variant) },
   { id: 'dupes', label: 'Doppelte', test: () => true },
 ];
@@ -95,7 +98,7 @@ function CardDetail({ id, onClose }: { id: string; onClose: () => void }) {
   const card = cardById(club, id);
   if (!card) return null;
   const count = club.cards[id] ?? 1;
-  // Verkaufswert immer vom Grundwert – Verbesserungen bringen beim Verkauf nichts zurück.
+  // Verkaufswert immer vom Grundwert – Evolutions bringen beim Verkauf nichts zurück.
   const value = sellValue({ ...card, ovr: card.ovr - (card.boost ?? 0) });
   const own = club.specials.some((s) => s.id === id);
   const inSquad = club.squad.includes(id);
@@ -108,9 +111,10 @@ function CardDetail({ id, onClose }: { id: string; onClose: () => void }) {
     if (n > 0) cards[id] = n;
     else {
       delete cards[id];
-      delete upgrades[id]; // Verbesserungen gehen mit der letzten Karte verloren
+      delete upgrades[id]; // Evolution geht mit der letzten Karte verloren
     }
-    setClubState({ ...c, cards, upgrades, coins: c.coins + value });
+    const evo = c.evo?.active?.card === id && n <= 0 ? { ...c.evo, active: undefined } : c.evo;
+    setClubState({ ...c, cards, upgrades, evo, coins: c.coins + value });
     if (n <= 0) onClose();
   };
   return (
@@ -129,12 +133,9 @@ function CardDetail({ id, onClose }: { id: string; onClose: () => void }) {
               <li><span>Im Team</span><span>{inSquad ? 'aufgestellt' : 'nein'}</span></li>
               {!own && <li><span>Verkaufswert</span><span><Icon name="coin" size={16} className="coin-ic" />{value.toLocaleString('de-DE')}</span></li>}
             </ul>
-            <UpgradeBox card={card} coins={club.coins} onUpgrade={() => {
-              const next = upgradeCard(getClubState(), id);
-              if (next) setClubState(next);
-            }} />
+            <EvoBox id={id} />
             {canSell && <button className="btn secondary" onClick={sellOne}>1× verkaufen (+{value.toLocaleString('de-DE')} Coins)</button>}
-            {canSell && count === 1 && (card.boost ?? 0) > 0 && <p className="muted">Beim Verkauf der letzten Karte gehen die Verbesserungen verloren.</p>}
+            {canSell && count === 1 && (card.boost ?? 0) > 0 && <p className="muted">Beim Verkauf der letzten Karte geht die Evolution verloren.</p>}
             {!canSell && !own && <p className="muted">Aufgestellt – zum Verkaufen erst aus dem Team nehmen.</p>}
           </div>
         </div>
@@ -143,24 +144,51 @@ function CardDetail({ id, onClose }: { id: string; onClose: () => void }) {
   );
 }
 
-/** Karte mit Coins verbessern: jede Stufe teurer, 99 ist das Maximum. */
-function UpgradeBox({ card, coins, onUpgrade }: { card: CollectCard; coins: number; onUpgrade: () => void }) {
-  const fmt = (n: number) => n.toLocaleString('de-DE');
-  if (card.ovr >= MAX_CARD_OVR) {
-    return <div className="upgrade-box max"><strong>Maximal verbessert</strong><small>Diese Karte hat 99 erreicht.</small></div>;
-  }
-  const cost = upgradeCost(card.ovr);
-  const afford = coins >= cost;
+/** Evolution: Stand der Karte und passende Pfade zum Starten. */
+function EvoBox({ id }: { id: string }) {
+  const club = useClub();
+  const base = getCard(id);
+  if (!base || !EVO_VARIANTS.includes(base.variant)) return null;
+  const gained = evoGained(club, id);
+  const act = club.evo?.active;
+  const path = act && getPath(act.path);
+  const fits = EVO_PATHS.filter((p) => (p.silverOnly ? base.variant === 'silver' : p.positions.includes(base.position)));
   return (
-    <div className="upgrade-box">
+    <div className="upgrade-box evo-box">
       <div className="upgrade-head">
-        <strong>Karte verbessern</strong>
-        {(card.boost ?? 0) > 0 && <span className="upgrade-boost">bereits +{card.boost}</span>}
+        <strong><Icon name="evo" size={18} /> Evolution</strong>
+        <EvoDots gained={gained} />
       </div>
-      <button className="btn primary" disabled={!afford} onClick={onUpgrade}>
-        {card.ovr} → {card.ovr + 1} · <Icon name="coin" size={16} className="coin-ic" />{fmt(cost)}
-      </button>
-      <small>{afford ? `Bis 99 insgesamt noch ${fmt(costTo99(card.ovr))} Coins` : `Dir fehlen ${fmt(cost - coins)} Coins`}</small>
+      {act?.card === id && path ? (
+        <>
+          <small>Läuft: <b>{path.name}</b> · Stufe {act.step + 1}/{path.steps.length} · +{path.steps[act.step].gain}</small>
+          <small>{stepText(path.steps[act.step])} – {act.wins}/{path.steps[act.step].need}</small>
+          <button className="btn ghost small" onClick={() => window.confirm('Evolution abbrechen? Die Startgebühr ist dann weg, erreichte Stufen bleiben.') && setClubState(cancelEvo(getClubState()))}>Abbrechen</button>
+        </>
+      ) : gained >= EVO_CAP ? (
+        <small>Maximal entwickelt: +{EVO_CAP}.</small>
+      ) : (
+        <div className="evo-paths">
+          {fits.map((p) => {
+            const why = evoBlocker(club, p, id);
+            return (
+              <button key={p.id} className="evo-path" disabled={!!why} onClick={() => { const next = startEvo(getClubState(), p.id, id); if (next) setClubState(next); }}>
+                <span><b>{p.name}</b><small>{why ?? `Starten · ${EVO_FEE.toLocaleString('de-DE')} Coins · bis zu +${Math.min(EVO_CAP - gained, p.steps.reduce((a, s) => a + s.gain, 0))}`}</small></span>
+                {!why && <Icon name="arrow" size={18} />}
+              </button>
+            );
+          })}
+          {!fits.length && <small>Für diese Position gibt es gerade keinen Pfad.</small>}
+        </div>
+      )}
     </div>
+  );
+}
+
+export function EvoDots({ gained }: { gained: number }) {
+  return (
+    <span className="evo-dots" aria-label={`+${gained} von ${EVO_CAP}`}>
+      {Array.from({ length: EVO_CAP }, (_, i) => <i key={i} className={i < gained ? 'on' : ''} />)}
+    </span>
   );
 }

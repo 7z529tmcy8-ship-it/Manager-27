@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-14-evolutions',
+    date: '14.10.2026',
+    title: 'Evolutions, Comeback- und Rückblende-Karten',
+    items: [
+      'Neu: Evolutions! Wähle in der Sammlung eine Karte und einen Pfad (Torinstinkt, Mauer, Spielmacher, Silber-Aufstieg) und lass sie in Duellen wachsen – höchstens +5 pro Karte.',
+      'Neue Kategorie Comeback: 8 Spieler, die nach Verletzung oder Krankheit zurückkamen – von Ronaldo 2002 bis Haller 2024. Dunkle Karte mit leuchtendem Riss.',
+      'Neue Kategorie Rückblende: 9 aktive Stars in ihrer besten Saison, z. B. Messi 2011/12 oder Lewandowski 2020/21 – im Retro-Look mit Saison-Stempel.',
+      'Karten mit Coins verbessern gibt es nicht mehr. Wer schon verbessert hatte, bekommt die Coins vollständig zurück.',
+    ],
+  },
+  {
     id: '2026-10-13-pack-opening',
     date: '13.10.2026',
     title: 'Neue Pack-Öffnung',

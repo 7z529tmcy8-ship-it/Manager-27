@@ -1,7 +1,7 @@
 import type { Avatar } from './creator';
 import { FAILED_TALENTS, LEGENDS } from '../data/legends';
 import { REAL_PLAYERS } from '../data/players';
-import { BALLON_WINNER_2026, CULT_HEROES, DEBUT_CARDS, EXTRA_ICONS, EXTRA_STARS, EXTRA_TALENTS, GALA_NOMINEES, GEISTERNACHT_CARDS, HALLOWEEN_CARDS } from '../data/cards';
+import { BALLON_WINNER_2026, COMEBACK_CARDS, CULT_HEROES, DEBUT_CARDS, FLASHBACK_CARDS, EXTRA_ICONS, EXTRA_STARS, EXTRA_TALENTS, GALA_NOMINEES, GEISTERNACHT_CARDS, HALLOWEEN_CARDS } from '../data/cards';
 import { getClub, getLeague, slugify } from '../data/leagues';
 import { summarizeCareer } from './legacy';
 import { homeClubOf } from './offers';
@@ -13,7 +13,7 @@ import type { Career, CoachSeason, Position, SeasonRecord, SpecialCard, SpecialT
 
 /** Auszeichnungs-Karten, die man am Karriereende statt der Ikone wählen kann. */
 export type AwardVariant = 'ballondor' | 'poty' | 'topscorer' | 'goldenboy' | 'ucl' | 'worldcup';
-export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | 'gala' | 'totw' | AwardVariant | SpecialType;
+export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | 'gala' | 'totw' | 'comeback' | 'flashback' | AwardVariant | SpecialType;
 
 export interface CollectCard {
   id: string;
@@ -52,8 +52,14 @@ export interface ClubState {
   packsOpened: number;
   /** Willkommens-Pack schon geöffnet? */
   welcomeClaimed: boolean;
-  /** Karten-Verbesserungen: Karten-ID → zusätzliche Wertungspunkte. */
+  /** Plus-Punkte durch Evolutions: Karten-ID → zusätzliche Wertungspunkte (höchstens +5). */
   upgrades?: Record<string, number>;
+  /** Laufende und abgeschlossene Evolutions. */
+  evo?: import('./evolutions').EvoState;
+  /** Alte Coin-Verbesserungen wurden erstattet (Upgrade per Coins gibt es nicht mehr). */
+  upgradesRefunded?: boolean;
+  /** Erstattete Coins, noch nicht angezeigt. */
+  refundNotice?: number;
   /** Aufstellung (11 Karten-IDs im 4-3-3, null = leer). */
   squad: (string | null)[];
   /** Höchste freigeschaltete Duell-Stufe (1–10) und Bilanz. */
@@ -101,6 +107,7 @@ export const freshClub = (): ClubState => ({
   duels: { w: 0, d: 0, l: 0 },
   tasksDone: {},
   upgrades: {},
+  upgradesRefunded: true,
 });
 
 // ---------- Kartenpool ----------
@@ -123,6 +130,8 @@ export const CARD_POOL: CollectCard[] = [
   ...EXTRA_TALENTS.map(([name, nation, position, ovr]) => ({ id: cardId(name), name, position, nation, club: 'Zweite Chance', ovr, variant: 'talent' as const, label: 'Was wäre wenn' })),
   ...GEISTERNACHT_CARDS.map(([name, nation, position, ovr, label]) => ({ id: cardId(`${name} Geisternacht`), name, position, nation, club: 'Geisternacht', ovr, variant: 'halloween' as const, label })),
   ...DEBUT_CARDS.map(([name, nation, position, ovr, club, year]) => ({ id: cardId(`${name} Debüt`), name, position, nation, club, ovr, variant: 'debut' as const, label: `${club} · ${year}` })),
+  ...COMEBACK_CARDS.map(([name, nation, position, ovr, club, year]) => ({ id: cardId(`${name} Comeback`), name, position, nation, club, ovr, variant: 'comeback' as const, label: `${club} · ${year}` })),
+  ...FLASHBACK_CARDS.map(([name, nation, position, ovr, club, season]) => ({ id: cardId(`${name} Rückblende`), name, position, nation, club, ovr, variant: 'flashback' as const, label: `${club} · ${season}` })),
 ];
 // Gala-Karten (Ballon d’Or 2026): Verein und Position wie die normale Karte, höhere Event-Wertung.
 for (const [name, ovr] of GALA_NOMINEES) {
@@ -147,6 +156,7 @@ export function sellValue(c: CollectCard): number {
   if (c.variant === 'icon' || ['ballondor', 'poty', 'topscorer', 'goldenboy', 'ucl', 'worldcup'].includes(c.variant)) return 4000;
   if (c.variant === 'talent') return 800;
   if (c.variant === 'cult' || c.variant === 'debut') return 1500;
+  if (c.variant === 'comeback' || c.variant === 'flashback') return 2500;
   if (c.variant === 'gold-rare') return 900 + (c.ovr - 85) * 150;
   if (c.variant === 'gold') return 250;
   return 80;
@@ -154,7 +164,7 @@ export function sellValue(c: CollectCard): number {
 
 /** Seltenheit für Sortierung und „bester Zug“. */
 export function rarity(c: CollectCard): number {
-  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, gala: 3.9, totw: 3.1, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
+  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, gala: 3.9, totw: 3.1, comeback: 3.3, flashback: 3.5, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
   return base * 100 + c.ovr;
 }
 
@@ -169,7 +179,7 @@ const TIERS: PackTier[] = ['silver', 'gold', 'rare', 'elite', 'special', 'icon']
 /** Stufe einer Karte für Packs: Silber < 75, Gold 75–82, Selten 83–86, Elite 87+, Spezial (Kult/Was wäre wenn), Ikone. */
 export function packTier(c: CollectCard): PackTier {
   if (c.variant === 'icon') return 'icon';
-  if (c.variant === 'talent' || c.variant === 'cult' || c.variant === 'halloween' || c.variant === 'debut' || c.variant === 'gala') return 'special';
+  if (c.variant === 'talent' || c.variant === 'cult' || c.variant === 'halloween' || c.variant === 'debut' || c.variant === 'gala' || c.variant === 'comeback' || c.variant === 'flashback') return 'special';
   return c.ovr >= 87 ? 'elite' : c.ovr >= 83 ? 'rare' : c.ovr >= 75 ? 'gold' : 'silver';
 }
 
@@ -264,6 +274,14 @@ export const PACKS: PackDef[] = [
   {
     id: 'debut', name: 'Debüt-Pack', price: 45000, size: 3, text: '1 garantierte Debüt-Karte (Messi 2004, Mbappé 2015, Yamal 2023 …) plus zwei Gold-Karten.',
     odds: GOLD_FILL, first: { odds: { special: 100 }, filter: (c) => c.variant === 'debut' },
+  },
+  {
+    id: 'comeback', name: 'Comeback-Pack', price: 60000, size: 3, text: '1 garantierte Comeback-Karte (Ronaldo 2002, Robben 2013, Eriksen 2022 …) plus zwei Gold-Karten.',
+    odds: GOLD_FILL, first: { odds: { special: 100 }, filter: (c) => c.variant === 'comeback' },
+  },
+  {
+    id: 'flashback', name: 'Rückblende-Pack', price: 75000, size: 3, text: '1 garantierte Rückblende-Karte (Messi 2011/12, Lewandowski 2020/21 …) plus zwei Gold-Karten.',
+    odds: GOLD_FILL, first: { odds: { special: 100 }, filter: (c) => c.variant === 'flashback' },
   },
   {
     id: 'worldstar', name: 'Weltstar-Pack', price: 90000, size: 2, text: '2 Karten, die beste ab 83 oder Ikone – gute Chance auf einen Weltstar ab 87.',
@@ -553,44 +571,36 @@ export function careerCard(career: Career, club?: ClubState): CollectCard {
   };
 }
 
-// ---------- Karten verbessern ----------
-// Jede Stufe kostet 20 % mehr als die vorige: 80→81 ≈ 3.850, 90→91 ≈ 23.750, 98→99 ≈ 102.000 Coins.
-// Von 90 auf 99 sind es zusammen rund 494.000 Coins – 99er-Karten bleiben etwas Besonderes.
+// ---------- Plus-Punkte aus Evolutions ----------
 export const MAX_CARD_OVR = 99;
 
-/** Preis, um eine Karte von `ovr` auf `ovr + 1` zu verbessern. */
-export function upgradeCost(ovr: number): number {
-  return Math.max(100, Math.round((100 * 1.2 ** (ovr - 60)) / 50) * 50);
-}
-
-/** Gesamtpreis von `ovr` bis 99. */
-export function costTo99(ovr: number): number {
-  let sum = 0;
-  for (let o = ovr; o < MAX_CARD_OVR; o++) sum += upgradeCost(o);
-  return sum;
-}
-
-/** Karte mit eingerechneter Verbesserung. */
+/** Karte mit eingerechneten Evolution-Punkten. Silberkarten, die 75 erreichen, tragen den Gold-Look. */
 export function withUpgrade(club: Pick<ClubState, 'upgrades'>, card: CollectCard): CollectCard {
   const boost = club.upgrades?.[card.id] ?? 0;
   if (!boost) return card;
-  return { ...card, ovr: Math.min(MAX_CARD_OVR, card.ovr + boost), boost };
+  const ovr = Math.min(MAX_CARD_OVR, card.ovr + boost);
+  const variant = card.variant === 'silver' && ovr >= 75 ? 'gold' : card.variant;
+  return { ...card, ovr, boost, variant };
 }
 
-/** Karte um einen Punkt verbessern. Gibt null zurück, wenn es nicht geht (nicht im Besitz, schon 99, zu wenig Coins). */
-export function upgradeCard(club: ClubState, id: string): ClubState | null {
-  const base = getCard(id) ?? club.specials.find((s) => s.id === id);
-  const owned = (club.cards[id] ?? 0) > 0 || club.specials.some((s) => s.id === id);
-  if (!base || !owned) return null;
-  const card = withUpgrade(club, base);
-  if (card.ovr >= MAX_CARD_OVR) return null;
-  const cost = upgradeCost(card.ovr);
-  if (club.coins < cost) return null;
-  return {
-    ...club,
-    coins: club.coins - cost,
-    upgrades: { ...(club.upgrades ?? {}), [id]: (club.upgrades?.[id] ?? 0) + 1 },
-  };
+/** Früherer Preis einer Coin-Verbesserung von `ovr` auf `ovr + 1` – nur noch für die Erstattung. */
+function oldUpgradeCost(ovr: number): number {
+  return Math.max(100, Math.round((100 * 1.2 ** (ovr - 60)) / 50) * 50);
+}
+
+/**
+ * Die Verbesserung per Coins gibt es nicht mehr. Alte Verbesserungen werden einmalig zum damaligen Preis
+ * erstattet und zurückgesetzt – ab dann zählen nur noch Evolutions.
+ */
+export function refundOldUpgrades(club: ClubState): ClubState {
+  if (club.upgradesRefunded) return club;
+  let refund = 0;
+  for (const [id, boost] of Object.entries(club.upgrades ?? {})) {
+    const base = getCard(id) ?? club.specials.find((s) => s.id === id);
+    if (!base) continue;
+    for (let o = base.ovr; o < Math.min(MAX_CARD_OVR, base.ovr + boost); o++) refund += oldUpgradeCost(o);
+  }
+  return { ...club, coins: club.coins + refund, upgrades: {}, upgradesRefunded: true, refundNotice: refund || undefined };
 }
 
 // ---------- Mega Super XXL Pack (einmalig, gratis) ----------

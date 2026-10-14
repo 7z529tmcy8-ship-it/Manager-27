@@ -13,6 +13,8 @@ const VARIANT_LABEL: Partial<Record<CollectCard['variant'], string>> = {
   present: 'Geschenk',
   halloween: 'Halloween',
   debut: 'Debüt',
+  comeback: 'Comeback',
+  flashback: 'Rückblende',
   gala: 'Gala',
   totw: 'Team der Woche',
   ballondor: 'Ballon d’Or',
@@ -28,7 +30,7 @@ const VARIANT_LABEL: Partial<Record<CollectCard['variant'], string>> = {
 };
 /** Sonderkarten bekommen ein Emblem, Holo-Schimmer und ein eigenes Muster (siehe styles.css). */
 const EMBLEM: Partial<Record<CollectCard['variant'], IconName>> = {
-  icon: 'crown', cult: 'bolt', talent: 'spark', debut: 'ticket', moment: 'film', present: 'gift', halloween: 'pumpkin', gala: 'medal',
+  icon: 'crown', cult: 'bolt', talent: 'spark', debut: 'ticket', comeback: 'rise', flashback: 'rewind', moment: 'film', present: 'gift', halloween: 'pumpkin', gala: 'medal',
   tots: 'star', potm: 'calendar', record: 'chart', champion: 'trophy',
   ballondor: 'medal', worldcup: 'globe', ucl: 'star', poty: 'mic', topscorer: 'boot', goldenboy: 'spark', totw: 'stadium',
 };
@@ -68,11 +70,12 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick 
   const emblem = EMBLEM[card.variant];
   return (
     <Tag
-      className={`ucard v-${card.variant} ${size} ${emblem ? 'special' : ''} ${shine ? 'shine' : ''} ${onClick ? 'clickable' : ''}`}
+      className={`ucard v-${card.variant} ${size} ${emblem ? 'special' : ''} ${card.boost ? 'evo' : ''} ${shine ? 'shine' : ''} ${onClick ? 'clickable' : ''}`}
       aria-label={`${card.name}, ${card.ovr} ${card.position}`}
       onClick={onClick}
     >
       {emblem && <span className="ucard-foil" aria-hidden="true" />}
+      {!!card.boost && size !== 'xs' && <span className="ucard-evo" aria-label={`Evolution +${card.boost}`}>{Array.from({ length: 5 }, (_, i) => <i key={i} className={i < card.boost! ? 'on' : ''} />)}</span>}
       {emblem && size !== 'xs' && <span className="ucard-emblem" aria-hidden="true"><Icon name={emblem} /></span>}
       <div className="ucard-top">
         <span className="ucard-ovr">{card.ovr}</span>
@@ -100,7 +103,7 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick 
         </span>
       )}
       {count !== undefined && count > 1 && <span className="ucard-count">×{count}</span>}
-      {(card.boost ?? 0) > 0 && <span className="ucard-boost" title={`Um ${card.boost} verbessert`}>▲{card.boost}</span>}
+      {(card.boost ?? 0) > 0 && <span className="ucard-boost" title={`Evolution: +${card.boost}`}>EVO +{card.boost}</span>}
     </Tag>
   );
 }

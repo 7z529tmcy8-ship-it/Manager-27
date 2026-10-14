@@ -86,20 +86,16 @@ it('Kurznamen für kleine Karten', async () => {
   expect(shortName('Pelé')).toBe('Pelé');
 });
 
-it('Karten verbessern: teurer pro Stufe, max 99, rund 500.000 Coins von 90 auf 99', async () => {
-  const { upgradeCard, upgradeCost, costTo99, withUpgrade, getCard } = await import('../club');
-  expect(upgradeCost(91)).toBeGreaterThan(upgradeCost(90));
-  expect(costTo99(90)).toBeGreaterThan(450_000);
-  expect(costTo99(90)).toBeLessThan(550_000);
+it('Coin-Verbesserung gibt es nicht mehr: alte Upgrades werden einmalig erstattet', async () => {
+  const { refundOldUpgrades, withUpgrade, getCard } = await import('../club');
   const id = CARD_POOL.find((c) => c.ovr === 90 && c.variant !== 'icon')!.id;
-  let club = { ...freshClub(), coins: 600_000, cards: { [id]: 1 } };
-  expect(upgradeCard({ ...club, cards: {} }, id)).toBeNull(); // nicht im Besitz
-  for (let i = 0; i < 12; i++) club = upgradeCard(club, id) ?? club;
-  const card = withUpgrade(club, getCard(id)!);
-  expect(card.ovr).toBe(99);
-  expect(card.boost).toBe(9);
-  expect(club.coins).toBe(600_000 - costTo99(90));
-  expect(upgradeCard({ ...freshClub(), coins: 10, cards: { [id]: 1 } }, id)).toBeNull(); // zu wenig Coins
+  const old = { ...freshClub(), upgradesRefunded: false, coins: 1000, cards: { [id]: 1 }, upgrades: { [id]: 2 } };
+  const club = refundOldUpgrades(old);
+  expect(club.coins).toBeGreaterThan(1000 + 40_000); // 90→92 kostete früher rund 52.000
+  expect(club.upgrades).toEqual({});
+  expect(withUpgrade(club, getCard(id)!).ovr).toBe(90);
+  expect(refundOldUpgrades(club)).toBe(club); // nur einmal
+  expect(refundOldUpgrades(freshClub()).coins).toBe(freshClub().coins); // neue Spieler bekommen nichts
 });
 
 it('Packs sind hart: Top-Karten selten, Chancen passen zur Anzeige', async () => {

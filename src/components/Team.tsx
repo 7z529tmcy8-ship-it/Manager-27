@@ -1,4 +1,6 @@
 import Icon, { Glyph } from './Icon';
+import { evoAfterDuel, getPath, stepText, type EvoProgress } from '../game/evolutions';
+import { getCard as poolCard } from '../game/club';
 import { useEffect, useState } from 'react';
 import { PACKS, openPack, rarity, type CollectCard, type PackResult } from '../game/club';
 import {
@@ -244,8 +246,9 @@ function Duels({ full, onSquad }: { full: boolean; onSquad: () => void }) {
   const play = (level: number) => {
     const res = playDuel(getClubState(), level);
     if (!res) return;
-    setClubState(res.club);
-    setLive({ level, result: res.result });
+    const evo = evoAfterDuel(res.club, res.result, level);
+    setClubState(evo.club);
+    setLive({ level, result: { ...res.result, evo: evoMessage(evo.club, evo.progress, res.result.outcome === 'win') } });
   };
 
   if (!full) {
@@ -258,6 +261,7 @@ function Duels({ full, onSquad }: { full: boolean; onSquad: () => void }) {
   }
   return (
     <>
+      <EvoStatus />
       <p className="hub-sub">Deine Spielstärke: <strong>{strength.toFixed(1)}</strong> (Wertung + Chemie). Gewinne, um die nächste Stufe freizuschalten.</p>
       <ol className="duel-list">
         {Array.from({ length: DUEL_LEVELS }, (_, k) => opponent(k + 1)).map((o) => {
@@ -304,6 +308,7 @@ function DuelLive({ name, result, onClose, onShare }: { name: string; result: Du
               {result.outcome === 'win' ? (result.coins ? `Sieg! +${result.coins} Coins` : 'Sieg!') : result.outcome === 'draw' ? (result.coins ? `Unentschieden · +${result.coins} Coins` : 'Unentschieden') : 'Niederlage – stell dein Team um und versuch es nochmal.'}
               {result.points ? ` · +${result.points} Saisonpunkte` : ''}
             </p>
+            {result.evo && <p className="duel-evo"><Icon name="evo" size={18} />{result.evo}</p>}
             {onShare && <button className="btn secondary big" onClick={onShare}>Ergebnis teilen</button>}
             <button className="btn primary big" onClick={onClose}>Weiter</button>
           </>
@@ -534,5 +539,39 @@ function Tasks() {
       </div>
       {opening && <PackOpening name={opening.name} result={opening.result} onClose={() => setOpening(null)} onCollection={() => setOpening(null)} />}
     </>
+  );
+}
+
+/** Text für das Duell-Ergebnis: Was hat die laufende Evolution davon? */
+function evoMessage(club: ReturnType<typeof getClubState>, p: EvoProgress | null, won: boolean): string | undefined {
+  if (!p || (!p.counted && !won)) return undefined;
+  const name = poolCard(p.card)?.name ?? 'Deine Karte';
+  const path = getPath(p.path)?.name ?? 'Evolution';
+  if (!p.counted) return club.squad.includes(p.card) ? `${path}: Dieser Sieg erfüllt die Bedingung der aktuellen Stufe nicht.` : `${path}: ${name} stand nicht in der Elf – zählt nicht.`;
+  if (p.finished) return `${path} abgeschlossen! ${name} +${p.gain}.`;
+  if (p.stepDone) return `${path}: Stufe ${p.stepDone} geschafft – ${name} +${p.gain}.`;
+  const a = club.evo?.active;
+  const step = a && getPath(a.path)?.steps[a.step];
+  return step ? `${path}: ${a!.wins}/${step.need} Siege für die nächste Stufe.` : undefined;
+}
+
+/** Laufende Evolution oben im Duell-Bereich. */
+function EvoStatus() {
+  const club = useClub();
+  const a = club.evo?.active;
+  const path = a && getPath(a.path);
+  const card = a && cardById(club, a.card);
+  if (!a || !path || !card) return null;
+  const step = path.steps[a.step];
+  return (
+    <div className="evo-status">
+      <UtCard card={card} size="xs" />
+      <div>
+        <small>Evolution · {path.name} · Stufe {a.step + 1}/{path.steps.length}</small>
+        <strong>{stepText(step)}</strong>
+        <div className="evo-bar"><i style={{ width: `${(a.wins / step.need) * 100}%` }} /></div>
+        <small>{a.wins}/{step.need} · danach +{step.gain}{club.squad.includes(a.card) ? '' : ' · Karte steht nicht in der Elf!'}</small>
+      </div>
+    </div>
   );
 }

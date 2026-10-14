@@ -40,7 +40,8 @@ it('Duelle: nur mit vollem Team, Siege schalten Stufen frei, Coins werden gutges
   expect(playDuel(club, 1)).toBeNull();
   club = { ...club, squad: autoSquad(club) };
   let wins = 0;
-  for (let i = 0; i < 30; i++) {
+  // Gegner starten bei 90 – genug Duelle spielen, damit der Zufall den Test nicht kippt.
+  for (let i = 0; i < 120; i++) {
     const res = playDuel(club, club.duelLevel)!;
     if (res.result.outcome === 'win') {
       wins++;

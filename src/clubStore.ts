@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { freshClub, type ClubState } from './game/club';
+import { freshClub, refundOldUpgrades, type ClubState } from './game/club';
 
 // Der Club (Coins, Sammlung, Items) gilt für alle Karrieren in diesem Browser.
 const KEY = 'fc-club';
@@ -10,7 +10,8 @@ function load(): ClubState {
     if (!raw) return freshClub();
     const base = freshClub();
     const saved = JSON.parse(raw) as Partial<ClubState>;
-    return { ...base, ...saved, items: { ...base.items, ...saved.items } };
+    // Alte Speicherstände ohne Kennzeichen: Coin-Verbesserungen einmalig erstatten.
+    return refundOldUpgrades({ ...base, upgradesRefunded: false, ...saved, items: { ...base.items, ...saved.items } });
   } catch {
     return freshClub();
   }
