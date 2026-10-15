@@ -1,3 +1,6 @@
+import SeasonPass from './components/SeasonPass';
+import { PASS_XP, addPassXp } from './game/pass';
+import { autoStartMotion } from './tilt';
 import { useEffect, useRef, useState } from 'react';
 import CreateCareer from './components/CreateCareer';
 import CareerScreen from './components/CareerScreen';
@@ -30,6 +33,7 @@ type Screen =
   | { name: 'create' }
   | { name: 'fame' }
   | { name: 'achievements' }
+  | { name: 'pass' }
   | { name: 'game'; career: Career };
 
 export default function App() {
@@ -53,6 +57,7 @@ export default function App() {
 
   // Sounds: Klick bei jedem Knopf, Münzen beim Verdienen, Kasse beim Ausgeben.
   useEffect(() => installClickSound(), []);
+  useEffect(() => autoStartMotion(), []);
   const coins = useClub().coins;
   const lastCoins = useRef(coins);
   useEffect(() => {
@@ -69,7 +74,7 @@ export default function App() {
     // Neue Saisons bringen Coins für den Club.
     const res = creditCareer(getClubState(), career);
     if (res.gained > 0) {
-      setClubState(res.club);
+      setClubState(addPassXp(res.club, res.seasons * PASS_XP.careerSeason));
       setToast(`+${res.gained.toLocaleString('de-DE')} Coins ${res.seasons === 0 ? 'aus Familie & Vermögen' : res.seasons === 1 ? 'für die Saison' : `für ${res.seasons} Saisons`}`);
     }
     // Karriere vorbei: Belohnungskarte wählen (Ikone oder Auszeichnung).
@@ -112,6 +117,7 @@ export default function App() {
           onSbc={() => setScreen({ name: 'sbc' })}
           onFame={() => setScreen({ name: 'fame' })}
           onAchievements={() => setScreen({ name: 'achievements' })}
+          onPass={() => setScreen({ name: 'pass' })}
           onReward={setReward}
         />
       )}
@@ -122,6 +128,7 @@ export default function App() {
       {screen.name === 'sbc' && <SbcScreen onBack={home} />}
       {screen.name === 'trade' && <Trade onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
       {screen.name === 'achievements' && <Achievements onBack={home} />}
+      {screen.name === 'pass' && <SeasonPass onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
       {screen.name === 'fame' && <HallOfFame onBack={home} onOpen={load} />}
       {screen.name === 'create' && <CreateCareer onCancel={home} onCreate={update} />}
       {screen.name === 'game' && (

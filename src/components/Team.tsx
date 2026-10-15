@@ -1,3 +1,4 @@
+import { PASS_XP, addPassXp } from '../game/pass';
 import Icon, { Glyph } from './Icon';
 import { evoAfterDuel, getPath, stepText, type EvoProgress } from '../game/evolutions';
 import { getCard as poolCard } from '../game/club';
@@ -247,8 +248,9 @@ function Duels({ full, onSquad }: { full: boolean; onSquad: () => void }) {
     const res = playDuel(getClubState(), level);
     if (!res) return;
     const evo = evoAfterDuel(res.club, res.result, level);
-    setClubState(evo.club);
-    setLive({ level, result: { ...res.result, evo: evoMessage(evo.club, evo.progress, res.result.outcome === 'win') } });
+    const passXp = PASS_XP.duel(level, res.result.outcome) + (evo.progress?.stepDone ? PASS_XP.evoStep : 0);
+    setClubState(addPassXp(evo.club, passXp));
+    setLive({ level, result: { ...res.result, passXp, evo: evoMessage(evo.club, evo.progress, res.result.outcome === 'win') } });
   };
 
   if (!full) {
@@ -307,6 +309,7 @@ function DuelLive({ name, result, onClose, onShare }: { name: string; result: Du
             <p className={`duel-result ${result.outcome}`}>
               {result.outcome === 'win' ? (result.coins ? `Sieg! +${result.coins} Coins` : 'Sieg!') : result.outcome === 'draw' ? (result.coins ? `Unentschieden · +${result.coins} Coins` : 'Unentschieden') : 'Niederlage – stell dein Team um und versuch es nochmal.'}
               {result.points ? ` · +${result.points} Saisonpunkte` : ''}
+              {result.passXp ? ` · +${result.passXp} Pass-XP` : ''}
             </p>
             {result.evo && <p className="duel-evo"><Icon name="evo" size={18} />{result.evo}</p>}
             {onShare && <button className="btn secondary big" onClick={onShare}>Ergebnis teilen</button>}
@@ -514,7 +517,7 @@ function Tasks() {
     const done = completeTask(getClubState(), task);
     if (!done) return;
     const pack = openPack(done.club, task.reward, Math.random, true)!;
-    setClubState(pack.club);
+    setClubState(addPassXp(pack.club, PASS_XP.task));
     setOpening({ name: PACKS.find((p) => p.id === task.reward)!.name, result: pack.result });
   };
   return (

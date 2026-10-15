@@ -13,6 +13,8 @@ export interface AppSettings {
   dev?: boolean;
   /** Halloween-Design während des Events (Standard an). */
   halloween?: boolean;
+  /** 3D-Karten folgen der Handy-Neigung (Standard an). */
+  tilt?: boolean;
 }
 
 const KEY = 'fc-manager-settings';

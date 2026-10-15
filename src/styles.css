@@ -2801,3 +2801,96 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .evo-status .ucard { width: 72px; flex: none; }
 .duel-evo { text-align: left; max-width: 340px; margin-left: auto; margin-right: auto; }
 .ucard-boost { background: #19f0ff; color: #03121a; font-family: var(--display, inherit); letter-spacing: .03em; }
+
+/* ===== 3D-Neige-Karten: Karte kippt zur Maus/zum Finger/zur Handy-Lage, Licht wandert mit ===== */
+.ucard.tilt {
+  --tx: 0; --ty: 0; --ta: 0;
+  transform: perspective(900px) rotateY(calc(var(--tx) * 22deg)) rotateX(calc(var(--ty) * -18deg));
+  transition: transform .35s cubic-bezier(.2, .8, .3, 1);
+  touch-action: pan-y;
+}
+.ucard.tilt.tilting { transition: transform .08s linear; }
+.ucard.tilt.clickable:hover { transform: perspective(900px) rotateY(calc(var(--tx) * 22deg)) rotateX(calc(var(--ty) * -18deg)) translateY(-3px); }
+.ucard-glare {
+  position: absolute; inset: 0; z-index: 4; pointer-events: none; mix-blend-mode: soft-light;
+  opacity: calc(.12 + var(--ta) * .75); transition: opacity .3s;
+  background:
+    radial-gradient(circle at calc(50% + var(--tx) * 110%) calc(50% + var(--ty) * 110%), rgba(255, 255, 255, .95), rgba(255, 255, 255, 0) 48%),
+    linear-gradient(calc(115deg + var(--tx) * 50deg), transparent 28%, rgba(255, 0, 170, .45) 40%, rgba(0, 220, 255, .45) 50%, rgba(255, 240, 0, .4) 60%, transparent 72%);
+  background-size: 100% 100%, 220% 220%;
+  background-position: 0 0, calc(50% - var(--tx) * 120%) calc(50% - var(--ty) * 120%);
+}
+/* Holo-Folie der Sonderkarten folgt der Neigung statt zu wandern */
+.ucard.tilt.tilting .ucard-foil { animation: none; background-position: calc(50% + var(--tx) * 140%) calc(50% + var(--ty) * 140%); opacity: .8; }
+:root.reduce-motion .ucard.tilt { transform: none; }
+:root.reduce-motion .ucard-glare { display: none; }
+@media (prefers-reduced-motion: reduce) { .ucard.tilt { transform: none; } .ucard-glare { display: none; } }
+
+/* ===== Saison-Pass ===== */
+/* Exklusive Pass-Karte: Violett-Schwarz mit Neon-Diagonalen in Cyan und Magenta */
+.ucard.v-pass { --a: #2a0f5c; --b: #05030f; --ink: #f4f0ff; --edge: rgba(25, 240, 255, .95); --glow: rgba(255, 47, 209, .5); }
+.ucard.v-pass.special { --pat:
+  linear-gradient(125deg, transparent 0 30%, rgba(25, 240, 255, .55) 30.5% 31.5%, transparent 32% 36%, rgba(255, 47, 209, .5) 36.5% 37.5%, transparent 38%) 0 0 / 100% 100% no-repeat,
+  repeating-linear-gradient(125deg, rgba(255, 255, 255, .04) 0 2px, transparent 2px 9px),
+  radial-gradient(70% 45% at 70% 25%, rgba(255, 47, 209, .35), transparent 70%),
+  radial-gradient(70% 45% at 20% 95%, rgba(25, 240, 255, .3), transparent 70%); }
+.ucard.v-pass .ucard-club { color: #19f0ff; letter-spacing: .06em; text-transform: uppercase; opacity: 1; }
+.ucard.v-pass .ucard-badge { color: #ff7ae5; }
+
+/* Hub: breite Pass-Kachel */
+.hub-tile.hub-pass { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 14px; min-height: 0; }
+@media (min-width: 760px) { .hub-tile.hub-pass { grid-column: span 2; } }
+:root[data-theme="arena"] .hub-tile.hub-pass { min-height: 0; }
+.hub-tile.hub-pass .hub-tile-icon { margin: 0; flex: none; }
+.hub-pass-text { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; text-align: left; }
+.hub-pass-text strong { margin: 0 !important; }
+.hub-pass-text .evo-bar { margin-top: 4px; }
+.hub-pass-level { display: flex; align-items: baseline; flex: none; font-family: var(--display, inherit); }
+.hub-pass-level b { font-size: 2rem; line-height: 1; }
+.hub-pass-level small { color: var(--muted); font-size: .9rem; }
+:root[data-theme="arena"] .hub-tile.hub-pass { border-color: rgba(255, 47, 209, .35);
+  background: linear-gradient(100deg, rgba(255, 47, 209, .14), transparent 45%), linear-gradient(180deg, var(--panel-2), var(--panel)); }
+:root[data-theme="arena"] .hub-tile.hub-pass .hub-tile-icon { color: #ff7ae5; background: rgba(255, 47, 209, .12); box-shadow: inset 0 0 0 1px rgba(255, 47, 209, .4); }
+:root[data-theme="arena"] .hub-tile.hub-pass .evo-bar i { background: linear-gradient(90deg, #ff2fd1, #19f0ff); }
+
+/* Pass-Bildschirm */
+.pass-hero { display: flex; gap: 20px; align-items: center; padding: 20px; border-radius: 20px; margin-bottom: 16px; position: relative; overflow: hidden;
+  background: radial-gradient(60% 90% at 15% 50%, rgba(255, 47, 209, .22), transparent 70%), radial-gradient(60% 90% at 90% 0%, rgba(25, 240, 255, .16), transparent 70%), var(--panel, var(--surface));
+  border: 1px solid rgba(255, 47, 209, .4); }
+.pass-hero-card { flex: none; filter: drop-shadow(0 0 24px rgba(255, 47, 209, .35)); }
+.pass-hero-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
+.pass-hero-info > strong { font-family: var(--display, inherit); font-size: 1.6rem; line-height: 1.05; text-transform: uppercase; letter-spacing: .03em; }
+.pass-hero-info > small { color: var(--muted); font-size: .875rem; }
+.pass-level { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.pass-level-num { flex: none; width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; font-family: var(--display, inherit); font-size: 1.9rem; font-weight: 700;
+  color: #03121a; background: linear-gradient(135deg, #ff2fd1, #19f0ff); box-shadow: 0 0 20px rgba(255, 47, 209, .35); }
+.pass-level-bar { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pass-level-bar small { color: var(--muted); font-size: .8125rem; }
+.pass-level-bar .evo-bar i { background: linear-gradient(90deg, #ff2fd1, #19f0ff); }
+@media (max-width: 520px) {
+  .pass-hero { flex-direction: column; text-align: center; }
+  .pass-hero-info { align-items: center; width: 100%; }
+  .pass-level { width: 100%; text-align: left; }
+}
+.pass-howto { margin: 0 0 16px; padding: 12px 16px; border-radius: 16px; background: var(--panel, var(--surface)); border: 1px solid var(--line, var(--hairline)); }
+.pass-howto summary { cursor: pointer; font-weight: 700; }
+.pass-howto ul { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.pass-howto li { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: .875rem; }
+.pass-howto li b { color: var(--text); font-variant-numeric: tabular-nums; }
+.pass-claim-all { width: 100%; margin-bottom: 12px; }
+.pass-track { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-radius: 20px; overflow: hidden; background: var(--panel, var(--surface)); border: 1px solid var(--line, var(--hairline)); }
+.pass-step { display: flex; align-items: center; gap: 12px; padding: 10px 14px; min-height: 56px; }
+.pass-step + .pass-step { border-top: 1px solid var(--line, var(--hairline)); }
+.pass-num { flex: none; width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; font-family: var(--display, inherit); font-weight: 700; font-size: 1rem;
+  color: var(--muted); box-shadow: inset 0 0 0 1px var(--line-strong, var(--hairline)); }
+.pass-ic { flex: none; color: var(--muted); display: grid; }
+.pass-text { flex: 1; min-width: 0; font-size: .9375rem; }
+.pass-step:not(.reached) .pass-text { color: var(--muted); }
+.pass-step.reached .pass-num { color: #03121a; background: linear-gradient(135deg, #ff2fd1, #19f0ff); box-shadow: none; }
+.pass-step.reached .pass-ic { color: #19f0ff; }
+.pass-step.k-coins.reached .pass-ic { color: var(--gold, #f5c542); }
+.pass-step.claimed { opacity: .55; }
+.pass-step.k-card { background: linear-gradient(90deg, rgba(255, 47, 209, .14), transparent 60%); }
+.pass-step.k-card .pass-text { font-weight: 700; }
+.pass-done { color: var(--neon-g, #39ff88); flex: none; }
+.pass-lock { color: var(--muted); flex: none; opacity: .6; }

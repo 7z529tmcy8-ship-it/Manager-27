@@ -1,3 +1,4 @@
+import { startMotion, stopMotion } from '../tilt';
 import { useEffect, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { INFINITE_COINS, devAdvance, devAllCards, devCoins, devFlags, devLevels, devMaxCards, devOvr, devTransfer, isDevCode } from '../game/dev';
@@ -103,6 +104,9 @@ export default function Settings({ career, onChange, onClose }: Props) {
             onPick={(theme) => set({ theme })}
           />
           <Toggle label="Animationen" checked={app.animations} onToggle={() => set({ animations: !app.animations })} hint="Pack-Öffnung, Konfetti und Hochzählen." />
+          <Toggle label="Karten mit dem Handy neigen" checked={app.tilt !== false} onToggle={async () => {
+            if (app.tilt === false) { set({ tilt: true }); await startMotion(); } else { set({ tilt: false }); stopMotion(); }
+          }} hint="Große Karten kippen in 3D und der Glanz wandert mit – am PC mit der Maus, am Handy durch Neigen." />
           {halloweenActive() && (
             <Toggle label="Halloween-Design" checked={app.halloween !== false} onToggle={() => set({ halloween: app.halloween === false })} hint="Nur bis 2. November: Kürbisse, Fledermäuse und Nebel." />
           )}

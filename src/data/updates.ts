@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-15-pass-tilt',
+    date: '15.10.2026',
+    title: 'Saison-Pass und 3D-Karten',
+    items: [
+      'Neu: der Saison-Pass! Jeden Monat 30 Stufen mit Coins und Packs (bis zum Ikonen-Pack) – ganz oben wartet eine exklusive Saison-Pass-Karte, jeden Monat ein anderer Weltstar.',
+      'XP gibt es für Duelle, Evolution-Stufen, gekaufte Packs, Tauschaufgaben und Karriere-Saisons. Du findest den Pass direkt im Hauptmenü.',
+      'Große Karten sind jetzt in 3D: Sie kippen zur Maus oder zum Finger, am Handy auch beim Neigen – und der Holo-Glanz wandert mit. Abschaltbar in den Einstellungen.',
+    ],
+  },
+  {
     id: '2026-10-14-evolutions',
     date: '14.10.2026',
     title: 'Evolutions, Comeback- und Rückblende-Karten',

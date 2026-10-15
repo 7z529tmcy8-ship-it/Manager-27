@@ -1,3 +1,4 @@
+import { PASS_XP, addPassXp } from '../game/pass';
 import { useEffect, useState, type CSSProperties } from 'react';
 import { play } from '../sound';
 import { ITEMS, PACKS, TOTW_PACK, activePacks, isoWeek, oddsAtLeast, openMegaSuper, openPack, openTotwPack, packTier, rarity, teamOfTheWeek, type PackDef, type PackResult } from '../game/club';
@@ -21,13 +22,13 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
     if (packId === TOTW_PACK.id) {
       const res = openTotwPack(getClubState());
       if (!res) return;
-      setClubState(res.club);
+      setClubState(addPassXp(res.club, PASS_XP.pack));
       setOpening((o) => ({ result: res.result, name: TOTW_PACK.name, packId, free: false, n: (o?.n ?? 0) + 1 }));
       return;
     }
     const res = openPack(getClubState(), packId, Math.random, free);
     if (!res) return;
-    setClubState(free ? { ...res.club, welcomeClaimed: true } : res.club);
+    setClubState(free ? { ...res.club, welcomeClaimed: true } : addPassXp(res.club, PASS_XP.pack));
     const def = PACKS.find((p) => p.id === packId)!;
     setOpening((o) => ({ result: res.result, name: def.name, theme: def.event === 'geisternacht' ? 'halloween' : def.event, art: PACK_ART[def.id], packId, free, n: (o?.n ?? 0) + 1 }));
   };

@@ -1,3 +1,6 @@
+import { useEffect, useRef } from 'react';
+import { getSettings, motionReduced } from '../settings';
+import { onTilt } from '../tilt';
 import AvatarFace from './AvatarFace';
 import Icon, { type IconName } from './Icon';
 import { flagOf } from '../data/flags';
@@ -15,6 +18,7 @@ const VARIANT_LABEL: Partial<Record<CollectCard['variant'], string>> = {
   debut: 'Debüt',
   comeback: 'Comeback',
   flashback: 'Rückblende',
+  pass: 'Saison-Pass',
   gala: 'Gala',
   totw: 'Team der Woche',
   ballondor: 'Ballon d’Or',
@@ -30,7 +34,7 @@ const VARIANT_LABEL: Partial<Record<CollectCard['variant'], string>> = {
 };
 /** Sonderkarten bekommen ein Emblem, Holo-Schimmer und ein eigenes Muster (siehe styles.css). */
 const EMBLEM: Partial<Record<CollectCard['variant'], IconName>> = {
-  icon: 'crown', cult: 'bolt', talent: 'spark', debut: 'ticket', comeback: 'rise', flashback: 'rewind', moment: 'film', present: 'gift', halloween: 'pumpkin', gala: 'medal',
+  icon: 'crown', cult: 'bolt', talent: 'spark', debut: 'ticket', comeback: 'rise', flashback: 'rewind', pass: 'star', moment: 'film', present: 'gift', halloween: 'pumpkin', gala: 'medal',
   tots: 'star', potm: 'calendar', record: 'chart', champion: 'trophy',
   ballondor: 'medal', worldcup: 'globe', ucl: 'star', poty: 'mic', topscorer: 'boot', goldenboy: 'spark', totw: 'stadium',
 };
@@ -62,6 +66,7 @@ interface Props {
 
 /** Sammelkarte im eigenen Design: Form, Farben und Aufbau frei gestaltet. */
 export default function UtCard({ card, size = 'md', count, shine, chem, onClick }: Props) {
+  const tiltRef = useTilt(size === 'lg' || size === 'md');
   const lastName = shortName(card.name);
   const attrs = cardAttrs(card);
   const labels = card.position === 'TW' ? KEEPER : OUTFIELD;
@@ -70,11 +75,13 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick 
   const emblem = EMBLEM[card.variant];
   return (
     <Tag
-      className={`ucard v-${card.variant} ${size} ${emblem ? 'special' : ''} ${card.boost ? 'evo' : ''} ${shine ? 'shine' : ''} ${onClick ? 'clickable' : ''}`}
+      ref={tiltRef as never}
+      className={`ucard v-${card.variant} ${size} ${size === 'lg' || size === 'md' ? 'tilt' : ''} ${emblem ? 'special' : ''} ${card.boost ? 'evo' : ''} ${shine ? 'shine' : ''} ${onClick ? 'clickable' : ''}`}
       aria-label={`${card.name}, ${card.ovr} ${card.position}`}
       onClick={onClick}
     >
       {emblem && <span className="ucard-foil" aria-hidden="true" />}
+      {(size === 'lg' || size === 'md') && <span className="ucard-glare" aria-hidden="true" />}
       {!!card.boost && size !== 'xs' && <span className="ucard-evo" aria-label={`Evolution +${card.boost}`}>{Array.from({ length: 5 }, (_, i) => <i key={i} className={i < card.boost! ? 'on' : ''} />)}</span>}
       {emblem && size !== 'xs' && <span className="ucard-emblem" aria-hidden="true"><Icon name={emblem} /></span>}
       <div className="ucard-top">
@@ -117,4 +124,45 @@ function Jersey({ text }: { text: string }) {
       <text x="50" y="67" textAnchor="middle">{text}</text>
     </svg>
   );
+}
+
+/**
+ * 3D-Neigung: Maus oder Finger über der Karte (und die Handy-Lage) kippen sie leicht, der Glanz wandert mit.
+ * Schreibt nur CSS-Variablen direkt ans Element – kein Neu-Rendern bei jeder Bewegung.
+ */
+function useTilt(enabled: boolean) {
+  const ref = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!enabled || !el || motionReduced() || getSettings().tilt === false) return;
+    let frame = 0;
+    let pointer = false;
+    const apply = (x: number, y: number, active: boolean) => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        el.style.setProperty('--tx', x.toFixed(3));
+        el.style.setProperty('--ty', y.toFixed(3));
+        el.style.setProperty('--ta', Math.min(1, Math.hypot(x, y) * 2).toFixed(3));
+        el.classList.toggle('tilting', active);
+      });
+    };
+    const move = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      pointer = true;
+      apply((e.clientX - r.left) / r.width - 0.5, (e.clientY - r.top) / r.height - 0.5, true);
+    };
+    const leave = () => { pointer = false; apply(0, 0, false); };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerleave', leave);
+    el.addEventListener('pointercancel', leave);
+    const off = onTilt((t) => { if (!pointer) apply(t.x, t.y, true); });
+    return () => {
+      cancelAnimationFrame(frame);
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerleave', leave);
+      el.removeEventListener('pointercancel', leave);
+      off();
+    };
+  }, [enabled]);
+  return ref;
 }

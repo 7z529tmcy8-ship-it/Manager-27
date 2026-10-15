@@ -1,3 +1,4 @@
+import { PASS_XP, addPassXp } from '../game/pass';
 import { useMemo, useState } from 'react';
 import { rarity, type CollectCard } from '../game/club';
 import { MOMENTS, MOMENT_SIZE, checkMoment, completeMoment, momentCandidates, momentDone, momentOpen, momentVisible, type MomentSbc } from '../game/legendTrades';
@@ -86,7 +87,7 @@ function Builder({ m, onClose, onDone }: { m: MomentSbc; onClose: () => void; on
     if (!confirm(`Diese 11 Karten abgeben?\n\n${chosen.map((c) => `${c.name} (${c.ovr})`).join(', ')}\n\nSie sind danach weg.`)) return;
     const next = completeMoment(getClubState(), m.id, picked);
     if (!next) return;
-    setClubState(next);
+    setClubState(addPassXp(next, PASS_XP.task));
     onDone(m.reward);
   };
 

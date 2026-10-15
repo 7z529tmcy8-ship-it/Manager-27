@@ -12,6 +12,7 @@ import Backup from './Backup';
 import Settings from './Settings';
 import UtCard from './UtCard';
 import Icon from './Icon';
+import { PASS_LEVELS, XP_PER_LEVEL, passLevel, passOf, unclaimedLevels } from '../game/pass';
 
 interface Props {
   onNews: () => void;
@@ -25,6 +26,7 @@ interface Props {
   onSbc: () => void;
   onFame: () => void;
   onAchievements: () => void;
+  onPass: () => void;
   /** Beendete Karriere, deren Belohnungskarte noch gewählt werden muss. */
   onReward: (career: Career) => void;
 }
@@ -32,7 +34,7 @@ interface Props {
 const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 
 /** Hauptmenü im Stil eines Sammelkarten-Hubs: große Kacheln, Coins oben, die eigene Karte im Mittelpunkt. */
-export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTeam, onTrade, onDuels, onSbc, onFame, onAchievements, onReward }: Props) {
+export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTeam, onTrade, onDuels, onSbc, onFame, onAchievements, onPass, onReward }: Props) {
   const club = useClub();
   const [saves, setSaves] = useState(listCareers);
   const [showSaves, setShowSaves] = useState(false);
@@ -120,6 +122,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
           )}
         </section>
 
+        <PassTile onClick={onPass} />
         <Tile icon="ball" title="Neue Karriere" sub="Eigener Spieler, Profi, Legende oder zweite Chance" onClick={onNew} />
         <Tile icon="pack" title="Store" sub={!club.megaSuperClaimed ? 'MEGA SUPER XXL Pack gratis!' : !club.megaXxlClaimed ? 'MEGA-XXL-Pack gratis!' : club.welcomeClaimed ? 'Packs mit Coins öffnen' : 'Gratis-Pack wartet!'}
           badge={freePacks ? String(freePacks) : undefined} onClick={onStore} accent />
@@ -202,6 +205,27 @@ function Row({ icon, title, sub, onClick, disabled }: { icon: string; title: str
       <span className="hub-link-icon" aria-hidden="true"><Icon name={icon} size={20} /></span>
       <span className="hub-link-text"><strong>{title}</strong><small>{sub}</small></span>
       <Icon name="arrow" size={18} className="hub-link-go" />
+    </button>
+  );
+}
+
+/** Breite Kachel für den Saison-Pass: Stufe, Fortschritt und offene Belohnungen. */
+function PassTile({ onClick }: { onClick: () => void }) {
+  const club = useClub();
+  const p = passOf(club);
+  const level = passLevel(p.xp);
+  const open = unclaimedLevels(club).length;
+  const inLevel = level >= PASS_LEVELS ? XP_PER_LEVEL : p.xp % XP_PER_LEVEL;
+  return (
+    <button className="hub-tile hub-pass" onClick={onClick}>
+      <span className="hub-tile-icon" aria-hidden="true"><Icon name="star" /></span>
+      <span className="hub-pass-text">
+        <strong>Saison-Pass</strong>
+        <small>{open ? `${open} ${open === 1 ? 'Belohnung' : 'Belohnungen'} abholen` : level >= PASS_LEVELS ? 'Komplett – stark!' : `Noch ${XP_PER_LEVEL - inLevel} XP bis Stufe ${level + 1}`}</small>
+        <span className="evo-bar"><i style={{ width: `${(inLevel / XP_PER_LEVEL) * 100}%` }} /></span>
+      </span>
+      <span className="hub-pass-level"><b>{level}</b><small>/{PASS_LEVELS}</small></span>
+      {open > 0 && <span className="hub-badge">{open}</span>}
     </button>
   );
 }
