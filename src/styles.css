@@ -2951,3 +2951,120 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
   .pass-hero-info strong { font-size: 1.75rem; }
   .pass-hero-info small { font-size: .9375rem; }
 }
+
+/* =====================================================================
+   GIG-Event (17.–18.10.): Glücksrad im Casino-Neon – laut, aber lesbar
+   ===================================================================== */
+.ucard.v-gig { --a: #2b0030; --b: #070008; --ink: #fff4c2; --edge: #ffd400; --glow: rgba(255, 212, 0, .6); }
+.ucard.v-gig.special { --pat:
+  repeating-conic-gradient(from 0deg at 62% 30%, rgba(255, 212, 0, .2) 0 4deg, transparent 4deg 12deg),
+  linear-gradient(115deg, transparent 40%, rgba(255, 0, 140, .45) 46%, transparent 52%),
+  radial-gradient(60% 40% at 62% 30%, rgba(255, 0, 140, .45), transparent 70%); }
+.ucard.v-gig .ucard-club { color: #ffd400; letter-spacing: .08em; text-transform: uppercase; opacity: 1; }
+.ucard.v-gig .ucard-badge { color: #ff3fb4; }
+.ucard.v-gig .ucard-name { text-shadow: -2px 0 rgba(255, 0, 140, .8), 2px 0 rgba(0, 240, 255, .7); }
+
+/* Hub-Banner */
+.gig-call { position: relative; display: flex; align-items: center; gap: 14px; width: 100%; margin: 0 0 12px; padding: 12px 16px; border-radius: 18px; cursor: pointer; overflow: hidden; text-align: left; font: inherit; color: #fff;
+  border: 1.5px solid #ffd400; background: radial-gradient(120% 140% at 0% 50%, rgba(255, 0, 140, .55), transparent 60%), linear-gradient(100deg, #3a003d, #12001a 60%, #2a1a00);
+  box-shadow: 0 0 22px rgba(255, 0, 140, .35), inset 0 0 0 1px rgba(255, 255, 255, .06); }
+.gig-call::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(115deg, rgba(255, 212, 0, .08) 0 8px, transparent 8px 22px); animation: gig-slide 6s linear infinite; }
+.gig-call > * { position: relative; }
+.gig-call-title { font-family: var(--display, inherit); font-size: 2.2rem; font-weight: 700; line-height: 1; letter-spacing: .06em; color: #ffd400; text-shadow: -2px 0 #ff008c, 2px 0 #00f0ff; flex: none; }
+.gig-call-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.gig-call-text b { font-family: var(--display, inherit); font-size: 1.15rem; letter-spacing: .04em; text-transform: uppercase; }
+.gig-call-text small { color: #ffd6f0; font-size: .8125rem; }
+.gig-call .ic { color: #ffd400; flex: none; }
+@keyframes gig-slide { to { background-position: 220px 0; } }
+
+/* Bildschirm */
+.hub.gig { position: relative; }
+.gig-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    repeating-conic-gradient(from 0deg at 50% 38%, rgba(255, 0, 140, .10) 0 6deg, transparent 6deg 18deg, rgba(255, 212, 0, .07) 18deg 24deg, transparent 24deg 36deg),
+    radial-gradient(60% 45% at 50% 38%, rgba(255, 0, 140, .35), transparent 70%),
+    linear-gradient(180deg, #12001a, #050008 60%, #1a0f00);
+  animation: gig-rays 40s linear infinite; }
+@keyframes gig-rays { to { filter: hue-rotate(40deg); } }
+:root[data-theme] .hub.gig { z-index: 2; }
+.gig-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; margin: 4px 0 16px; }
+.gig-kicker { font-family: var(--display, inherit); font-size: .875rem; letter-spacing: .24em; text-transform: uppercase; color: #ffd400; }
+.gig-title { position: relative; margin: 0; font-family: var(--display, inherit); font-weight: 700; font-size: clamp(4.5rem, 24vw, 8rem); line-height: .9; letter-spacing: .08em; color: #fff;
+  text-shadow: 0 0 18px rgba(255, 0, 140, .8), 0 0 42px rgba(255, 0, 140, .45); }
+.gig-title::before, .gig-title::after { content: attr(data-text); position: absolute; inset: 0; pointer-events: none; }
+.gig-title::before { color: #00f0ff; transform: translate(-3px, 0); mix-blend-mode: screen; opacity: .8; animation: gig-glitch 2.8s steps(1) infinite; }
+.gig-title::after { color: #ffd400; transform: translate(3px, 0); mix-blend-mode: screen; opacity: .7; animation: gig-glitch 2.8s steps(1) infinite reverse; }
+@keyframes gig-glitch { 0%, 88%, 100% { clip-path: inset(0 0 0 0); } 90% { clip-path: inset(10% 0 60% 0); transform: translate(-6px, 0); } 93% { clip-path: inset(55% 0 15% 0); transform: translate(6px, 0); } 96% { clip-path: inset(30% 0 40% 0); } }
+.gig-timer { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 4px 14px; border-radius: 999px; font-family: var(--display, inherit); font-size: 1.05rem; letter-spacing: .06em; font-variant-numeric: tabular-nums;
+  color: #fff; background: rgba(255, 0, 140, .2); border: 1px solid rgba(255, 0, 140, .7); }
+
+.gig-stage { display: grid; gap: 20px; align-items: center; justify-items: center; }
+@media (min-width: 820px) { .gig-stage { grid-template-columns: auto 1fr; justify-items: start; } .gig-side { justify-self: center; } }
+
+/* Das Rad */
+.gig-wheel-wrap { position: relative; width: min(340px, 86vw); aspect-ratio: 1; }
+.gig-wheel { position: absolute; inset: 7%; width: 86%; height: 86%; transition: transform 5.2s cubic-bezier(.12, .7, .1, 1); filter: drop-shadow(0 0 24px rgba(255, 0, 140, .45)); }
+.gig-rim { fill: #160018; stroke: #ffd400; stroke-width: 6; }
+.gig-seg path { stroke: rgba(0, 0, 0, .55); stroke-width: 1.5; }
+.gig-seg.even path { fill: #b0007a; }
+.gig-seg.odd path { fill: #3d0a78; }
+.gig-seg.s-premium path { fill: #1d1d24; }
+.gig-seg.s-worldstar path { fill: #1d3fbf; }
+.gig-seg.s-flashback path { fill: #a26a2a; }
+.gig-seg.s-megagold path { fill: #c48a12; }
+.gig-seg.s-icon path { fill: #e8d7a8; }
+.gig-seg.s-comeback path { fill: #0c6b3a; }
+.gig-seg.s-ultimate path { fill: #8a1ba8; }
+.gig-seg.s-debut path { fill: #00786a; }
+.gig-seg.s-goat path { fill: #050505; stroke: #ffd400; stroke-width: 2; }
+.gig-seg.s-gig path { fill: url(#gig-gold); stroke: #fff; stroke-width: 1; filter: drop-shadow(0 0 6px #ffd400); }
+.gig-seg-label { fill: #fff; font-family: var(--display, sans-serif); font-weight: 700; font-size: 15px; letter-spacing: .06em; text-anchor: middle; dominant-baseline: middle; paint-order: stroke; stroke: rgba(0, 0, 0, .55); stroke-width: 3px; }
+.gig-seg.s-icon .gig-seg-label, .gig-seg.s-megagold .gig-seg-label { fill: #2a1c00; stroke: rgba(255, 255, 255, .35); }
+.gig-seg.s-goat .gig-seg-label { fill: #ffd400; }
+.gig-seg-jack { fill: #ffd400; font-family: var(--display, sans-serif); font-weight: 700; font-size: 13px; text-anchor: middle; paint-order: stroke; stroke: #000; stroke-width: 3px; }
+.gig-hub-ring { fill: #12001a; stroke: #ffd400; stroke-width: 4; }
+.gig-pointer { position: absolute; left: 50%; top: 0; width: 40px; height: 46px; margin-left: -20px; z-index: 3; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .6)) drop-shadow(0 0 10px rgba(255, 212, 0, .7)); }
+.gig-pointer path { fill: #ffd400; stroke: #fff; stroke-width: 2; }
+.gig-hub { position: absolute; left: 50%; top: 50%; width: 26%; aspect-ratio: 1; transform: translate(-50%, -50%); z-index: 3; border-radius: 50%; cursor: pointer;
+  border: 3px solid #fff; background: radial-gradient(circle at 35% 30%, #fff6c8, #ffb800 55%, #a35a00); box-shadow: 0 0 0 6px rgba(255, 0, 140, .6), 0 0 30px rgba(255, 212, 0, .7);
+  font-family: var(--display, inherit); font-weight: 700; font-size: 1.3rem; letter-spacing: .06em; color: #2a0030; }
+.gig-hub:disabled { cursor: default; filter: saturate(.6) brightness(.85); }
+.gig-hub:not(:disabled):hover { transform: translate(-50%, -50%) scale(1.05); }
+/* Lauflichter am Rand */
+.gig-bulbs { position: absolute; inset: 0; }
+.gig-bulbs i { position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; transform-origin: 6px 6px; }
+.gig-bulbs i::before { content: ''; position: absolute; left: 0; top: calc(-1 * min(170px, 43vw) + 4px); width: 12px; height: 12px; border-radius: 50%; background: #ffd400; box-shadow: 0 0 10px #ffd400, 0 0 18px rgba(255, 212, 0, .6); animation: gig-bulb 1.2s steps(1) infinite; }
+.gig-bulbs i:nth-child(odd)::before { animation-delay: .6s; }
+@keyframes gig-bulb { 50% { background: #ff008c; box-shadow: 0 0 10px #ff008c, 0 0 18px rgba(255, 0, 140, .6); } }
+
+.gig-side { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; max-width: 360px; }
+.gig-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.gig-card .ucard { filter: drop-shadow(0 0 26px rgba(255, 212, 0, .55)) drop-shadow(0 14px 20px rgba(0, 0, 0, .55)); }
+.gig-card-odds { font-family: var(--display, inherit); font-size: .9375rem; letter-spacing: .14em; text-transform: uppercase; color: #ffd400; }
+.gig-spin { width: 100%; min-height: 56px; font-size: 1.25rem; display: inline-flex; flex-direction: column; line-height: 1.1; }
+.gig-spin small { display: inline-flex; align-items: center; gap: 2px; font-family: var(--display, inherit); font-size: .9rem; opacity: .85; }
+.gig-spin small .coin-ic { color: currentColor; }
+:root[data-theme="arena"] .hub.gig .btn.primary.gig-spin { background: linear-gradient(135deg, #ffd400, #ff008c); color: #1a0010; box-shadow: 0 8px 26px rgba(255, 0, 140, .45); }
+.gig-note { margin: 0; text-align: center; color: #ffd6f0; font-size: .875rem; }
+
+.gig-odds { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 760px) { .gig-odds { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.gig-odds li { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; font-size: .8125rem; background: rgba(20, 0, 26, .85); border: 1px solid rgba(255, 0, 140, .3); }
+.gig-odds li i { width: 12px; height: 12px; border-radius: 4px; flex: none; background: #b0007a; }
+.gig-odds li span { flex: 1; min-width: 0; color: #f3d7ea; line-height: 1.2; }
+.gig-odds li b { font-family: var(--display, inherit); font-size: .9375rem; }
+.gig-odds li.s-gig { border-color: #ffd400; background: linear-gradient(90deg, rgba(255, 212, 0, .2), rgba(20, 0, 26, .85)); }
+.gig-odds li.s-gig b { color: #ffd400; }
+.gig-odds li.s-gig i { background: #ffd400; box-shadow: 0 0 8px #ffd400; }
+.gig-odds li.s-goat i { background: #050505; box-shadow: inset 0 0 0 1.5px #ffd400; }
+.gig-odds li.s-ultimate i { background: #8a1ba8; } .gig-odds li.s-icon i { background: #e8d7a8; } .gig-odds li.s-worldstar i { background: #1d3fbf; }
+.gig-odds li.s-flashback i { background: #a26a2a; } .gig-odds li.s-debut i { background: #00786a; } .gig-odds li.s-comeback i { background: #0c6b3a; }
+.gig-odds li.s-megagold i { background: #c48a12; } .gig-odds li.s-premium i { background: #1d1d24; box-shadow: inset 0 0 0 1px #888; }
+
+/* Jackpot: Bildschirm bebt, Goldblitz */
+.gig-jackpot { animation: gig-shake .5s ease-in-out 3; }
+@keyframes gig-shake { 20% { transform: translate(-6px, 3px) rotate(-.6deg); } 40% { transform: translate(6px, -3px) rotate(.6deg); } 60% { transform: translate(-4px, -2px); } 80% { transform: translate(4px, 2px); } }
+.gig-flash { position: fixed; inset: 0; z-index: 60; pointer-events: none; background: radial-gradient(circle, #fff 0 10%, #ffd400 30%, rgba(255, 0, 140, .6) 55%, transparent 80%); animation: gig-flash 1.4s ease-out forwards; }
+@keyframes gig-flash { from { opacity: 1; } to { opacity: 0; } }
+:root.reduce-motion .gig-bg, :root.reduce-motion .gig-title::before, :root.reduce-motion .gig-title::after, :root.reduce-motion .gig-bulbs i::before, :root.reduce-motion .gig-call::before, :root.reduce-motion .gig-jackpot { animation: none; }
+@media (prefers-reduced-motion: reduce) { .gig-bg, .gig-title::before, .gig-title::after, .gig-bulbs i::before, .gig-call::before, .gig-jackpot { animation: none; } }

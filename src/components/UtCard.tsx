@@ -19,6 +19,7 @@ const VARIANT_LABEL: Partial<Record<CollectCard['variant'], string>> = {
   comeback: 'Comeback',
   flashback: 'Rückblende',
   pass: 'Saison-Pass',
+  gig: 'GIG',
   gala: 'Gala',
   totw: 'Team der Woche',
   ballondor: 'Ballon d’Or',
@@ -34,7 +35,7 @@ const VARIANT_LABEL: Partial<Record<CollectCard['variant'], string>> = {
 };
 /** Sonderkarten bekommen ein Emblem, Holo-Schimmer und ein eigenes Muster (siehe styles.css). */
 const EMBLEM: Partial<Record<CollectCard['variant'], IconName>> = {
-  icon: 'crown', cult: 'bolt', talent: 'spark', debut: 'ticket', comeback: 'rise', flashback: 'rewind', pass: 'star', moment: 'film', present: 'gift', halloween: 'pumpkin', gala: 'medal',
+  icon: 'crown', cult: 'bolt', talent: 'spark', debut: 'ticket', comeback: 'rise', flashback: 'rewind', pass: 'star', gig: 'dice', moment: 'film', present: 'gift', halloween: 'pumpkin', gala: 'medal',
   tots: 'star', potm: 'calendar', record: 'chart', champion: 'trophy',
   ballondor: 'medal', worldcup: 'globe', ucl: 'star', poty: 'mic', topscorer: 'boot', goldenboy: 'spark', totw: 'stadium',
 };

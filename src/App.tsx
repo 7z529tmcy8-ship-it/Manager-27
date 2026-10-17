@@ -1,3 +1,4 @@
+import GigEvent from './components/GigEvent';
 import SeasonPass from './components/SeasonPass';
 import { PASS_XP, addPassXp } from './game/pass';
 import { autoStartMotion } from './tilt';
@@ -34,6 +35,7 @@ type Screen =
   | { name: 'fame' }
   | { name: 'achievements' }
   | { name: 'pass' }
+  | { name: 'gig' }
   | { name: 'game'; career: Career };
 
 export default function App() {
@@ -118,6 +120,7 @@ export default function App() {
           onFame={() => setScreen({ name: 'fame' })}
           onAchievements={() => setScreen({ name: 'achievements' })}
           onPass={() => setScreen({ name: 'pass' })}
+          onGig={() => setScreen({ name: 'gig' })}
           onReward={setReward}
         />
       )}
@@ -128,6 +131,7 @@ export default function App() {
       {screen.name === 'sbc' && <SbcScreen onBack={home} />}
       {screen.name === 'trade' && <Trade onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
       {screen.name === 'achievements' && <Achievements onBack={home} />}
+      {screen.name === 'gig' && <GigEvent onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
       {screen.name === 'pass' && <SeasonPass onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
       {screen.name === 'fame' && <HallOfFame onBack={home} onOpen={load} />}
       {screen.name === 'create' && <CreateCareer onCancel={home} onCreate={update} />}

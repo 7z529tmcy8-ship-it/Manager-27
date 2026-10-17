@@ -27,6 +27,7 @@ interface Props {
   onFame: () => void;
   onAchievements: () => void;
   onPass: () => void;
+  onGig: () => void;
   /** Beendete Karriere, deren Belohnungskarte noch gewählt werden muss. */
   onReward: (career: Career) => void;
 }
@@ -34,7 +35,7 @@ interface Props {
 const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 
 /** Hauptmenü im Stil eines Sammelkarten-Hubs: große Kacheln, Coins oben, die eigene Karte im Mittelpunkt. */
-export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTeam, onTrade, onDuels, onSbc, onFame, onAchievements, onPass, onReward }: Props) {
+export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTeam, onTrade, onDuels, onSbc, onFame, onAchievements, onPass, onGig, onReward }: Props) {
   const club = useClub();
   const [saves, setSaves] = useState(listCareers);
   const [showSaves, setShowSaves] = useState(false);
@@ -44,10 +45,12 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   const [tipPack, setTipPack] = useState<PackResult | null>(null);
   const tipWon = ballonTipCorrect(club) === true && !club.ballonTipClaimed;
   // Event-Hinweis oben: das gerade wichtigste Event
-  const chip = eventActive('geisternacht') ? 'Geisternacht – nur bis 31.10.'
+  const gigLastDay = new Date().getDate() === 18;
+  const chip = eventActive('gig') ? (gigLastDay ? 'GIG-Event – nur noch heute' : 'GIG-Event – nur bis morgen')
+    : eventActive('geisternacht') ? 'Geisternacht – nur bis 31.10.'
     : eventActive('gala') ? 'Gala-Woche bis 9.11.'
     : halloweenActive() ? 'Halloween bis 2.11.' : null;
-  const chipIcon = eventActive('geisternacht') ? 'ghost' : eventActive('gala') ? 'medal' : 'pumpkin';
+  const chipIcon = eventActive('gig') ? 'dice' : eventActive('geisternacht') ? 'ghost' : eventActive('gala') ? 'medal' : 'pumpkin';
   const latest = [...saves].sort((a, b) => b.updatedAt - a.updatedAt)[0];
   const progress = collectionProgress(club);
   const hasHistory = saves.some((c) => c.history.length > 0);
@@ -70,6 +73,13 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
         <button className="hub-icon" onClick={() => setSettings(true)} aria-label="Einstellungen"><Icon name="gear" size={20} /></button>
       </header>
 
+      {eventActive('gig') && (
+        <button className="gig-call" onClick={onGig}>
+          <span className="gig-call-title" data-text="GIG">GIG</span>
+          <span className="gig-call-text"><b>Glücksrad-Event</b><small>{gigLastDay ? 'Nur noch heute' : 'Nur heute und morgen'} · Packs bis GOAT · 0,5 % auf Yamal 95</small></span>
+          <Icon name="arrow" size={22} />
+        </button>
+      )}
       {ballonTipOpen() && (
         <button className="reward-call gala-call" onClick={() => setTipOpen(true)}>
           <Icon name="medal" size={20} />

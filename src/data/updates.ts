@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-17-gig',
+    date: '17.10.2026',
+    title: 'GIG-Event: das Glücksrad ist da – nur heute und morgen!',
+    items: [
+      'Dreh am GIG-Glücksrad: Jeden Tag ein Gratis-Dreh, jeder weitere kostet 25.000 Coins.',
+      'Fast jedes Feld ist ein starkes Pack – Premium, Comeback, Rückblende, Mega-Gold, Weltstar, Ikone, Ultimate und sogar GOAT.',
+      'Der Jackpot: Lamine Yamal 95 im GIG-Design. Chance: 0,5 % – die Karte gibt es nur über dieses Rad.',
+      'Alle Chancen stehen offen im Event. Am 18. Oktober um Mitternacht ist das Rad weg.',
+    ],
+  },
+  {
     id: '2026-10-15-pass-tilt',
     date: '15.10.2026',
     title: 'Saison-Pass und 3D-Karten',
