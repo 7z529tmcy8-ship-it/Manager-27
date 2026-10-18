@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Children, useRef, useState, type ReactNode } from 'react';
 import { getClub } from '../data/leagues';
 import { ballonTipCorrect, collectionProgress, ballonTipOpen, careerCard, claimBallonTip, creditCareer, eventActive, halloweenActive, rewardPending, type PackResult } from '../game/club';
 import { BALLON_WINNER_2026 } from '../data/cards';
@@ -73,38 +73,40 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
         <button className="hub-icon" onClick={() => setSettings(true)} aria-label="Einstellungen"><Icon name="gear" size={20} /></button>
       </header>
 
-      {eventActive('gig') && (
-        <button className="gig-call" onClick={onGig}>
-          <span className="gig-call-title" data-text="GIG">GIG</span>
-          <span className="gig-call-text"><b>Glücksrad-Event</b><small>{gigLastDay ? 'Nur noch heute' : 'Nur heute und morgen'} · Packs bis GOAT · 0,5 % auf Yamal 95</small></span>
-          <Icon name="arrow" size={22} />
-        </button>
-      )}
-      {ballonTipOpen() && (
-        <button className="reward-call gala-call" onClick={() => setTipOpen(true)}>
-          <Icon name="medal" size={20} />
-          {club.ballonTip
-            ? `Dein Ballon-d’Or-Tipp: ${club.ballonTip === 'other' ? 'jemand anderes' : club.ballonTip} – ändern bis 26.10. ›`
-            : 'Ballon d’Or 2026: Wer gewinnt? Tippe bis 26.10. – richtig getippt = Gala-Pack gratis ›'}
-        </button>
-      )}
-      {tipWon && (
-        <button className="reward-call gala-call" onClick={() => {
-          const res = claimBallonTip(getClubState());
-          if (!res) return;
-          setClubState(res.club);
-          setTipPack(res.result);
-        }}>
-          <Icon name="trophy" size={20} />
-          Richtig getippt: {BALLON_WINNER_2026} gewinnt den Ballon d’Or! Dein Gala-Pack abholen ›
-        </button>
-      )}
-      {pendingReward && (
-        <button className="reward-call" onClick={() => onReward(pendingReward)}>
-          <Icon name="flag" size={20} />
-          Karriere von {pendingReward.player.name} beendet – jetzt deine Karte wählen ›
-        </button>
-      )}
+      <EventStrip>
+        {pendingReward && (
+          <button className="reward-call" onClick={() => onReward(pendingReward)}>
+            <Icon name="flag" size={20} />
+            Karriere von {pendingReward.player.name} beendet – jetzt deine Karte wählen ›
+          </button>
+        )}
+        {tipWon && (
+          <button className="reward-call gala-call" onClick={() => {
+            const res = claimBallonTip(getClubState());
+            if (!res) return;
+            setClubState(res.club);
+            setTipPack(res.result);
+          }}>
+            <Icon name="trophy" size={20} />
+            Richtig getippt: {BALLON_WINNER_2026} gewinnt den Ballon d’Or! Dein Gala-Pack abholen ›
+          </button>
+        )}
+        {eventActive('gig') && (
+          <button className="gig-call" onClick={onGig}>
+            <span className="gig-call-title" data-text="GIG">GIG</span>
+            <span className="gig-call-text"><b>Glücksrad-Event</b><small>{gigLastDay ? 'Nur noch heute' : 'Nur heute und morgen'} · Packs bis GOAT · 0,5 % auf Yamal 95</small></span>
+            <Icon name="arrow" size={22} />
+          </button>
+        )}
+        {ballonTipOpen() && (
+          <button className="reward-call gala-call" onClick={() => setTipOpen(true)}>
+            <Icon name="medal" size={20} />
+            {club.ballonTip
+              ? `Dein Ballon-d’Or-Tipp: ${club.ballonTip === 'other' ? 'jemand anderes' : club.ballonTip} – ändern bis 26.10. ›`
+              : 'Ballon d’Or 2026: Wer gewinnt? Tippe bis 26.10. – richtig getippt = Gala-Pack gratis ›'}
+          </button>
+        )}
+      </EventStrip>
       <div className="hub-grid">
         <section className="hub-tile hero" onClick={() => (latest ? onLoad(latest) : onNew())} role="button" tabIndex={0}
           onKeyDown={(e) => e.key === 'Enter' && (latest ? onLoad(latest) : onNew())}>
@@ -237,5 +239,27 @@ function PassTile({ onClick }: { onClick: () => void }) {
       <span className="hub-pass-level"><b>{level}</b><small>/{PASS_LEVELS}</small></span>
       {open > 0 && <span className="hub-badge">{open}</span>}
     </button>
+  );
+}
+
+/** Event- und Hinweis-Leiste: mehrere Banner nebeneinander zum Wischen statt übereinander gestapelt. */
+function EventStrip({ children }: { children: ReactNode }) {
+  const items = Children.toArray(children).filter(Boolean);
+  const ref = useRef<HTMLDivElement>(null);
+  const [idx, setIdx] = useState(0);
+  if (!items.length) return null;
+  const onScroll = () => {
+    const el = ref.current;
+    if (!el) return;
+    const w = (el.firstElementChild as HTMLElement | null)?.offsetWidth ?? el.clientWidth;
+    setIdx(Math.round(el.scrollLeft / (w + 10)));
+  };
+  return (
+    <div className="hub-events-wrap">
+      <div className={`hub-events ${items.length > 1 ? 'multi' : ''}`} ref={ref} onScroll={onScroll}>{items}</div>
+      {items.length > 1 && (
+        <div className="hub-events-dots" aria-hidden="true">{items.map((_, i) => <i key={i} className={i === Math.min(idx, items.length - 1) ? 'on' : ''} />)}</div>
+      )}
+    </div>
   );
 }

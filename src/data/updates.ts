@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-18-handy',
+    date: '18.10.2026',
+    title: 'Bessere Bedienung am Handy',
+    items: [
+      'Hauptmenü: Events und Hinweise liegen jetzt in einer Leiste zum Wischen statt übereinander – deine Karriere ist sofort sichtbar.',
+      'Der Weiterspielen-Knopf bricht nicht mehr um, die Karte im Kasten wird nicht mehr abgeschnitten.',
+      'Transferfenster: große Angebots-Zeilen und nur noch ein Tipp – danach kannst du es ein paar Sekunden lang rückgängig machen.',
+      'Coins-Meldungen erscheinen jetzt oben, Torjäger-Rennen und Co. stehen sauber unter dem Transferfenster.',
+    ],
+  },
+  {
     id: '2026-10-18-balance',
     date: '18.10.2026',
     title: 'Großes Balance-Update: mehr Coins, faire Duelle',

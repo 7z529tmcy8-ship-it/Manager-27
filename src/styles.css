@@ -3068,3 +3068,59 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 @keyframes gig-flash { from { opacity: 1; } to { opacity: 0; } }
 :root.reduce-motion .gig-bg, :root.reduce-motion .gig-title::before, :root.reduce-motion .gig-title::after, :root.reduce-motion .gig-bulbs i::before, :root.reduce-motion .gig-call::before, :root.reduce-motion .gig-jackpot { animation: none; }
 @media (prefers-reduced-motion: reduce) { .gig-bg, .gig-title::before, .gig-title::after, .gig-bulbs i::before, .gig-call::before, .gig-jackpot { animation: none; } }
+
+/* ===== Handy-Paket: Event-Leiste zum Wischen ===== */
+.hub-events-wrap { margin: 0 0 12px; }
+.hub-events { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.hub-events::-webkit-scrollbar { display: none; }
+.hub-events > * { flex: 0 0 100%; scroll-snap-align: start; margin: 0 !important; width: auto !important; min-height: 76px; }
+.hub-events.multi > * { flex-basis: calc(100% - 28px); }
+@media (min-width: 760px) { .hub-events.multi > * { flex-basis: calc(50% - 5px); } }
+.hub-events-dots { display: flex; justify-content: center; gap: 6px; margin-top: 8px; }
+.hub-events-dots i { width: 6px; height: 6px; border-radius: 999px; background: rgba(160, 190, 255, .3); transition: width .2s ease-out, background .2s; }
+.hub-events-dots i.on { width: 18px; background: var(--neon-c, #19f0ff); }
+@media (min-width: 760px) { .hub-events-dots { display: none; } }
+
+/* ===== Handy-Paket: Weiterspielen-Kasten ===== */
+:root[data-theme="arena"] .hub-cta { white-space: nowrap; }
+@media (max-width: 520px) {
+  .hub-tile.hero { gap: 14px; align-items: center; }
+  .hub-tile.hero .ucard.lg { width: 118px; padding: 10px 8px 8px; }
+  .hub-tile.hero .ucard.lg .ucard-attrs, .hub-tile.hero .ucard.lg .ucard-club { display: none; }
+  .hub-tile.hero .ucard.lg .ucard-ovr { font-size: 1.9rem; }
+  .hub-tile.hero .ucard.lg .ucard-name { font-size: .78rem; white-space: normal; line-height: 1.05; }
+  :root[data-theme="arena"] .hub-tile.hero { padding: 18px 16px; }
+  :root[data-theme="arena"] .hero-text strong { font-size: 1.6rem; overflow-wrap: anywhere; }
+  :root[data-theme="arena"] .hub-cta { height: 42px; padding: 0 16px; font-size: 1rem; margin-top: 12px; }
+}
+
+/* ===== Handy-Paket: Transferfenster – große Angebots-Zeilen, ein Tipp ===== */
+@media (max-width: 560px) {
+  .cs-choices.cs-choices-window { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .cs-choices-window .cs-choice { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-auto-flow: row; align-items: center; column-gap: 12px; row-gap: 2px;
+    text-align: left; padding: 14px 16px; opacity: 1; }
+  .cs-choices-window .cs-choice > small { grid-column: 1; }
+  .cs-choices-window .cs-choice > strong { grid-column: 1; font-size: 1.15rem; }
+  .cs-choices-window .cs-choice > .cs-choice-league { grid-column: 2; grid-row: 1 / span 2; justify-self: end; font-size: .8125rem; }
+  .cs-choices-window .cs-choice > .cs-choice-meta { grid-column: 1 / -1; margin-top: 4px; font-size: .8125rem; }
+}
+.cs-choices-window .cs-choice { opacity: 1; }
+.cs-choices-window .cs-choice:hover { border-color: var(--neon-c, var(--text)); transform: translateY(-2px); }
+.cs-choices-window .cs-choice:active { transform: scale(.98); }
+.cs-tap-hint { margin: 12px 0 0; text-align: center; }
+.cs-extras-out { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+/* Rückgängig-Leiste nach einer Entscheidung */
+.cs-undo { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 80; width: min(440px, calc(100% - 32px));
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 10px 10px 16px; border-radius: 16px;
+  background: rgba(10, 12, 34, .92); border: 1px solid var(--line-strong, rgba(160, 190, 255, .32)); color: var(--text);
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: 0 12px 30px rgba(0, 0, 0, .5); animation: mo-in .25s ease-out; }
+.cs-undo span { font-size: .9375rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Coins-Hinweis oben statt unten – kollidiert nicht mit Buttons und der Rückgängig-Leiste */
+.coin-toast { bottom: auto; top: max(14px, env(safe-area-inset-top)); animation-name: toast-down; max-width: calc(100% - 32px); }
+@keyframes toast-down { from { transform: translate(-50%, -30px); opacity: 0; } }
+/* Torjäger-Rennen & Co. unter dem Transferfenster als eigene, ruhige Flächen */
+.cs-extras-out .race { margin: 0; padding: 14px 16px; }
+:root[data-theme="arena"] .cs-extras-out .race { background: var(--panel); border-color: var(--line); }
+.race > summary { cursor: pointer; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px; list-style: none; }
+.race > summary::-webkit-details-marker { display: none; }

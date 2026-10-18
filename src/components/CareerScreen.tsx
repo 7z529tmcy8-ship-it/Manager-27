@@ -65,7 +65,8 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   const [full, setFull] = useState(false);
   const [panel, setPanel] = useState<'family' | 'invest' | 'clinic' | null>(null);
   const kids = career.household?.children.length ?? 0;
-  const shown = full ? career.history : career.history.slice(-COLLAPSED);
+  // Nur einklappen, wenn sich das lohnt (mindestens zwei ältere Saisons)
+  const shown = full || career.history.length <= COLLAPSED + 1 ? career.history : career.history.slice(-COLLAPSED);
   const hidden = career.history.length - shown.length;
   // Neue Phase (Winterpause, Sommer, neue Saison): zurück nach oben zu den Entscheidungen.
   useEffect(() => {
@@ -101,6 +102,21 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
     const next = setKeyMatch(career, keyLive.key, state);
     setKeyLive(null);
     onChange(simulateToBreak(next, live));
+  };
+  // Transferfenster: ein Tipp entscheidet, ein paar Sekunden lang lässt es sich rückgängig machen.
+  const [undo, setUndo] = useState<{ prev: Career; title: string } | null>(null);
+  // Die Zeit läuft erst, wenn eine Transfer-Feier (Moment) wieder zu ist.
+  useEffect(() => {
+    if (!undo || moments.length) return;
+    const t = setTimeout(() => setUndo(null), 6000);
+    return () => clearTimeout(t);
+  }, [undo, moments.length]);
+  const chooseNow = (i: number) => {
+    const c = choices[i];
+    if (c.kind === 'retire' && !window.confirm('Karriere wirklich beenden?')) return;
+    const prev = career;
+    onChange(applyChoice(career, c));
+    if (c.kind !== 'retire') setUndo({ prev, title: `${c.title}: ${choiceClub(career, c)}` });
   };
   const confirm = () => {
     if (picked === null) return;
@@ -193,24 +209,24 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         <section className="cs-window">
           <h2>Transferfenster</h2>
           <p className="cs-sub">Die Saison ist vorbei. Wähle, wie es weitergeht.</p>
-          <div className="cs-choices">
+          <div className="cs-choices cs-choices-window">
             {choices.map((c, i) => (
-              <ChoiceCard key={c.offer?.id ?? c.kind} career={career} c={c} selected={picked === i} onPick={() => setPicked(i)} />
+              <ChoiceCard key={c.offer?.id ?? c.kind} career={career} c={c} selected={false} onPick={() => chooseNow(i)} />
             ))}
           </div>
-          <button className="btn primary big cs-go" disabled={picked === null} onClick={confirm}>
-            {picked === null ? 'Möglichkeit wählen' : `${choices[picked].title} bestätigen`}
-          </button>
+          <p className="hint cs-tap-hint">Tippe auf ein Angebot – du kannst es danach kurz rückgängig machen.</p>
           {p.age >= 30 && !choices.some((c) => c.kind === 'retire') && (
             <button className="btn secondary small cs-go" onClick={() => window.confirm('Karriere wirklich beenden?') && onChange(applyChoice(career, { kind: 'retire', title: 'Karriere beenden' }))}>
               Karriere beenden
             </button>
           )}
-          <div className="cs-extras">
-            <ScorerRace career={career} />
-            <VicePanel career={career} onChange={onChange} />
-          </div>
         </section>
+      )}
+      {!needType && career.phase === 'window' && choices.length > 0 && (
+        <div className="cs-extras cs-extras-out">
+          <ScorerRace career={career} />
+          <VicePanel career={career} onChange={onChange} />
+        </div>
       )}
 
       {!needType && (career.phase === 'season' || career.phase === 'winter' || career.phase === 'final') && (
@@ -293,7 +309,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           <div className={`cs-row cs-current ${career.phase === 'window' ? 'pending' : ''}`} role="row">
             <span className="cs-agebox">{p.age}</span>
             {career.phase === 'window' ? (
-              <span className="cs-clubcell muted">? <em>Karriere-Entscheidung …</em></span>
+              <span className="cs-clubcell muted"><em>offen</em></span>
             ) : (
               <>
                 <span className="cs-clubcell">{getClub(clubId).name}<small>{career.phase === 'winter' ? 'Winterpause' : half ? 'Rückrunde' : 'neue Saison'}</small></span>
@@ -331,6 +347,12 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         )}
       </div>
 
+      {undo && !moments.length && (
+        <div className="cs-undo" role="status">
+          <span><b>{undo.title}</b> gewählt</span>
+          <button className="btn secondary small" onClick={() => { onChange(undo.prev); setUndo(null); }}>Rückgängig</button>
+        </div>
+      )}
     </main>
   );
 }
