@@ -168,11 +168,15 @@ export interface DuelOpponent { level: number; name: string; strength: number; r
 const OPP_NAMES = ['Europapokal-Schreck', 'Meister-Kombinat', 'Champions-League-Elite', 'Galaktische Auswahl', 'Ballon-d’Or-Gala',
   'Weltauswahl', 'Legenden-Elf', 'Die Unsterblichen', 'Götter des Fußballs', 'Die Besten der Welt'];
 
-/** Gegner von Stärke 90 (Stufe 1) bis 110 (Stufe 10) – selbst mit einer perfekten 99er-Elf ist die letzte Stufe kaum zu packen. */
+/**
+ * Gegner-Stärke je Stufe: sanfter Einstieg (66–84), damit auch eine junge Sammlung gewinnt,
+ * ab Stufe 5 die Elite-Stufen von 90 bis 110 – die letzte ist selbst mit einer 99er-Elf kaum zu packen.
+ */
+export const DUEL_STRENGTH = [66, 72, 78, 84, 90, 94, 98, 102, 106, 110];
 export const opponent = (level: number): DuelOpponent => ({
   level,
   name: OPP_NAMES[level - 1],
-  strength: 90 + ((level - 1) * 20) / (DUEL_LEVELS - 1),
+  strength: DUEL_STRENGTH[level - 1],
   reward: 600 + level * 450,
 });
 
@@ -227,7 +231,8 @@ export function playDuel(club: ClubState, level: number, now = new Date()): { cl
   const own = poisson(clamp(1.4 * Math.exp(diff / DUEL_SPREAD), 0.2, 4));
   const against = poisson(clamp(1.4 * Math.exp(-diff / DUEL_SPREAD), 0.2, 4));
   const outcome = own > against ? 'win' : own === against ? 'draw' : 'loss';
-  const coins = outcome === 'win' ? opp.reward : outcome === 'draw' ? Math.round(opp.reward / 4) : 0;
+  // Auch eine Niederlage bringt ein kleines Trostgeld – so kommt man immer ein Stück weiter.
+  const coins = outcome === 'win' ? opp.reward : outcome === 'draw' ? Math.round(opp.reward / 4) : Math.round(opp.reward / 10);
   const goals = [
     ...Array.from({ length: own }, () => ({ minute: randInt(1, 90), own: true })),
     ...Array.from({ length: against }, () => ({ minute: randInt(1, 90), own: false })),

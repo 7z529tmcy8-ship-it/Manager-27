@@ -307,7 +307,7 @@ function DuelLive({ name, result, onClose, onShare }: { name: string; result: Du
         {done && (
           <>
             <p className={`duel-result ${result.outcome}`}>
-              {result.outcome === 'win' ? (result.coins ? `Sieg! +${result.coins} Coins` : 'Sieg!') : result.outcome === 'draw' ? (result.coins ? `Unentschieden · +${result.coins} Coins` : 'Unentschieden') : 'Niederlage – stell dein Team um und versuch es nochmal.'}
+              {result.outcome === 'win' ? (result.coins ? `Sieg! +${result.coins} Coins` : 'Sieg!') : result.outcome === 'draw' ? (result.coins ? `Unentschieden · +${result.coins} Coins` : 'Unentschieden') : `Niederlage${result.coins ? ` · +${result.coins} Coins Trostgeld` : ''} – stell dein Team um und versuch es nochmal.`}
               {result.points ? ` · +${result.points} Saisonpunkte` : ''}
               {result.passXp ? ` · +${result.passXp} Pass-XP` : ''}
             </p>

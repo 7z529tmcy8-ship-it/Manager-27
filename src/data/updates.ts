@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-18-balance',
+    date: '18.10.2026',
+    title: 'Großes Balance-Update: mehr Coins, faire Duelle',
+    items: [
+      'Karrieren bringen jetzt rund 5-mal so viele Coins: Eine starke Saison gibt etwa 10.000–15.000 Coins, eine ganze Karriere über 100.000.',
+      'Duelle mit sanftem Einstieg: Stufe 1–4 starten bei Stärke 66 bis 84, ab Stufe 5 geht es wie bisher von 90 bis 110 – ganz oben bleibt es fast unmöglich.',
+      'Auch Niederlagen bringen jetzt ein kleines Trostgeld.',
+      'Saison-Pass: Jede gespielte Karriere-Saison gibt jetzt 100 XP statt 50.',
+    ],
+  },
+  {
     id: '2026-10-17-gig',
     date: '17.10.2026',
     title: 'GIG-Event: das Glücksrad ist da – nur heute und morgen!',

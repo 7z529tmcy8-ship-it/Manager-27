@@ -36,7 +36,7 @@ export const PASS_XP = {
   pack: 15,
   evoStep: 60,
   task: 40,
-  careerSeason: 50,
+  careerSeason: 100,
 };
 
 /** Pass-Stand der aktuellen Saison (eine neue Saison startet bei 0). */

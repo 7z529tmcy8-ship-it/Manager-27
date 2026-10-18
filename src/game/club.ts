@@ -396,9 +396,10 @@ export function sellDuplicates(club: ClubState): { club: ClubState; coins: numbe
 // ---------- Coins aus der Karriere ----------
 /** Coins für eine Saison: Einsätze, Tore, Vorlagen, Titel, Auszeichnungen, Erfolge und Sonderkarten. */
 export function seasonCoins(r: SeasonRecord, specials: number): number {
+  // Eine starke Saison (40 Spiele, 25 Tore, 10 Vorlagen, 1 Titel) bringt rund 11.000 Coins.
   return (
-    300 + r.apps * 10 + r.goals * 30 + r.assists * 20 + r.trophies.length * 600 + r.awards.length * 800 +
-    (r.achievements?.length ?? 0) * 250 + specials * 750
+    1500 + r.apps * 50 + r.goals * 150 + r.assists * 100 + r.trophies.length * 3000 + r.awards.length * 4000 +
+    (r.achievements?.length ?? 0) * 1250 + specials * 3750
   );
 }
 
@@ -491,7 +492,7 @@ export function chooseCareerReward(club: ClubState, career: Career, cardId: stri
 
 /** Coins für eine Trainersaison: Grundbetrag, Platzierung über den Erwartungen und Titel. */
 export function coachCoins(s: CoachSeason): number {
-  return 250 + Math.max(0, s.expected - s.position) * 60 + s.trophies.length * 500;
+  return 1250 + Math.max(0, s.expected - s.position) * 300 + s.trophies.length * 2500;
 }
 
 const iconId = (career: Career) => `own-icon-${career.id}`;
