@@ -19,7 +19,7 @@ const FILTERS: { id: Filter; label: string; test: (c: CollectCard) => boolean; t
   { id: 'debut', label: 'Debüts', test: (c) => c.variant === 'debut', total: true },
   { id: 'comeback', label: 'Comebacks', test: (c) => c.variant === 'comeback', total: true },
   { id: 'flashback', label: 'Rückblenden', test: (c) => c.variant === 'flashback', total: true },
-  { id: 'special', label: 'Sonderkarten', test: (c) => ['tots', 'potm', 'record', 'champion', 'moment', 'present', 'halloween', 'gala', 'totw', 'ballondor', 'poty', 'topscorer', 'goldenboy', 'ucl', 'worldcup', 'pass'].includes(c.variant) },
+  { id: 'special', label: 'Sonderkarten', test: (c) => ['tots', 'potm', 'record', 'champion', 'moment', 'present', 'halloween', 'gala', 'totw', 'ballondor', 'poty', 'topscorer', 'goldenboy', 'ucl', 'worldcup', 'pass', 'gig', 'winter', 'silvester'].includes(c.variant) },
   { id: 'dupes', label: 'Doppelte', test: () => true },
 ];
 

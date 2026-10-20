@@ -1,7 +1,7 @@
 import type { Avatar } from './creator';
 import { FAILED_TALENTS, LEGENDS } from '../data/legends';
 import { REAL_PLAYERS } from '../data/players';
-import { BALLON_WINNER_2026, COMEBACK_CARDS, CULT_HEROES, DEBUT_CARDS, FLASHBACK_CARDS, EXTRA_ICONS, EXTRA_STARS, EXTRA_TALENTS, GALA_NOMINEES, GEISTERNACHT_CARDS, HALLOWEEN_CARDS } from '../data/cards';
+import { BALLON_WINNER_2026, COMEBACK_CARDS, CULT_HEROES, DEBUT_CARDS, FLASHBACK_CARDS, EXTRA_ICONS, EXTRA_STARS, EXTRA_TALENTS, GALA_NOMINEES, GEISTERNACHT_CARDS, HALLOWEEN_CARDS, SILVESTER_CARDS, WINTER_CARDS } from '../data/cards';
 import { getClub, getLeague, slugify } from '../data/leagues';
 import { summarizeCareer } from './legacy';
 import { homeClubOf } from './offers';
@@ -13,7 +13,7 @@ import type { Career, CoachSeason, Position, SeasonRecord, SpecialCard, SpecialT
 
 /** Auszeichnungs-Karten, die man am Karriereende statt der Ikone wählen kann. */
 export type AwardVariant = 'ballondor' | 'poty' | 'topscorer' | 'goldenboy' | 'ucl' | 'worldcup';
-export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | 'gala' | 'totw' | 'comeback' | 'flashback' | 'pass' | 'gig' | AwardVariant | SpecialType;
+export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | 'gala' | 'totw' | 'comeback' | 'flashback' | 'pass' | 'gig' | 'winter' | 'silvester' | AwardVariant | SpecialType;
 
 export interface CollectCard {
   id: string;
@@ -62,6 +62,10 @@ export interface ClubState {
   refundNotice?: number;
   /** GIG-Event: Tag des letzten Gratis-Drehs (JJJJ-MM-TT) und Anzahl Drehs. */
   gig?: { freeDay?: string; spins: number };
+  /** Adventskalender: geöffnete Türchen (Tag 1–24). */
+  advent?: number[];
+  /** Silvester: Neujahrs-Geschenk schon abgeholt? */
+  newYearClaimed?: boolean;
   /** Saison-Pass des aktuellen Monats. */
   pass?: import('./pass').PassState;
   /** Aufstellung (11 Karten-IDs im 4-3-3, null = leer). */
@@ -149,6 +153,14 @@ for (const [name, ovr] of GALA_NOMINEES) {
   CARD_POOL.push({ id: 'lamine-yamal-gig', name: base.name, position: base.position, nation: base.nation, club: base.club, league: base.league, ovr: 95, variant: 'gig', label: 'GIG-Event · Oktober 2026' });
 }
 export const GIG_CARD_ID = 'lamine-yamal-gig';
+// Winter-Wunder und Silvester: Event-Versionen echter Stars
+for (const [list, variant, tag, label] of [[WINTER_CARDS, 'winter', 'Winter 2026', 'Winter-Wunder 2026'], [SILVESTER_CARDS, 'silvester', 'Silvester 2026', 'Silvester 26/27']] as const) {
+  for (const [name, ovr] of list) {
+    const base = CARD_POOL.find((c) => c.name === name && ['silver', 'gold', 'gold-rare'].includes(c.variant));
+    if (!base) continue;
+    CARD_POOL.push({ id: cardId(`${name} ${tag}`), name, position: base.position, nation: base.nation, club: base.club, league: base.league, ovr, variant, label });
+  }
+}
 export const getCard = (id: string) => CARD_POOL.find((c) => c.id === id);
 
 /** Sammel-Fortschritt: wie viele verschiedene Karten aus dem Kartenpool man hat (eigene Sonderkarten zählen nicht). */
@@ -174,7 +186,7 @@ export function sellValue(c: CollectCard): number {
 
 /** Seltenheit für Sortierung und „bester Zug“. */
 export function rarity(c: CollectCard): number {
-  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, gala: 3.9, totw: 3.1, comeback: 3.3, flashback: 3.5, pass: 3.95, gig: 4.1, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
+  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, gala: 3.9, totw: 3.1, comeback: 3.3, flashback: 3.5, pass: 3.95, gig: 4.1, winter: 3.85, silvester: 4.05, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
   return base * 100 + c.ovr;
 }
 
@@ -189,7 +201,7 @@ const TIERS: PackTier[] = ['silver', 'gold', 'rare', 'elite', 'special', 'icon']
 /** Stufe einer Karte für Packs: Silber < 75, Gold 75–82, Selten 83–86, Elite 87+, Spezial (Kult/Was wäre wenn), Ikone. */
 export function packTier(c: CollectCard): PackTier {
   if (c.variant === 'icon') return 'icon';
-  if (c.variant === 'talent' || c.variant === 'cult' || c.variant === 'halloween' || c.variant === 'debut' || c.variant === 'gala' || c.variant === 'comeback' || c.variant === 'flashback' || c.variant === 'pass' || c.variant === 'gig') return 'special';
+  if (c.variant === 'talent' || c.variant === 'cult' || c.variant === 'halloween' || c.variant === 'debut' || c.variant === 'gala' || c.variant === 'comeback' || c.variant === 'flashback' || c.variant === 'pass' || c.variant === 'gig' || c.variant === 'winter' || c.variant === 'silvester') return 'special';
   return c.ovr >= 87 ? 'elite' : c.ovr >= 83 ? 'rare' : c.ovr >= 75 ? 'gold' : 'silver';
 }
 
@@ -261,6 +273,17 @@ export const PACKS: PackDef[] = [
     text: '4 Karten – garantiert ein Ballon-d’Or-Nominierter als Gala-Karte (91–94). Nur in der Gala-Woche!',
     odds: GOLD_FILL, first: { odds: { special: 100 }, filter: (c) => c.variant === 'gala' },
   },
+  {
+    id: 'winter', name: 'Winter-Wunder-Pack', price: 55_000, size: 4, event: 'winter',
+    text: '4 Karten – garantiert eine Winter-Wunder-Karte (89–95): Haaland, Mbappé, Yamal … Nur bis 27. Dezember!',
+    odds: GOLD_FILL, first: { odds: { special: 100 }, filter: (c) => c.variant === 'winter' },
+  },
+  {
+    id: 'silvester', name: 'Feuerwerks-Pack', price: 80_000, size: 5, event: 'silvester',
+    text: '5 Karten ab 83 – garantiert eine Silvester-Karte (93–96). Nur am 31.12. und 1.1.!',
+    odds: { rare: 80, elite: 20 }, first: { odds: { special: 100 }, filter: (c) => c.variant === 'silvester' },
+  },
+
   {
     id: 'mystery', name: 'Wundertüte', price: 9000, size: 1, text: '1 völlig zufällige Karte – von Silber bis Ikone ist alles drin.',
     odds: { silver: 55, gold: 33, rare: 8, elite: 2.5, special: 1, icon: 0.5 },
@@ -645,7 +668,7 @@ export const halloweenActive = (now = new Date()) => now <= HALLOWEEN_END;
 /** Ballon-d’Or-Verleihung 2026: 26.10., 21 Uhr (Tipps bis dahin). */
 export const BALLON_CEREMONY = new Date(2026, 9, 26, 21, 0, 0);
 
-export type EventId = 'halloween' | 'geisternacht' | 'gala' | 'gig';
+export type EventId = 'halloween' | 'geisternacht' | 'gala' | 'gig' | 'winter' | 'silvester';
 /** Zeitfenster der Events (Ortszeit des Geräts). */
 export const EVENTS: Record<EventId, { start: Date; end: Date }> = {
   halloween: { start: new Date(2026, 9, 1), end: HALLOWEEN_END },
@@ -654,12 +677,18 @@ export const EVENTS: Record<EventId, { start: Date; end: Date }> = {
   gala: { start: BALLON_CEREMONY, end: new Date(2026, 10, 9, 23, 59, 59) },
   // GIG-Event: Glücksrad, nur zwei Tage.
   gig: { start: new Date(2026, 9, 17, 0, 0, 0), end: new Date(2026, 9, 18, 23, 59, 59) },
+  // Winter-Wunder mit Adventskalender
+  winter: { start: new Date(2026, 11, 1, 0, 0, 0), end: new Date(2026, 11, 27, 23, 59, 59) },
+  // Silvester: nur zwei Tage
+  silvester: { start: new Date(2026, 11, 31, 0, 0, 0), end: new Date(2027, 0, 1, 23, 59, 59) },
 };
 export const eventActive = (e: EventId, now = new Date()) => now >= EVENTS[e].start && now <= EVENTS[e].end;
 /** Zu welchem Event eine Karte gehört (nur in dessen Packs ziehbar). */
 export function eventOfCard(c: CollectCard): EventId | null {
   if (c.variant === 'gala') return 'gala';
   if (c.variant === 'gig') return 'gig';
+  if (c.variant === 'winter') return 'winter';
+  if (c.variant === 'silvester') return 'silvester';
   if (c.variant === 'halloween') return c.club === 'Geisternacht' ? 'geisternacht' : 'halloween';
   return null;
 }

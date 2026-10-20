@@ -19,6 +19,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-20-mega',
+    date: '20.10.2026',
+    title: 'Das Riesen-Update: 66 neue Karten, Winter-Wunder und Silvester',
+    items: [
+      '42 neue Ikonen: Puskás, Platini, van Basten, Romário, Garrincha, Zico, Totti, Gerrard, Drogba, Eto’o, Weah, Shevchenko, Batistuta, Schmeichel und viele mehr.',
+      '17 neue fragwürdige Kult-Helden: Higuita, Chilavert, Campos, Asprilla, Akinfenwa, Max Kruse, Tim Wiese, Großkreutz, Fellaini, Joey Barton …',
+      '7 aktuelle Stars: Lookman, Xavi Simons, Frimpong, Semenyo, Kudus, Kean und Garnacho – mit ihren Vereinen von Oktober 2026.',
+      'Ab 1. Dezember: Winter-Wunder mit Adventskalender (24 Türchen, Türchen 24 = Winter-Karte), 12 Winter-Karten bis 95, eigenem Pack und Schneefall.',
+      'Am 31.12. und 1.1.: Silvester-Event mit 6 Feuerwerks-Karten bis 96, Feuerwerks-Pack im Store und einem Gratis-Pack zu Neujahr.',
+    ],
+  },
+  {
     id: '2026-10-18-handy',
     date: '18.10.2026',
     title: 'Bessere Bedienung am Handy',

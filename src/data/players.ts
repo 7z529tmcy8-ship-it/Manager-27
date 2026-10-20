@@ -250,7 +250,18 @@ const DEPTH_2026: typeof RAW = [
   ['Givairo Read', 'Niederlande', 'AV', 19, 75, 85, 'Feyenoord Rotterdam'],
 ];
 
-export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026, ...ADDITIONS_2026, ...WORLD_STARS_2026, ...DEPTH_2026].map(
+/** Oktober 2026: aktuelle Stars, Vereine geprüft (Stand Oktober 2026). Leihen stehen beim aktuellen Verein. */
+const OCTOBER_2026: typeof RAW = [
+  ['Ademola Lookman', 'Nigeria', 'FL', 29, 85, 85, 'Atlético Madrid'],
+  ['Xavi Simons', 'Niederlande', 'ZOM', 23, 84, 88, 'Tottenham Hotspur'],
+  ['Jeremie Frimpong', 'Niederlande', 'AV', 25, 84, 86, 'Liverpool FC'],
+  ['Antoine Semenyo', 'Ghana', 'FL', 26, 84, 85, 'Manchester City'],
+  ['Mohammed Kudus', 'Ghana', 'FL', 26, 82, 84, 'Tottenham Hotspur'],
+  ['Moise Kean', 'Italien', 'ST', 26, 82, 83, 'Como 1907'],
+  ['Alejandro Garnacho', 'Argentinien', 'FL', 22, 81, 86, 'Aston Villa'],
+];
+
+export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026, ...ADDITIONS_2026, ...WORLD_STARS_2026, ...DEPTH_2026, ...OCTOBER_2026].map(
   ([name, nation, position, age, ovr, potential, club]) => ({
     name, nation, position, age, ovr, potential, clubId: slugify(club),
   }),

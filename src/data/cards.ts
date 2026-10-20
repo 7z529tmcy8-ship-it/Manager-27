@@ -54,6 +54,49 @@ export const EXTRA_ICONS: [string, string, Position, number][] = [
   ['Cafu', 'Brasilien', 'AV', 91],
   ['Patrick Vieira', 'Frankreich', 'ZDM', 91],
   ['David Beckham', 'England', 'ZM', 90],
+  // Oktober 2026: noch mehr Legenden
+  ['Ferenc Puskás', 'Ungarn', 'ST', 96],
+  ['Michel Platini', 'Frankreich', 'ZOM', 95],
+  ['Marco van Basten', 'Niederlande', 'ST', 95],
+  ['Romário', 'Brasilien', 'ST', 95],
+  ['Garrincha', 'Brasilien', 'FL', 95],
+  ['Zico', 'Brasilien', 'ZOM', 94],
+  ['Eusébio', 'Portugal', 'ST', 94],
+  ['Francesco Totti', 'Italien', 'ZOM', 94],
+  ['Bobby Charlton', 'England', 'ZOM', 93],
+  ['George Best', 'Nordirland', 'FL', 93],
+  ['Dennis Bergkamp', 'Niederlande', 'ST', 93],
+  ['Andriy Shevchenko', 'Ukraine', 'ST', 93],
+  ['Gabriel Batistuta', 'Argentinien', 'ST', 93],
+  ['Karl-Heinz Rummenigge', 'Deutschland', 'FL', 92],
+  ['Steven Gerrard', 'England', 'ZM', 92],
+  ['Luís Figo', 'Portugal', 'FL', 92],
+  ['Raúl', 'Spanien', 'ST', 92],
+  ['Pavel Nedvěd', 'Tschechien', 'ZM', 92],
+  ['Didier Drogba', 'Elfenbeinküste', 'ST', 92],
+  ["Samuel Eto'o", 'Kamerun', 'ST', 92],
+  ['George Weah', 'Liberia', 'ST', 92],
+  ['Peter Schmeichel', 'Dänemark', 'TW', 92],
+  ['Fabio Cannavaro', 'Italien', 'IV', 91],
+  ['Carles Puyol', 'Spanien', 'IV', 91],
+  ['Frank Rijkaard', 'Niederlande', 'ZDM', 91],
+  ['Frank Lampard', 'England', 'ZM', 91],
+  ['Michael Laudrup', 'Dänemark', 'ZOM', 91],
+  ['Hristo Stoichkov', 'Bulgarien', 'FL', 91],
+  ['Gheorghe Hagi', 'Rumänien', 'ZOM', 91],
+  ['Jürgen Klinsmann', 'Deutschland', 'ST', 91],
+  ['Uwe Seeler', 'Deutschland', 'ST', 91],
+  ['Sepp Maier', 'Deutschland', 'TW', 91],
+  ['Just Fontaine', 'Frankreich', 'ST', 91],
+  ['Jean-Pierre Papin', 'Frankreich', 'ST', 91],
+  ['Rudi Völler', 'Deutschland', 'ST', 90],
+  ['Rui Costa', 'Portugal', 'ZOM', 90],
+  ['Clarence Seedorf', 'Niederlande', 'ZM', 90],
+  ['Edwin van der Sar', 'Niederlande', 'TW', 90],
+  ['Javier Zanetti', 'Argentinien', 'AV', 90],
+  ['Hernán Crespo', 'Argentinien', 'ST', 90],
+  ['Robin van Persie', 'Niederlande', 'ST', 90],
+  ['Rio Ferdinand', 'England', 'IV', 89],
 ];
 
 /**
@@ -102,6 +145,24 @@ export const CULT_HEROES: [string, string, Position, number, string][] = [
   ['Dani Alves', 'Brasilien', 'AV', 88, 'FC Barcelona'],
   ['Xabi Alonso', 'Spanien', 'ZM', 88, 'Liverpool FC'],
   ['Pepe', 'Portugal', 'IV', 87, 'Real Madrid'],
+  // Oktober 2026: noch mehr fragwürdige Helden
+  ['Faustino Asprilla', 'Kolumbien', 'ST', 87, 'Parma'],
+  ['Hakan Şükür', 'Türkei', 'ST', 87, 'Galatasaray'],
+  ['Ali Daei', 'Iran', 'ST', 86, 'Hertha BSC'],
+  ['José Luis Chilavert', 'Paraguay', 'TW', 86, 'Vélez Sarsfield'],
+  ['Cuauhtémoc Blanco', 'Mexiko', 'ZOM', 86, 'Club América'],
+  ['René Higuita', 'Kolumbien', 'TW', 85, 'Atlético Nacional'],
+  ['Max Kruse', 'Deutschland', 'ST', 85, 'SV Werder Bremen'],
+  ['Jorge Campos', 'Mexiko', 'TW', 84, 'Pumas UNAM'],
+  ['Tim Wiese', 'Deutschland', 'TW', 84, 'SV Werder Bremen'],
+  ['Adebayo Akinfenwa', 'England', 'ST', 84, 'Wycombe Wanderers'],
+  ['Asamoah Gyan', 'Ghana', 'ST', 84, 'Sunderland AFC'],
+  ['Marouane Fellaini', 'Belgien', 'ZM', 84, 'Manchester United'],
+  ['Emile Heskey', 'England', 'ST', 83, 'Liverpool FC'],
+  ['Ivan Klasnić', 'Kroatien', 'ST', 83, 'SV Werder Bremen'],
+  ['Joey Barton', 'England', 'ZM', 82, 'Newcastle United'],
+  ['Royston Drenthe', 'Niederlande', 'FL', 82, 'Real Madrid'],
+  ['Kevin Großkreutz', 'Deutschland', 'AV', 82, 'Borussia Dortmund'],
 ];
 
 /** Was-wäre-wenn-Talente nur als Karte (ihr Jugendverein ist nicht im Karrieremodus). [Name, Nation, Position, Potenzial, Verein] */
@@ -212,4 +273,30 @@ export const FLASHBACK_CARDS: [string, string, Position, number, string, string]
   ['Harry Kane', 'England', 'ST', 95, 'FC Bayern München', '2023/24'], // 36 Bundesliga-Tore
   ['Neymar', 'Brasilien', 'FL', 94, 'FC Barcelona', '2014/15'], // Triple
   ['Thomas Müller', 'Deutschland', 'ZOM', 93, 'FC Bayern München', '2019/20'], // 21 Vorlagen, Triple
+];
+
+/** Winter-Wunder (1.–27. Dezember 2026): Stars im Eis-Design, +4 bis +6. [Name, Wertung] */
+export const WINTER_CARDS: [string, number][] = [
+  ['Erling Haaland', 95],
+  ['Kylian Mbappé', 95],
+  ['Lamine Yamal', 93],
+  ['Harry Kane', 93],
+  ['Vinícius Júnior', 92],
+  ['Mohamed Salah', 92],
+  ['Florian Wirtz', 91],
+  ['Jamal Musiala', 91],
+  ['Pedri', 91],
+  ['Jude Bellingham', 91],
+  ['Michael Olise', 90],
+  ['Declan Rice', 89],
+];
+
+/** Silvester (31.12.2026–1.1.2027): Feuerwerks-Karten, nur zwei Tage. [Name, Wertung] */
+export const SILVESTER_CARDS: [string, number][] = [
+  ['Ousmane Dembélé', 96],
+  ['Kylian Mbappé', 96],
+  ['Lamine Yamal', 95],
+  ['Erling Haaland', 95],
+  ['Harry Kane', 94],
+  ['Raphinha', 93],
 ];

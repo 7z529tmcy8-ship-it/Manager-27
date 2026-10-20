@@ -39,6 +39,9 @@ export function applySettings(s: AppSettings = current): void {
   else root.dataset.theme = s.theme;
   root.classList.toggle('reduce-motion', !s.animations);
   // Halloween-Event (bis 2. November 2026): eigenes Design, abschaltbar.
+  const now = new Date();
+  root.classList.toggle('winter', now >= new Date(2026, 11, 1) && now <= new Date(2026, 11, 27, 23, 59, 59));
+  root.classList.toggle('silvester', now >= new Date(2026, 11, 31) && now <= new Date(2027, 0, 1, 23, 59, 59));
   root.classList.toggle('halloween', new Date() <= new Date(2026, 10, 2, 23, 59, 59) && s.halloween !== false);
 }
 

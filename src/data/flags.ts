@@ -1,5 +1,6 @@
 // Flaggen-Emojis für die Nationen im Spiel (Länder ohne eigenes Emoji bekommen eine neutrale Flagge).
 const FLAGS: Record<string, string> = {
+  Iran: '🇮🇷', Liberia: '🇱🇷', Nordirland: '🇬🇧',
   Argentinien: '🇦🇷', Belgien: '🇧🇪', Brasilien: '🇧🇷', Deutschland: '🇩🇪', Dänemark: '🇩🇰', Elfenbeinküste: '🇨🇮',
   England: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', Frankreich: '🇫🇷', Guinea: '🇬🇳', Irland: '🇮🇪', Italien: '🇮🇹', Japan: '🇯🇵', Kolumbien: '🇨🇴',
   Kroatien: '🇭🇷', Niederlande: '🇳🇱', Norwegen: '🇳🇴', Polen: '🇵🇱', Portugal: '🇵🇹', Schweden: '🇸🇪', Schweiz: '🇨🇭',

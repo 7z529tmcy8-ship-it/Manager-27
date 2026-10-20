@@ -3124,3 +3124,88 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 :root[data-theme="arena"] .cs-extras-out .race { background: var(--panel); border-color: var(--line); }
 .race > summary { cursor: pointer; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px; list-style: none; }
 .race > summary::-webkit-details-marker { display: none; }
+
+/* =====================================================================
+   Winter-Wunder (1.–27.12.) und Silvester (31.12.–1.1.)
+   ===================================================================== */
+/* Karten */
+.ucard.v-winter { --a: #eaf6ff; --b: #6fa8dc; --ink: #0b2340; --edge: #bfe9ff; --glow: rgba(150, 220, 255, .65); }
+.ucard.v-winter.special { --pat:
+  radial-gradient(circle at 20% 18%, rgba(255, 255, 255, .9) 0 1.5px, transparent 2px) 0 0 / 22px 26px,
+  radial-gradient(circle at 70% 60%, rgba(255, 255, 255, .7) 0 1px, transparent 1.6px) 0 0 / 17px 19px,
+  repeating-linear-gradient(60deg, rgba(255, 255, 255, .12) 0 1px, transparent 1px 12px),
+  repeating-linear-gradient(-60deg, rgba(255, 255, 255, .12) 0 1px, transparent 1px 12px),
+  radial-gradient(70% 40% at 62% 30%, rgba(255, 255, 255, .6), transparent 70%); }
+.ucard.v-winter .ucard-club { color: #0d4f8b; letter-spacing: .06em; text-transform: uppercase; opacity: 1; }
+.ucard.v-winter .ucard-badge { color: #0d4f8b; }
+.ucard.v-silvester { --a: #1a0b2e; --b: #020104; --ink: #fff3d6; --edge: #ffcf4a; --glow: rgba(255, 120, 200, .55); }
+.ucard.v-silvester.special { --pat:
+  repeating-conic-gradient(from 0deg at 25% 22%, rgba(255, 207, 74, .55) 0 2deg, transparent 2deg 18deg),
+  repeating-conic-gradient(from 7deg at 80% 70%, rgba(255, 80, 200, .45) 0 2deg, transparent 2deg 20deg),
+  radial-gradient(circle at 25% 22%, rgba(255, 207, 74, .5) 0 6%, transparent 22%),
+  radial-gradient(circle at 80% 70%, rgba(255, 80, 200, .45) 0 5%, transparent 20%); }
+.ucard.v-silvester .ucard-club { color: #ffcf4a; letter-spacing: .08em; text-transform: uppercase; opacity: 1; }
+.ucard.v-silvester .ucard-badge { color: #ff7ad1; }
+
+/* Store-Packs */
+.p-winter .pack-art { background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, .9) 0 2px, transparent 3px) 0 0 / 18px 20px, linear-gradient(160deg, #eaf6ff, #6fa8dc 60%, #1e4f86); color: #0b2340; }
+.p-silvester .pack-art { background: repeating-conic-gradient(from 0deg at 50% 40%, rgba(255, 207, 74, .5) 0 3deg, transparent 3deg 16deg), radial-gradient(circle at 50% 40%, #ff4fb4, #1a0b2e 55%, #020104); color: #ffcf4a; }
+
+/* Pack-Öffnung im Event-Look */
+.pack-open.theme-winter { --pg: #bfe9ff; background: radial-gradient(600px 500px at 50% 45%, #1b4b7a, #050a18 75%); }
+.pack-open.theme-silvester { --pg: #ffcf4a; background: radial-gradient(600px 500px at 50% 45%, #3a0d3a, #020104 75%); }
+.pack-open.theme-winter .pack-big:not(.has-art) { background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, .9) 0 2px, transparent 3px) 0 0 / 18px 20px, linear-gradient(165deg, #f4fbff, #8cc0ea 50%, #2a5f96); color: #0b2340; }
+.pack-open.theme-silvester .pack-big:not(.has-art) { background: repeating-conic-gradient(from 0deg at 50% 40%, rgba(255, 207, 74, .45) 0 3deg, transparent 3deg 16deg), linear-gradient(165deg, #3a0d3a, #020104); color: #ffcf4a; }
+.pack-open:is(.theme-winter, .theme-silvester) .pack-big :is(.pack-crimp, .pack-kicker, .pack-logo) { display: revert !important; }
+
+/* Hub-Banner */
+.winter-call, .ny-call { position: relative; display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px 16px; border-radius: 18px; cursor: pointer; overflow: hidden; text-align: left; font: inherit; color: #fff; }
+.winter-call { border: 1.5px solid #bfe9ff; background: radial-gradient(120% 140% at 100% 0%, rgba(191, 233, 255, .25), transparent 55%), linear-gradient(100deg, #1e4f86, #0b1a33 70%); box-shadow: 0 0 20px rgba(150, 220, 255, .25); }
+.winter-call::after { content: ''; position: absolute; right: 44px; top: 0; bottom: 0; width: 90px; pointer-events: none; opacity: .5;
+  background: radial-gradient(circle, rgba(255, 255, 255, .9) 0 1.5px, transparent 2px) 0 0 / 18px 20px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000); mask-image: linear-gradient(90deg, transparent, #000); }
+.winter-call > * { position: relative; z-index: 1; }
+.winter-call-num { flex: none; width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; font-family: var(--display, inherit); font-size: 1.8rem; font-weight: 700;
+  color: #0b2340; background: linear-gradient(160deg, #ffffff, #bfe9ff); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .15), 0 0 0 3px #d64545; }
+.winter-call-text, .ny-call-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.winter-call-text b, .ny-call-text b { font-family: var(--display, inherit); font-size: 1.15rem; letter-spacing: .04em; text-transform: uppercase; }
+.winter-call-text small { color: #d8efff; font-size: .8125rem; }
+.winter-call .ic { color: #bfe9ff; flex: none; }
+.ny-call { border: 1.5px solid #ffcf4a; background: repeating-conic-gradient(from 0deg at 12% 50%, rgba(255, 207, 74, .25) 0 3deg, transparent 3deg 18deg), linear-gradient(100deg, #3a0d3a, #0a0410 70%); box-shadow: 0 0 22px rgba(255, 80, 200, .3); }
+.ny-call.alt { border-color: rgba(255, 207, 74, .6); }
+.ny-call-year { flex: none; font-family: var(--display, inherit); font-size: 1.7rem; font-weight: 700; color: #ffcf4a; text-shadow: 0 0 12px rgba(255, 207, 74, .7), 2px 0 #ff4fb4; }
+.ny-call-text small { color: #ffe3f3; font-size: .8125rem; }
+.ny-call .ic { color: #ffcf4a; flex: none; }
+
+/* Adventskalender */
+.advent .overlay-inner { max-width: 640px; }
+.advent-kicker { display: block; font-family: var(--display, inherit); font-size: .875rem; letter-spacing: .2em; text-transform: uppercase; color: #bfe9ff; }
+.advent-title { margin-top: 2px; }
+.advent-grid { list-style: none; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 600px) { .advent-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.advent-door button { width: 100%; aspect-ratio: 1; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: default; font: inherit; text-align: center; padding: 6px;
+  color: #0b2340; border: 0; background: linear-gradient(160deg, #1e4f86, #0b1a33); box-shadow: inset 0 0 0 1px rgba(191, 233, 255, .25); }
+.advent-door b { font-family: var(--display, inherit); font-size: 1.7rem; color: #d8efff; line-height: 1; }
+.advent-door small { font-size: .6875rem; font-weight: 700; line-height: 1.15; }
+.advent-door .ic { color: #6fa8dc; }
+.advent-door:not(.ready):not(.open) button { opacity: .55; }
+.advent-door.ready button { cursor: pointer; background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, .9) 0 1.5px, transparent 2px) 0 0 / 14px 16px, linear-gradient(160deg, #ffffff, #bfe9ff); box-shadow: 0 0 0 3px #d64545, 0 0 18px rgba(191, 233, 255, .6); }
+.advent-door.ready b { color: #0b2340; }
+.advent-door.ready small { color: #d64545; text-transform: uppercase; letter-spacing: .06em; }
+.advent-door.open button { background: linear-gradient(160deg, #0f2a4a, #081426); box-shadow: inset 0 0 0 1px rgba(191, 233, 255, .4); color: #d8efff; }
+.advent-door.open .ic { color: #ffd76a; }
+.advent-door.big button { background: linear-gradient(160deg, #d64545, #7a1010); box-shadow: inset 0 0 0 2px #ffd76a; }
+.advent-door.big b { color: #ffd76a; }
+.advent-door.pop button { animation: advent-pop .5s cubic-bezier(.2, .9, .3, 1.4); }
+@keyframes advent-pop { 0% { transform: scale(.8) rotateY(90deg); } 100% { transform: none; } }
+
+/* Schneefall im Winter-Zeitraum (dezent, hinter den Inhalten) */
+:root.winter .app::before { content: ''; position: fixed; inset: -10% 0 0; z-index: 0; pointer-events: none; opacity: .5;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, .9) 0 1.5px, transparent 2px) 0 0 / 60px 70px,
+    radial-gradient(circle, rgba(255, 255, 255, .7) 0 1px, transparent 1.5px) 20px 30px / 90px 80px,
+    radial-gradient(circle, rgba(255, 255, 255, .6) 0 2px, transparent 2.5px) 40px 10px / 130px 120px;
+  animation: snow-fall 18s linear infinite; }
+@keyframes snow-fall { to { background-position: 0 70px, 20px 110px, 40px 130px; } }
+:root.reduce-motion.winter .app::before { animation: none; }
+@media (prefers-reduced-motion: reduce) { :root.winter .app::before { animation: none; } }

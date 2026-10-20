@@ -12,6 +12,8 @@ import Backup from './Backup';
 import Settings from './Settings';
 import UtCard from './UtCard';
 import Icon from './Icon';
+import AdventCalendar from './AdventCalendar';
+import { adventToday, claimNewYearGift, newYearGiftOpen } from '../game/winter';
 import { PASS_LEVELS, XP_PER_LEVEL, passLevel, passOf, unclaimedLevels } from '../game/pass';
 
 interface Props {
@@ -43,14 +45,18 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   const [backup, setBackup] = useState(false);
   const [tipOpen, setTipOpen] = useState(false);
   const [tipPack, setTipPack] = useState<PackResult | null>(null);
+  const [nyPack, setNyPack] = useState<PackResult | null>(null);
+  const [advent, setAdvent] = useState(false);
   const tipWon = ballonTipCorrect(club) === true && !club.ballonTipClaimed;
   // Event-Hinweis oben: das gerade wichtigste Event
   const gigLastDay = new Date().getDate() === 18;
-  const chip = eventActive('gig') ? (gigLastDay ? 'GIG-Event – nur noch heute' : 'GIG-Event – nur bis morgen')
+  const chip = eventActive('silvester') ? 'Silvester – nur bis 1.1.'
+    : eventActive('winter') ? 'Winter-Wunder bis 27.12.'
+    : eventActive('gig') ? (gigLastDay ? 'GIG-Event – nur noch heute' : 'GIG-Event – nur bis morgen')
     : eventActive('geisternacht') ? 'Geisternacht – nur bis 31.10.'
     : eventActive('gala') ? 'Gala-Woche bis 9.11.'
     : halloweenActive() ? 'Halloween bis 2.11.' : null;
-  const chipIcon = eventActive('gig') ? 'dice' : eventActive('geisternacht') ? 'ghost' : eventActive('gala') ? 'medal' : 'pumpkin';
+  const chipIcon = eventActive('silvester') ? 'spark' : eventActive('winter') ? 'gift' : eventActive('gig') ? 'dice' : eventActive('geisternacht') ? 'ghost' : eventActive('gala') ? 'medal' : 'pumpkin';
   const latest = [...saves].sort((a, b) => b.updatedAt - a.updatedAt)[0];
   const progress = collectionProgress(club);
   const hasHistory = saves.some((c) => c.history.length > 0);
@@ -89,6 +95,32 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
           }}>
             <Icon name="trophy" size={20} />
             Richtig getippt: {BALLON_WINNER_2026} gewinnt den Ballon d’Or! Dein Gala-Pack abholen ›
+          </button>
+        )}
+        {newYearGiftOpen(club) && (
+          <button className="ny-call" onClick={() => {
+            const res = claimNewYearGift(getClubState());
+            if (!res) return;
+            setClubState(res.club);
+            setNyPack(res.result);
+          }}>
+            <span className="ny-call-year">2027</span>
+            <span className="ny-call-text"><b>Frohes neues Jahr!</b><small>Dein Feuerwerks-Pack gratis abholen – garantiert eine Silvester-Karte</small></span>
+            <Icon name="arrow" size={22} />
+          </button>
+        )}
+        {eventActive('silvester') && (
+          <button className="ny-call alt" onClick={onStore}>
+            <span className="ny-call-year">31.12.</span>
+            <span className="ny-call-text"><b>Silvester-Event</b><small>Feuerwerks-Pack im Store · Dembélé, Mbappé, Yamal bis 96 · nur 2 Tage</small></span>
+            <Icon name="arrow" size={22} />
+          </button>
+        )}
+        {adventToday() > 0 && (
+          <button className="winter-call" onClick={() => setAdvent(true)}>
+            <span className="winter-call-num">{adventToday()}</span>
+            <span className="winter-call-text"><b>Adventskalender</b><small>{(club.advent ?? []).includes(adventToday()) ? 'Heute schon geöffnet – morgen geht’s weiter' : `Türchen ${adventToday()} wartet auf dich`} · Winter-Wunder-Pack im Store</small></span>
+            <Icon name="arrow" size={22} />
           </button>
         )}
         {eventActive('gig') && (
@@ -195,6 +227,8 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
       )}
       {backup && <Backup onClose={() => setBackup(false)} />}
       {tipOpen && <BallonTip onClose={() => setTipOpen(false)} />}
+      {advent && <AdventCalendar onClose={() => setAdvent(false)} onCollection={() => { setAdvent(false); onCollection(); }} />}
+      {nyPack && <PackOpening name="Feuerwerks-Pack" theme="silvester" result={nyPack} onClose={() => setNyPack(null)} onCollection={() => { setNyPack(null); onCollection(); }} />}
       {tipPack && <PackOpening name="Gala-Pack" theme="gala" result={tipPack} onClose={() => setTipPack(null)} onCollection={() => { setTipPack(null); onCollection(); }} />}
     </main>
   );
