@@ -2,6 +2,7 @@ import GigEvent from './components/GigEvent';
 import SeasonPass from './components/SeasonPass';
 import { PASS_XP, addPassXp } from './game/pass';
 import { autoStartMotion } from './tilt';
+import { cleanStorage, migrateSaves, storageBreakdown } from './game/storage';
 import { useEffect, useRef, useState } from 'react';
 import CreateCareer from './components/CreateCareer';
 import CareerScreen from './components/CareerScreen';
@@ -60,6 +61,7 @@ export default function App() {
   // Sounds: Klick bei jedem Knopf, Münzen beim Verdienen, Kasse beim Ausgeben.
   useEffect(() => installClickSound(), []);
   useEffect(() => autoStartMotion(), []);
+  useEffect(() => migrateSaves(), []);
   const coins = useClub().coins;
   const lastCoins = useRef(coins);
   useEffect(() => {
@@ -101,9 +103,7 @@ export default function App() {
     <div className="app">
       <HalloweenDecor />
       {news.length > 0 && <UpdateBanner notes={news} onClose={() => setNews([])} />}
-      {saveFailed && (
-        <div className="banner warn">Speichern im Browser nicht möglich (z. B. privater Modus) – der Fortschritt geht beim Schließen verloren.</div>
-      )}
+      {saveFailed && <SaveWarning onRetry={() => setSaveFailed(screen.name === 'game' ? !saveCareer(screen.career) : false)} />}
       {toast && <div className="coin-toast" role="status"><Icon name="coin" size={16} className="coin-ic" />{noEmoji(toast)}</div>}
       {reward && <CareerReward career={reward} onDone={() => { setToast('Deine Karriere-Karte liegt in der Sammlung!'); setReward(null); }} />}
       {screen.name === 'home' && (
@@ -138,6 +138,23 @@ export default function App() {
       {screen.name === 'game' && (
         <CareerScreen career={screen.career} onChange={update} onExit={home} />
       )}
+    </div>
+  );
+}
+
+/** Hinweis, wenn der Browser das Speichern ablehnt – meist ist der Speicher voll. Mit Aufräum-Knopf. */
+function SaveWarning({ onRetry }: { onRetry: () => void }) {
+  const [info, setInfo] = useState<string | null>(null);
+  const b = storageBreakdown();
+  const total = b.careers + b.club + b.flavio + b.other;
+  return (
+    <div className="banner warn save-warn" role="alert">
+      <strong>Speichern hat nicht geklappt – der Browser-Speicher ist wahrscheinlich voll.</strong>
+      <small>Belegt: ca. {total.toLocaleString('de-DE')} KB (Karrieren {b.careers.toLocaleString('de-DE')} KB · Club {b.club.toLocaleString('de-DE')} KB · Onkel Flavio {b.flavio.toLocaleString('de-DE')} KB). Browser erlauben meist nur ca. 5.000 KB pro Seite.</small>
+      <span className="save-warn-actions">
+        <button className="btn primary small" onClick={() => { const kb = cleanStorage(); setInfo(`Aufgeräumt – jetzt ca. ${kb.toLocaleString('de-DE')} KB.`); onRetry(); }}>Jetzt aufräumen</button>
+      </span>
+      {info && <small>{info} {b.flavio > 1000 ? 'Tipp: Bei Onkel Flavio alte Posts mit Bildern löschen spart viel Platz.' : 'Wenn es weiter nicht klappt: alte Karrieren unter „Spielstände“ löschen.'}</small>}
     </div>
   );
 }

@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-23-speicher',
+    date: '23.10.2026',
+    title: 'Speichern repariert',
+    items: [
+      'Spielstände werden jetzt komprimiert gespeichert – rund 4-mal kleiner. Beim ersten Start werden alte Spielstände automatisch verkleinert.',
+      'Wird der Browser-Speicher trotzdem knapp, räumt das Spiel selbst auf (alte Nachrichten und Tabellen) und versucht es nochmal.',
+      'Klappt das Speichern doch nicht, zeigt ein Hinweis jetzt, was wie viel Platz belegt – mit Knopf zum Aufräumen.',
+    ],
+  },
+  {
     id: '2026-10-23-icons-career',
     date: '23.10.2026',
     title: 'Ikonen-Karrieren: spiel als Pelé, Maradona, Cruyff …',
