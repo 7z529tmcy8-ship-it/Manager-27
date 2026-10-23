@@ -3276,3 +3276,36 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 }
 .rotate-hint-x { flex: none; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; border: 0; background: rgba(160, 190, 255, .1); color: var(--text-2, #a9b2dc); cursor: pointer; }
 :root.want-landscape .rotate-hint .rotate-hint-x .ic { animation: none; color: inherit; }
+
+/* ===== Pro-Pass: Schwarz-Gold ===== */
+.pass-pro-badge { display: inline-grid; place-items: center; margin-left: 10px; padding: 2px 10px; border-radius: 8px; vertical-align: middle; font-size: .9rem; letter-spacing: .12em;
+  color: #1a1000; background: linear-gradient(135deg, #fff1bf, #ffcf4a 45%, #b8862a); box-shadow: 0 0 16px rgba(255, 207, 74, .45); }
+.pass-pro-offer { position: relative; display: flex; align-items: center; gap: 16px; margin-top: 16px; padding: 16px 18px; border-radius: 20px; overflow: hidden;
+  border: 1.5px solid #ffcf4a; background: repeating-linear-gradient(125deg, rgba(255, 207, 74, .06) 0 2px, transparent 2px 12px), radial-gradient(80% 140% at 0% 50%, rgba(255, 207, 74, .22), transparent 60%), linear-gradient(160deg, #1d1606, #050403); }
+.pass-pro-card { flex: none; filter: drop-shadow(0 0 18px rgba(255, 207, 74, .45)); }
+.pass-pro-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
+.pass-pro-kicker { font-family: var(--display, inherit); font-size: .8125rem; letter-spacing: .2em; text-transform: uppercase; color: #ffcf4a; }
+.pass-pro-info strong { font-family: var(--display, inherit); font-size: 1.6rem; line-height: 1.05; text-transform: uppercase; letter-spacing: .03em; color: #fff4d0; }
+.pass-pro-info small { color: #e9dcb6; font-size: .8125rem; line-height: 1.4; }
+.pass-pro-buy { margin-top: 6px; align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; color: #1a1000; border: 0; font-weight: 800;
+  background: linear-gradient(135deg, #fff1bf, #ffcf4a 45%, #b8862a); box-shadow: 0 8px 22px rgba(255, 207, 74, .35); }
+.pass-pro-buy .coin-ic { color: #1a1000; }
+.pass-pro-buy:disabled { background: rgba(255, 207, 74, .12); color: #e9dcb6; box-shadow: inset 0 0 0 1px rgba(255, 207, 74, .4); }
+@media (max-width: 480px) { .pass-pro-offer { flex-direction: column; text-align: center; } .pass-pro-info { align-items: center; } .pass-pro-buy { align-self: stretch; justify-content: center; } }
+
+.pass-tile.pro { position: relative; height: 140px; margin-top: 2px; border-color: rgba(255, 207, 74, .3);
+  background: repeating-linear-gradient(125deg, rgba(255, 207, 74, .05) 0 2px, transparent 2px 10px), linear-gradient(180deg, #1d1606, #070503); }
+.pass-tile.pro:not(.owned) { opacity: .55; }
+.pass-tile.pro:not(.owned) .pass-art { filter: saturate(.4) brightness(.75); }
+.pass-tile.pro.ready { cursor: pointer; opacity: 1; border-color: #ffcf4a; box-shadow: 0 0 16px rgba(255, 207, 74, .3); }
+.pass-tile.pro.ready .pass-tile-state { padding: 0 10px; border-radius: 999px; background: linear-gradient(135deg, #fff1bf, #ffcf4a); color: #1a1000; }
+.pass-tile.pro.claimed { opacity: .5; }
+.pass-tile.pro.claimed .pass-tile-state { color: #ffcf4a; }
+.pass-tile.pro .pass-tile-label { color: #fff4d0; }
+.pass-pro-tag { position: absolute; top: 6px; left: 6px; padding: 0 6px; border-radius: 5px; font-family: var(--display, inherit); font-size: .6875rem; letter-spacing: .1em;
+  color: #1a1000; background: #ffcf4a; }
+.pass-node.k-card .pass-tile.pro { border-color: #ffcf4a; }
+.pass-node .pass-tile.pro { border-color: rgba(255, 207, 74, .3); background: repeating-linear-gradient(125deg, rgba(255, 207, 74, .05) 0 2px, transparent 2px 10px), linear-gradient(180deg, #1d1606, #070503); }
+.pass-node .pass-tile.pro.ready { border-color: #ffcf4a; box-shadow: 0 0 16px rgba(255, 207, 74, .3); }
+.pass-node.ready .pass-tile.pro:not(.ready) .pass-tile-state { background: none; color: var(--muted); padding: 0; }
+.pass-node .pass-tile.pro.ready .pass-tile-state { padding: 0 10px; border-radius: 999px; background: linear-gradient(135deg, #fff1bf, #ffcf4a); color: #1a1000; }

@@ -11,7 +11,16 @@ import { seasonId, seasonName } from './squad';
 export const PASS_LEVELS = 30;
 export const XP_PER_LEVEL = 100;
 
-export interface PassState { season: string; xp: number; claimed: number[] }
+export interface PassState {
+  season: string; xp: number; claimed: number[];
+  /** Pro-Pass für diese Saison gekauft? */
+  pro?: boolean;
+  /** Abgeholte Pro-Stufen. */
+  proClaimed?: number[];
+}
+
+/** Preis für den Pro-Pass (pro Saison = Monat). */
+export const PRO_PASS_PRICE = 200_000_000;
 
 export type PassReward =
   | { level: number; kind: 'coins'; amount: number }
@@ -102,3 +111,58 @@ export const rewardText = (r: PassReward, season: string) =>
   r.kind === 'coins' ? `${r.amount.toLocaleString('de-DE')} Coins`
     : r.kind === 'pack' ? PACKS.find((x) => x.id === r.pack)!.name
     : `Exklusiv: ${passCard(season).name} ${passCard(season).ovr}`;
+
+// ---------- Pro-Pass ----------
+// Eine zweite, deutlich stärkere Belohnungsreihe über denselben 30 Stufen. Gilt für die laufende Saison;
+// schon erreichte Stufen lassen sich nach dem Kauf sofort abholen.
+
+const PRO_PACK_AT: Record<number, string> = {
+  1: 'premium', 3: 'megagold', 4: 'comeback', 5: 'icon', 7: 'flashback', 8: 'worldstar', 9: 'ultimate', 10: 'goat',
+  11: 'icon', 13: 'megagold', 14: 'flashback', 15: 'goat', 16: 'worldstar', 18: 'ultimate', 19: 'comeback', 20: 'goat',
+  21: 'icon', 23: 'ultimate', 24: 'icon', 25: 'goat', 26: 'ultimate', 27: 'icon', 29: 'goat',
+};
+const PRO_COINS_AT: Record<number, number> = { 2: 50_000, 6: 75_000, 12: 100_000, 17: 150_000, 22: 200_000, 28: 300_000 };
+
+export const PRO_REWARDS: PassReward[] = Array.from({ length: PASS_LEVELS }, (_, i) => {
+  const level = i + 1;
+  if (level === PASS_LEVELS) return { level, kind: 'card' as const };
+  if (PRO_PACK_AT[level]) return { level, kind: 'pack' as const, pack: PRO_PACK_AT[level] };
+  return { level, kind: 'coins' as const, amount: PRO_COINS_AT[level] ?? 100_000 };
+});
+
+/** Die Pro-Karte der Saison: derselbe Saison-Held, aber noch stärker (+9, höchstens 99). */
+export function proPassCard(season: string): CollectCard {
+  const base = passCard(season);
+  return { ...base, id: base.id.replace(/^pass-/, 'pass-pro-'), ovr: Math.min(99, base.ovr + 2), label: `Pro · ${seasonName(season)}` };
+}
+
+export function buyProPass(club: ClubState, now = new Date()): ClubState | null {
+  const p = passOf(club, now);
+  if (p.pro || club.coins < PRO_PASS_PRICE) return null;
+  return { ...club, coins: club.coins - PRO_PASS_PRICE, pass: { ...p, pro: true, proClaimed: [] } };
+}
+
+export function unclaimedProLevels(club: Pick<ClubState, 'pass'>, now = new Date()): number[] {
+  const p = passOf(club, now);
+  if (!p.pro) return [];
+  return PRO_REWARDS.filter((r) => r.level <= passLevel(p.xp) && !(p.proClaimed ?? []).includes(r.level)).map((r) => r.level);
+}
+
+export function claimProReward(club: ClubState, level: number, now = new Date(), rand = Math.random): PassClaim | null {
+  const p = passOf(club, now);
+  const reward = PRO_REWARDS.find((r) => r.level === level);
+  if (!p.pro || !reward || level > passLevel(p.xp) || (p.proClaimed ?? []).includes(level)) return null;
+  const pass = { ...p, proClaimed: [...(p.proClaimed ?? []), level] };
+  if (reward.kind === 'coins') return { club: { ...club, pass, coins: club.coins + reward.amount }, coins: reward.amount };
+  if (reward.kind === 'pack') {
+    const res = openPack({ ...club, pass }, reward.pack, rand, true);
+    if (!res) return null;
+    return { club: res.club, pack: { name: `Pro: ${PACKS.find((x) => x.id === reward.pack)!.name}`, result: res.result } };
+  }
+  const card = proPassCard(p.season);
+  const specials = club.specials.some((s) => s.id === card.id) ? club.specials : [...club.specials, card];
+  return { club: { ...club, pass, specials }, card };
+}
+
+export const proRewardText = (r: PassReward, season: string) =>
+  r.kind === 'card' ? `Pro-Karte: ${proPassCard(season).name} ${proPassCard(season).ovr}` : rewardText(r, season);

@@ -40,3 +40,27 @@ describe('Saison-Pass', () => {
     expect(unclaimedLevels(club, nov)).toEqual([]);
   });
 });
+
+describe('Pro-Pass', () => {
+  it('kostet 200 Mio., gibt eine zweite Reihe und die Pro-Karte, gilt nur für die Saison', async () => {
+    const { PRO_PASS_PRICE, PRO_REWARDS, buyProPass, claimProReward, unclaimedProLevels, proPassCard } = await import('../pass');
+    expect(PRO_PASS_PRICE).toBe(200_000_000);
+    expect(PRO_REWARDS).toHaveLength(PASS_LEVELS);
+    const count = (id: string) => PRO_REWARDS.filter((r) => r.kind === 'pack' && r.pack === id).length;
+    expect([count('goat'), count('ultimate'), count('icon')]).toEqual([5, 4, 5]);
+    expect(buyProPass({ ...freshClub(), coins: PRO_PASS_PRICE - 1 }, oct)).toBeNull();
+    let club = addPassXp({ ...freshClub(), coins: PRO_PASS_PRICE }, PASS_LEVELS * XP_PER_LEVEL, oct);
+    expect(unclaimedProLevels(club, oct)).toEqual([]);
+    club = buyProPass(club, oct)!;
+    expect(club.coins).toBe(0);
+    expect(buyProPass({ ...club, coins: PRO_PASS_PRICE }, oct)).toBeNull(); // nur einmal pro Saison
+    expect(unclaimedProLevels(club, oct)).toHaveLength(PASS_LEVELS);
+    const goat = claimProReward(club, 10, oct)!;
+    expect(goat.pack?.result.cards.length).toBeGreaterThan(0);
+    const card = claimProReward(goat.club, PASS_LEVELS, oct)!;
+    expect(card.card?.ovr).toBe(proPassCard('2026-10').ovr);
+    expect(proPassCard('2026-10').ovr).toBeGreaterThan(passCard('2026-10').ovr);
+    expect(claimProReward(card.club, PASS_LEVELS, oct)).toBeNull();
+    expect(unclaimedProLevels(card.club, nov)).toEqual([]); // neue Saison ohne Pro
+  });
+});

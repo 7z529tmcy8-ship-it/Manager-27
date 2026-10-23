@@ -3,7 +3,8 @@ import { getClubState, setClubState, useClub } from '../clubStore';
 import type { CollectCard, PackResult } from '../game/club';
 import { seasonName } from '../game/squad';
 import {
-  PASS_LEVELS, PASS_REWARDS, PASS_XP, XP_PER_LEVEL, claimPassReward, passCard, passDaysLeft, passLevel, passOf, rewardText, unclaimedLevels, type PassReward,
+  PASS_LEVELS, PASS_REWARDS, PASS_XP, PRO_PASS_PRICE, PRO_REWARDS, XP_PER_LEVEL, buyProPass, claimPassReward, claimProReward, passCard, passDaysLeft, passLevel, passOf, proPassCard, proRewardText, rewardText,
+  unclaimedLevels, unclaimedProLevels, type PassReward,
 } from '../game/pass';
 import { PACKS } from '../game/club';
 import Icon from './Icon';
@@ -21,7 +22,11 @@ export default function SeasonPass({ onBack, onCollection }: { onBack: () => voi
   const done = level >= PASS_LEVELS;
   const inLevel = done ? XP_PER_LEVEL : p.xp % XP_PER_LEVEL;
   const top = passCard(p.season);
-  const open = unclaimedLevels(club);
+  const openFree = unclaimedLevels(club);
+  const openPro = unclaimedProLevels(club);
+  const open = [...openFree, ...openPro];
+  const proCard = proPassCard(p.season);
+  const pro = !!p.pro;
   const next = PASS_REWARDS[Math.min(level, PASS_LEVELS - 1)];
   const days = passDaysLeft();
   const [queue, setQueue] = useState<Opening[]>([]);
@@ -32,7 +37,7 @@ export default function SeasonPass({ onBack, onCollection }: { onBack: () => voi
   // Beim Öffnen zur aktuellen Stufe scrollen
   useEffect(() => {
     const t = track.current;
-    const el = t?.querySelector<HTMLElement>(`[data-level="${Math.max(1, Math.min(PASS_LEVELS, open[0] ?? level + 1))}"]`);
+    const el = t?.querySelector<HTMLElement>(`[data-level="${Math.max(1, Math.min(PASS_LEVELS, (openFree[0] ?? openPro[0]) ?? level + 1))}"]`);
     if (t && el) t.scrollLeft = el.offsetLeft - t.clientWidth / 2 + el.clientWidth / 2;
     // nur beim ersten Anzeigen
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -41,16 +46,16 @@ export default function SeasonPass({ onBack, onCollection }: { onBack: () => voi
   const flash = (t: string) => { setToast(t); setTimeout(() => setToast(null), 2000); };
 
   /** Stufen abholen: Coins sofort, Packs und Karte kommen nacheinander als Pack-Öffnung. */
-  const claim = (levels: number[]) => {
+  const claim = (levels: number[], proLevels: number[] = []) => {
     let coins = 0;
     const packs: Opening[] = [];
-    for (const l of levels) {
-      const res = claimPassReward(getClubState(), l);
+    for (const [l, isPro] of [...levels.map((l) => [l, false] as const), ...proLevels.map((l) => [l, true] as const)]) {
+      const res = isPro ? claimProReward(getClubState(), l) : claimPassReward(getClubState(), l);
       if (!res) continue;
       setClubState(res.club);
       coins += res.coins ?? 0;
       if (res.pack) packs.push({ id: ++seq.current, ...res.pack });
-      if (res.card) packs.push({ id: ++seq.current, name: 'Saison-Pass', result: { cards: [{ card: res.card as CollectCard, duplicate: false }], items: [] } });
+      if (res.card) packs.push({ id: ++seq.current, name: isPro ? 'Pro-Pass' : 'Saison-Pass', result: { cards: [{ card: res.card as CollectCard, duplicate: false }], items: [] } });
     }
     if (coins) flash(`+${fmt(coins)} Coins`);
     if (packs.length) setQueue((q) => [...q, ...packs]);
@@ -64,7 +69,7 @@ export default function SeasonPass({ onBack, onCollection }: { onBack: () => voi
         <span className="hub-coins"><Icon name="coin" size={16} className="coin-ic" />{fmt(club.coins)}</span>
       </header>
       <div className="pass-title">
-        <h1 className="hub-title">Saison-Pass</h1>
+        <h1 className="hub-title">Saison-Pass{pro && <span className="pass-pro-badge">PRO</span>}</h1>
         <span className="pass-days"><Icon name="clock" size={14} />{seasonName(p.season)} · noch {days} {days === 1 ? 'Tag' : 'Tage'}</span>
       </div>
 
@@ -92,8 +97,23 @@ export default function SeasonPass({ onBack, onCollection }: { onBack: () => voi
         </div>
       </section>
 
+      {!pro && (
+        <section className="pass-pro-offer">
+          <div className="pass-pro-card"><UtCard card={proCard} size="sm" shine /></div>
+          <div className="pass-pro-info">
+            <span className="pass-pro-kicker">Pro-Pass · {seasonName(p.season)}</span>
+            <strong>Doppelt so krass</strong>
+            <small>Zweite Belohnungsreihe auf allen 30 Stufen: 5× GOAT, 4× Ultimate, 5× Ikonen, Weltstar, Rückblende und bis zu 300.000 Coins pro Stufe – oben {proCard.name} {proCard.ovr}. Schon erreichte Stufen gibt es sofort.</small>
+            <button className="btn big pass-pro-buy" disabled={club.coins < PRO_PASS_PRICE}
+              onClick={() => { if (!window.confirm(`Pro-Pass für ${fmt(PRO_PASS_PRICE)} Coins kaufen?`)) return; const next = buyProPass(getClubState()); if (next) setClubState(next); }}>
+              {club.coins >= PRO_PASS_PRICE ? <>Pro-Pass kaufen · <Icon name="coin" size={16} className="coin-ic" />{fmt(PRO_PASS_PRICE)}</> : `Dir fehlen ${fmt(PRO_PASS_PRICE - club.coins)} Coins`}
+            </button>
+          </div>
+        </section>
+      )}
+
       {open.length > 0 && (
-        <button className="btn primary big pass-claim-all" onClick={() => claim(open)}>
+        <button className="btn primary big pass-claim-all" onClick={() => claim(openFree, openPro)}>
           <Icon name="gift" size={20} />Alles abholen <span className="pass-claim-count">{open.length}</span>
         </button>
       )}
@@ -115,6 +135,8 @@ export default function SeasonPass({ onBack, onCollection }: { onBack: () => voi
                     {claimed ? <Icon name="check" size={16} /> : ready ? 'Abholen' : <Icon name="lock" size={14} />}
                   </span>
                 </button>
+                <ProTile r={PRO_REWARDS[r.level - 1]} card={proCard} season={p.season} pro={pro} reached={reached}
+                  claimed={(p.proClaimed ?? []).includes(r.level)} onClaim={() => claim([], [r.level])} />
               </li>
             );
           })}
@@ -152,4 +174,18 @@ function RewardArt({ r, card }: { r: PassReward; card: CollectCard }) {
     return <span className={`pass-art pack p-${r.pack}`} aria-hidden="true"><span className="pack-art"><span>{name}</span></span></span>;
   }
   return <span className="pass-art card" aria-hidden="true"><UtCard card={card} size="xs" /></span>;
+}
+
+/** Pro-Reihe unter jeder Stufe: schwarz-gold, gesperrt ohne Pro-Pass. */
+function ProTile({ r, card, season, pro, reached, claimed, onClaim }: { r: PassReward; card: CollectCard; season: string; pro: boolean; reached: boolean; claimed: boolean; onClaim: () => void }) {
+  const ready = pro && reached && !claimed;
+  return (
+    <button className={`pass-tile pro ${pro ? 'owned' : ''} ${ready ? 'ready' : ''} ${claimed ? 'claimed' : ''}`} disabled={!ready} onClick={onClaim}
+      aria-label={`Pro-Stufe ${r.level}: ${proRewardText(r, season)}${claimed ? ', abgeholt' : ready ? ', abholen' : ', gesperrt'}`}>
+      <span className="pass-pro-tag">PRO</span>
+      <RewardArt r={r} card={card} />
+      <span className="pass-tile-label">{r.kind === 'card' ? 'Pro-Held' : tileLabel(r)}</span>
+      <span className="pass-tile-state">{claimed ? <Icon name="check" size={16} /> : ready ? 'Abholen' : <Icon name="lock" size={14} />}</span>
+    </button>
+  );
 }

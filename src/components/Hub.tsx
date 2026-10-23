@@ -14,7 +14,7 @@ import UtCard from './UtCard';
 import Icon from './Icon';
 import AdventCalendar from './AdventCalendar';
 import { adventToday, claimNewYearGift, newYearGiftOpen } from '../game/winter';
-import { PASS_LEVELS, XP_PER_LEVEL, passLevel, passOf, unclaimedLevels } from '../game/pass';
+import { PASS_LEVELS, XP_PER_LEVEL, passLevel, passOf, unclaimedLevels, unclaimedProLevels } from '../game/pass';
 
 interface Props {
   onNews: () => void;
@@ -260,7 +260,7 @@ function PassTile({ onClick }: { onClick: () => void }) {
   const club = useClub();
   const p = passOf(club);
   const level = passLevel(p.xp);
-  const open = unclaimedLevels(club).length;
+  const open = unclaimedLevels(club).length + unclaimedProLevels(club).length;
   const inLevel = level >= PASS_LEVELS ? XP_PER_LEVEL : p.xp % XP_PER_LEVEL;
   return (
     <button className="hub-tile hub-pass" onClick={onClick}>

@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-23-pro-pass',
+    date: '23.10.2026',
+    title: 'Neu: der Pro-Pass',
+    items: [
+      'Für 200.000.000 Coins gibt es jetzt den Pro-Pass – eine zweite Belohnungsreihe auf allen 30 Stufen des Saison-Passes.',
+      'Drin: 5× GOAT-Pack, 4× Ultimate, 5× Ikonen, Weltstar, Rückblende, Comeback, Mega-Gold und Coins bis 300.000 pro Stufe.',
+      'Ganz oben die Pro-Karte: der Saison-Held noch einmal stärker. Schon erreichte Stufen kannst du nach dem Kauf sofort abholen.',
+      'Der Pro-Pass gilt für den laufenden Monat – mit dem neuen Pass kann man ihn wieder kaufen.',
+    ],
+  },
+  {
     id: '2026-10-23-flott-quer',
     date: '23.10.2026',
     title: 'Kein Ruckeln mehr und Querformat',
