@@ -1,8 +1,9 @@
+import { getSettings, lockLandscape } from './settings';
 import GigEvent from './components/GigEvent';
 import SeasonPass from './components/SeasonPass';
 import { PASS_XP, addPassXp } from './game/pass';
 import { autoStartMotion } from './tilt';
-import { cleanStorage, migrateSaves, storageBreakdown } from './game/storage';
+import { cleanStorage, migrateSaves, onSaveStatus, storageBreakdown } from './game/storage';
 import { useEffect, useRef, useState } from 'react';
 import CreateCareer from './components/CreateCareer';
 import CareerScreen from './components/CareerScreen';
@@ -42,6 +43,7 @@ type Screen =
 export default function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
   const [saveFailed, setSaveFailed] = useState(false);
+  const [hintClosed, setHintClosed] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -61,7 +63,14 @@ export default function App() {
   // Sounds: Klick bei jedem Knopf, Münzen beim Verdienen, Kasse beim Ausgeben.
   useEffect(() => installClickSound(), []);
   useEffect(() => autoStartMotion(), []);
-  useEffect(() => migrateSaves(), []);
+  // Querformat gewünscht: beim ersten Tippen die Drehung sperren (geht nur nach einer Berührung)
+  useEffect(() => {
+    if (!getSettings().landscape) return;
+    const once = () => { void lockLandscape(); window.removeEventListener('pointerdown', once); };
+    window.addEventListener('pointerdown', once);
+    return () => window.removeEventListener('pointerdown', once);
+  }, []);
+  useEffect(() => { migrateSaves(); return onSaveStatus((ok) => setSaveFailed(!ok)); }, []);
   const coins = useClub().coins;
   const lastCoins = useRef(coins);
   useEffect(() => {
@@ -102,8 +111,14 @@ export default function App() {
   return (
     <div className="app">
       <HalloweenDecor />
+      {!hintClosed && (
+        <div className="rotate-hint" role="status">
+          <Icon name="rise" size={22} /><span>Dreh dein Handy ins Querformat – das Spiel ist darauf ausgelegt.</span>
+          <button className="rotate-hint-x" onClick={() => setHintClosed(true)} aria-label="Hinweis schließen"><Icon name="close" size={18} /></button>
+        </div>
+      )}
       {news.length > 0 && <UpdateBanner notes={news} onClose={() => setNews([])} />}
-      {saveFailed && <SaveWarning onRetry={() => setSaveFailed(screen.name === 'game' ? !saveCareer(screen.career) : false)} />}
+      {saveFailed && <SaveWarning onRetry={() => { if (screen.name === 'game') saveCareer(screen.career); }} />}
       {toast && <div className="coin-toast" role="status"><Icon name="coin" size={16} className="coin-ic" />{noEmoji(toast)}</div>}
       {reward && <CareerReward career={reward} onDone={() => { setToast('Deine Karriere-Karte liegt in der Sammlung!'); setReward(null); }} />}
       {screen.name === 'home' && (

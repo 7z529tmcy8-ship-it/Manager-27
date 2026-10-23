@@ -15,10 +15,12 @@ export interface AppSettings {
   halloween?: boolean;
   /** 3D-Karten folgen der Handy-Neigung (Standard an). */
   tilt?: boolean;
+  /** Im Querformat spielen (Handy quer halten; wo möglich wird die Drehung gesperrt). */
+  landscape?: boolean;
 }
 
 const KEY = 'fc-manager-settings';
-const DEFAULTS: AppSettings = { theme: 'arena', animations: true, casino: true, sound: true, volume: 0.6 };
+const DEFAULTS: AppSettings = { theme: 'arena', animations: true, casino: true, sound: true, volume: 0.6, landscape: true };
 
 function load(): AppSettings {
   try {
@@ -38,6 +40,7 @@ export function applySettings(s: AppSettings = current): void {
   if (s.theme === 'auto') delete root.dataset.theme;
   else root.dataset.theme = s.theme;
   root.classList.toggle('reduce-motion', !s.animations);
+  root.classList.toggle('want-landscape', !!s.landscape);
   // Halloween-Event (bis 2. November 2026): eigenes Design, abschaltbar.
   const now = new Date();
   root.classList.toggle('winter', now >= new Date(2026, 11, 1) && now <= new Date(2026, 11, 27, 23, 59, 59));
@@ -74,4 +77,26 @@ export function useSettings(): AppSettings {
 export function motionReduced(): boolean {
   if (!current.animations) return true;
   return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+}
+
+/**
+ * Querformat sperren, wo der Browser es erlaubt (meist Android im Vollbild). Muss aus einem Tippen heraus
+ * aufgerufen werden. Auf dem iPhone geht das nicht – dort einfach das Handy drehen.
+ */
+export async function lockLandscape(): Promise<boolean> {
+  try {
+    const o = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
+    if (!o?.lock) return false;
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+    await o.lock('landscape');
+    return true;
+  } catch {
+    return false;
+  }
+}
+export function unlockOrientation(): void {
+  try {
+    (screen.orientation as ScreenOrientation & { unlock?: () => void })?.unlock?.();
+    if (document.fullscreenElement) void document.exitFullscreen();
+  } catch { /* egal */ }
 }

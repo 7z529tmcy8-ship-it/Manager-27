@@ -1,8 +1,16 @@
+import { decompressFromUTF16 } from 'lz-string';
+import { LEGACY_KEY, clearCareerStore, exportCareersJson } from './game/storage';
 // Sicherung aller Spieldaten: Karrieren, Club (Coins, Karten), Einstellungen und das Rapper-Spiel.
 // Alles liegt nur im Browser – mit Export/Import kann man es sichern oder auf ein anderes Gerät bringen.
 
 const KEYS = ['fc-karriere-saves-v1', 'fc-club', 'fc-manager-settings', 'homestudio-hustle-v1', 'lab-boss-v1', 'onkel-flavio-v1', 'onkel-flavio-musik-v1'];
 const APP = 'fc-karriere-backup';
+
+/** Komprimierte Spielstände (zwischenzeitliches Format) in normales JSON zurückverwandeln. */
+function plain(key: string, raw: string): string {
+  if (key === LEGACY_KEY && raw.startsWith('\u0001')) return decompressFromUTF16(raw.slice(1)) ?? '[]';
+  return raw;
+}
 
 export interface Backup {
   app: typeof APP;
@@ -15,7 +23,8 @@ export function createBackup(): Backup {
   const data: Record<string, string> = {};
   for (const key of KEYS) {
     try {
-      const raw = localStorage.getItem(key);
+      // Karrieren immer als lesbares JSON sichern (unabhängig davon, wie sie im Browser liegen)
+      const raw = key === LEGACY_KEY ? exportCareersJson() : localStorage.getItem(key);
       if (raw !== null) data[key] = raw;
     } catch {
       // Kein Zugriff auf den Speicher – dann fehlt dieser Teil.
@@ -31,7 +40,7 @@ export function describeBackup(b: Backup): { careers: number; coins: number; dat
   let careers = 0;
   let coins = 0;
   try {
-    careers = (JSON.parse(b.data['fc-karriere-saves-v1'] ?? '[]') as unknown[]).length;
+    careers = (JSON.parse(plain(LEGACY_KEY, b.data[LEGACY_KEY] ?? '[]')) as unknown[]).length;
   } catch { /* leer */ }
   try {
     coins = (JSON.parse(b.data['fc-club'] ?? '{}') as { coins?: number }).coins ?? 0;
@@ -51,7 +60,7 @@ export function parseBackup(text: string): Backup | string {
   for (const [key, raw] of Object.entries(b.data)) {
     if (!KEYS.includes(key) || typeof raw !== 'string') return 'Die Sicherung enthält unbekannte Daten.';
     try {
-      JSON.parse(raw);
+      JSON.parse(plain(key, raw));
     } catch {
       return 'Die Sicherung ist beschädigt.';
     }
@@ -62,8 +71,9 @@ export function parseBackup(text: string): Backup | string {
 /** Sicherung einspielen: ersetzt alle Spieldaten in diesem Browser. Danach muss die Seite neu laden. */
 export function restoreBackup(b: Backup): boolean {
   try {
+    clearCareerStore();
     for (const key of KEYS) {
-      if (b.data[key] !== undefined) localStorage.setItem(key, b.data[key]);
+      if (b.data[key] !== undefined) localStorage.setItem(key, plain(key, b.data[key]));
       else localStorage.removeItem(key);
     }
     return true;

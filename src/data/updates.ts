@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-23-flott-quer',
+    date: '23.10.2026',
+    title: 'Kein Ruckeln mehr und Querformat',
+    items: [
+      'Ruckler behoben: Gespeichert wird jetzt im Hintergrund und nur die Karriere, die sich gerade geändert hat.',
+      '„Sichern & Laden“ funktioniert wieder zuverlässig, auch mit den neuen, kleineren Spielständen.',
+      'Querformat: Hauptmenü, Aufstellung, Pack-Öffnung und Glücksrad passen jetzt quer auf den Bildschirm. Auf Android wird die Drehung im Vollbild gesperrt, am iPhone einfach das Handy drehen.',
+      'Wer lieber hochkant spielt: „Im Querformat spielen“ in den Einstellungen ausschalten.',
+    ],
+  },
+  {
     id: '2026-10-23-speicher',
     date: '23.10.2026',
     title: 'Speichern repariert',
