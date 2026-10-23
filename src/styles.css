@@ -3209,3 +3209,8 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 @keyframes snow-fall { to { background-position: 0 70px, 20px 110px, 40px 130px; } }
 :root.reduce-motion.winter .app::before { animation: none; }
 @media (prefers-reduced-motion: reduce) { :root.winter .app::before { animation: none; } }
+/* Karriere-Auswahl: Suche und Positionsfilter bei langen Listen */
+.legend-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0; }
+.legend-filter input { flex: 1 1 180px; min-width: 0; height: 44px; padding: 0 14px; border-radius: 12px; font: inherit; }
+.legend-filter select { height: 44px; padding: 0 10px; border-radius: 12px; font: inherit; }
+.legend-filter small { color: var(--muted); font-size: .8125rem; }

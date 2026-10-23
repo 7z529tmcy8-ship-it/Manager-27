@@ -91,6 +91,7 @@ export default function Icon({ name, size = 24, className }: { name: IconName | 
 
 /** Emoji → Linien-Icon, für Daten, die noch ein Emoji als „icon“-Feld mitbringen. */
 const FROM_EMOJI: Record<string, IconName> = {
+  '🎩': 'star', '🧊': 'snow', '🌋': 'fire', '🎆': 'spark', '🦁': 'shield', '🍾': 'music',
   '⚽': 'ball', '🎁': 'gift', '🗂': 'cards', '🛡': 'shield', '⚔': 'duel', '🧩': 'puzzle', '🔄': 'swap', '🏠': 'home', '🏡': 'home',
   '🏆': 'trophy', '🏛': 'pillars', '💾': 'cloud', '🪙': 'coin', '📣': 'news', '⚙': 'gear', '👑': 'crown', '⚡': 'bolt', '⭐': 'star',
   '🌟': 'star', '✦': 'spark', '✨': 'spark', '🎟': 'ticket', '🎬': 'film', '🎃': 'pumpkin', '👻': 'ghost', '🏅': 'medal', '🥇': 'medal',

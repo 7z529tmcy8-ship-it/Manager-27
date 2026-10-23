@@ -74,7 +74,7 @@ export const EXTRA_ICONS: [string, string, Position, number][] = [
   ['Raúl', 'Spanien', 'ST', 92],
   ['Pavel Nedvěd', 'Tschechien', 'ZM', 92],
   ['Didier Drogba', 'Elfenbeinküste', 'ST', 92],
-  ["Samuel Eto'o", 'Kamerun', 'ST', 92],
+  ['Samuel Eto’o', 'Kamerun', 'ST', 92],
   ['George Weah', 'Liberia', 'ST', 92],
   ['Peter Schmeichel', 'Dänemark', 'TW', 92],
   ['Fabio Cannavaro', 'Italien', 'IV', 91],

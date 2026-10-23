@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-23-icons-career',
+    date: '23.10.2026',
+    title: 'Ikonen-Karrieren: spiel als Pelé, Maradona, Cruyff …',
+    items: [
+      'Neuer Reiter „Ikonen“ in „Neue Karriere“: Alle 68 Ikonen aus der Sammlung starten als junge Talente im heutigen Fußball – von Pelé und Maradona über Puskás und Platini bis Klose.',
+      'Kult-Helden-Karrieren: Higuita, Chilavert, Asprilla, Akinfenwa, Max Kruse, Tim Wiese, Großkreutz und 10 weitere kommen dazu.',
+      'Die neuen aktuellen Stars (Lookman, Xavi Simons, Frimpong, Semenyo, Kudus, Kean, Garnacho) gibt es unter „Echter Spieler“.',
+      'Lange Listen haben jetzt eine Suche nach Name oder Nation und einen Positionsfilter.',
+    ],
+  },
+  {
     id: '2026-10-20-mega',
     date: '20.10.2026',
     title: 'Das Riesen-Update: 66 neue Karten, Winter-Wunder und Silvester',

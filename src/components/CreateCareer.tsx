@@ -4,7 +4,7 @@ import { play } from '../sound';
 import { motionReduced } from '../settings';
 import { CLUBS, LEAGUES, getClub } from '../data/leagues';
 import { NATIONS, POSITIONS, REAL_PLAYERS, type RealPlayerTemplate } from '../data/players';
-import { CULT_LEGENDS, FAILED_TALENTS, HANNOVER_2018, LEGENDS, type LegendTemplate } from '../data/legends';
+import { CULT_LEGENDS, FAILED_TALENTS, HANNOVER_2018, ICON_LEGENDS, LEGENDS, type LegendTemplate } from '../data/legends';
 import { createCareer } from '../game/career';
 import { MAX_TRAITS, TRAITS, getTrait, type TraitId } from '../game/traits';
 import { pick } from '../game/random';
@@ -26,11 +26,12 @@ interface Props {
 }
 
 
-type Tab = 'own' | 'real' | 'legends' | 'cult' | 'failed' | 'h96';
+type Tab = 'own' | 'real' | 'icons' | 'legends' | 'cult' | 'failed' | 'h96';
 /** Reiter: [ID, langer Name, kurzer Name fürs Handy]. */
 const TABS: [Tab, string, string][] = [
   ['own', 'Eigener Spieler', 'Eigener'],
   ['real', 'Echter Spieler', 'Echter'],
+  ['icons', 'Ikonen', 'Ikonen'],
   ['legends', 'Legenden', 'Legenden'],
   ['cult', 'Kult-Helden', 'Kult'],
   ['failed', 'Zweite Chance', '2. Chance'],
@@ -55,6 +56,7 @@ export default function CreateCareer({ onCancel, onCreate }: Props) {
       </div>
       {tab === 'own' && <OwnPlayer onCreate={onCreate} />}
       {tab === 'real' && <RealPlayer onCreate={onCreate} />}
+      {tab === 'icons' && <LegendPicker onCreate={onCreate} list={ICON_LEGENDS} intro={ICON_INTRO} />}
       {tab === 'legends' && <LegendPicker onCreate={onCreate} list={LEGENDS} intro={LEGEND_INTRO} />}
       {tab === 'cult' && <LegendPicker onCreate={onCreate} list={CULT_LEGENDS} intro={CULT_INTRO} />}
       {tab === 'failed' && <LegendPicker onCreate={onCreate} list={FAILED_TALENTS} intro={FAILED_INTRO} secondChance />}
@@ -354,6 +356,8 @@ function TraitChips({ selected, onToggle }: { selected: TraitId[]; onToggle: (id
   );
 }
 
+const ICON_INTRO =
+  'Ikonen: Pelé, Maradona, Cruyff, Puskás und viele mehr starten als junge Talente im heutigen Fußball – schaffst du es, ihre Legende noch einmal zu schreiben? Startvereine teils vereinfacht, Wertungen eigene Schätzungen.';
 const LEGEND_INTRO =
   '„Was wäre wenn?“ – Kultfiguren starten als junge Spieler im heutigen Fußball, mit ihrem ganz eigenen Charakter. Werte und Startvereine sind frei erfunden, die Ereignisse augenzwinkernd.';
 const CULT_INTRO =
@@ -366,11 +370,25 @@ const FAILED_INTRO =
 /** Kultfiguren bzw. gescheiterte Talente als „Was wäre wenn“-Karriere im heutigen Fußball. */
 function LegendPicker({ onCreate, list, intro, secondChance }: { onCreate: (c: Career) => void; list: LegendTemplate[]; intro: string; secondChance?: boolean }) {
   const start = (l: LegendTemplate) => onCreate(createCareer({ ...l, secondChance }));
+  const [q, setQ] = useState('');
+  const [pos, setPos] = useState<string>('');
+  const norm = (t: string) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const shown = list.filter((l) => (!q || norm(l.name).includes(norm(q)) || norm(l.nation).includes(norm(q))) && (!pos || l.position === pos));
   return (
     <section className="panel">
       <p className="hint">{intro}</p>
+      {list.length > 20 && (
+        <div className="legend-filter">
+          <input type="search" placeholder="Name oder Nation suchen …" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Spieler suchen" />
+          <select value={pos} onChange={(e) => setPos(e.target.value)} aria-label="Position">
+            <option value="">Alle Positionen</option>
+            {['TW', 'IV', 'AV', 'ZDM', 'ZM', 'ZOM', 'FL', 'ST'].map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+          <small>{shown.length} von {list.length}</small>
+        </div>
+      )}
       <ul className="legend-list">
-        {list.map((l) => (
+        {shown.map((l) => (
           <li key={l.name}>
             <button onClick={() => start(l)}>
               <span className="save-ovr legend-ovr">{l.ovr}</span>
