@@ -142,6 +142,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
       <div className="hub-grid">
         <section className="hub-tile hero" onClick={() => (latest ? onLoad(latest) : onNew())} role="button" tabIndex={0}
           onKeyDown={(e) => e.key === 'Enter' && (latest ? onLoad(latest) : onNew())}>
+          <span className="hero-stadium" aria-hidden="true" />
           {latest ? (
             <>
               <UtCard card={careerCard(latest, club)} size="lg" shine={latest.player.ovr >= 85 || latest.phase === 'retired'} />
@@ -290,6 +291,7 @@ function EventStrip({ children }: { children: ReactNode }) {
   };
   return (
     <div className="hub-events-wrap">
+      <div className="hub-events-head"><i aria-hidden="true" />Jetzt live</div>
       <div className={`hub-events ${items.length > 1 ? 'multi' : ''}`} ref={ref} onScroll={onScroll}>{items}</div>
       {items.length > 1 && (
         <div className="hub-events-dots" aria-hidden="true">{items.map((_, i) => <i key={i} className={i === Math.min(idx, items.length - 1) ? 'on' : ''} />)}</div>

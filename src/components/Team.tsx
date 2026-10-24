@@ -2,11 +2,11 @@ import { PASS_XP, addPassXp } from '../game/pass';
 import Icon, { Glyph } from './Icon';
 import { evoAfterDuel, getPath, stepText, type EvoProgress } from '../game/evolutions';
 import { getCard as poolCard } from '../game/club';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PACKS, openPack, rarity, type CollectCard, type PackResult } from '../game/club';
 import {
   DUEL_LEVELS, FORMATIONS, FORMATION_ORDER, TASKS, changeFormation, slotsOf, autoSquad, cardById, chemistry, completeTask, fit, opponent, ownedCards, playDuel,
-  setSlot, taskPick, teamRating, teamStrength, type DuelResult,
+  setSlot, swapSlots, chemLinks, taskPick, teamRating, teamStrength, type DuelResult,
 } from '../game/squad';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { FRIEND_REWARD, SLOT_LABELS, exportTeam, importTeam, playFriendDuel, record, removeFriend, resultText, saveFriend, withOwnerId, type FriendTeam } from '../game/friends';
@@ -28,7 +28,7 @@ export default function Team({ onBack, onStore }: { onBack: () => void; onStore:
   const full = cards.filter(Boolean).length === 11;
 
   return (
-    <main className="hub">
+    <main className={`hub team-screen tab-${tab}`}>
       <header className="hub-top">
         <button className="hub-back" onClick={onBack}>‹ Hauptmenü</button>
         <span className="hub-coins"><Icon name="coin" size={16} className="coin-ic" />{club.coins.toLocaleString('de-DE')}</span>
@@ -150,13 +150,77 @@ export function SbcScreen({ onBack }: { onBack: () => void }) {
 }
 
 // ---------- Aufstellung ----------
+type DragFrom = { slot: number } | { reserve: string };
 function Squad({ onStore }: { onStore: () => void }) {
   const club = useClub();
   const [slot, setSlotOpen] = useState<number | null>(null);
+  const [drag, setDrag] = useState<{ from: DragFrom; card: CollectCard } | null>(null);
+  const [placed, setPlaced] = useState<number | null>(null);
+  const ghost = useRef<HTMLDivElement>(null);
+  const press = useRef<{ x: number; y: number; from: DragFrom; card: CollectCard; active: boolean } | null>(null);
+  const hover = useRef<HTMLElement | null>(null);
+  const suppressClick = useRef(false);
   const cards = club.squad.map((id) => cardById(club, id));
   const slots = slotsOf(club);
   const chem = chemistry(cards, slots);
   const owned = ownedCards(club);
+  const reserve = owned.filter((c) => !club.squad.includes(c.id)).sort((a, b) => b.ovr - a.ovr).slice(0, 24);
+
+  useEffect(() => {
+    if (placed === null) return;
+    const t = setTimeout(() => setPlaced(null), 420);
+    return () => clearTimeout(t);
+  }, [placed]);
+
+  const moveGhost = (x: number, y: number) => {
+    if (ghost.current) ghost.current.style.transform = `translate(${x}px, ${y}px) translate(-50%, -60%) scale(1.08)`;
+    const el = (document.elementFromPoint(x, y) as HTMLElement | null)?.closest<HTMLElement>('[data-slot]') ?? null;
+    if (el !== hover.current) { hover.current?.classList.remove('drop-hover'); el?.classList.add('drop-hover'); hover.current = el; }
+  };
+
+  // Ziehen mit Finger oder Maus: kurzer Tipp öffnet die Auswahl, Ziehen tauscht oder setzt ein.
+  const onPointerDown = (e: React.PointerEvent, from: DragFrom, card: CollectCard) => {
+    if (e.button !== 0) return;
+    if (e.pointerType === 'mouse') e.preventDefault(); // sonst markiert die Maus beim Ziehen Text
+    press.current = { x: e.clientX, y: e.clientY, from, card, active: false };
+    const move = (ev: PointerEvent) => {
+      const p = press.current;
+      if (!p) return;
+      if (!p.active) {
+        if (Math.hypot(ev.clientX - p.x, ev.clientY - p.y) < 8) return;
+        p.active = true;
+        setDrag({ from: p.from, card: p.card });
+      }
+      ev.preventDefault();
+      moveGhost(ev.clientX, ev.clientY);
+    };
+    const end = (ev: PointerEvent) => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', end);
+      window.removeEventListener('pointercancel', end);
+      const p = press.current;
+      press.current = null;
+      if (!p?.active) return;
+      suppressClick.current = true;
+      setTimeout(() => { suppressClick.current = false; }, 0);
+      const target = ev.type === 'pointerup' ? hover.current : null;
+      hover.current?.classList.remove('drop-hover');
+      hover.current = null;
+      setDrag(null);
+      if (!target) return;
+      const to = Number(target.dataset.slot);
+      const c = getClubState();
+      if ('slot' in p.from) {
+        if (p.from.slot === to) return;
+        setClubState(swapSlots(c, p.from.slot, to));
+      } else setClubState(setSlot(c, to, p.from.reserve));
+      setPlaced(to);
+    };
+    window.addEventListener('pointermove', move, { passive: false });
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+  };
+  const open = (i: number) => { if (!suppressClick.current) setSlotOpen(i); };
 
   if (!owned.length) {
     return (
@@ -179,26 +243,48 @@ function Squad({ onStore }: { onStore: () => void }) {
         <button className="btn secondary small" onClick={() => setClubState({ ...getClubState(), squad: autoSquad(getClubState()) })}>Auto-Aufstellung</button>
         <button className="btn ghost small" onClick={() => setClubState({ ...getClubState(), squad: Array(11).fill(null) })}>Leeren</button>
       </div>
-      <div className="pitch">
+      <div className={`pitch ${drag ? 'dragging' : ''}`}>
         <div className="pitch-lines" aria-hidden="true"><i className="box top" /><i className="circle" /><i className="box bottom" /></div>
+        <svg className="chem-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          {chemLinks(cards, slots).map((l) => (
+            <line key={`${l.a}-${l.b}`} className={`chem-line ${l.kind}`} x1={slots[l.a].x} y1={slots[l.a].y} x2={slots[l.b].x} y2={slots[l.b].y} vectorEffect="non-scaling-stroke" />
+          ))}
+        </svg>
         {slots.map((s, i) => {
           const c = cards[i];
+          const f = drag ? fit(drag.card, s.pos) : null;
+          const lifted = drag && 'slot' in drag.from && drag.from.slot === i;
           return (
-            <div key={i} className="pitch-slot" style={{ left: `${s.x}%`, top: `${s.y}%` }}>
+            <div key={i} data-slot={i} className={`pitch-slot ${f ? `fit-${f}` : ''} ${lifted ? 'lifted' : ''} ${placed === i ? 'just-placed' : ''}`} style={{ left: `${s.x}%`, top: `${s.y}%` }}>
               {c ? (
-                <UtCard card={c} size="xs" chem={chem.per[i]} onClick={() => setSlotOpen(i)} />
+                <span className="slot-card" onPointerDown={(e) => onPointerDown(e, { slot: i }, c)}>
+                  <UtCard card={c} size="xs" chem={chem.per[i]} onClick={() => open(i)} />
+                </span>
               ) : (
-                <button className="slot-empty" onClick={() => setSlotOpen(i)} aria-label={`${s.label} besetzen`}>+</button>
+                <button className="slot-empty" onClick={() => open(i)} aria-label={`${s.label} besetzen`}>+</button>
               )}
               <span className={`slot-label ${c && fit(c, s.pos) === 'off' ? 'bad' : ''}`}>{s.label}</span>
             </div>
           );
         })}
       </div>
+      {reserve.length > 0 && (
+        <section className="bench" aria-label="Reserve">
+          <h2 className="bench-head">Reserve <small>Karte aufs Feld ziehen</small></h2>
+          <div className="bench-row">
+            {reserve.map((c) => (
+              <span key={c.id} className={`bench-card ${drag && 'reserve' in drag.from && drag.from.reserve === c.id ? 'lifted' : ''}`} onPointerDown={(e) => onPointerDown(e, { reserve: c.id }, c)}>
+                <UtCard card={c} size="xs" />
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
       <p className="hub-sub small">
         Chemie: gleiche Nation, Liga oder gleicher Verein in der Elf geben Punkte (max. 3 pro Spieler). Auf fremder Position gibt es keine Chemie,
-        auf ähnlicher die Hälfte. Ikonen haben immer volle Chemie.
+        auf ähnlicher die Hälfte. Ikonen haben immer volle Chemie. Linien auf dem Feld: grün = starke Verbindung, cyan = eine Gemeinsamkeit.
       </p>
+      {drag && <div className="drag-ghost" ref={(el) => { ghost.current = el; if (el && press.current) moveGhost(press.current.x, press.current.y); }} aria-hidden="true"><UtCard card={drag.card} size="xs" /></div>}
       {slot !== null && <Picker slot={slot} onClose={() => setSlotOpen(null)} />}
     </>
   );

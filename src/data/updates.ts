@@ -19,6 +19,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-24-matchday',
+    date: '24.10.2026',
+    title: 'Neues Design: Matchday',
+    items: [
+      'Feste Navigation: Start, Karriere, Team, Duelle, Store, Sammlung und Pass sind immer einen Tipp entfernt – am Handy unten, im Querformat links.',
+      'Neuer Look in Violett mit Stadion-Atmosphäre: Flutlicht, Tribünen und ein Spielfeld im Hauptmenü.',
+      'Aufstellung: Karten per Finger oder Maus verschieben und tauschen, Reservebank zum Reinziehen, passende Positionen leuchten auf. Chemie-Linien zeigen, wer zusammenpasst.',
+      'Karriere im Querformat: Spieler und Saison-Bilanz mit Wertungsverlauf links, Entscheidungen rechts.',
+      'Store aufgeräumt in Event-, Spezial- und Standard-Packs. Kurze Übergänge zwischen den Menüs, schnellerer Start.',
+    ],
+  },
+  {
     id: '2026-10-24-logo',
     date: '24.10.2026',
     title: 'Neues Logo',

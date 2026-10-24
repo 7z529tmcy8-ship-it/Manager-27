@@ -1,20 +1,26 @@
 import { getSettings, lockLandscape } from './settings';
-import GigEvent from './components/GigEvent';
-import SeasonPass from './components/SeasonPass';
 import { PASS_XP, addPassXp } from './game/pass';
 import { autoStartMotion } from './tilt';
 import { cleanStorage, migrateSaves, onSaveStatus, storageBreakdown } from './game/storage';
-import { useEffect, useRef, useState } from 'react';
-import CreateCareer from './components/CreateCareer';
-import CareerScreen from './components/CareerScreen';
-import Achievements from './components/Achievements';
-import Collection from './components/Collection';
-import HallOfFame from './components/HallOfFame';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import Hub from './components/Hub';
 import Store from './components/Store';
-import Team, { DuelsScreen, SbcScreen } from './components/Team';
 import HalloweenDecor from './components/HalloweenDecor';
-import Trade from './components/Trade';
+import NavBar, { type NavTarget } from './components/NavBar';
+import { listCareers } from './game/storage';
+
+// Größere Bereiche erst laden, wenn man sie öffnet – das Hauptmenü startet dadurch schneller.
+const CreateCareer = lazy(() => import('./components/CreateCareer'));
+const CareerScreen = lazy(() => import('./components/CareerScreen'));
+const Achievements = lazy(() => import('./components/Achievements'));
+const Collection = lazy(() => import('./components/Collection'));
+const HallOfFame = lazy(() => import('./components/HallOfFame'));
+const Team = lazy(() => import('./components/Team'));
+const DuelsScreen = lazy(() => import('./components/Team').then((m) => ({ default: m.DuelsScreen })));
+const SbcScreen = lazy(() => import('./components/Team').then((m) => ({ default: m.SbcScreen })));
+const Trade = lazy(() => import('./components/Trade'));
+const GigEvent = lazy(() => import('./components/GigEvent'));
+const SeasonPass = lazy(() => import('./components/SeasonPass'));
 import UpdateBanner, { unseenUpdates } from './components/UpdateBanner';
 import { UPDATES, type UpdateNote } from './data/updates';
 import { creditCareer, rewardPending } from './game/club';
@@ -63,6 +69,15 @@ export default function App() {
   // Sounds: Klick bei jedem Knopf, Münzen beim Verdienen, Kasse beim Ausgeben.
   useEffect(() => installClickSound(), []);
   useEffect(() => autoStartMotion(), []);
+  // Schwache Geräte bekommen weniger Effekte; im Hintergrund laufen keine Animationen weiter.
+  useEffect(() => {
+    const nav = navigator as Navigator & { deviceMemory?: number };
+    const root = document.documentElement;
+    root.classList.toggle('lite', (nav.hardwareConcurrency ?? 8) <= 4 && (nav.deviceMemory ?? 8) <= 3);
+    const vis = () => root.classList.toggle('paused', document.hidden);
+    document.addEventListener('visibilitychange', vis);
+    return () => document.removeEventListener('visibilitychange', vis);
+  }, []);
   // Querformat gewünscht: beim ersten Tippen die Drehung sperren (geht nur nach einer Berührung)
   useEffect(() => {
     if (!getSettings().landscape) return;
@@ -107,9 +122,20 @@ export default function App() {
   const [reward, setReward] = useState<Career | null>(null);
   const home = () => setScreen({ name: 'home' });
   const load = (career: Career) => setScreen({ name: 'game', career });
+  const go = (t: NavTarget) => {
+    if (t === 'career') {
+      const latest = listCareers()[0];
+      setScreen(latest ? { name: 'game', career: latest } : { name: 'create' });
+    } else setScreen({ name: t } as Screen);
+  };
+  const navActive: NavTarget | null = screen.name === 'home' || screen.name === 'team' || screen.name === 'duels' || screen.name === 'store' || screen.name === 'collection' || screen.name === 'pass'
+    ? screen.name : screen.name === 'create' ? 'career' : null;
+  // In der laufenden Karriere hat das Spiel eigene Leisten – dort keine Hauptnavigation.
+  const showNav = screen.name !== 'game';
 
   return (
-    <div className="app">
+    <div className={`app ${showNav ? 'has-nav' : ''}`}>
+      {showNav && <NavBar active={navActive} onGo={go} />}
       <HalloweenDecor />
       {!hintClosed && (
         <div className="rotate-hint" role="status">
@@ -121,6 +147,8 @@ export default function App() {
       {saveFailed && <SaveWarning onRetry={() => { if (screen.name === 'game') saveCareer(screen.career); }} />}
       {toast && <div className="coin-toast" role="status"><Icon name="coin" size={16} className="coin-ic" />{noEmoji(toast)}</div>}
       {reward && <CareerReward career={reward} onDone={() => { setToast('Deine Karriere-Karte liegt in der Sammlung!'); setReward(null); }} />}
+      <Suspense fallback={<ScreenSkeleton />}>
+        <div className="screen-in" key={screen.name === 'game' ? 'game' : screen.name}>
       {screen.name === 'home' && (
         <Hub
           onNews={() => setNews(UPDATES)}
@@ -153,7 +181,19 @@ export default function App() {
       {screen.name === 'game' && (
         <CareerScreen career={screen.career} onChange={update} onExit={home} />
       )}
+        </div>
+      </Suspense>
     </div>
+  );
+}
+
+/** Platzhalter, solange ein Bereich nachgeladen wird. */
+function ScreenSkeleton() {
+  return (
+    <main className="hub skeleton" aria-busy="true" aria-label="Lädt">
+      <i className="sk-line w40" /><i className="sk-line w70" />
+      <div className="sk-grid"><i /><i /><i /><i /></div>
+    </main>
   );
 }
 

@@ -148,6 +148,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           onDone={() => onChange(finishLiveFinal(career))}
         />
       )}
+      <div className="cs-side">
       <div className="cs-nav">
         <button className="cs-link" onClick={onExit}>‹ Menü</button>
         <span className="cs-nav-name">{p.name}</span>
@@ -192,12 +193,16 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         <button className="cs-life-btn" onClick={() => setPanel('clinic')}>Klinik{career.glam ? ` · ${career.glam}` : ''}</button>
       </div>
 
+      {career.history.length > 0 && <CareerPulse career={career} />}
+
       {(career.gifts?.length ?? 0) > 0 && (
         <button className="cs-note good sk-note gift-note" onClick={() => setPanel('invest')}>
           {career.gifts!.length === 1 ? 'Ein Geschenk' : `${career.gifts!.length} Geschenke`} vom Aufsichtsrat – jetzt öffnen!
         </button>
       )}
 
+      </div>
+      <div className="cs-main">
       {/* Aktion */}
       {needType && <ArchetypePicker career={career} onChange={onChange} />}
 
@@ -347,6 +352,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         )}
       </div>
 
+      </div>
       {undo && !moments.length && (
         <div className="cs-undo" role="status">
           <span><b>{undo.title}</b> gewählt</span>
@@ -354,6 +360,31 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         </div>
       )}
     </main>
+  );
+}
+
+/** Kompakte Saison-Bilanz mit Wertungs-Verlauf als kleines Diagramm. */
+function CareerPulse({ career }: { career: Career }) {
+  const last = career.history[career.history.length - 1];
+  const pts = [...career.history.map((r) => r.ovrEnd), career.player.ovr].slice(-10);
+  const lo = Math.min(...pts) - 1;
+  const hi = Math.max(...pts) + 1;
+  const xy = pts.map((v, i) => [pts.length === 1 ? 50 : (i / (pts.length - 1)) * 100, 34 - ((v - lo) / (hi - lo)) * 30] as const);
+  const diff = career.player.ovr - (career.history[Math.max(0, career.history.length - 3)]?.ovrStart ?? career.player.ovr);
+  return (
+    <section className="cs-pulse" aria-label="Letzte Saison">
+      <div className="cs-pulse-head"><span>Letzte Saison · {last.season}</span><b className={diff >= 0 ? 'up' : 'down'}>{diff >= 0 ? '+' : ''}{diff} OVR</b></div>
+      <svg className="cs-pulse-chart" viewBox="0 0 100 36" preserveAspectRatio="none" aria-hidden="true">
+        <polyline points={xy.map(([x, y]) => `${x},${y}`).join(' ')} vectorEffect="non-scaling-stroke" />
+      </svg>
+      <dl className="cs-pulse-stats">
+        <div><dt>Spiele</dt><dd>{last.apps}</dd></div>
+        <div><dt>{career.player.position === 'TW' ? 'Weiße W.' : 'Tore'}</dt><dd>{career.player.position === 'TW' ? last.cleanSheets : last.goals}</dd></div>
+        <div><dt>Vorl.</dt><dd>{last.assists}</dd></div>
+        <div><dt>Note</dt><dd>{last.avgRating != null ? last.avgRating.toFixed(1) : '–'}</dd></div>
+        <div><dt>Platz</dt><dd>{last.leaguePosition || '–'}</dd></div>
+      </dl>
+    </section>
   );
 }
 

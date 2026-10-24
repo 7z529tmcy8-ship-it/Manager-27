@@ -162,6 +162,34 @@ export function setSlot(club: ClubState, slot: number, cardId: string | null): C
   return { ...club, squad };
 }
 
+/** Zwei Positionen tauschen (Ziehen & Ablegen in der Aufstellung). */
+export function swapSlots(club: ClubState, a: number, b: number): ClubState {
+  if (a === b) return club;
+  const squad = [...club.squad];
+  [squad[a], squad[b]] = [squad[b] ?? null, squad[a] ?? null];
+  return { ...club, squad };
+}
+
+export type LinkKind = 'strong' | 'ok' | 'none';
+
+/** Nachbarn auf dem Feld (je Position die zwei nächsten) – dazwischen zeigen Linien die Chemie. */
+export function chemLinks(cards: (CollectCard | null)[], slots: { x: number; y: number }[]): { a: number; b: number; kind: LinkKind }[] {
+  const seen = new Set<string>();
+  const out: { a: number; b: number; kind: LinkKind }[] = [];
+  slots.forEach((s, i) => {
+    slots.map((t, j) => ({ j, d: Math.hypot(t.x - s.x, (t.y - s.y) * 1.2) })).filter((x) => x.j !== i).sort((p, q) => p.d - q.d).slice(0, 2).forEach(({ j }) => {
+      const key = i < j ? `${i}-${j}` : `${j}-${i}`;
+      const a = cards[i];
+      const b = cards[j];
+      if (seen.has(key) || !a || !b) return;
+      seen.add(key);
+      const shared = [a.club === b.club, a.nation === b.nation, !!a.league && a.league === b.league].filter(Boolean).length;
+      out.push({ a: i, b: j, kind: a.club === b.club || shared >= 2 ? 'strong' : shared === 1 ? 'ok' : 'none' });
+    });
+  });
+  return out;
+}
+
 // ---------- Duelle ----------
 export const DUEL_LEVELS = 10;
 export interface DuelOpponent { level: number; name: string; strength: number; reward: number }

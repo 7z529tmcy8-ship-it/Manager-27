@@ -86,8 +86,14 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
 
       <TotwSection coins={club.coins} onBuy={() => buy(TOTW_PACK.id)} />
 
-      <div className="store-grid">
-        {activePacks().map((p) => {
+      {STORE_GROUPS.map((g) => {
+        const packs = activePacks().filter((p) => storeGroup(p) === g.id);
+        if (!packs.length) return null;
+        return (
+          <section key={g.id} className={`store-group sg-${g.id}`} aria-label={g.title}>
+            <h2 className="store-group-head"><Icon name={g.icon} size={18} />{g.title}<small>{g.sub}</small></h2>
+            <div className="store-grid">
+              {packs.map((p) => {
           const afford = club.coins >= p.price;
           return (
             <div key={p.id} className={`pack-card p-${p.id} ${p.event ? `ev-${p.event}` : ''}`}>
@@ -103,7 +109,10 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
             </div>
           );
         })}
-      </div>
+            </div>
+          </section>
+        );
+      })}
 
       {mega && <MegaCrash onDone={onBack} />}
       {superPack && superCharging && <MegaCharge title={'MEGA<br />SUPER<br />XXL'} onDone={() => setSuperCharging(false)} />}
@@ -188,6 +197,16 @@ function MegaCrash({ onDone }: { onDone: () => void }) {
     </div>
   );
 }
+
+/** Store-Bereiche: zeitlich begrenzte Event-Packs, Spezial-Packs mit garantierten Sonderkarten, normale Packs. */
+const SPECIAL_PACKS = new Set(['wonder', 'cult', 'debut', 'comeback', 'flashback', 'worldstar', 'icon', 'ultimate', 'goat']);
+type StoreGroupId = 'event' | 'special' | 'standard';
+const storeGroup = (p: { id: string; event?: string }): StoreGroupId => (p.event ? 'event' : SPECIAL_PACKS.has(p.id) ? 'special' : 'standard');
+const STORE_GROUPS: { id: StoreGroupId; title: string; sub: string; icon: 'spark' | 'crown' | 'pack' }[] = [
+  { id: 'event', title: 'Event-Packs', sub: 'Nur für kurze Zeit', icon: 'spark' },
+  { id: 'special', title: 'Spezial-Packs', sub: 'Garantierte Sonderkarten', icon: 'crown' },
+  { id: 'standard', title: 'Standard-Packs', sub: 'Für jeden Tag', icon: 'pack' },
+];
 
 /** Eigene Pack-Grafiken (Halloween). */
 const PACK_ART: Record<string, string> = {
