@@ -72,6 +72,8 @@ export interface ClubState {
   squad: (string | null)[];
   /** Höchste freigeschaltete Duell-Stufe (1–10) und Bilanz. */
   duelLevel: number;
+  /** Duell-Divisionen (ersetzen die Stufen-Leiter). */
+  division?: import('./divisions').DivisionState;
   duels: { w: number; d: number; l: number };
   /** Erledigte Tauschaufgaben (ID → wie oft). */
   tasksDone: Record<string, number>;

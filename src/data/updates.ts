@@ -19,6 +19,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-24-divisionen',
+    date: '24.10.2026',
+    title: 'Duelle: Divisionen und Taktik',
+    items: [
+      'Statt der Stufen-Leiter spielst du jetzt in Divisionen: von Division 10 bis Division 1 und ganz oben die Elite. Deine bisherige Stufe wird übernommen.',
+      'Sieg +2, Unentschieden +1, Niederlage −1: Bei 6 Punkten steigst du auf, unter 0 steigst du ab. Aus den Sicherheitsstufen 10, 7 und 4 geht es nicht nach unten.',
+      'Der erste Aufstieg in eine neue Division bringt einen Coin-Bonus – Ab- und wieder Aufsteigen zählt nicht doppelt.',
+      'Vor jedem Spiel wählst du eine Taktik: Pressing schlägt Ballbesitz, Ballbesitz schlägt Konter, Konter schlägt Pressing. Der Scouting-Bericht verrät, wie der Gegner meist spielt – aber nicht immer richtig.',
+      'Auch deine Elf zählt: Tempo hilft beim Konter, Passen und Dribbeln beim Ballbesitz, Physis und Defensive beim Pressing.',
+    ],
+  },
+  {
     id: '2026-10-24-matchday',
     date: '24.10.2026',
     title: 'Neues Design: Matchday',

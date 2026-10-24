@@ -12,6 +12,7 @@ import Backup from './Backup';
 import Settings from './Settings';
 import UtCard from './UtCard';
 import Icon from './Icon';
+import { divName, divisionOf } from '../game/divisions';
 import AdventCalendar from './AdventCalendar';
 import { adventToday, claimNewYearGift, newYearGiftOpen } from '../game/winter';
 import { PASS_LEVELS, XP_PER_LEVEL, passLevel, passOf, unclaimedLevels, unclaimedProLevels } from '../game/pass';
@@ -173,7 +174,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
           badge={freePacks ? String(freePacks) : undefined} onClick={onStore} accent />
         <Tile icon="cards" title="Sammlung" sub={`${progress.label} gesammelt · ${progress.have} von ${progress.total} Karten`} onClick={onCollection} />
         <Tile icon="tactics" title="Mein Team" sub="Aufstellung und Freunde-Duelle" onClick={onTeam} />
-        <Tile icon="duel" title="Duelle" sub={`Stufe ${club.duelLevel} · ${club.duels.w} Siege`} onClick={onDuels} />
+        <Tile icon="duel" title="Duelle" sub={`${divName(divisionOf(club).div)} · ${club.duels.w} Siege`} onClick={onDuels} />
         <Tile icon="puzzle" title="SBC" sub="Legendäre Momente 91–93 und Pack-Tausche" onClick={onSbc} />
       </div>
 
