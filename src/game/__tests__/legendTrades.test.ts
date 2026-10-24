@@ -40,3 +40,30 @@ it('Spezial-Tausch: Karten weg, Momentkarte da, nur einmal, Džeko erst nach Gra
   expect(momentOpen(club, dzeko)).toBe(false);
   expect(momentOpen({ ...club, tasksDone: { ...club.tasksDone, 'moment-grafite': 1 } }, dzeko)).toBe(true);
 });
+
+it('Automatisch füllen: findet mit voller Sammlung für jeden Tausch eine gültige, günstige Abgabe', async () => {
+  const { autoFillMoment, momentCandidates } = await import('../legendTrades');
+  const club = { ...freshClub(), cards: Object.fromEntries(CARD_POOL.map((c) => [c.id, 1])) };
+  const byId = new Map(momentCandidates(club).map((c) => [c.id, c]));
+  for (const m of MOMENTS) {
+    const ids = autoFillMoment(club, m);
+    expect(ids, m.id).toHaveLength(MOMENT_SIZE);
+    const cards = ids.map((id) => byId.get(id)!);
+    expect(checkMoment(m, cards).ok, m.id).toBe(true);
+    // Keine Verschwendung: der Schnitt liegt nah an der Grenze, nicht weit darüber
+    expect(checkMoment(m, cards).avg - m.minAvg, m.id).toBeLessThan(2.5);
+  }
+});
+
+it('Automatisch füllen: bevorzugt Doppelte und meldet, was fehlt', async () => {
+  const { autoFillMoment, momentMissing } = await import('../legendTrades');
+  const m = MOMENTS.find((x) => x.id === 'moment-ricken-lupfer')!;
+  const strong = CARD_POOL.filter((c) => c.ovr >= m.minEach && c.variant !== 'icon');
+  const twin = strong.find((c) => c.league === 'Bundesliga')!;
+  const club = { ...freshClub(), cards: { ...Object.fromEntries(strong.map((c) => [c.id, 1])), [twin.id]: 3 } };
+  const ids = autoFillMoment(club, m);
+  expect(ids).toContain(twin.id);
+  // Ohne Ikone geht es nicht – und genau das steht im Hinweis
+  const missing = momentMissing(m, ids.map((id) => CARD_POOL.find((c) => c.id === id)!));
+  expect(missing.some((t) => t.startsWith('Ikone'))).toBe(true);
+});

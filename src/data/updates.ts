@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-24-sbc-unvergessen',
+    date: '24.10.2026',
+    title: 'SBC: Automatisch füllen und fünf Unvergessen-Karten',
+    items: [
+      'Neuer Knopf „Automatisch füllen“: Die 11 Karten werden direkt aus deiner Sammlung ausgewählt – zuerst Doppelte und die schwächsten, die gerade reichen. Du kannst danach noch tauschen, abgegeben wird erst beim Tippen auf „Tauschen“.',
+      'Fehlt etwas, steht genau da, was fehlt – zum Beispiel „Ikone: noch 1“.',
+      'Die SBCs sind jetzt richtig hart: Schnitt 88 bis 91, jede Karte mindestens 85 bis 88.',
+      'Fünf neue SBCs im neuen Kartendesign „Unvergessen“ mit Anzeigetafel: Zidane 95 (Volley 2002), Bergkamp 94 (Die Drehung), Messi 96 (Getafe-Solo), Roberto Carlos 93 (Bananen-Freistoß) und Ricken 92 (Lupfer 1997).',
+    ],
+  },
+  {
     id: '2026-10-24-kreisklassen',
     date: '24.10.2026',
     title: 'Noch tiefer: 1. und 2. Kreisklasse',

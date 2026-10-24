@@ -1,12 +1,13 @@
 import { PASS_XP, addPassXp } from '../game/pass';
 import { useMemo, useState } from 'react';
 import { rarity, type CollectCard } from '../game/club';
-import { MOMENTS, MOMENT_SIZE, checkMoment, completeMoment, momentCandidates, momentDone, momentOpen, momentVisible, type MomentSbc } from '../game/legendTrades';
+import { MOMENTS, MOMENT_SIZE, autoFillMoment, checkMoment, completeMoment, momentCandidates, momentDone, momentMissing, momentOpen, momentVisible, type MomentSbc } from '../game/legendTrades';
+import Icon from './Icon';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { PackOpening } from './Store';
 import UtCard from './UtCard';
 
-/** Spezial-Tausche: 11 Karten von Hand zusammenstellen – für eine Momentkarte mit 91–93. */
+/** Spezial-Tausche: 11 starke Karten abgeben – automatisch ausgewählt oder von Hand – für eine Momentkarte mit 91–96. */
 export default function LegendTrades() {
   const club = useClub();
   const [open, setOpen] = useState<MomentSbc | null>(null);
@@ -15,7 +16,7 @@ export default function LegendTrades() {
   return (
     <section className="legend-trades">
       <h2>Spezial-Tausch · Legendäre Momente</h2>
-      <p className="hub-sub small">Gib 11 Karten ab und bekomme eine Momentkarte (91–93). Jede gibt es nur einmal. Zusammenstellen musst du selbst.</p>
+      <p className="hub-sub small">Gib 11 starke Karten ab und bekomme eine Momentkarte (91–96). Jede gibt es nur einmal. „Automatisch füllen“ sucht dir die günstigste passende Abgabe heraus – du kannst danach noch tauschen.</p>
       <div className="lt-list">
         {MOMENTS.filter((m) => momentVisible(club, m)).map((m) => {
           const done = momentDone(club, m);
@@ -79,6 +80,14 @@ function Builder({ m, onClose, onDone }: { m: MomentSbc; onClose: () => void; on
     if (filter === 'pos') return c.position === 'ST' || c.position === 'IV';
     return true;
   });
+  const [note, setNote] = useState<string | null>(null);
+  const autoFill = () => {
+    const ids = autoFillMoment(getClubState(), m);
+    setPicked(ids);
+    const cards = ids.map((id) => byId.get(id)).filter((c): c is CollectCard => !!c);
+    const missing = momentMissing(m, cards);
+    setNote(missing.length ? `Mit deinen Karten geht es noch nicht – es fehlt: ${missing.join(' · ')}` : 'Passt! Prüf die Auswahl und tippe auf „Tauschen“.');
+  };
   const toggle = (id: string) =>
     setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length < MOMENT_SIZE ? [...p, id] : p));
 
@@ -106,13 +115,19 @@ function Builder({ m, onClose, onDone }: { m: MomentSbc; onClose: () => void; on
         <ul className="lt-rules">
           {check.rows.map((r) => (
             <li key={r.label} className={r.ok ? 'ok' : ''}>
-              <span>{r.ok ? '✓' : '✗'} {r.label}</span>
+              <span><Icon name={r.ok ? 'check' : 'close'} size={16} /> {r.label}</span>
               <b>{r.have} / {r.need}</b>
             </li>
           ))}
         </ul>
 
-        <h2 className="lt-sub">Deine Abgabe ({chosen.length}/{MOMENT_SIZE})</h2>
+        <div className="lt-auto">
+          <button className="btn primary" onClick={autoFill}><Icon name="spark" size={18} />Automatisch füllen</button>
+          {picked.length > 0 && <button className="btn ghost small" onClick={() => { setPicked([]); setNote(null); }}>Leeren</button>}
+        </div>
+        {note && <p className={`lt-note ${check.ok ? 'ok' : ''}`}>{note}</p>}
+
+        <h2 className="lt-sub">Deine Abgabe ({chosen.length}/{MOMENT_SIZE}) <small>Antippen nimmt eine Karte raus</small></h2>
         <div className="lt-slots">
           {Array.from({ length: MOMENT_SIZE }, (_, i) => (
             <div key={i} className="lt-slot">

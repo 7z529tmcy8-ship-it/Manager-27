@@ -3725,3 +3725,32 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
   .div-grid .div-badge { width: 48px; height: 48px; font-size: 1.7rem; }
   .div-grid .tactic small { font-size: .6875rem; }
 }
+
+/* ----- Unvergessen: Nachtblau mit Silberfolie, Lichtkegel von oben, Anzeigetafel mit Datum und Minute ----- */
+.ucard.v-unvergessen { --a: #1b2350; --b: #070a1c; --ink: #eef2ff; --edge: rgba(214, 222, 255, .95); --glow: rgba(190, 205, 255, .45); color: #eef2ff; }
+.ucard.v-unvergessen.special { --pat:
+  conic-gradient(from 180deg at 50% -6%, transparent 158deg, rgba(235, 240, 255, .34) 172deg, rgba(235, 240, 255, .5) 180deg, rgba(235, 240, 255, .34) 188deg, transparent 202deg),
+  radial-gradient(60% 18% at 50% 74%, rgba(235, 240, 255, .18), transparent 70%),
+  repeating-linear-gradient(115deg, rgba(220, 228, 255, .07) 0 2px, transparent 2px 7px),
+  linear-gradient(180deg, rgba(220, 228, 255, .12), transparent 30%); }
+.ucard.v-unvergessen::before { box-shadow: inset 0 0 0 1.5px rgba(220, 228, 255, .85), inset 0 0 0 4px rgba(10, 14, 40, .9), inset 0 0 0 5px rgba(160, 175, 230, .5); }
+.ucard.v-unvergessen :is(.ucard-ovr, .ucard-pos, .ucard-name) { color: #f4f6ff; text-shadow: 0 0 10px rgba(200, 215, 255, .55); }
+.ucard.v-unvergessen .ucard-badge { color: #c9d4ff; letter-spacing: .14em; }
+.ucard.v-unvergessen .ucard-club {
+  display: inline-block; width: auto; max-width: 92%; margin: 3px auto 9%; padding: 1px 7px; border-radius: 4px;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-weight: 700; letter-spacing: .06em; opacity: 1;
+  color: #ffd76a; background: #04050d; box-shadow: inset 0 0 0 1px rgba(255, 215, 106, .35), 0 0 10px rgba(255, 215, 106, .25);
+  text-shadow: 0 0 6px rgba(255, 215, 106, .8);
+}
+.ucard.v-unvergessen .ucard-emblem { color: #e6ebff; background: rgba(10, 14, 40, .8); box-shadow: 0 0 0 1.5px rgba(220, 228, 255, .8); }
+.ucard.v-unvergessen .ucard-jersey .j-body { fill: rgba(235, 240, 255, .14); stroke: rgba(235, 240, 255, .7); }
+.ucard.v-unvergessen .ucard-jersey text { fill: #f4f6ff; }
+
+/* SBC: Automatisch füllen */
+.lt-auto { display: flex; align-items: center; gap: 10px; margin: 12px 0 4px; }
+.lt-auto .btn.primary { display: inline-flex; align-items: center; gap: 8px; }
+.lt-note { margin: 6px 0 0; padding: 10px 12px; border-radius: 12px; font-size: .875rem; color: #ffd0de; background: rgba(255, 77, 141, .1); border: 1px solid rgba(255, 77, 141, .35); }
+.lt-note.ok { color: #c9ffe0; background: rgba(57, 255, 136, .08); border-color: rgba(57, 255, 136, .35); }
+.lt-sub small { margin-left: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif; font-size: .75rem; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); }
+.lt-rules .ic { vertical-align: -3px; }
+.lt-rules li.ok .ic { color: #39ff88; } .lt-rules li:not(.ok) .ic { color: #ff4d8d; }
