@@ -19,6 +19,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-24-wartung',
+    date: '24.10.2026',
+    title: 'Startseite im Wartungsmodus',
+    items: [
+      'Beim Öffnen erscheint jetzt eine Seite „Entwicklungs-Update“. Ins Spiel kommt man nur noch über „Entwickler-Zugang“ mit dem Entwickler-Code.',
+      'Im Spiel selbst hat sich nichts geändert.',
+    ],
+  },
+  {
     id: '2026-10-23-pro-pass',
     date: '23.10.2026',
     title: 'Neu: der Pro-Pass',
