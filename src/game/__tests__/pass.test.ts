@@ -47,7 +47,7 @@ describe('Pro-Pass', () => {
     expect(PRO_PASS_PRICE).toBe(200_000_000);
     expect(PRO_REWARDS).toHaveLength(PASS_LEVELS);
     const count = (id: string) => PRO_REWARDS.filter((r) => r.kind === 'pack' && r.pack === id).length;
-    expect([count('goat'), count('ultimate'), count('icon')]).toEqual([5, 4, 5]);
+    expect([count('goat'), count('ultimate'), count('icon')]).toEqual([5, 16, 6]);
     expect(buyProPass({ ...freshClub(), coins: PRO_PASS_PRICE - 1 }, oct)).toBeNull();
     let club = addPassXp({ ...freshClub(), coins: PRO_PASS_PRICE }, PASS_LEVELS * XP_PER_LEVEL, oct);
     expect(unclaimedProLevels(club, oct)).toEqual([]);
@@ -62,5 +62,26 @@ describe('Pro-Pass', () => {
     expect(proPassCard('2026-10').ovr).toBeGreaterThan(passCard('2026-10').ovr);
     expect(claimProReward(card.club, PASS_LEVELS, oct)).toBeNull();
     expect(unclaimedProLevels(card.club, nov)).toEqual([]); // neue Saison ohne Pro
+  });
+});
+
+describe('Saison 2', () => {
+  it('ersetzt den Oktober-Pass ab 24.10.: 60 Stufen, neuer Held, Pro wird übernommen', async () => {
+    const { PASS_LEVELS, PRO_PASS_PRICE, buyProPass, currentPassSeason, passCard, passOf, passDaysLeft } = await import('../pass');
+    expect(PASS_LEVELS).toBe(60);
+    const before = new Date(2026, 9, 23, 12);
+    const now = new Date(2026, 9, 24, 12);
+    expect(currentPassSeason(before).id).toBe('2026-10');
+    expect(currentPassSeason(now).id).toBe('2026-S2');
+    expect(passDaysLeft(now)).toBeGreaterThan(30);
+    expect(passCard('2026-S2').label).toBe('Saison 2');
+    expect(passCard('2026-S2').name).toBe('Harry Kane');
+    let club = addPassXp({ ...freshClub(), coins: PRO_PASS_PRICE }, 500, before);
+    club = buyProPass(club, before)!;
+    const s2 = passOf(club, now);
+    expect(s2.season).toBe('2026-S2');
+    expect(s2.xp).toBe(0);
+    expect(s2.pro).toBe(true);
+    expect(passOf(freshClub(), now).pro).toBeUndefined();
   });
 });

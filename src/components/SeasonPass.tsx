@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import type { CollectCard, PackResult } from '../game/club';
-import { seasonName } from '../game/squad';
 import {
-  PASS_LEVELS, PASS_REWARDS, PASS_XP, PRO_PASS_PRICE, PRO_REWARDS, XP_PER_LEVEL, buyProPass, claimPassReward, claimProReward, passCard, passDaysLeft, passLevel, passOf, proPassCard, proRewardText, rewardText,
+  PASS_LEVELS, PASS_REWARDS, PASS_XP, PRO_PASS_PRICE, PRO_REWARDS, XP_PER_LEVEL, buyProPass, claimPassReward, claimProReward, passCard, passDaysLeft, passLevel, passOf, passSeasonName, proPackCount, proPassCard, proRewardText, rewardText,
   unclaimedLevels, unclaimedProLevels, type PassReward,
 } from '../game/pass';
 import { PACKS } from '../game/club';
@@ -70,7 +69,7 @@ export default function SeasonPass({ onBack, onCollection }: { onBack: () => voi
       </header>
       <div className="pass-title">
         <h1 className="hub-title">Saison-Pass{pro && <span className="pass-pro-badge">PRO</span>}</h1>
-        <span className="pass-days"><Icon name="clock" size={14} />{seasonName(p.season)} · noch {days} {days === 1 ? 'Tag' : 'Tage'}</span>
+        <span className="pass-days"><Icon name="clock" size={14} />{passSeasonName(p.season)} · noch {days} {days === 1 ? 'Tag' : 'Tage'}</span>
       </div>
 
       <section className="pass-hero">
@@ -101,9 +100,9 @@ export default function SeasonPass({ onBack, onCollection }: { onBack: () => voi
         <section className="pass-pro-offer">
           <div className="pass-pro-card"><UtCard card={proCard} size="sm" shine /></div>
           <div className="pass-pro-info">
-            <span className="pass-pro-kicker">Pro-Pass · {seasonName(p.season)}</span>
+            <span className="pass-pro-kicker">Pro-Pass · {passSeasonName(p.season)}</span>
             <strong>Doppelt so krass</strong>
-            <small>Zweite Belohnungsreihe auf allen 30 Stufen: 5× GOAT, 4× Ultimate, 5× Ikonen, Weltstar, Rückblende und bis zu 300.000 Coins pro Stufe – oben {proCard.name} {proCard.ovr}. Schon erreichte Stufen gibt es sofort.</small>
+            <small>Zweite Belohnungsreihe auf allen {PASS_LEVELS} Stufen: {proPackCount('goat')}× GOAT, {proPackCount('ultimate')}× Ultimate, {proPackCount('icon')}× Ikonen, dazu Weltstar, Rückblende, Comeback und große Coin-Pakete – oben {proCard.name} {proCard.ovr}. Schon erreichte Stufen gibt es sofort.</small>
             <button className="btn big pass-pro-buy" disabled={club.coins < PRO_PASS_PRICE}
               onClick={() => { if (!window.confirm(`Pro-Pass für ${fmt(PRO_PASS_PRICE)} Coins kaufen?`)) return; const next = buyProPass(getClubState()); if (next) setClubState(next); }}>
               {club.coins >= PRO_PASS_PRICE ? <>Pro-Pass kaufen · <Icon name="coin" size={16} className="coin-ic" />{fmt(PRO_PASS_PRICE)}</> : `Dir fehlen ${fmt(PRO_PASS_PRICE - club.coins)} Coins`}

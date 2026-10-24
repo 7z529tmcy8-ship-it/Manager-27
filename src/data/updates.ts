@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-24-saison2',
+    date: '24.10.2026',
+    title: 'Saison 2 des Saison-Passes – jetzt mit 60 Stufen',
+    items: [
+      'Der neue Pass ersetzt den alten: Saison 2 läuft ab heute bis 30. November und hat doppelt so viele Stufen.',
+      'Neuer Saison-Held auf Stufe 60: Harry Kane 96 im Pass-Design.',
+      'Mehr Belohnungen: Ikonen-Packs auf 30, 40 und 50, Ultimate auf 48 und 55, ein GOAT-Pack auf Stufe 59.',
+      'Pro-Pass über alle 60 Stufen: 5× GOAT, 16× Ultimate, 6× Ikonen und große Coin-Pakete – oben Kane 98. Wer den Pro-Pass im Oktober gekauft hat, behält ihn.',
+    ],
+  },
+  {
     id: '2026-10-24-wartung',
     date: '24.10.2026',
     title: 'Startseite im Wartungsmodus',
