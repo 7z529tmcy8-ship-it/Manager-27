@@ -29,7 +29,17 @@ export const LEAGUES: League[] = [
   {
     // 6. Liga. Vereinfacht: Nur die Landesliga Hannover ist enthalten; ihr Meister steigt in die Oberliga auf, der Oberliga-Letzte ab.
     id: 'llh', name: 'Landesliga Hannover', country: 'Deutschland', cup: 'DFB-Pokal', tier: 6, goalsPerGame: 3.6,
-    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'ondn', spots: 1 }, topScorerGoals: 26,
+    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'ondn', spots: 1 }, down: { leagueId: 'bzh2', spots: 1 }, topScorerGoals: 26,
+  },
+  {
+    // 7. Liga. Vereinfacht: Nur die Bezirksliga Hannover Staffel 2 (Stadt und Umland) ist enthalten; Meister steigt in die Landesliga auf.
+    id: 'bzh2', name: 'Bezirksliga Hannover 2', country: 'Deutschland', cup: 'DFB-Pokal', tier: 7, goalsPerGame: 3.8,
+    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'llh', spots: 1 }, down: { leagueId: 'krh1', spots: 1 }, topScorerGoals: 28,
+  },
+  {
+    // 8. Liga. Vereinfacht: Nur die Kreisliga Region Hannover Staffel 1 ist enthalten; Meister steigt in die Bezirksliga auf.
+    id: 'krh1', name: 'Kreisliga Region Hannover 1', country: 'Deutschland', cup: 'DFB-Pokal', tier: 8, goalsPerGame: 4.0,
+    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'bzh2', spots: 1 }, topScorerGoals: 30,
   },
   {
     id: 'pl', name: 'Premier League', country: 'England', cup: 'FA Cup', tier: 1, goalsPerGame: 2.9,
@@ -122,6 +132,22 @@ const RAW: Record<string, [string, number][]> = {
     ['TSV Mühlenfeld', 35], ['TSV Godshorn', 35], ['SSG Halvestorf-Herkendorf', 35], ['SV Iraklis Hellas Hannover', 34],
     ['TSV Barsinghausen', 33], ['SV Newroz Hildesheim', 32], ['SV Bruchhausen-Vilsen', 32], ['HSC BW Tündern', 31],
     ['VfR Germania Ochtersum', 30],
+  ],
+  // Bezirksliga Hannover Staffel 2, 2025/26 (17 Vereine, recherchiert 10/2026). Stärken geschätzt: oben nach dem
+  // Tabellenstand im Frühjahr 2026 (SG 74 vor Ramlingen II und Stelingen), der Rest grob.
+  bzh2: [
+    ['SG Hannover 74', 30], ['SV Ramlingen/Ehlershausen II', 29], ['TSV Stelingen', 29], ['TuS Davenstedt', 27],
+    ['MTV Engelbostel-Schulenburg', 27], ['SV 06 Lehrte', 26], ['TSV Burgdorf', 26], ['FC Lehrte', 25],
+    ['TSV Kirchrode', 25], ['SV Sportfreunde Anderten', 24], ['TuS Garbsen', 24], ['TSV Bemerode', 24],
+    ['SpVgg Niedersachsen Döhren', 23], ['TuS Kleefeld', 22], ['SG Blaues Wunder Hannover', 22], ['TSV Krähenwinkel/Kaltenweide II', 22],
+    ['TuS Altwarmbüchen', 20],
+  ],
+  // Kreisliga Region Hannover Staffel 1, 2025/26 (16 Vereine laut Staffeleinteilung des Kreises vom 12.07.2025). Stärken geschätzt.
+  krh1: [
+    ['FC Burgwedel', 21], ['Heesseler SV', 20], ['SC Langenhagen', 20], ['SuS Sehnde', 19],
+    ['MTV Ilten', 19], ['TSV Wettmar', 18], ['SV Uetze 08', 18], ['TSG Ahlten', 18],
+    ['BG Elze', 17], ['Srpski FK Hannover', 17], ['SV Sorgensen', 16], ['TSV Dollbergen', 16],
+    ['TSV Germania Arpke', 16], ['SG Adler-TSV 03', 15], ['TSV Germania Haimar Dolgen', 15], ['TSV Krähenwinkel/Kaltenweide III', 14],
   ],
   pl: [
     ['Liverpool FC', 85], ['Manchester City', 84], ['Arsenal FC', 84], ['Chelsea FC', 83],
@@ -235,12 +261,16 @@ export function getLeague(id: string): League {
  */
 export function canPlayIn(clubId: string, leagueId: string, clubLeague: Record<string, string>): boolean {
   const club = getClub(clubId);
-  if (!club.name.endsWith(' II')) return true;
+  const m = club.name.match(/^(.*) (II|III)$/);
+  if (!m) return true;
   const tier = getLeague(leagueId).tier;
   if (tier <= 2) return false;
-  const first = CLUB_MAP.get(slugify(club.name.slice(0, -3)));
-  if (!first) return true;
-  return getLeague(clubLeague[first.id] ?? first.leagueId).tier < tier;
+  // Dritte Mannschaften müssen unter der ersten und unter der zweiten bleiben.
+  const above = m[2] === 'III' ? [m[1], `${m[1]} II`] : [m[1]];
+  return above.every((name) => {
+    const higher = CLUB_MAP.get(slugify(name));
+    return !higher || getLeague(clubLeague[higher.id] ?? higher.leagueId).tier < tier;
+  });
 }
 
 export function initialClubLeague(): Record<string, string> {

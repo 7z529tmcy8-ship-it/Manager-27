@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-24-kreisliga',
+    date: '24.10.2026',
+    title: 'Bezirksliga und Kreisliga',
+    items: [
+      'Zwei neue Ligen unter der Landesliga Hannover: die Bezirksliga Hannover 2 (7. Liga, 17 Vereine) und die Kreisliga Region Hannover 1 (8. Liga, 16 Vereine) – mit den Teams der Saison 2025/26.',
+      'Starte als Talent beim FC Burgwedel, Heesseler SV oder SG Hannover 74 und spiel dich von ganz unten hoch. Je ein Auf- und Abstiegsplatz zwischen den Ligen.',
+      'Saison-Pass: Aus Duellen gibt es jetzt höchstens 200 Pass-XP pro Tag. Wie viel heute noch geht, steht direkt unter dem Anpfiff-Knopf.',
+    ],
+  },
+  {
     id: '2026-10-24-divisionen',
     date: '24.10.2026',
     title: 'Duelle: Divisionen und Taktik',

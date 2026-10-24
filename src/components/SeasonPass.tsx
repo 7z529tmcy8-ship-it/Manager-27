@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import type { CollectCard, PackResult } from '../game/club';
 import {
-  PASS_LEVELS, PASS_REWARDS, PASS_XP, PRO_PASS_PRICE, PRO_REWARDS, XP_PER_LEVEL, buyProPass, claimPassReward, claimProReward, passCard, passDaysLeft, passLevel, passOf, passSeasonName, proPackCount, proPassCard, proRewardText, rewardText,
+  DUEL_XP_PER_DAY, PASS_LEVELS, PASS_REWARDS, PASS_XP, PRO_PASS_PRICE, PRO_REWARDS, XP_PER_LEVEL, buyProPass, claimPassReward, claimProReward, passCard, passDaysLeft, passLevel, passOf, passSeasonName, proPackCount, proPassCard, proRewardText, rewardText,
   unclaimedLevels, unclaimedProLevels, type PassReward,
 } from '../game/pass';
 import { PACKS } from '../game/club';
@@ -144,7 +144,7 @@ export default function SeasonPass({ onBack, onCollection }: { onBack: () => voi
 
       <h2 className="hub-section">So sammelst du XP</h2>
       <ul className="pass-xp">
-        <li><Icon name="duel" size={18} /><span>Duell-Sieg</span><b>+{PASS_XP.duel(1, 'win')}–{PASS_XP.duel(10, 'win')}</b></li>
+        <li><Icon name="duel" size={18} /><span>Duell-Sieg (max. {DUEL_XP_PER_DAY} XP pro Tag)</span><b>+{PASS_XP.duel(1, 'win')}–{PASS_XP.duel(11, 'win')}</b></li>
         <li><Icon name="evo" size={18} /><span>Evo-Stufe</span><b>+{PASS_XP.evoStep}</b></li>
         <li><Icon name="ball" size={18} /><span>Karriere-Saison</span><b>+{PASS_XP.careerSeason}</b></li>
         <li><Icon name="puzzle" size={18} /><span>Aufgabe / SBC</span><b>+{PASS_XP.task}</b></li>

@@ -245,7 +245,7 @@ export interface Fate {
 }
 
 /** Wahrscheinlichkeit (%) je Ligastufe – erst die Stufe, dann ein Verein daraus (1 = höchste Liga). */
-export const FATE_TIER_WEIGHT: Record<number, number> = { 1: 8, 2: 12, 3: 16, 4: 20, 5: 22, 6: 22 };
+export const FATE_TIER_WEIGHT: Record<number, number> = { 1: 6, 2: 9, 3: 12, 4: 15, 5: 17, 6: 17, 7: 13, 8: 11 };
 
 const gauss = () => {
   let u = 0;

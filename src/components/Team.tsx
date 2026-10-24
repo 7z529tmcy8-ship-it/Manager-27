@@ -1,4 +1,4 @@
-import { PASS_XP, addPassXp } from '../game/pass';
+import { DUEL_XP_PER_DAY, PASS_XP, addDuelPassXp, addPassXp, duelXpLeft } from '../game/pass';
 import Icon, { Glyph } from './Icon';
 import { evoAfterDuel, getPath, stepText, type EvoProgress } from '../game/evolutions';
 import { getCard as poolCard } from '../game/club';
@@ -349,8 +349,11 @@ function Duels({ full, onSquad }: { full: boolean; onSquad: () => void }) {
     const res = playDivisionDuel(getClubState(), tactic);
     if (!res) return;
     const evo = evoAfterDuel(res.club, res.result, res.level);
-    const passXp = PASS_XP.duel(res.level, res.result.outcome) + (evo.progress?.stepDone ? PASS_XP.evoStep : 0);
-    setClubState(addPassXp(evo.club, passXp));
+    // Duell-XP sind pro Tag gedeckelt, Evolution-Stufen zählen extra.
+    const duelXp = addDuelPassXp(evo.club, PASS_XP.duel(res.level, res.result.outcome));
+    const evoXp = evo.progress?.stepDone ? PASS_XP.evoStep : 0;
+    const passXp = duelXp.granted + evoXp;
+    setClubState(addPassXp(duelXp.club, evoXp));
     const tacticNote = res.edge > 0 ? `${STYLE_LABEL[tactic]} hat gegen ${STYLE_LABEL[res.opponent.style]} gewirkt (+${res.edge})`
       : res.edge < 0 ? `Ausgekontert: ${res.opponent.name} spielte ${STYLE_LABEL[res.opponent.style]} (${res.edge})`
       : `Taktik neutral – ${res.opponent.name} spielte ${STYLE_LABEL[res.opponent.style]}`;
@@ -419,6 +422,7 @@ function Duels({ full, onSquad }: { full: boolean; onSquad: () => void }) {
             })}
           </div>
           <button className="btn primary big div-play" onClick={play}>Anpfiff · {STYLE_LABEL[tactic]}</button>
+          <p className="hint div-xp">Pass-XP aus Duellen heute: noch {duelXpLeft(club)} von {DUEL_XP_PER_DAY}</p>
         </section>
       )}
       </div>

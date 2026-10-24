@@ -17,6 +17,9 @@ export interface PassState {
   pro?: boolean;
   /** Abgeholte Pro-Stufen. */
   proClaimed?: number[];
+  /** Pass-XP aus Duellen am Tag `duelDay` (für das Tageslimit). */
+  duelDay?: string;
+  duelXp?: number;
 }
 
 /** Preis für den Pro-Pass (pro Saison = Monat). */
@@ -78,6 +81,25 @@ export function passOf(club: Pick<ClubState, 'pass'>, now = new Date()): PassSta
   // Neue Saison: Pro bleibt erhalten, wenn er für die ersetzte Saison gekauft wurde
   const carry = CARRY_PRO[sid] && club.pass?.season === CARRY_PRO[sid] && club.pass?.pro;
   return { season: sid, xp: 0, claimed: [], ...(carry ? { pro: true, proClaimed: [] } : {}) };
+}
+
+/** Aus Duellen gibt es höchstens so viele Pass-XP pro Tag – Dauer-Duellieren füllt den Pass nicht mehr. */
+export const DUEL_XP_PER_DAY = 200;
+const dayId = (now: Date) => `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+
+/** Heute noch mögliche Pass-XP aus Duellen. */
+export function duelXpLeft(club: Pick<ClubState, 'pass'>, now = new Date()): number {
+  const p = passOf(club, now);
+  return p.duelDay === dayId(now) ? Math.max(0, DUEL_XP_PER_DAY - (p.duelXp ?? 0)) : DUEL_XP_PER_DAY;
+}
+
+/** Duell-XP gutschreiben, gedeckelt aufs Tageslimit. Gibt zurück, wie viel wirklich dazukam. */
+export function addDuelPassXp(club: ClubState, xp: number, now = new Date()): { club: ClubState; granted: number } {
+  const granted = Math.min(Math.max(0, xp), duelXpLeft(club, now));
+  const p = passOf(club, now);
+  const used = (p.duelDay === dayId(now) ? p.duelXp ?? 0 : 0) + granted;
+  const next = addPassXp({ ...club, pass: { ...p, duelDay: dayId(now), duelXp: used } }, granted, now);
+  return { club: next, granted };
 }
 
 export const passLevel = (xp: number) => Math.min(PASS_LEVELS, Math.floor(xp / XP_PER_LEVEL));
