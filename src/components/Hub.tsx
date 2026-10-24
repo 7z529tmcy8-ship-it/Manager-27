@@ -72,7 +72,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   return (
     <main className="hub">
       <header className="hub-top">
-        <img className="hub-logo" src="/logo.webp" alt="Manager Sim" width="640" height="624" />
+        <img className="hub-logo" src="/logo.webp" alt="Manager Sim" width="640" height="640" />
         {chip && <span className="hw-chip" title={chip}><Icon name={chipIcon} size={16} />{chip}</span>}
         <span className="hub-coins" title="Coins – verdienst du im Karrieremodus"><Icon name="coin" size={18} />{fmtCoins(club.coins)}</span>
         <button className="hub-icon" onClick={onNews} aria-label="Neuigkeiten" title="Neuigkeiten"><Icon name="news" size={20} /></button>

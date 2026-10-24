@@ -19,6 +19,14 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-24-logo',
+    date: '24.10.2026',
+    title: 'Neues Logo',
+    items: [
+      'Manager Sim hat ein neues Neon-Logo – im Menü, auf der Startseite und als App-Symbol.',
+    ],
+  },
+  {
     id: '2026-10-24-saison2',
     date: '24.10.2026',
     title: 'Saison 2 des Saison-Passes – jetzt mit 60 Stufen',

@@ -53,7 +53,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   return (
     <main className="gate maint">
       <div className="maint-box">
-        <img className="gate-logo maint-logo" src="/logo.webp" alt="Manager Sim" width="640" height="624" />
+        <img className="gate-logo maint-logo" src="/logo.webp" alt="Manager Sim" width="640" height="640" />
         <span className="maint-kicker">Entwicklungs-Update</span>
         <h1>Wir bauen gerade um</h1>
         <p className="maint-text">Manager Sim bekommt gerade ein großes Update. Das Spiel ist deshalb kurz nicht erreichbar – schau bald wieder vorbei.</p>
