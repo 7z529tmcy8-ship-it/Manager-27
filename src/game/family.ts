@@ -136,7 +136,7 @@ export function setRule(prev: Career, childId: string, ruleId: RuleId, optionId:
 
 /** Vereine, die für die gewählte Vereinsart in Frage kommen. */
 export function youthClubs(kind: string): string[] {
-  if (kind === 'village') return CLUBS.filter((c) => ['ondn', 'llh', 'bzh2', 'krh1'].includes(c.leagueId)).map((c) => c.id);
+  if (kind === 'village') return CLUBS.filter((c) => ['ondn', 'llh', 'bzh2', 'krh1', 'kk1h', 'kk2h'].includes(c.leagueId)).map((c) => c.id);
   return CLUBS.filter((c) => !c.name.endsWith(' II') && getLeague(c.leagueId).tier <= 2 && c.strength >= 66)
     .sort((a, b) => b.strength - a.strength)
     .map((c) => c.id);

@@ -62,3 +62,25 @@ it('Karriere in der Kreisliga: Saison läuft, Meister steigt in die Bezirksliga 
   expect(Object.values(c.clubLeague).filter((l) => l === 'krh1')).toHaveLength(16);
   expect(Object.values(c.clubLeague).filter((l) => l === 'llh')).toHaveLength(17);
 });
+
+it('Ganz unten: 1. Kreisklasse (9.) und 2. Kreisklasse (10.), Karriere von der 10. Liga aus', async () => {
+  expect(getLeague('krh1').down?.leagueId).toBe('kk1h');
+  expect(getLeague('kk1h').tier).toBe(9);
+  expect(getLeague('kk2h').tier).toBe(10);
+  expect(getLeague('kk2h').up?.leagueId).toBe('kk1h');
+  expect(getLeague('kk2h').down).toBeUndefined();
+  expect(CLUBS.filter((c) => c.leagueId === 'kk1h')).toHaveLength(14);
+  expect(CLUBS.filter((c) => c.leagueId === 'kk2h')).toHaveLength(14);
+  const cl = initialClubLeague();
+  expect(canPlayIn(slugify('MTV Ilten II'), 'krh1', cl)).toBe(false);
+  const { createCareer } = await import('../career');
+  const { simulateToBreak } = await import('../simple');
+  let c = createCareer({ name: 'Ganz unten', nation: 'Deutschland', position: 'ZM', age: 16, ovr: 48, potential: 75, clubId: slugify('TSV Bordenau') });
+  expect(c.clubLeague[c.player.contract.clubId]).toBe('kk2h');
+  c = simulateToBreak(simulateToBreak(c));
+  const r = c.history[0];
+  expect(r.leagueId).toBe('kk2h');
+  expect(r.table).toHaveLength(14);
+  expect(c.clubLeague[r.table[0].clubId]).toBe('kk1h');
+  for (const [id, n] of [['krh1', 16], ['kk1h', 14], ['kk2h', 14]] as const) expect(Object.values(c.clubLeague).filter((l) => l === id)).toHaveLength(n);
+});

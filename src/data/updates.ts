@@ -19,6 +19,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-24-kreisklassen',
+    date: '24.10.2026',
+    title: 'Noch tiefer: 1. und 2. Kreisklasse',
+    items: [
+      'Zwei weitere Ligen unter der Kreisliga: die 1. Kreisklasse Region Hannover 1 (9. Liga) und die 2. Kreisklasse Region Hannover 2 (10. Liga) mit je 14 Vereinen der Saison 2025/26.',
+      'Starte zum Beispiel beim TSV Bordenau oder Afrikanischen SV Hannover in der 10. Liga – bis in die Bundesliga sind es jetzt zehn Aufstiege.',
+    ],
+  },
+  {
     id: '2026-10-24-kreisliga',
     date: '24.10.2026',
     title: 'Bezirksliga und Kreisliga',

@@ -25,7 +25,7 @@ export interface GiftContent {
   pack: string | null;
 }
 
-const BASE_BY_TIER: Record<number, number> = { 1: 30_000, 2: 15_000, 3: 8_000, 4: 4_000, 5: 2_000, 6: 1_200, 7: 800, 8: 500 };
+const BASE_BY_TIER: Record<number, number> = { 1: 30_000, 2: 15_000, 3: 8_000, 4: 4_000, 5: 2_000, 6: 1_200, 7: 800, 8: 500, 9: 350, 10: 250 };
 
 export function makeGift(clubId: string, reason: string, tier: number, stake: number): Gift {
   const r = rand();

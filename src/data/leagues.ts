@@ -39,7 +39,17 @@ export const LEAGUES: League[] = [
   {
     // 8. Liga. Vereinfacht: Nur die Kreisliga Region Hannover Staffel 1 ist enthalten; Meister steigt in die Bezirksliga auf.
     id: 'krh1', name: 'Kreisliga Region Hannover 1', country: 'Deutschland', cup: 'DFB-Pokal', tier: 8, goalsPerGame: 4.0,
-    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'bzh2', spots: 1 }, topScorerGoals: 30,
+    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'bzh2', spots: 1 }, down: { leagueId: 'kk1h', spots: 1 }, topScorerGoals: 30,
+  },
+  {
+    // 9. Liga. Vereinfacht: Nur die 1. Kreisklasse Region Hannover Staffel 1 ist enthalten; Meister steigt in die Kreisliga auf.
+    id: 'kk1h', name: '1. Kreisklasse Region Hannover 1', country: 'Deutschland', cup: 'DFB-Pokal', tier: 9, goalsPerGame: 4.2,
+    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'krh1', spots: 1 }, down: { leagueId: 'kk2h', spots: 1 }, topScorerGoals: 32,
+  },
+  {
+    // 10. Liga. Vereinfacht: Nur die 2. Kreisklasse Region Hannover Staffel 2 ist enthalten; Meister steigt in die 1. Kreisklasse auf.
+    id: 'kk2h', name: '2. Kreisklasse Region Hannover 2', country: 'Deutschland', cup: 'DFB-Pokal', tier: 10, goalsPerGame: 4.4,
+    europe: { cl: 0, el: 0, conf: 0 }, up: { leagueId: 'kk1h', spots: 1 }, topScorerGoals: 34,
   },
   {
     id: 'pl', name: 'Premier League', country: 'England', cup: 'FA Cup', tier: 1, goalsPerGame: 2.9,
@@ -148,6 +158,21 @@ const RAW: Record<string, [string, number][]> = {
     ['MTV Ilten', 19], ['TSV Wettmar', 18], ['SV Uetze 08', 18], ['TSG Ahlten', 18],
     ['BG Elze', 17], ['Srpski FK Hannover', 17], ['SV Sorgensen', 16], ['TSV Dollbergen', 16],
     ['TSV Germania Arpke', 16], ['SG Adler-TSV 03', 15], ['TSV Germania Haimar Dolgen', 15], ['TSV Krähenwinkel/Kaltenweide III', 14],
+  ],
+  // 1. Kreisklasse Region Hannover Staffel 1, 2025/26 (14 Vereine laut fussball.de, recherchiert 10/2026). Stärken geschätzt.
+  kk1h: [
+    ['1. FC Burgdorf', 15], ['TSV Isernhagen', 14], ['SV Yurdumspor Lehrte', 14], ['FC Neuwarmbüchen', 13],
+    ['TSV Obershagen', 13], ['SV Fuhrberg', 12], ['MTV Immensen', 12], ['TuS Röddensen', 12],
+    ['TSV Burgdorf II', 11], ['SV 06 Lehrte II', 11], ['MTV Ilten II', 10], ['SuS Sehnde II', 10],
+    ['TSG Ahlten II', 9], ['SV Ramlingen/Ehlershausen III', 9],
+  ],
+  // 2. Kreisklasse Region Hannover Staffel 2, 2025/26 (14 Vereine). Stärken grob nach dem Tabellenstand im Herbst 2025
+  // (Afrikanischer SV vor Wacker Osterwald und Wunstorf II), der Rest geschätzt.
+  kk2h: [
+    ['Afrikanischer SV Hannover', 11], ['SV Wacker Osterwald', 11], ['1. FC Wunstorf II', 10], ['Srpski FK Hannover II', 9],
+    ['TSV Bordenau', 9], ['TuS Gümmer', 9], ['TSV Berenbostel II', 8], ['SG Mardorf-Schneeren', 8],
+    ['TSV Luthe II', 7], ['TSV Kolenfeld II', 7], ['SV Dedensen', 7], ['SC Langenhagen II', 6],
+    ['Sparta Langenhagen II', 6], ['MTV Meyenfeld', 5],
   ],
   pl: [
     ['Liverpool FC', 85], ['Manchester City', 84], ['Arsenal FC', 84], ['Chelsea FC', 83],
