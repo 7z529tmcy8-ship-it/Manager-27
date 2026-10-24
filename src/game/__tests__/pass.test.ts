@@ -9,7 +9,11 @@ describe('Saison-Pass', () => {
   it('30 Stufen, oben eine exklusive Karte, dazwischen Coins und Packs', () => {
     expect(PASS_REWARDS).toHaveLength(PASS_LEVELS);
     expect(PASS_REWARDS[PASS_LEVELS - 1].kind).toBe('card');
-    expect(PASS_REWARDS.filter((r) => r.kind === 'pack').length).toBeGreaterThanOrEqual(10);
+    expect(PASS_REWARDS.filter((r) => r.kind === 'pack').length).toBeGreaterThanOrEqual(25);
+    // Gratis-Reihe: Ikonen, Ultimate und GOAT dabei, Coins mindestens 6.000 pro Stufe
+    const n = (id: string) => PASS_REWARDS.filter((r) => r.kind === 'pack' && r.pack === id).length;
+    expect([n('goat'), n('icon'), n('ultimate')]).toEqual([2, 4, 6]);
+    expect(Math.min(...PASS_REWARDS.flatMap((r) => (r.kind === 'coins' ? [r.amount] : [])))).toBeGreaterThanOrEqual(6_000);
     const card = passCard('2026-10');
     expect(card.variant).toBe('pass');
     expect(card.ovr).toBeLessThanOrEqual(97);
@@ -31,7 +35,7 @@ describe('Saison-Pass', () => {
   it('Pack-Stufe öffnet ein Gratis-Pack, Stufe 30 gibt die Karte, neuer Monat startet neu', () => {
     let club = addPassXp({ ...freshClub(), coins: 0 }, PASS_LEVELS * XP_PER_LEVEL + 500, oct);
     expect(passOf(club, oct).xp).toBe(PASS_LEVELS * XP_PER_LEVEL);
-    const pack = claimPassReward(club, 3, oct)!;
+    const pack = claimPassReward(club, 2, oct)!;
     expect(pack.pack?.result.cards.length).toBeGreaterThan(0);
     expect(pack.club.coins).toBe(0);
     club = claimPassReward(pack.club, PASS_LEVELS, oct)!.club;

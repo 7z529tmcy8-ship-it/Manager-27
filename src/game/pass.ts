@@ -42,18 +42,25 @@ export function currentPassSeason(now = new Date()): PassSeason {
 }
 export const passSeasonName = (id: string) => PASS_SEASONS.find((x) => x.id === id)?.name ?? (/^\d{4}-\d{2}$/.test(id) ? seasonName(id) : id);
 
-const PACK_AT: Record<number, string> = {
-  3: 'standard', 5: 'gold', 8: 'jumbo', 10: 'premium', 12: 'mystery', 15: 'debut', 17: 'cult', 20: 'comeback', 22: 'megagold', 25: 'flashback', 27: 'worldstar', 30: 'icon',
-  33: 'premium', 35: 'comeback', 38: 'megagold', 40: 'icon', 42: 'flashback', 45: 'worldstar', 48: 'ultimate', 50: 'icon', 53: 'megagold', 55: 'ultimate', 57: 'worldstar', 59: 'goat',
+// Gratis-Reihe: jede gerade Stufe ein starkes Pack, alle 10 Stufen Ikonen, alle 5 Ultimate, GOAT auf 30 und 59.
+// Ungerade Stufen bringen Coins von 6.000 bis 64.000. Der Pro-Pass bleibt deutlich stärker.
+const FREE_ROTATION = ['premium', 'megagold', 'comeback', 'flashback', 'worldstar', 'cult', 'debut'];
+const freePack = (level: number): string | null => {
+  if (level === 30 || level === 59) return 'goat';
+  if (level % 10 === 0) return 'icon';
+  if (level % 5 === 0) return 'ultimate';
+  if (level % 2 === 0) return FREE_ROTATION[(level / 2) % FREE_ROTATION.length];
+  return null;
 };
 
 export const PASS_REWARDS: PassReward[] = Array.from({ length: PASS_LEVELS }, (_, i) => {
   const level = i + 1;
   if (level === PASS_LEVELS) return { level, kind: 'card' as const };
-  if (PACK_AT[level]) return { level, kind: 'pack' as const, pack: PACK_AT[level] };
-  // Coins steigen mit der Stufe: 1.000 bis rund 18.500
-  return { level, kind: 'coins' as const, amount: Math.round((1000 + (level - 1) * 300) / 500) * 500 };
+  const pack = freePack(level);
+  if (pack) return { level, kind: 'pack' as const, pack };
+  return { level, kind: 'coins' as const, amount: 5_000 + level * 1_000 };
 });
+export const freePackCount = (id: string) => PASS_REWARDS.filter((r) => r.kind === 'pack' && r.pack === id).length;
 
 /** XP je Aktion. */
 export const PASS_XP = {

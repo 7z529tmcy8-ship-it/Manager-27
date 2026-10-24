@@ -57,7 +57,7 @@ export const UPDATES: UpdateNote[] = [
     items: [
       'Der neue Pass ersetzt den alten: Saison 2 läuft ab heute bis 30. November und hat doppelt so viele Stufen.',
       'Neuer Saison-Held auf Stufe 60: Harry Kane 96 im Pass-Design.',
-      'Mehr Belohnungen: Ikonen-Packs auf 30, 40 und 50, Ultimate auf 48 und 55, ein GOAT-Pack auf Stufe 59.',
+      'Mehr Belohnungen: jede zweite Stufe ein starkes Pack, Ikonen auf 10, 20, 40 und 50, Ultimate alle 5 Stufen, GOAT auf 30 und 59 – dazwischen 6.000 bis 64.000 Coins.',
       'Pro-Pass über alle 60 Stufen: 5× GOAT, 16× Ultimate, 6× Ikonen und große Coin-Pakete – oben Kane 98. Wer den Pro-Pass im Oktober gekauft hat, behält ihn.',
     ],
   },
