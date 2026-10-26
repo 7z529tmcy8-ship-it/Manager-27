@@ -261,7 +261,32 @@ const OCTOBER_2026: typeof RAW = [
   ['Alejandro Garnacho', 'Argentinien', 'FL', 22, 81, 86, 'Aston Villa'],
 ];
 
-export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026, ...ADDITIONS_2026, ...WORLD_STARS_2026, ...DEPTH_2026, ...OCTOBER_2026].map(
+// Nachwuchsspieler 2025/26 (Wertung 60–65), recherchiert 10/2026. Positionen von Musah, Mamuzah Lum, Nitschke
+// und Seibert sowie einige Nationen sind geschätzt.
+const YOUTH_2026: typeof RAW = [
+  ['Cassiano Kiala', 'Deutschland', 'IV', 16, 63, 84, 'FC Bayern München'],
+  ['Wisdom Mike', 'Deutschland', 'FL', 17, 64, 83, 'FC Bayern München'],
+  ['Mick Schmetgens', 'Deutschland', 'IV', 18, 62, 78, 'SV Werder Bremen'],
+  ['Patrice Čović', 'Deutschland', 'ZOM', 18, 63, 79, 'SV Werder Bremen'],
+  ['Wesley Adeh', 'Deutschland', 'ZDM', 18, 61, 75, 'SV Werder Bremen'],
+  ['Karim Coulibaly', 'Deutschland', 'IV', 18, 64, 80, 'SV Werder Bremen'],
+  ['Salim Musah', 'Deutschland', 'FL', 18, 61, 76, 'SV Werder Bremen'],
+  ['Karlo Simić', 'Kroatien', 'ST', 18, 62, 77, 'SV Werder Bremen'],
+  ['Darwin Soylu', 'Deutschland', 'ZOM', 19, 63, 77, 'SV Werder Bremen'],
+  ['Yasin Chebil', 'Tunesien', 'AV', 20, 62, 74, 'SV Werder Bremen'],
+  ['Fynn Schenten', 'Deutschland', 'ST', 18, 62, 77, '1. FC Köln'],
+  ['Assad Kotya-Fofana', 'Deutschland', 'IV', 17, 60, 76, '1. FC Köln'],
+  ['Emin Kujovic', 'Deutschland', 'ZM', 20, 61, 72, '1. FC Köln'],
+  ['Boris Mamuzah Lum', 'Deutschland', 'ZM', 16, 60, 79, 'Hertha BSC'],
+  ['Pascal Klemens', 'Deutschland', 'ZM', 20, 65, 76, 'Hertha BSC'],
+  ['Linus Gechter', 'Deutschland', 'IV', 21, 65, 74, 'Hertha BSC'],
+  ['Til Nitschke', 'Deutschland', 'ZM', 17, 60, 74, 'Hertha BSC'],
+  ['Christian Seibert', 'Deutschland', 'ZM', 17, 60, 74, 'Hertha BSC'],
+  ['Fabio Baldé', 'Deutschland', 'FL', 20, 63, 76, 'Hamburger SV'],
+  ['Mohamed Sankoh', 'Niederlande', 'FL', 21, 64, 75, 'VfB Stuttgart'],
+];
+
+export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026, ...ADDITIONS_2026, ...WORLD_STARS_2026, ...DEPTH_2026, ...OCTOBER_2026, ...YOUTH_2026].map(
   ([name, nation, position, age, ovr, potential, club]) => ({
     name, nation, position, age, ovr, potential, clubId: slugify(club),
   }),

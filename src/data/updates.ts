@@ -19,6 +19,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-26-nachwuchs',
+    date: '26.10.2026',
+    title: '20 neue Nachwuchsspieler',
+    items: [
+      'Unter „Echter Spieler“ gibt es 20 neue Talente mit Wertung 60–65 – zum Durchstarten von unten: Cassiano Kiala und Wisdom Mike (Bayern), Mick Schmetgens, Patrice Čović, Karim Coulibaly und weitere aus Bremen, Fynn Schenten (Köln), Pascal Klemens und Linus Gechter (Hertha), Fabio Baldé (HSV), Mohamed Sankoh (Stuttgart) …',
+      'Alle gibt es auch als Karten in der Sammlung.',
+    ],
+  },
+  {
     id: '2026-10-26-tots-ablage',
     date: '26.10.2026',
     title: 'Team der Saison und Pack-Ablage',
