@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-26-ikonen-entfernt',
+    date: '26.10.2026',
+    title: 'Karriere-Ikonen entfernt',
+    items: [
+      'Die früher am Karriereende geschenkten Ikonen sind aus der Sammlung und der Aufstellung entfernt.',
+      'Hatte eine dieser Karrieren eine Auszeichnung (Ballon d’Or, Weltmeister, Champions League …), kannst du dir jetzt im Hauptmenü die passende Karte aussuchen.',
+      'Auszeichnungs-Karten, die du schon gewählt hast, bleiben.',
+    ],
+  },
+  {
     id: '2026-10-26-attribute-nationalelf',
     date: '26.10.2026',
     title: 'Karriere: echte Attribute und Turniere live',
@@ -37,7 +47,7 @@ export const UPDATES: UpdateNote[] = [
     items: [
       'Am Ende einer Karriere gibt es keine Ikone mehr geschenkt.',
       'Eine Karte bekommst du nur, wenn du sie dir verdient hast: Ballon d’Or, Weltmeister, Champions League, Spieler der Saison, Torschützenkönig oder Golden Boy. Bei mehreren wählst du eine.',
-      'Bereits erhaltene Ikonen aus alten Karrieren bleiben in deiner Sammlung.',
+      'Bereits geschenkte Karriere-Ikonen aus alten Karrieren wurden entfernt. Hatte die Karriere eine Auszeichnung, kannst du dir dafür jetzt die passende Karte aussuchen.',
     ],
   },
   {

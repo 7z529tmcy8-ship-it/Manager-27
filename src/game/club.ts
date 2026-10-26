@@ -58,6 +58,8 @@ export interface ClubState {
   evo?: import('./evolutions').EvoState;
   /** Alte Coin-Verbesserungen wurden erstattet (Upgrade per Coins gibt es nicht mehr). */
   upgradesRefunded?: boolean;
+  /** Geschenkte Karriere-Ikonen wurden entfernt (einmalig). */
+  careerIconsRemoved?: boolean;
   /** Erstattete Coins, noch nicht angezeigt. */
   refundNotice?: number;
   /** GIG-Event: Tag des letzten Gratis-Drehs (JJJJ-MM-TT) und Anzahl Drehs. */
@@ -118,6 +120,7 @@ export const freshClub = (): ClubState => ({
   tasksDone: {},
   upgrades: {},
   upgradesRefunded: true,
+  careerIconsRemoved: true,
 });
 
 // ---------- Kartenpool ----------
@@ -638,6 +641,26 @@ export function refundOldUpgrades(club: ClubState): ClubState {
     for (let o = base.ovr; o < Math.min(MAX_CARD_OVR, base.ovr + boost); o++) refund += oldUpgradeCost(o);
   }
   return { ...club, coins: club.coins + refund, upgrades: {}, upgradesRefunded: true, refundNotice: refund || undefined };
+}
+
+/**
+ * Karriere-Ikonen gibt es nicht mehr: früher geschenkte Ikonen (own-icon-…) einmalig aus der Sammlung,
+ * der Aufstellung und der Evolution entfernen. Wer damals die Ikone gewählt hat, darf jetzt eine
+ * Auszeichnungs-Karte wählen – falls die Karriere eine Auszeichnung hatte.
+ */
+export function removeCareerIcons(club: ClubState): ClubState {
+  if (club.careerIconsRemoved) return club;
+  const isOwnIcon = (id: string | null | undefined) => !!id && id.startsWith('own-icon-');
+  const rewardChosen = Object.fromEntries(Object.entries(club.rewardChosen ?? {}).filter(([, id]) => !isOwnIcon(id)));
+  const evo = club.evo?.active && isOwnIcon(club.evo.active.card) ? { ...club.evo, active: undefined } : club.evo;
+  return {
+    ...club,
+    specials: club.specials.filter((c) => !isOwnIcon(c.id)),
+    squad: club.squad.map((id) => (isOwnIcon(id) ? null : id)),
+    rewardChosen,
+    evo,
+    careerIconsRemoved: true,
+  };
 }
 
 // ---------- Mega Super XXL Pack (einmalig, gratis) ----------
