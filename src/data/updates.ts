@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-26-breno-friede-jindaoui',
+    date: '26.10.2026',
+    title: 'Neu: Breno, Sidney Friede und Nader Jindaoui',
+    items: [
+      'Zweite Chance: Breno startet mit 18 beim FC Bayern – schreib seine Geschichte ohne Brand und Haft neu. Dazu Sidney Friede als junges Hertha-Talent: Was, wenn er nicht zum Streamer geworden wäre?',
+      'Kult-Helden: Nader Jindaoui, Berliner Influencer und Spätzünder, startet mit 19 bei Hertha BSC.',
+      'Alle drei gibt es auch als Karten in der Sammlung.',
+    ],
+  },
+  {
     id: '2026-10-26-belohnung-korrigiert',
     date: '26.10.2026',
     title: 'Korrektur: Karriere-Belohnung',

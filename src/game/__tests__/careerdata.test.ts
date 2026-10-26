@@ -12,7 +12,7 @@ it('Alle Karriere-Startspieler haben einen existierenden Verein und lassen sich 
   const names = REAL_PLAYERS.map((p) => p.name);
   expect(new Set(names).size).toBe(names.length);
   expect(REAL_PLAYERS.some((p) => p.name === 'Junior Kroupi')).toBe(true);
-  expect(CULT_LEGENDS.length).toBe(58);
+  expect(CULT_LEGENDS.length).toBe(59);
   expect(ICON_LEGENDS.length).toBe(68);
   const c = createCareer({ ...CULT_LEGENDS.find((l) => l.name === 'Ailton')! });
   expect(c.player.name).toBe('Ailton');

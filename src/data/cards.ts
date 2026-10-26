@@ -163,6 +163,7 @@ export const CULT_HEROES: [string, string, Position, number, string][] = [
   ['Joey Barton', 'England', 'ZM', 82, 'Newcastle United'],
   ['Royston Drenthe', 'Niederlande', 'FL', 82, 'Real Madrid'],
   ['Kevin Großkreutz', 'Deutschland', 'AV', 82, 'Borussia Dortmund'],
+  ['Nader Jindaoui', 'Deutschland', 'FL', 80, 'Hertha BSC'],
 ];
 
 /** Was-wäre-wenn-Talente nur als Karte (ihr Jugendverein ist nicht im Karrieremodus). [Name, Nation, Position, Potenzial, Verein] */

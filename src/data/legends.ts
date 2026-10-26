@@ -99,6 +99,10 @@ const FAILED_RAW: typeof RAW = [
     '„Ryo-Mania“ in London: pfeilschnell – aber immer wieder verletzt.'],
   ['Juan Iturbe', 'Argentinien', 'FL', 19, 70, 87, 'FC Porto', ['showman'],
     'Als „neuer Messi“ gehandelt, später für viel Geld nach Rom – den Erwartungen lief er hinterher.'],
+  ['Breno', 'Brasilien', 'IV', 18, 71, 88, 'FC Bayern München', ['party', 'fragile'],
+    'Mit 18 aus São Paulo zu Bayern – dann Knieverletzungen, 2011 der Brand in seiner Villa in Grünwald und die Haftstrafe. Diesmal schreibst du die Geschichte anders.'],
+  ['Sidney Friede', 'Deutschland', 'ZM', 18, 66, 84, 'Hertha BSC', ['showman', 'wildcard'],
+    'Hertha-Eigengewächs und U19-Nationalspieler – mit 23 Schluss im Profifußball, heute Streamer und Gründer von Delay Sports Berlin. Was, wenn er drangeblieben wäre?'],
 ];
 
 export const FAILED_TALENTS: LegendTemplate[] = FAILED_RAW.map(([name, nation, position, age, ovr, potential, club, traits, bio]) => ({
@@ -260,6 +264,8 @@ const CULT_RAW: typeof RAW = [
     'Mit 20 zu Real Madrid, später Rapper und Weltenbummler.'],
   ['Kevin Großkreutz', 'Deutschland', 'AV', 20, 70, 82, 'Borussia Dortmund', ['hothead', 'party', 'leader'],
     'Echte Liebe: BVB-Fan auf dem Platz, Weltmeister 2014.'],
+  ['Nader Jindaoui', 'Deutschland', 'FL', 19, 63, 80, 'Hertha BSC', ['showman', 'clutch'],
+    'Berliner Influencer mit Millionen Followern und Spätzünder: mit 26 Profi bei Hertha, Elfmetertor im DFB-Pokal, danach USA und Hoffenheim.'],
 ];
 
 export const CULT_LEGENDS: LegendTemplate[] = CULT_RAW.map(([name, nation, position, age, ovr, potential, club, traits, bio]) => ({
