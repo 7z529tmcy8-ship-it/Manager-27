@@ -286,7 +286,30 @@ const YOUTH_2026: typeof RAW = [
   ['Mohamed Sankoh', 'Niederlande', 'FL', 21, 64, 75, 'VfB Stuttgart'],
 ];
 
-export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026, ...ADDITIONS_2026, ...WORLD_STARS_2026, ...DEPTH_2026, ...OCTOBER_2026, ...YOUTH_2026].map(
+/** Zweite Welle junger Talente (Stand Oktober 2026). Positionen teils geschätzt. */
+const YOUTH_2026_B: typeof RAW = [
+  ['Linus Güther', 'Deutschland', 'ZM', 16, 60, 80, '1. FC Union Berlin'],
+  ['Erblin Osmani', 'Deutschland', 'ZOM', 16, 61, 82, 'FC Bayern München'],
+  ['Samba Konaté', 'Deutschland', 'ST', 16, 60, 81, 'RB Leipzig'],
+  ['Artem Stepanov', 'Deutschland', 'ST', 17, 63, 81, '1. FC Nürnberg'],
+  ['Thierry Fidjeu-Tazemeta', 'Österreich', 'FL', 18, 63, 78, '1. FC Kaiserslautern'],
+  ['Luis Engelns', 'Deutschland', 'ZM', 18, 62, 77, 'SC Paderborn 07'],
+  ['Louey Ben Farhat', 'Deutschland', 'ST', 19, 64, 78, 'Karlsruher SC'],
+  ['Kjell Wätjen', 'Deutschland', 'ZM', 19, 65, 80, 'VfL Bochum'],
+  ['Maurice Krattenmacher', 'Deutschland', 'ZOM', 19, 65, 79, 'Hertha BSC'],
+  ['Jarzinho Malanga', 'Deutschland', 'FL', 19, 64, 78, 'SV Elversberg'],
+  ['Luca Raimund', 'Deutschland', 'FL', 20, 64, 76, 'Fortuna Düsseldorf'],
+  ['Dennis Seimen', 'Deutschland', 'TW', 19, 63, 79, 'SC Paderborn 07'],
+  ['Toni Fernández', 'Spanien', 'ST', 17, 64, 84, 'FC Barcelona'],
+  ['Dro Fernández', 'Spanien', 'ZM', 17, 65, 85, 'Paris Saint-Germain'],
+  ['Harry Amass', 'England', 'AV', 18, 64, 81, 'Sheffield Wednesday'],
+  ['Chido Obi', 'Dänemark', 'ST', 17, 63, 83, 'Manchester United'],
+  ['Jonah Kusi-Asare', 'Schweden', 'ST', 18, 62, 80, 'FC Bayern München'],
+  ['Max Moerstedt', 'Deutschland', 'ST', 19, 64, 77, 'TSG Hoffenheim'],
+  ['Faik Sakar', 'Deutschland', 'ZM', 18, 61, 77, 'RB Leipzig'],
+];
+
+export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026, ...ADDITIONS_2026, ...WORLD_STARS_2026, ...DEPTH_2026, ...OCTOBER_2026, ...YOUTH_2026, ...YOUTH_2026_B].map(
   ([name, nation, position, age, ovr, potential, club]) => ({
     name, nation, position, age, ovr, potential, clubId: slugify(club),
   }),

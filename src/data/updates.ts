@@ -19,6 +19,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-26-talente2',
+    date: '26.10.2026',
+    title: '19 weitere Talente',
+    items: [
+      '19 neue echte Nachwuchsspieler (Wertung 60–65) – u. a. Toni und Dro Fernández, Harry Amass, Kjell Wätjen, Maurice Krattenmacher und Jonah Kusi-Asare.',
+      'Dazu Talente aus der 2. Bundesliga wie Artem Stepanov, Louey Ben Farhat und Dennis Seimen.',
+    ],
+  },
+  {
     id: '2026-10-26-kaufoption',
     date: '26.10.2026',
     title: 'Leihe mit Kaufoption',
