@@ -3809,3 +3809,4 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .stored-pack .pack-art.mini { font-size: .5rem; padding: 2px; overflow: hidden; word-break: break-word; }
 .stored-all { width: 100%; margin-bottom: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 .stored-list { max-height: 360px; overflow-y: auto; }
+.cs-option { color: #ffd76a; font-weight: 700; }

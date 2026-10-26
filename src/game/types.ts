@@ -47,6 +47,8 @@ export interface Loan {
   /** Verein, an den der Spieler nach der Leihe zurückkehrt. */
   parentClubId: string;
   role: Role;
+  /** Kaufoption: Der Leihverein kann den Spieler am Saisonende für diese Ablöse fest verpflichten. */
+  buyOption?: number;
 }
 
 export interface PlayerState {
@@ -331,6 +333,8 @@ export interface Offer {
   message: string;
   /** Besondere Angebote gegen Karriereende: Rückkehr zum Heimatverein oder Abenteuer im Ausland. */
   tag?: 'home' | 'exotic';
+  /** Leihe mit Kaufoption (Ablöse in €). */
+  buyOption?: number;
 }
 
 export interface Career {

@@ -116,6 +116,8 @@ export function generateOffers(
       taken.add(club.id);
       const s = clubStrength(career, club.id);
       const role = roleFor(p.ovr, s, p.age);
+      // Etwa jede zweite Leihe kommt mit Kaufoption – der Leihverein will sich die Rechte sichern.
+      const buyOption = chance(0.5) ? Math.max(100_000, Math.round((playerValue(p) * (0.8 + rand() * 0.5)) / 100_000) * 100_000) : undefined;
       offers.push({
         id: uid(),
         type: 'Leihe',
@@ -124,9 +126,11 @@ export function generateOffers(
         wage: p.contract.wage,
         years: 1,
         fee: 0,
-        message: winter
+        buyOption,
+        message: (winter
           ? `${club.name} möchte dich bis Saisonende ausleihen und plant dich als ${role} ein.`
-          : `${club.name} möchte dich für eine Saison ausleihen und plant dich als ${role} ein.`,
+          : `${club.name} möchte dich für eine Saison ausleihen und plant dich als ${role} ein.`) +
+          (buyOption ? ` Mit Kaufoption über ${formatMoney(buyOption)} – überzeugst du, kaufen sie dich fest.` : ''),
       });
     }
   }

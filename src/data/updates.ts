@@ -19,6 +19,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-26-kaufoption',
+    date: '26.10.2026',
+    title: 'Leihe mit Kaufoption',
+    items: [
+      'Etwa jede zweite Leihe kommt jetzt mit Kaufoption – Ablöse ungefähr dein Marktwert. Du siehst sie direkt auf dem Angebot.',
+      'Überzeugst du beim Leihverein (viel Spielzeit, gute Noten), zieht er am Saisonende die Option und kauft dich fest – mit neuem Vierjahresvertrag. Sonst geht es zurück zum alten Verein.',
+    ],
+  },
+  {
     id: '2026-10-26-nachwuchs',
     date: '26.10.2026',
     title: '20 neue Nachwuchsspieler',

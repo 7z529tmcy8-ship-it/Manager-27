@@ -180,7 +180,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           </div>
           <div className="cs-club">{retired ? (career.coach ? 'Trainer' : 'Karriere beendet') : getClub(clubId).name}</div>
           <div className="cs-head-row">
-            <span className="cs-league">{retired ? `${career.history.length} ${career.history.length === 1 ? 'Saison' : 'Saisons'}` : getLeague(clubLeagueId(career, clubId)).name}{p.loan ? ' · Leihe' : ''}</span>
+            <span className="cs-league">{retired ? `${career.history.length} ${career.history.length === 1 ? 'Saison' : 'Saisons'}` : getLeague(clubLeagueId(career, clubId)).name}{p.loan ? (p.loan.buyOption ? ' · Leihe mit Kaufoption' : ' · Leihe') : ''}</span>
             <span className="cs-value"><small>Wert</small> {money(playerValue(p))}</span>
           </div>
         </div>
@@ -472,6 +472,7 @@ function ChoiceCard({ career, c, selected, onPick }: { career: Career; c: Choice
           <br />
           {formatMoney(o.wage)}/Woche{o.type !== 'Leihe' ? ` · ${o.years} J.` : ''}
           {o.fee > 0 ? <><br />Ablöse {formatMoney(o.fee)}</> : null}
+          {o.buyOption ? <><br /><b className="cs-option">Kaufoption {formatMoney(o.buyOption)}</b></> : null}
         </span>
       )}
       {c.kind === 'home' && <span className="cs-choice-meta">Zurück, wo alles begann</span>}

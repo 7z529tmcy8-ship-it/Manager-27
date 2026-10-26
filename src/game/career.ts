@@ -397,7 +397,7 @@ export function acceptWinterOffer(prev: Career, offer: Offer, quick = false): Ca
     postInbox(career, { kind: 'transfer', title: 'Heimkehr', text: `Zurück, wo alles begann: ${getClub(offer.clubId).name} feiert deine Rückkehr.` });
   }
   if (offer.type === 'Leihe') {
-    p.loan = { clubId: offer.clubId, parentClubId: p.contract.clubId, role: offer.role };
+    p.loan = { clubId: offer.clubId, parentClubId: p.contract.clubId, role: offer.role, buyOption: offer.buyOption };
   } else {
     p.contract = { clubId: offer.clubId, yearsLeft: offer.years, wage: offer.wage, role: offer.role };
     p.loan = null;
@@ -572,7 +572,22 @@ function completeSeason(career: Career): Career {
   p.age += 1;
   p.contract.yearsLeft -= 1;
   if (p.loan) {
-    record.notes.push(`Leihe bei ${getClub(p.loan.clubId).name} beendet – Rückkehr zu ${getClub(p.loan.parentClubId).name}.`);
+    const loan = p.loan;
+    if (loan.buyOption && loanOptionDrawn(record)) {
+      // Kaufoption gezogen: fester Wechsel zum Leihverein
+      const club = getClub(loan.clubId);
+      const strength = clubStrength(career, loan.clubId);
+      record.notes.push(`Kaufoption gezogen: ${club.name} verpflichtet dich fest für ${formatMoney(loan.buyOption)}.`);
+      recordTransfer(career, 'Sommer', loan.parentClubId, {
+        id: 'option', type: 'Transfer', clubId: loan.clubId, role: roleFor(p.ovr, strength, p.age),
+        wage: Math.max(p.contract.wage, wageFor(p.ovr, strength)), years: 4, fee: loan.buyOption, message: '',
+      });
+      p.contract = { clubId: loan.clubId, yearsLeft: 4, wage: Math.max(p.contract.wage, wageFor(p.ovr, strength)), role: roleFor(p.ovr, strength, p.age) };
+      addNews(career, 2, 'Transfer', `${club.name} zieht die Kaufoption: ${p.name} bleibt fest für ${formatMoney(loan.buyOption)}.`);
+    } else {
+      record.notes.push(`Leihe bei ${getClub(loan.clubId).name} beendet – Rückkehr zu ${getClub(loan.parentClubId).name}.` +
+        (loan.buyOption ? ' Die Kaufoption wurde nicht gezogen.' : ''));
+    }
     p.loan = null;
   }
   ownerSeasonEnd(career, record.notes);
@@ -827,7 +842,7 @@ export function acceptOffer(prev: Career, offer: Offer): Career {
     postInbox(career, { kind: 'transfer', title: 'Heimkehr', text: `Zurück, wo alles begann: ${getClub(offer.clubId).name} feiert deine Rückkehr.` });
   }
   if (offer.type === 'Leihe') {
-    p.loan = { clubId: offer.clubId, parentClubId: p.contract.clubId, role: offer.role };
+    p.loan = { clubId: offer.clubId, parentClubId: p.contract.clubId, role: offer.role, buyOption: offer.buyOption };
   } else {
     p.contract = { clubId: offer.clubId, yearsLeft: offer.years, wage: offer.wage, role: offer.role };
     p.loan = null;
@@ -891,6 +906,16 @@ function recordTransfer(career: Career, window: TransferEntry['window'], fromClu
     title: offer.type === 'Leihe' ? `Leihe zu ${getClub(offer.clubId).name}` : `Wechsel perfekt: ${getClub(offer.clubId).name}`,
     text: `${getClub(fromClubId).name} → ${getClub(offer.clubId).name}${offer.fee > 0 ? ` für ${formatMoney(offer.fee)}` : ''} (${window}).`,
   });
+}
+
+/** Zieht der Leihverein die Kaufoption? Wer viel spielt und überzeugt, wird fest verpflichtet. */
+export function loanOptionDrawn(r: Pick<SeasonRecord, 'minutes' | 'possibleMinutes' | 'avgRating'>, roll = Math.random()): boolean {
+  const share = r.possibleMinutes ? r.minutes / r.possibleMinutes : 0;
+  const rating = r.avgRating ?? 6;
+  if (share < 0.35 || rating < 6.6) return false;
+  // 6,6 → selten, ab 7,2 und viel Spielzeit fast sicher
+  const p = Math.min(0.95, (rating - 6.6) * 1.2 + (share - 0.35) * 0.8);
+  return roll < p;
 }
 
 /** Summe aller gezahlten Ablösen für den Spieler (Leihen und ablösefreie Wechsel zählen 0). */
