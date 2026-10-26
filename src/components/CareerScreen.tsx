@@ -16,7 +16,8 @@ import { detectMoments, type Moment } from '../game/moments';
 import SkillTree, { ArchetypePicker, LevelChip } from './SkillTree';
 import { flagOf, nationCode } from '../data/flags';
 import { getClub, getLeague } from '../data/leagues';
-import { clubLeagueId, currentClubId, formatMoney, playerValue } from '../game/player';
+import { attributeLabels, attributes, clubLeagueId, currentClubId, formatMoney, playerValue } from '../game/player';
+import { ATTR_WEIGHTS } from '../game/attributes';
 import { halfStats } from '../game/season';
 import { freePoints, levelInfo } from '../game/skills';
 import { play } from '../sound';
@@ -195,6 +196,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       </div>
 
       {career.history.length > 0 && <CareerPulse career={career} />}
+      <AttrPanel career={career} />
 
       {(career.gifts?.length ?? 0) > 0 && (
         <button className="cs-note good sk-note gift-note" onClick={() => setPanel('invest')}>
@@ -361,6 +363,35 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         </div>
       )}
     </main>
+  );
+}
+
+const ATTR_NAME: Record<string, string> = {
+  TEM: 'Tempo', SCH: 'Abschluss', PAS: 'Passen', DRI: 'Dribbling', DEF: 'Defensive', PHY: 'Physis',
+  HEC: 'Hechten', HAN: 'Ballsicherheit', ABS: 'Abstoß', REF: 'Reflexe', STE: 'Stellungsspiel',
+};
+
+/** Die sechs Attribute mit Balken: wichtige für die Position hervorgehoben, Veränderung der letzten Halbserie daneben. */
+function AttrPanel({ career }: { career: Career }) {
+  const p = career.player;
+  const values = attributes(p);
+  const labels = attributeLabels(p.position);
+  const w = ATTR_WEIGHTS[p.position];
+  const delta = p.attrDelta ?? [];
+  return (
+    <section className="cs-attrs" aria-label="Attribute">
+      <div className="cs-pulse-head"><span>Attribute</span><small>hell = wichtig für {p.position}</small></div>
+      <ul>
+        {labels.map((l, i) => (
+          <li key={l} className={w[i] >= 0.2 ? 'key' : ''}>
+            <span className="cs-attr-name">{ATTR_NAME[l] ?? l}</span>
+            <span className="cs-attr-bar"><i style={{ width: `${values[i]}%` }} className={values[i] >= 85 ? 'hi' : values[i] < 60 ? 'lo' : ''} /></span>
+            <b>{values[i]}</b>
+            <em className={delta[i] > 0 ? 'up' : delta[i] < 0 ? 'down' : ''}>{delta[i] ? `${delta[i] > 0 ? '+' : ''}${delta[i]}` : ''}</em>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

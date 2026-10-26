@@ -101,6 +101,8 @@ export interface PlayerState {
   trainingFocus?: TrainingFocus;
   /** Durch Training gewonnene Attributpunkte (für die Obergrenze). */
   trainingGains?: number[];
+  /** Veränderung jedes Attributs in der letzten Halbserie (für die Anzeige). */
+  attrDelta?: number[];
   /** Spielertyp, Erfahrungspunkte und freigeschaltete Fähigkeiten. */
   skills?: PlayerSkills;
   /** Körperbau (nur bei selbst erstellten Spielern). */
@@ -712,12 +714,14 @@ export interface PendingFinal {
   opponentId?: string;
   opponentName: string;
   opponentStrength: number;
+  /** Turnierrunde (Achtelfinale … Finale) bei Länderspielen. */
+  round?: string;
 }
 
 export interface NationalSeason {
   caps: number;
   goals: number;
-  tournament: { name: string; reachedFinal: boolean; won: boolean } | null;
+  tournament: { name: string; reachedFinal: boolean; won: boolean; /** Erreichte Runde. */ stage?: string } | null;
   notes: string[];
 }
 

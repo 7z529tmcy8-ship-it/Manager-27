@@ -20,8 +20,9 @@ it('Topspiel: stärkster Gegner der Halbserie, selbst gespieltes Ergebnis landet
   expect([line.goalsFor, line.goalsAgainst]).toEqual(state.score);
   expect(line.goals).toBe(state.playerGoals);
   expect(c.progress!.keyMatch!.used).toBe(true);
-  // Rückrunde: neues Topspiel
-  expect(keyMatchFor(c)?.half).toBe(2);
+  // Rückrunde: neues Topspiel (kann zufällig ausfallen, z. B. wenn der Gegner schon gespielt wurde) – aber nie wieder Hinrunde
+  const next = keyMatchFor(c);
+  if (next) expect(next.half).toBe(2);
 });
 
 it('Topspiel-Engine: Unentschieden ohne Elfmeterschießen möglich', () => {

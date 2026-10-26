@@ -14,6 +14,7 @@ import { difficultyOf } from './difficulty';
 import { injuryFactor } from './training';
 import { hasTrait } from './traits';
 import { skillMods } from './skills';
+import { attrMods } from './attributes';
 import { raceRank, scorerRace } from './scorers';
 import { chance, clamp, normal, pick, poisson, rand, randInt, sigmoid, weightedPick } from './random';
 import type {
@@ -144,6 +145,7 @@ function playerMatch(
 ): MatchLine {
   const { player, prog } = ctx;
   const mods = skillMods(player);
+  const am = attrMods(player);
   const own = prog.strength[ctx.clubId];
   const opp = prog.strength[opponentId] ?? getClub(opponentId).strength;
   const rel = player.ovr - own;
@@ -199,8 +201,8 @@ function playerMatch(
     const penalties = (player.penaltyTakerOf === ctx.clubId ? 1.15 : 1) * (hasTrait(player, 'showman') ? 1.05 : 1);
     // Klassenunterschied zum eigenen Team wirkt, aber begrenzt – auch ein Weltstar trifft nicht bei jedem Teamtor.
     const relFactor = Math.exp(clamp(rel, -15, 12) * 0.03);
-    const pGoal = Math.min(0.3, GOAL_SHARE[player.position] * penalties * mods.goal * relFactor * share);
-    const pAssist = Math.min(0.3, ASSIST_SHARE[player.position] * mods.assist * relFactor * share);
+    const pGoal = Math.min(0.3, GOAL_SHARE[player.position] * penalties * mods.goal * am.goal * relFactor * share);
+    const pAssist = Math.min(0.3, ASSIST_SHARE[player.position] * mods.assist * am.assist * relFactor * share);
     // Bei Kantersiegen verteilen sich die Tore auf mehr Schultern.
     const spread = gf > 3 ? 3 / gf : 1;
     for (let g = 0; g < gf; g++) {
@@ -209,7 +211,7 @@ function playerMatch(
       else if (chance(pAssist / (1 - pGoal))) assists++;
     }
     let r = 6.5 + rel * 0.03 + (gf > ga ? 0.35 : gf < ga ? -0.35 : 0) + goals * 0.9 + assists * 0.6;
-    r += mods.rating + (competition !== 'Liga' ? mods.bigGame : 0);
+    r += mods.rating + am.rating + (competition !== 'Liga' ? mods.bigGame : 0);
     if (DEFENSIVE.includes(player.position)) {
       if (ga === 0 && minutes >= 60) r += 0.5 + mods.cleanSheet;
       if (player.position === 'TW' || player.position === 'IV') r -= ga * 0.15;
@@ -227,7 +229,7 @@ function playerMatch(
     rating = Math.round(clamp(r, 3, 10) * 10) / 10;
     prog.form = prog.form * 0.8 + rating * 0.2;
 
-    const injuryRisk = (0.012 + Math.max(0, player.age - 30) * 0.002) * injuryFactor(player) * LOADS[prog.load ?? 'normal'].injury * difficultyOf(ctx.career).injury * mods.injury;
+    const injuryRisk = (0.012 + Math.max(0, player.age - 30) * 0.002) * injuryFactor(player) * LOADS[prog.load ?? 'normal'].injury * difficultyOf(ctx.career).injury * mods.injury * am.injury;
     if (chance(injuryRisk * share)) {
       const weeks = injuryWeeks();
       prog.injuredFor = Math.round(weeks * 1.3);
@@ -382,10 +384,6 @@ function summarize(matches: MatchLine[], competition: Competition): CompetitionS
   };
 }
 
-const TITLE_ODDS: Record<string, number> = {
-  Spanien: 0.15, Frankreich: 0.14, England: 0.12, Argentinien: 0.12, Brasilien: 0.1, Deutschland: 0.09,
-  Portugal: 0.08, Niederlande: 0.06, Italien: 0.05, Belgien: 0.03, Kroatien: 0.03, Kolumbien: 0.03, Japan: 0.02,
-};
 const EUROPEAN = ['Deutschland', 'Österreich', 'Schweiz', 'Türkei', 'England', 'Frankreich', 'Spanien', 'Italien',
   'Portugal', 'Niederlande', 'Belgien', 'Kroatien', 'Polen', 'Norwegen', 'Schweden'];
 
@@ -592,9 +590,22 @@ const NATION_STRENGTH: Record<string, number> = {
 };
 export const nationStrength = (nation: string) => NATION_STRENGTH[nation] ?? 76;
 
+/** K.-o.-Runden je Turnier: WM und EM ab dem Achtelfinale, kleinere Turniere ab dem Viertelfinale. */
+export function knockoutRounds(tournament: string): string[] {
+  return /^(Weltmeisterschaft|Europameisterschaft) /.test(tournament) ? ['Achtelfinale', 'Viertelfinale', 'Halbfinale', 'Finale'] : ['Viertelfinale', 'Halbfinale', 'Finale'];
+}
+
+/** Form-Bonus für die Nominierung: Note und Spielzeit der Saison zählen (höchstens ±3). */
+export function nationalForm(stats: HalfStats): number {
+  const share = stats.possibleMinutes ? stats.minutes / stats.possibleMinutes : 0;
+  const rating = stats.avgRating ?? 6.3;
+  return clamp((rating - 6.8) * 2.5 + (share < 0.35 ? -1.5 : share > 0.75 ? 0.5 : 0), -3, 3);
+}
+
 /**
- * Länderspiele der Saison. Erreicht die Nation bei einem Turnier das Finale,
- * wird es als Live-Finale vorgemerkt statt ausgewürfelt.
+ * Länderspiele der Saison. Die Nominierung hängt von Wertung UND Form ab (Note, Spielzeit).
+ * Bei einem Turnier wird die Gruppenphase ausgewürfelt, die K.-o.-Spiele werden als Live-Spiele vorgemerkt –
+ * wer eins verliert, ist raus (siehe finishFinal).
  */
 export function computeNational(career: Career, prog: SeasonProgress): NationalSeason {
   const player = career.player;
@@ -607,26 +618,38 @@ export function computeNational(career: Career, prog: SeasonProgress): NationalS
     callUp += 2;
     if (player.ovr >= nation.callUp - 1) notes.push(`${rival.name} ist in der Nationalelf auf deiner Position gesetzt.`);
   }
+  const form = nationalForm(halfStats(prog.matches));
+  const level = player.ovr + form;
   let caps = 0;
   let goals = 0;
   let tournament: NationalSeason['tournament'] = null;
-  if (player.ovr >= callUp - 3 && prog.injuryWeeks < 20) {
-    const p = sigmoid((player.ovr - callUp + 1) / 1.5);
+  if (level >= callUp - 3 && prog.injuryWeeks < 20) {
+    const p = sigmoid((level - callUp + 1) / 1.5);
     for (let i = 0; i < 5; i++) if (chance(p)) caps += randInt(1, 2);
+    if (caps > 0 && form >= 1.5 && player.ovr < callUp) notes.push('Dank starker Form in die Nationalelf berufen.');
     const name = tournamentName(player.nation, career.year + 1);
-    if (name && player.ovr >= callUp && caps > 0) {
-      caps += randInt(3, 6);
-      const odds = (TITLE_ODDS[player.nation] ?? 0.01) + (player.ovr >= 88 ? 0.02 : 0);
-      const reachedFinal = chance(Math.min(0.6, odds * 2.2 + 0.02));
-      tournament = { name, reachedFinal, won: false };
-      if (reachedFinal) {
+    if (name && caps > 0 && level >= callUp) {
+      caps += 3; // Gruppenphase
+      tournament = { name, reachedFinal: false, won: false, stage: 'Gruppenphase' };
+      const own = nationStrength(player.nation);
+      if (chance(clamp(sigmoid((own - 77) / 3), 0.3, 0.95))) {
         const rivals = Object.keys(NATION_STRENGTH).filter((n) => n !== player.nation);
-        const opponent = weightedPick(rivals, (n) => NATION_STRENGTH[n] - 74);
+        const used = new Set<string>();
+        const rounds = knockoutRounds(name);
         prog.pendingFinals = [
           ...(prog.pendingFinals ?? []),
-          { kind: 'national', title: `Finale der ${name}`, opponentName: opponent, opponentStrength: NATION_STRENGTH[opponent] },
+          ...rounds.map((round, i) => {
+            // Je weiter, desto stärker der Gegner
+            const pool = rivals.filter((n) => !used.has(n));
+            const opponent = weightedPick(pool, (n) => Math.max(0.5, NATION_STRENGTH[n] - 74 + i * 2));
+            used.add(opponent);
+            return { kind: 'national' as const, title: `${round} der ${name}`, opponentName: opponent, opponentStrength: NATION_STRENGTH[opponent], round };
+          }),
         ];
-      } else notes.push(`Mit ${player.nation} bei der ${name} dabei.`);
+        notes.push(`Mit ${player.nation} bei der ${name}: Gruppenphase überstanden – jetzt K.-o.-Runde.`);
+      } else notes.push(`Mit ${player.nation} bei der ${name} in der Gruppenphase ausgeschieden.`);
+    } else if (name && level >= callUp - 3 && caps === 0) {
+      notes.push(`Nicht für die ${name} nominiert – ${form < 0 ? 'zu wenig Form und Spielpraxis' : 'die Konkurrenz war stärker'}.`);
     }
     const rate = GOAL_SHARE[player.position] * 1.2 * Math.exp((player.ovr - callUp) * 0.05);
     for (let i = 0; i < caps; i++) goals += poisson(rate);

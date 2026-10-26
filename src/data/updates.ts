@@ -19,6 +19,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-26-attribute-nationalelf',
+    date: '26.10.2026',
+    title: 'Karriere: echte Attribute und Turniere live',
+    items: [
+      'Deine sechs Attribute (Tempo, Abschluss, Passen, Dribbling, Defensive, Physis) stehen jetzt im Karriere-Bildschirm – mit Balken und der Veränderung nach jeder Halbserie.',
+      'Jedes Attribut entwickelt sich einzeln: Junge Spieler wachsen körperlich, im besten Alter im Abschluss, Ältere im Spielverständnis. Spielertyp und Trainingsschwerpunkt lenken mit.',
+      'Attribute zählen im Spiel: Starker Abschluss bringt mehr Tore, gutes Passen und Dribbling mehr Vorlagen, viel Physis weniger Verletzungen.',
+      'Nationalmannschaft: Die Nominierung hängt jetzt auch von deiner Form ab – Note und Spielzeit zählen. Auf der Bank wirst du schnell übersehen.',
+      'WM und EM: Nach der Gruppenphase spielst du jedes K.-o.-Spiel live – Achtelfinale, Viertelfinale, Halbfinale, Finale. Wer verliert, fliegt raus.',
+    ],
+  },
+  {
     id: '2026-10-26-karriereende',
     date: '26.10.2026',
     title: 'Karriereende: Karten nur noch für echte Erfolge',

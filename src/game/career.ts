@@ -1,9 +1,10 @@
+import { developAttributes } from './attributes';
 import type { Avatar, OriginId } from './creator';
 import { getClub, getLeague, initialClubLeague } from '../data/leagues';
 import { developPlayer, performanceIndex } from './development';
 import { rollEvents } from './events';
 import { APPLICATIONS_PER_WINDOW, APPLICATION_AGE, answerApplication, generateOffers, type OfferMode } from './offers';
-import { ROLE_BONUS, clubLeagueId, clubStrength, createProfile, currentClubId, currentRole, formatMoney, playerValue, roleFor, seasonLabel, wageFor } from './player';
+import { ROLE_BONUS, attributes, clubLeagueId, clubStrength, createProfile, currentClubId, currentRole, formatMoney, playerValue, roleFor, seasonLabel, wageFor } from './player';
 import { chance, uid } from './random';
 import { ownerSeasonEnd, ownsClub } from './owner';
 import { pressConference } from './press';
@@ -330,11 +331,13 @@ function winterTransition(career: Career, quick: boolean): Career {
   const stats = halfStats(prog.matches);
   const strength = clubStrength(career, clubId);
   const ovrBefore = p.ovr;
+  const attrsBefore = attributes(p);
   p.potentialStart ??= p.potential;
   const dev = developPlayer(p, stats, strength, { weight: 0.5 });
   p.ovr = adjustGrowth(career, ovrBefore, dev.ovr, dev.potential);
   p.potential = dev.potential;
   const trainingNote = applyTraining(p, ovrBefore);
+  developAttributes(p, attrsBefore);
   if (trainingNote) prog.notes.push(trainingNote);
   prog.injuryWeeksWinter = prog.injuryWeeks;
   const beforeEvents = p.ovr;
@@ -487,6 +490,7 @@ function finishSecondHalf(career: Career): Career {
   const second = halfStats(prog.matches.filter((m) => m.half === 2));
   const strength = clubStrength(career, clubId);
   const ovrBefore = p.ovr;
+  const attrsBefore = attributes(p);
   p.potentialStart ??= p.potential;
   const dev = developPlayer(p, second, strength, {
     weight: 0.5,
@@ -495,6 +499,7 @@ function finishSecondHalf(career: Career): Career {
   p.ovr = adjustGrowth(career, ovrBefore, dev.ovr, dev.potential);
   p.potential = dev.potential;
   const trainingNote = applyTraining(p, ovrBefore);
+  developAttributes(p, attrsBefore);
   if (trainingNote) dev.reasons.push(trainingNote);
   // Eine insgesamt starke Saison mit viel Spielzeit endet (bis 31) nie mit einem Minus –
   // es sei denn, Ereignisse wie eine schwere Verletzung sind der Grund.
@@ -754,11 +759,16 @@ export function finishFinal(prev: Career): Career {
 
   if (f.kind === 'national') {
     const nat = prog.national!;
+    const round = f.round ?? 'Finale';
+    const isFinal = round === 'Finale';
     nat.caps += played ? 1 : 0;
     nat.goals += state.playerGoals;
-    nat.tournament = { ...nat.tournament!, won: state.won };
-    nat.notes.push(state.won ? '' : `Finale der ${nat.tournament.name} verloren.`);
-    nat.notes = nat.notes.filter(Boolean);
+    nat.tournament = { ...nat.tournament!, stage: round, reachedFinal: nat.tournament!.reachedFinal || isFinal, won: isFinal && state.won };
+    if (!state.won) {
+      nat.notes.push(isFinal ? `Finale der ${nat.tournament.name} verloren.` : `Aus im ${round} der ${nat.tournament.name} gegen ${f.opponentName}.`);
+      // Raus: die restlichen Runden fallen weg
+      prog.pendingFinals = [prog.pendingFinals![0], ...prog.pendingFinals!.slice(1).filter((x) => x.kind !== 'national')];
+    } else if (!isFinal) nat.notes.push(`${round} gegen ${f.opponentName} gewonnen (${state.score[0]}:${state.score[1]}).`);
   } else {
     const competition = f.kind === 'cup' ? 'Pokal' : prog.euro!.competition;
     const line: MatchLine = {

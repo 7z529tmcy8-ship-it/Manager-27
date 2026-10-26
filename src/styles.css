@@ -3754,3 +3754,26 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .lt-sub small { margin-left: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif; font-size: .75rem; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); }
 .lt-rules .ic { vertical-align: -3px; }
 .lt-rules li.ok .ic { color: #39ff88; } .lt-rules li:not(.ok) .ic { color: #ff4d8d; }
+
+/* ---------- Karriere: Attribute ---------- */
+.cs-attrs { margin: 12px 0; padding: 12px 14px; border-radius: 18px; background: var(--panel, #0f1226); border: 1px solid var(--line, rgba(170, 180, 255, .12)); }
+.cs-attrs .cs-pulse-head small { font-size: .6875rem; letter-spacing: .02em; text-transform: none; color: var(--muted); }
+.cs-attrs ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.cs-attrs li { display: grid; grid-template-columns: 92px minmax(0, 1fr) 28px 26px; align-items: center; gap: 8px; font-size: .8125rem; color: var(--text-2); }
+.cs-attrs li.key { color: #fff; }
+.cs-attrs li.key .cs-attr-name { font-weight: 700; }
+.cs-attr-bar { height: 8px; border-radius: 4px; background: rgba(170, 180, 255, .1); overflow: hidden; }
+.cs-attr-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #6d28ff, #a35cff); transition: width var(--t-slow, 320ms) var(--ease, ease-out); }
+.cs-attr-bar i.hi { background: linear-gradient(90deg, #19c37d, #39ff88); }
+.cs-attr-bar i.lo { background: linear-gradient(90deg, #5a5f86, #7d82a8); }
+.cs-attrs li:not(.key) .cs-attr-bar i { opacity: .55; }
+.cs-attrs b { font-family: var(--display, inherit); font-size: 1rem; text-align: right; font-variant-numeric: tabular-nums; color: #fff; }
+.cs-attrs em { font-style: normal; font-size: .75rem; font-weight: 700; }
+.cs-attrs em.up { color: #39ff88; } .cs-attrs em.down { color: #ff4d8d; }
+/* Hochformat: Attribute zweispaltig, damit die Hauptaktion nicht nach unten rutscht */
+@media (orientation: portrait) and (max-width: 640px) {
+  .cs-attrs ul { grid-template-columns: 1fr 1fr; column-gap: 14px; }
+  .cs-attrs li { grid-template-columns: 62px minmax(0, 1fr) 22px 18px; gap: 5px; font-size: .75rem; }
+  .cs-attrs b { font-size: .875rem; }
+  .cs-attrs em { font-size: .6875rem; }
+}
