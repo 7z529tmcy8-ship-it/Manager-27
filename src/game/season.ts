@@ -17,7 +17,7 @@ import { skillMods } from './skills';
 import { attrMods } from './attributes';
 import { raceRank, scorerRace } from './scorers';
 import { chance, clamp, normal, pick, poisson, rand, randInt, sigmoid, weightedPick } from './random';
-import type {
+import type { YouthTeam,
   Career,
   Club,
   Competition,
@@ -388,7 +388,31 @@ const EUROPEAN = ['Deutschland', 'Österreich', 'Schweiz', 'Türkei', 'England',
   'Portugal', 'Niederlande', 'Belgien', 'Kroatien', 'Polen', 'Norwegen', 'Schweden'];
 
 /** Titel mit der Nationalmannschaft (WM, EM, Copa América …) – gehören zum Land, nicht zum Verein. */
-export const isNationalTitle = (t: string) => /^(Weltmeisterschaft|Europameisterschaft|Copa América|Gold Cup|Asienmeisterschaft) /.test(t);
+export const isNationalTitle = (t: string) => /^(Weltmeisterschaft|Europameisterschaft|Copa América|Gold Cup|Asienmeisterschaft|U17-EM|U19-EM|U21-EM|U17-WM|U20-WM) /.test(t);
+
+// ---------- U-Nationalmannschaften ----------
+// Wer jung ist und (noch) nicht in der A-Elf steht, kann für U17, U19 oder U21 nominiert werden – mit Altersgrenze.
+// Die Schwelle liegt deutlich unter der A-Elf; besonders starke Talente spielen schon in einer älteren U-Mannschaft.
+// Viele U21-Einsätze helfen später bei der Nominierung für die A-Nationalmannschaft.
+export const YOUTH_TEAMS: { team: YouthTeam; maxAge: number; below: number }[] = [
+  { team: 'U21', maxAge: 21, below: 9 },
+  { team: 'U19', maxAge: 19, below: 13 },
+  { team: 'U17', maxAge: 17, below: 16 },
+];
+
+/** Turnier der U-Mannschaft in diesem Sommer (Europäer: EM; sonst WM in ungeraden Jahren). */
+function youthTournament(team: YouthTeam, nation: string, summer: number): string | null {
+  if (EUROPEAN.includes(nation)) return team === 'U21' ? (summer % 2 === 1 ? `U21-EM ${summer}` : null) : `${team}-EM ${summer}`;
+  if (team === 'U19' && summer % 2 === 1) return `U20-WM ${summer}`;
+  if (team === 'U17') return `U17-WM ${summer}`;
+  return null;
+}
+
+/** Für welche U-Mannschaft reicht es? Die älteste mögliche, für die Alter und Stärke passen. */
+export function youthTeamFor(age: number, level: number, seniorCallUp: number): YouthTeam | null {
+  for (const t of YOUTH_TEAMS) if (age <= t.maxAge && level >= seniorCallUp - t.below) return t.team;
+  return null;
+}
 
 function tournamentName(nation: string, summer: number): string | null {
   if (summer % 4 === 2) return `Weltmeisterschaft ${summer}`;
@@ -618,6 +642,8 @@ export function computeNational(career: Career, prog: SeasonProgress): NationalS
     callUp += 2;
     if (player.ovr >= nation.callUp - 1) notes.push(`${rival.name} ist in der Nationalelf auf deiner Position gesetzt.`);
   }
+  // Der Bundestrainer kennt dich aus der U21: viele U21-Einsätze machen den Sprung leichter.
+  if ((player.youthCaps?.U21 ?? 0) >= 5) callUp -= 1;
   const form = nationalForm(halfStats(prog.matches));
   const level = player.ovr + form;
   let caps = 0;
@@ -654,7 +680,30 @@ export function computeNational(career: Career, prog: SeasonProgress): NationalS
     const rate = GOAL_SHARE[player.position] * 1.2 * Math.exp((player.ovr - callUp) * 0.05);
     for (let i = 0; i < caps; i++) goals += poisson(rate);
   }
-  return { caps, goals, tournament, notes };
+  // U-Nationalmannschaft: nur ohne Einsatz in der A-Elf
+  let youth: NationalSeason['youth'] = null;
+  const team = caps === 0 && prog.injuryWeeks < 20 ? youthTeamFor(player.age, level, nation.callUp) : null;
+  if (team) {
+    const limit = YOUTH_TEAMS.find((t) => t.team === team)!;
+    const p = sigmoid((level - (nation.callUp - limit.below) + 1) / 1.5);
+    let yc = 0;
+    for (let i = 0; i < 4; i++) if (chance(p)) yc += randInt(1, 2);
+    if (yc > 0) {
+      let yg = 0;
+      const rate = GOAL_SHARE[player.position] * 1.3 * Math.exp((level - (nation.callUp - limit.below)) * 0.05);
+      for (let i = 0; i < yc; i++) yg += poisson(rate);
+      const tName = youthTournament(team, player.nation, career.year + 1);
+      let title: string | null = null;
+      if (tName) {
+        yc += randInt(2, 4);
+        const odds = clamp(0.04 + (nationStrength(player.nation) - 76) * 0.018 + (level - nation.callUp) * 0.01, 0.03, 0.3);
+        if (chance(odds)) { title = tName; notes.push(`${tName} gewonnen – mit der ${team} von ${player.nation}!`); }
+        else notes.push(`Mit der ${team} bei der ${tName} dabei.`);
+      }
+      youth = { team, caps: yc, goals: yg, title };
+    }
+  }
+  return { caps, goals, tournament, notes, youth };
 }
 
 /** Saison abschließen: Tabellen, Titel, Auszeichnungen und Nationalmannschaft. */
@@ -713,6 +762,7 @@ export function finishSeason(career: Career, prog: SeasonProgress): SeasonOutcom
   const intGoals = national.goals;
   notes.push(...national.notes);
   if (national.tournament?.won) allTrophies.push(national.tournament.name);
+  if (national.youth?.title) allTrophies.push(national.youth.title);
 
   const record: SeasonRecord = {
     season: seasonLabel(career.year),
@@ -739,6 +789,7 @@ export function finishSeason(career: Career, prog: SeasonProgress): SeasonOutcom
     awards,
     caps,
     internationalGoals: intGoals,
+    youth: national.youth ? { team: national.youth.team, caps: national.youth.caps, goals: national.youth.goals } : null,
     byCompetition: (['Liga', 'Pokal', 'Champions League', 'Europa League', 'Conference League'] as Competition[])
       .map((c) => summarize(matches, c))
       .filter((s, i) => i < 2 || matches.some((m) => m.competition === s.competition)),

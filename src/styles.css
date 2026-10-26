@@ -3789,3 +3789,4 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .cr-tiers li small { font-size: .625rem; }
 .cr-tiers li.done { color: var(--text-2); background: rgba(163, 92, 255, .12); }
 .cr-tiers li.on { color: #fff; background: linear-gradient(135deg, #6d28ff, #a35cff); box-shadow: 0 0 12px rgba(163, 92, 255, .5); }
+.cs-row.cs-nation.youth { opacity: .85; }

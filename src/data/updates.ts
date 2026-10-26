@@ -19,6 +19,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-26-u-nationalteams',
+    date: '26.10.2026',
+    title: 'U17, U19 und U21',
+    items: [
+      'Neu im Karrieremodus: die U-Nationalmannschaften. Bis 17 kannst du für die U17 nominiert werden, bis 19 für die U19, bis 21 für die U21 – große Talente spielen schon in einer älteren U-Mannschaft.',
+      'Mit der U-Mannschaft gibt es Turniere: U17-EM, U19-EM und U21-EM (außerhalb Europas U17- und U20-WM) – und mit Glück den Titel.',
+      'Viele U21-Einsätze machen später den Sprung in die A-Nationalmannschaft leichter.',
+      'Bei der ersten Nominierung für eine Mannschaft – U17, U19, U21 oder die A-Elf – bekommst du eine Nachricht ins Postfach.',
+      'Deine U-Einsätze stehen im Karriereverlauf unter der Nationalmannschaft.',
+    ],
+  },
+  {
     id: '2026-10-26-karriere-packs',
     date: '26.10.2026',
     title: 'Karriereende: Packs statt eigener Karte',

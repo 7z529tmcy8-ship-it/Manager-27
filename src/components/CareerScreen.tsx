@@ -333,6 +333,16 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           <div key={k} className={`cs-row cs-future f${k}`} aria-hidden="true"><span className="cs-agebox">{p.age + k}</span></div>
         ))}
 
+        {(full || career.history.length <= COLLAPSED) && (['U17', 'U19', 'U21'] as const).filter((t) => (p.youthCaps?.[t] ?? 0) > 0).map((t) => (
+          <div key={t} className="cs-row cs-nation youth" role="row">
+            <span className="cs-flag">{flagOf(p.nation)}</span>
+            <span className="cs-clubcell">{p.nation} {t}<small>Nachwuchs-Nationalmannschaft</small></span>
+            <span />
+            <span>{p.youthCaps![t]}</span>
+            <span>{career.history.filter((r) => r.youth?.team === t).reduce((a, r) => a + (r.youth?.goals ?? 0), 0)}</span>
+            <span />
+          </div>
+        ))}
         {p.caps > 0 && (full || career.history.length <= COLLAPSED) && (
           <div className="cs-row cs-nation" role="row">
             <span className="cs-flag">{flagOf(p.nation)}</span>

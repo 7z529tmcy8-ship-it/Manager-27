@@ -5,6 +5,7 @@ import type { Career, InboxItem } from './types';
 const MAX_ITEMS = 100;
 
 export const INBOX_ICONS: Record<InboxItem['kind'], string> = {
+  national: '🌍',
   welcome: '👋',
   goals: '🎯',
   season: '📊',

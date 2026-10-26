@@ -534,14 +534,27 @@ function completeSeason(career: Career): Career {
   applyGoalConsequences(career, record);
   p.caps += record.caps;
   p.internationalGoals += record.internationalGoals;
+  // U-Nationalmannschaften und erste Nominierungen (Nachricht ins Postfach)
+  const firstCall = (team: string, title: string, text: string) => {
+    if ((p.nominated ?? []).includes(team)) return;
+    p.nominated = [...(p.nominated ?? []), team];
+    postInbox(career, { kind: 'national', season: record.season, title, text, action: 'career' });
+    addNews(career, 2, 'Du', `${p.name}: erste Nominierung für ${team === 'A' ? `die Nationalmannschaft von ${p.nation}` : `die ${team} von ${p.nation}`}!`);
+  };
+  if (record.youth) {
+    p.youthCaps = { ...p.youthCaps, [record.youth.team]: (p.youthCaps?.[record.youth.team] ?? 0) + record.youth.caps };
+    firstCall(record.youth.team, `Nominiert für die ${record.youth.team}!`,
+      `Der Nachwuchstrainer von ${p.nation} hat dich für die ${record.youth.team} berufen. ${record.youth.caps} Einsätze, ${record.youth.goals} Tore in dieser Saison. Bleib dran – von hier geht es in die A-Nationalmannschaft.`);
+  }
+  if (record.caps > 0) firstCall('A', `Nominiert für ${p.nation}!`, `Der erste Anruf aus der A-Nationalmannschaft: ${record.caps} Länderspiele in dieser Saison${record.internationalGoals ? `, ${record.internationalGoals} Tore` : ''}. Ein großer Moment.`);
   record.ovrWinter = prog.ovrWinter;
   const specials = makeSpecials(career, record, specialsFor(record, prog.stageLog ?? []));
   if (specials.length) {
     career.specialCards = [...(career.specialCards ?? []), ...specials];
     for (const sc of specials) {
-      postInbox(career, { kind: 'achievement', season: record.season, title: `Sonderkarte: ${SPECIALS[sc.type].name}!`, text: `Deine ${sc.ovr}er-Karte liegt jetzt in deiner Sammlung.` });
+      postInbox(career, { kind: 'achievement', season: record.season, title: `Auszeichnung: ${SPECIALS[sc.type].name}!`, text: 'Eine besondere Saison – dafür gibt es extra Coins für deinen Club.' });
     }
-    addNews(career, 2, 'Du', `${p.name} erhält eine Sonderkarte: ${specials.map((x) => SPECIALS[x.type].name).join(' & ')}.`);
+    addNews(career, 2, 'Du', `${p.name} wird ausgezeichnet: ${specials.map((x) => SPECIALS[x.type].name).join(' & ')}.`);
   }
   record.events = prog.events ?? [];
   record.devReasons = prog.devReasons ?? [];

@@ -65,6 +65,10 @@ export interface PlayerState {
   loan: Loan | null;
   caps: number;
   internationalGoals: number;
+  /** Einsätze in den U-Nationalmannschaften (U17, U19, U21). */
+  youthCaps?: Partial<Record<YouthTeam, number>>;
+  /** Mannschaften, für die schon einmal nominiert wurde (für die Nachricht beim ersten Mal). */
+  nominated?: string[];
   /** Vertrauen des Trainers (−3 … +3): beeinflusst die Einsatzchancen, klingt pro Halbserie ab. */
   morale?: number;
   /** Verein, bei dem der Spieler Kapitän ist. */
@@ -217,6 +221,8 @@ export interface SeasonRecord {
   awards: string[];
   caps: number;
   internationalGoals: number;
+  /** Einsätze in einer U-Nationalmannschaft in dieser Saison. */
+  youth?: { team: YouthTeam; caps: number; goals: number } | null;
   byCompetition: CompetitionStats[];
   table: TableRow[];
   europe: { competition: Competition; reached: string } | null;
@@ -641,7 +647,7 @@ export interface CareerSettings {
   liveMatches?: boolean;
 }
 
-export type InboxKind = 'welcome' | 'goals' | 'season' | 'offer' | 'contract' | 'transfer' | 'event' | 'decision' | 'press' | 'achievement' | 'lotto' | 'casino' | 'holiday' | 'retire';
+export type InboxKind = 'national' | 'welcome' | 'goals' | 'season' | 'offer' | 'contract' | 'transfer' | 'event' | 'decision' | 'press' | 'achievement' | 'lotto' | 'casino' | 'holiday' | 'retire';
 
 export interface InboxItem {
   id: string;
@@ -718,7 +724,11 @@ export interface PendingFinal {
   round?: string;
 }
 
+export type YouthTeam = 'U17' | 'U19' | 'U21';
+
 export interface NationalSeason {
+  /** U-Nationalmannschaft (nur wenn nicht in der A-Elf). */
+  youth?: { team: YouthTeam; caps: number; goals: number; title: string | null } | null;
   caps: number;
   goals: number;
   tournament: { name: string; reachedFinal: boolean; won: boolean; /** Erreichte Runde. */ stage?: string } | null;
