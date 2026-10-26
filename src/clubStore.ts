@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { freshClub, refundOldUpgrades, removeCareerIcons, type ClubState } from './game/club';
+import { freshClub, refundOldUpgrades, removeOwnCareerCards, type ClubState } from './game/club';
 
 // Der Club (Coins, Sammlung, Items) gilt für alle Karrieren in diesem Browser.
 const KEY = 'fc-club';
@@ -11,7 +11,7 @@ function load(): ClubState {
     const base = freshClub();
     const saved = JSON.parse(raw) as Partial<ClubState>;
     // Alte Speicherstände ohne Kennzeichen: Coin-Verbesserungen einmalig erstatten.
-    return removeCareerIcons(refundOldUpgrades({ ...base, upgradesRefunded: false, careerIconsRemoved: false, ...saved, items: { ...base.items, ...saved.items } }));
+    return removeOwnCareerCards(refundOldUpgrades({ ...base, upgradesRefunded: false, ownCardsRemoved: false, ...saved, items: { ...base.items, ...saved.items } }));
   } catch {
     return freshClub();
   }

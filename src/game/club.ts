@@ -60,6 +60,8 @@ export interface ClubState {
   upgradesRefunded?: boolean;
   /** Geschenkte Karriere-Ikonen wurden entfernt (einmalig). */
   careerIconsRemoved?: boolean;
+  /** Alle eigenen Karriere-Karten wurden entfernt (einmalig). */
+  ownCardsRemoved?: boolean;
   /** Erstattete Coins, noch nicht angezeigt. */
   refundNotice?: number;
   /** GIG-Event: Tag des letzten Gratis-Drehs (JJJJ-MM-TT) und Anzahl Drehs. */
@@ -121,6 +123,7 @@ export const freshClub = (): ClubState => ({
   upgrades: {},
   upgradesRefunded: true,
   careerIconsRemoved: true,
+  ownCardsRemoved: true,
 });
 
 // ---------- Kartenpool ----------
@@ -433,8 +436,7 @@ export function seasonCoins(r: SeasonRecord, specials: number): number {
 
 /**
  * Noch nicht ausgezahlte Saisons (als Spieler und als Trainer) gutschreiben.
- * Sonderkarten einzelner Saisons gibt es nicht mehr – nach dem Karriereende wählt man genau eine eigene Karte
- * (eine Auszeichnungs-Karte, falls man eine Auszeichnung gewonnen hat, siehe careerRewardOptions). Das passiert nicht hier, sondern über chooseCareerReward.
+ * Eigene Karten gibt es nicht mehr – nach dem Karriereende gibt es Packs je nach Bilanz (claimCareerReward).
  */
 export function creditCareer(
   club: ClubState,
@@ -472,51 +474,46 @@ export function creditCareer(
   };
 }
 
-/** Wartet diese beendete Karriere noch auf die Wahl der Belohnungskarte? (Alte Spielstände mit Ikone zählen als erledigt.) */
+/** Wartet diese beendete Karriere noch auf ihre Belohnung (Packs)? */
 export function rewardPending(club: ClubState, career: Career): boolean {
-  return career.phase === 'retired' && career.history.length > 0 && !club.rewardChosen?.[career.id] &&
-    !club.specials.some((c) => c.id === iconId(career)) && careerRewardOptions(career).length > 0;
+  return career.phase === 'retired' && career.history.length > 0 && !club.rewardChosen?.[career.id];
 }
 
-/**
- * Wahl am Karriereende: je eine Karte für jede große Auszeichnung der Karriere (Ballon d’Or, Weltmeister,
- * Champions League, Spieler der Saison, Torschützenkönig, Golden Boy). Ohne Auszeichnung gibt es keine Karte –
- * eine Ikone bekommt man nicht mehr geschenkt. Grundlage ist die beste Saison mit dieser Auszeichnung.
- */
-export function careerRewardOptions(career: Career): CollectCard[] {
-  const p = career.player;
-  const opts: CollectCard[] = [];
-  const add = (variant: AwardVariant, test: (r: SeasonRecord) => boolean, bonus: number, one: (season: string) => string, many: (n: number) => string) => {
-    const hits = career.history.filter(test);
-    if (!hits.length) return;
-    const best = [...hits].sort((a, b) => b.ovrEnd - a.ovrEnd)[0];
-    const club = getClub(best.clubId);
-    opts.push({
-      id: `own-award-${career.id}-${variant}`,
-      name: p.name, position: p.position, nation: p.nation,
-      club: club.name, league: getLeague(club.leagueId).name,
-      ovr: Math.min(99, best.ovrEnd + bonus + Math.min(3, hits.length - 1)),
-      variant,
-      label: hits.length > 1 ? many(hits.length) : one(best.season),
-      avatar: p.avatar,
-    });
-  };
-  const year = (r: SeasonRecord, prefix: string) => r.trophies.find((t) => t.startsWith(prefix))?.slice(prefix.length).trim() ?? r.season;
-  add('ballondor', (r) => r.awards.includes('Ballon d’Or'), 3, (s) => `Ballon d’Or ${s}`, (n) => `${n}× Ballon d’Or`);
-  add('worldcup', (r) => r.trophies.some((t) => t.startsWith('Weltmeisterschaft')), 3,
-    (s) => `Weltmeister ${year(career.history.find((r) => r.season === s)!, 'Weltmeisterschaft')}`, (n) => `${n}× Weltmeister`);
-  add('ucl', (r) => r.trophies.includes('Champions League'), 2, (s) => `Champions League ${s}`, (n) => `${n}× Champions League`);
-  add('poty', (r) => r.awards.some((a) => a.startsWith('Spieler der Saison')), 2, (s) => `Spieler des Jahres ${s}`, (n) => `${n}× Spieler des Jahres`);
-  add('topscorer', (r) => r.awards.some((a) => a.startsWith('Torschützenkönig')), 2, (s) => `Torschützenkönig ${s}`, (n) => `${n}× Torschützenkönig`);
-  add('goldenboy', (r) => r.awards.includes('Golden Boy'), 5, (s) => `Golden Boy ${s}`, () => 'Golden Boy');
-  return opts;
+// ---------- Karriereende: Packs statt Karten ----------
+// Je besser die Karriere (Bilanz-Punkte wie in der Hall of Fame), desto stärkere Packs. Eigene Karten gibt es nicht mehr.
+
+export interface CareerRewardTier { id: string; name: string; min: number; packs: string[] }
+export const CAREER_REWARD_TIERS: CareerRewardTier[] = [
+  { id: 'bronze', name: 'Bronze-Karriere', min: 0, packs: ['gold'] },
+  { id: 'silber', name: 'Silber-Karriere', min: 120, packs: ['premium', 'gold'] },
+  { id: 'gold', name: 'Gold-Karriere', min: 300, packs: ['megagold', 'worldstar'] },
+  { id: 'elite', name: 'Weltklasse-Karriere', min: 550, packs: ['ultimate', 'icon'] },
+  { id: 'legende', name: 'Legenden-Karriere', min: 900, packs: ['goat', 'ultimate', 'icon'] },
+];
+
+export function careerRewardTier(career: Career): { tier: CareerRewardTier; score: number; next: CareerRewardTier | null } {
+  const score = summarizeCareer(career).score;
+  const tier = [...CAREER_REWARD_TIERS].reverse().find((t) => score >= t.min)!;
+  const next = CAREER_REWARD_TIERS.find((t) => t.min > score) ?? null;
+  return { tier, score, next };
 }
 
-/** Belohnungskarte wählen: kommt in die Sammlung, die Wahl ist endgültig. */
-export function chooseCareerReward(club: ClubState, career: Career, cardId: string): ClubState {
-  const card = careerRewardOptions(career).find((c) => c.id === cardId);
-  if (!card || !rewardPending(club, career)) return club;
-  return { ...club, specials: [...club.specials, card], rewardChosen: { ...club.rewardChosen, [career.id]: card.id } };
+/** Belohnung abholen: alle Packs der Stufe öffnen (gratis), Karten landen in der Sammlung. Nur einmal pro Karriere. */
+export function claimCareerReward(club: ClubState, career: Career, rand = Math.random): { club: ClubState; result: PackResult; tier: CareerRewardTier } | null {
+  if (!rewardPending(club, career)) return null;
+  const { tier } = careerRewardTier(career);
+  let next = club;
+  const cards: PackResult['cards'] = [];
+  const items: PackResult['items'] = [];
+  for (const id of tier.packs) {
+    const res = openPack(next, id, rand, true);
+    if (!res) continue;
+    next = res.club;
+    cards.push(...res.result.cards);
+    items.push(...res.result.items);
+  }
+  cards.sort((a, b) => rarity(b.card) - rarity(a.card));
+  return { club: { ...next, rewardChosen: { ...next.rewardChosen, [career.id]: `packs:${tier.id}` } }, result: { cards, items }, tier };
 }
 
 /** Coins für eine Trainersaison: Grundbetrag, Platzierung über den Erwartungen und Titel. */
@@ -644,22 +641,23 @@ export function refundOldUpgrades(club: ClubState): ClubState {
 }
 
 /**
- * Karriere-Ikonen gibt es nicht mehr: früher geschenkte Ikonen (own-icon-…) einmalig aus der Sammlung,
- * der Aufstellung und der Evolution entfernen. Wer damals die Ikone gewählt hat, darf jetzt eine
- * Auszeichnungs-Karte wählen – falls die Karriere eine Auszeichnung hatte.
+ * Eigene Karriere-Karten gibt es nicht mehr: alle bisher vergebenen (Ikonen, Auszeichnungs-Karten, alte
+ * Saison-Sonderkarten – IDs mit „own-“) einmalig entfernen. Die Karrieren, deren Karte entfernt wurde,
+ * bekommen dafür ihre Packs (rewardChosen wird freigegeben).
  */
-export function removeCareerIcons(club: ClubState): ClubState {
-  if (club.careerIconsRemoved) return club;
-  const isOwnIcon = (id: string | null | undefined) => !!id && id.startsWith('own-icon-');
-  const rewardChosen = Object.fromEntries(Object.entries(club.rewardChosen ?? {}).filter(([, id]) => !isOwnIcon(id)));
-  const evo = club.evo?.active && isOwnIcon(club.evo.active.card) ? { ...club.evo, active: undefined } : club.evo;
+export function removeOwnCareerCards(club: ClubState): ClubState {
+  if (club.ownCardsRemoved) return club;
+  const isOwn = (id: string | null | undefined) => !!id && id.startsWith('own-');
+  const rewardChosen = Object.fromEntries(Object.entries(club.rewardChosen ?? {}).filter(([, id]) => !isOwn(id)));
+  const evo = club.evo?.active && isOwn(club.evo.active.card) ? { ...club.evo, active: undefined } : club.evo;
   return {
     ...club,
-    specials: club.specials.filter((c) => !isOwnIcon(c.id)),
-    squad: club.squad.map((id) => (isOwnIcon(id) ? null : id)),
+    specials: club.specials.filter((c) => !isOwn(c.id)),
+    squad: club.squad.map((id) => (isOwn(id) ? null : id)),
     rewardChosen,
     evo,
     careerIconsRemoved: true,
+    ownCardsRemoved: true,
   };
 }
 

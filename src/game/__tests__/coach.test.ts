@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { getLeague, slugify } from '../../data/leagues';
 import { createCareer, retire } from '../career';
-import { careerIcon, careerRewardOptions, chooseCareerReward, creditCareer, freshClub, rewardPending } from '../club';
+import { CAREER_REWARD_TIERS, careerRewardTier, claimCareerReward, creditCareer, freshClub, rewardPending } from '../club';
 import { boardTrust, chooseCoachClub, endCoaching, playCoachHalf, playCoachSeason, setTactic, signTarget, startCoaching, winterAction } from '../coach';
 import { generateOffers } from '../offers';
 import { clubLeagueId } from '../player';
@@ -50,33 +50,27 @@ it('Heimkehr und Abenteuer erscheinen als eigene Möglichkeiten', () => {
   if (home) expect(applyChoice(c, home).homecoming).toBe(true);
 });
 
-it('Karriereende: keine Ikone mehr – nur eine Auszeichnungs-Karte, wenn es eine Auszeichnung gab', () => {
+it('Karriereende: keine eigene Karte mehr – Packs je nach Bilanz, nur einmal', () => {
   const active = simulateToBreak(simulateToBreak(createCareer({ name: 'Aktiv', nation: 'Deutschland', position: 'ST', age: 24, ovr: 86, potential: 90, clubId: slugify('FC Bayern München') })));
-  const a = creditCareer(freshClub(), { ...active, specialCards: [{ type: 'tots', season: active.history[0].season, name: 'Aktiv', position: 'ST', nation: 'Deutschland', clubId: active.history[0].clubId, ovr: 90 }] });
+  const a = creditCareer(freshClub(), active);
   expect(a.club.specials).toHaveLength(0);
-  expect(a.icon).toBeNull();
   expect(rewardPending(a.club, active)).toBe(false);
-  // Ohne Auszeichnung: keine Karte, keine Wahl
   const done = retire(active);
-  const plain = structuredClone(done);
-  for (const r of plain.history) { r.awards = []; r.trophies = r.trophies.filter((t) => t !== 'Champions League' && !t.startsWith('Weltmeisterschaft')); }
-  expect(careerRewardOptions(plain)).toHaveLength(0);
-  expect(rewardPending(creditCareer(a.club, plain).club, plain)).toBe(false);
-  // Mit Auszeichnungen: nur Auszeichnungs-Karten, keine Ikone
-  const withAwards = structuredClone(plain);
-  withAwards.history[0].awards.push('Ballon d’Or');
-  withAwards.history[0].trophies.push('Champions League');
-  const b = creditCareer(a.club, withAwards);
-  expect(rewardPending(b.club, withAwards)).toBe(true);
-  const awardOpts = careerRewardOptions(withAwards);
-  expect(awardOpts.map((o) => o.variant).sort()).toEqual(['ballondor', 'ucl']);
-  expect(awardOpts.some((o) => o.variant === 'icon' || o.id === careerIcon(withAwards).id)).toBe(false);
-  const c = chooseCareerReward(b.club, withAwards, awardOpts[0].id);
-  expect(c.specials).toHaveLength(1);
-  expect(c.specials[0].variant).toBe('ballondor');
-  expect(rewardPending(c, withAwards)).toBe(false);
-  // Zweite Wahl ist nicht möglich
-  expect(chooseCareerReward(c, withAwards, awardOpts[1].id).specials).toHaveLength(1);
+  const b = creditCareer(a.club, done);
+  expect(rewardPending(b.club, done)).toBe(true);
+  const { tier, score } = careerRewardTier(done);
+  expect(score).toBeGreaterThan(0);
+  const res = claimCareerReward(b.club, done)!;
+  expect(res.tier.id).toBe(tier.id);
+  // Karten aus den Packs, keine eigene Karte
+  expect(res.result.cards.length).toBeGreaterThan(0);
+  expect(res.club.specials.some((c) => c.id.startsWith('own-'))).toBe(false);
+  expect(rewardPending(res.club, done)).toBe(false);
+  expect(claimCareerReward(res.club, done)).toBeNull();
+  // Bessere Karriere → stärkere Stufe
+  const great = structuredClone(done);
+  for (let i = 0; i < 8; i++) great.history.push({ ...structuredClone(done.history[0]), awards: ['Ballon d’Or', 'Spieler der Saison'], trophies: ['Meister', 'Champions League'], ovrEnd: 94, goals: 40 });
+  expect(CAREER_REWARD_TIERS.findIndex((t) => t.id === careerRewardTier(great).tier.id)).toBeGreaterThan(CAREER_REWARD_TIERS.findIndex((t) => t.id === tier.id));
 });
 
 it('Trainerkarriere: Verein wählen, Saisons spielen, Bilanz und Ruhestand', () => {

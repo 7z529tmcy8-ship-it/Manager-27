@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-26-karriere-packs',
+    date: '26.10.2026',
+    title: 'Karriereende: Packs statt eigener Karte',
+    items: [
+      'Am Ende einer Karriere gibt es keine eigene Karte mehr – stattdessen Packs. Je besser deine Bilanz (Titel, Auszeichnungen, Bestwertung, Spiele, Tore, Legendenstatus), desto stärker:',
+      'Bronze: Gold-Pack · Silber: Premium + Gold · Gold: Mega-Gold + Weltstar · Weltklasse: Ultimate + Ikonen · Legende: GOAT + Ultimate + Ikonen.',
+      'Alle bisher vergebenen eigenen Karriere-Karten (Ikonen, Auszeichnungs- und Saison-Karten) wurden entfernt. Für deine schon beendeten Karrieren kannst du die Packs jetzt im Hauptmenü abholen.',
+    ],
+  },
+  {
     id: '2026-10-26-toast-fix',
     date: '26.10.2026',
     title: 'Fehler behoben: gelbe Fläche',
