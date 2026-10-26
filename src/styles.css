@@ -3441,7 +3441,6 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .app.has-nav { padding-bottom: calc(var(--nav-h, 62px) + env(safe-area-inset-bottom) + 16px); }
 .app.has-nav .rotate-hint { bottom: calc(var(--nav-h, 62px) + env(safe-area-inset-bottom) + 10px) !important; }
 .app.has-nav .lt-bar { bottom: calc(var(--nav-h, 62px) + env(safe-area-inset-bottom)); }
-.app.has-nav ~ .coin-toast, .app.has-nav .coin-toast { bottom: calc(var(--nav-h, 62px) + env(safe-area-inset-bottom) + 14px); }
 
 /* Querformat-Handy und große Bildschirme: Navigation als Leiste links */
 @media (orientation: landscape) and (max-height: 520px), (min-width: 1000px) {
@@ -3453,7 +3452,6 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
   .navbar-item.on::before { top: 22%; bottom: 22%; left: -4px; right: auto; width: 3px; height: auto; }
   .app.has-nav { padding-bottom: 24px; padding-left: calc(var(--rail-w, 76px) + env(safe-area-inset-left) + 16px); }
   .app.has-nav .lt-bar { bottom: 0; left: calc(var(--rail-w, 76px) + env(safe-area-inset-left)); }
-  .app.has-nav .coin-toast { bottom: max(16px, env(safe-area-inset-bottom)); }
   .app.has-nav :is(.hub, main) { padding-left: 0; }
 }
 @media (min-width: 1000px) {

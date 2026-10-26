@@ -19,6 +19,14 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-26-toast-fix',
+    date: '26.10.2026',
+    title: 'Fehler behoben: gelbe Fläche',
+    items: [
+      'Meldungen wie „Deine Karriere-Karte liegt in der Sammlung!“ füllten am Handy fast den ganzen Bildschirm als gelbe Fläche. Jetzt erscheinen sie wieder als kleine Leiste oben.',
+    ],
+  },
+  {
     id: '2026-10-26-ikonen-entfernt',
     date: '26.10.2026',
     title: 'Karriere-Ikonen entfernt',
