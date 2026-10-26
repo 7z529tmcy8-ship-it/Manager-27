@@ -23,7 +23,7 @@ const GigEvent = lazy(() => import('./components/GigEvent'));
 const SeasonPass = lazy(() => import('./components/SeasonPass'));
 import UpdateBanner, { unseenUpdates } from './components/UpdateBanner';
 import { UPDATES, type UpdateNote } from './data/updates';
-import { creditCareer, rewardPending } from './game/club';
+import { creditCareer, removeOwnCareerCards, rewardPending } from './game/club';
 import CareerReward from './components/CareerReward';
 import { saveCareer } from './game/storage';
 import type { Career } from './game/types';
@@ -57,6 +57,12 @@ export default function App() {
     const t = setTimeout(() => setToast(null), 3500);
     return () => clearTimeout(t);
   }, [toast]);
+
+  // Selbst erstellte Spieler bekommen keine Karriere-Karten mehr: deren alte Karten einmalig entfernen.
+  useEffect(() => {
+    const c = getClubState();
+    if (!c.ownCardsRemoved) setClubState(removeOwnCareerCards(c, listCareers()));
+  }, []);
 
   // Coin-Verbesserungen gibt es nicht mehr: einmalige Erstattung anzeigen und dauerhaft speichern.
   useEffect(() => {
@@ -146,7 +152,7 @@ export default function App() {
       {news.length > 0 && <UpdateBanner notes={news} onClose={() => setNews([])} />}
       {saveFailed && <SaveWarning onRetry={() => { if (screen.name === 'game') saveCareer(screen.career); }} />}
       {toast && <div className="coin-toast" role="status"><Icon name="coin" size={16} className="coin-ic" />{noEmoji(toast)}</div>}
-      {reward && <CareerReward career={reward} onDone={() => { setToast('Die Karten aus deinen Karriere-Packs liegen in der Sammlung!'); setReward(null); }} />}
+      {reward && <CareerReward career={reward} onDone={() => { setToast('Deine Karriere-Belohnung liegt in der Sammlung!'); setReward(null); }} />}
       <Suspense fallback={<ScreenSkeleton />}>
         <div className="screen-in" key={screen.name === 'game' ? 'game' : screen.name}>
       {screen.name === 'home' && (

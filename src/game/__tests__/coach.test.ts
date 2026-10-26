@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { getLeague, slugify } from '../../data/leagues';
 import { createCareer, retire } from '../career';
-import { CAREER_REWARD_TIERS, careerRewardTier, claimCareerReward, creditCareer, freshClub, rewardPending } from '../club';
+import { CAREER_REWARD_TIERS, careerRewardKind, careerRewardOptions, careerRewardTier, chooseCareerReward, claimCareerReward, creditCareer, freshClub, rewardPending } from '../club';
 import { boardTrust, chooseCoachClub, endCoaching, playCoachHalf, playCoachSeason, setTactic, signTarget, startCoaching, winterAction } from '../coach';
 import { generateOffers } from '../offers';
 import { clubLeagueId } from '../player';
@@ -50,19 +50,21 @@ it('Heimkehr und Abenteuer erscheinen als eigene Möglichkeiten', () => {
   if (home) expect(applyChoice(c, home).homecoming).toBe(true);
 });
 
-it('Karriereende: keine eigene Karte mehr – Packs je nach Bilanz, nur einmal', () => {
+it('Karriereende: selbst erstellter Spieler bekommt Packs je nach Bilanz, nur einmal', () => {
   const active = simulateToBreak(simulateToBreak(createCareer({ name: 'Aktiv', nation: 'Deutschland', position: 'ST', age: 24, ovr: 86, potential: 90, clubId: slugify('FC Bayern München') })));
   const a = creditCareer(freshClub(), active);
   expect(a.club.specials).toHaveLength(0);
   expect(rewardPending(a.club, active)).toBe(false);
-  const done = retire(active);
+  const done = { ...retire(active), player: { ...retire(active).player, origin: 'academy' as const } };
+  expect(careerRewardKind(done)).toBe('packs');
   const b = creditCareer(a.club, done);
   expect(rewardPending(b.club, done)).toBe(true);
   const { tier, score } = careerRewardTier(done);
   expect(score).toBeGreaterThan(0);
+  // Keine Karte wählbar
+  expect(chooseCareerReward(b.club, done, 'egal')).toBe(b.club);
   const res = claimCareerReward(b.club, done)!;
   expect(res.tier.id).toBe(tier.id);
-  // Karten aus den Packs, keine eigene Karte
   expect(res.result.cards.length).toBeGreaterThan(0);
   expect(res.club.specials.some((c) => c.id.startsWith('own-'))).toBe(false);
   expect(rewardPending(res.club, done)).toBe(false);
@@ -71,6 +73,23 @@ it('Karriereende: keine eigene Karte mehr – Packs je nach Bilanz, nur einmal',
   const great = structuredClone(done);
   for (let i = 0; i < 8; i++) great.history.push({ ...structuredClone(done.history[0]), awards: ['Ballon d’Or', 'Spieler der Saison'], trophies: ['Meister', 'Champions League'], ovrEnd: 94, goals: 40 });
   expect(CAREER_REWARD_TIERS.findIndex((t) => t.id === careerRewardTier(great).tier.id)).toBeGreaterThan(CAREER_REWARD_TIERS.findIndex((t) => t.id === tier.id));
+});
+
+it('Karriereende: echter Spieler mit Auszeichnung wählt eine Auszeichnungs-Karte, ohne Auszeichnung gibt es Packs', () => {
+  const real = retire(simulateToBreak(simulateToBreak(createCareer({ name: 'Erling Haaland', nation: 'Norwegen', position: 'ST', age: 25, ovr: 91, potential: 92, clubId: slugify('Manchester City') }))));
+  const plain = structuredClone(real);
+  for (const r of plain.history) { r.awards = []; r.trophies = r.trophies.filter((t) => t !== 'Champions League' && !t.startsWith('Weltmeisterschaft')); }
+  expect(careerRewardKind(plain)).toBe('packs');
+  const awarded = structuredClone(plain);
+  awarded.history[0].awards.push('Ballon d’Or');
+  expect(careerRewardKind(awarded)).toBe('card');
+  const club = creditCareer(freshClub(), awarded).club;
+  expect(claimCareerReward(club, awarded)).toBeNull();
+  const opts = careerRewardOptions(awarded);
+  expect(opts.map((o) => o.variant)).toEqual(['ballondor']);
+  const c = chooseCareerReward(club, awarded, opts[0].id);
+  expect(c.specials.map((x) => x.variant)).toEqual(['ballondor']);
+  expect(rewardPending(c, awarded)).toBe(false);
 });
 
 it('Trainerkarriere: Verein wählen, Saisons spielen, Bilanz und Ruhestand', () => {

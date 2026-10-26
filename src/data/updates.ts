@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-26-belohnung-korrigiert',
+    date: '26.10.2026',
+    title: 'Korrektur: Karriere-Belohnung',
+    items: [
+      'Packs statt Karte gibt es nur für selbst erstellte Spieler.',
+      'Spielst du mit einem echten Spieler, einer Ikone oder einem Kult-Helden (z. B. Haaland), bekommst du am Ende wieder deine Auszeichnungs-Karte – Ballon d’Or, Weltmeister, Champions League, Spieler der Saison, Torschützenkönig oder Golden Boy. Ohne Auszeichnung gibt es Packs.',
+      'Wurde die Karte einer solchen Karriere beim letzten Update entfernt, kannst du sie im Hauptmenü neu wählen.',
+    ],
+  },
+  {
     id: '2026-10-26-u-nationalteams',
     date: '26.10.2026',
     title: 'U17, U19 und U21',
@@ -37,7 +47,7 @@ export const UPDATES: UpdateNote[] = [
     items: [
       'Am Ende einer Karriere gibt es keine eigene Karte mehr – stattdessen Packs. Je besser deine Bilanz (Titel, Auszeichnungen, Bestwertung, Spiele, Tore, Legendenstatus), desto stärker:',
       'Bronze: Gold-Pack · Silber: Premium + Gold · Gold: Mega-Gold + Weltstar · Weltklasse: Ultimate + Ikonen · Legende: GOAT + Ultimate + Ikonen.',
-      'Alle bisher vergebenen eigenen Karriere-Karten (Ikonen, Auszeichnungs- und Saison-Karten) wurden entfernt. Für deine schon beendeten Karrieren kannst du die Packs jetzt im Hauptmenü abholen.',
+      'Die bisher vergebenen Karten selbst erstellter Spieler wurden entfernt. Für diese Karrieren kannst du die Packs jetzt im Hauptmenü abholen.',
     ],
   },
   {

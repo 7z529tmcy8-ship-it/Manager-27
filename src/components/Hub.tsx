@@ -84,7 +84,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
         {pendingReward && (
           <button className="reward-call" onClick={() => onReward(pendingReward)}>
             <Icon name="flag" size={20} />
-            Karriere von {pendingReward.player.name} beendet – jetzt deine Belohnungs-Packs öffnen ›
+            Karriere von {pendingReward.player.name} beendet – jetzt deine Belohnung abholen ›
           </button>
         )}
         {tipWon && (
