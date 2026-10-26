@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-26-karriereende',
+    date: '26.10.2026',
+    title: 'Karriereende: Karten nur noch für echte Erfolge',
+    items: [
+      'Am Ende einer Karriere gibt es keine Ikone mehr geschenkt.',
+      'Eine Karte bekommst du nur, wenn du sie dir verdient hast: Ballon d’Or, Weltmeister, Champions League, Spieler der Saison, Torschützenkönig oder Golden Boy. Bei mehreren wählst du eine.',
+      'Bereits erhaltene Ikonen aus alten Karrieren bleiben in deiner Sammlung.',
+    ],
+  },
+  {
     id: '2026-10-24-sbc-unvergessen',
     date: '24.10.2026',
     title: 'SBC: Automatisch füllen und fünf Unvergessen-Karten',

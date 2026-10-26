@@ -431,7 +431,7 @@ export function seasonCoins(r: SeasonRecord, specials: number): number {
 /**
  * Noch nicht ausgezahlte Saisons (als Spieler und als Trainer) gutschreiben.
  * Sonderkarten einzelner Saisons gibt es nicht mehr – nach dem Karriereende wählt man genau eine eigene Karte
- * (Ikone oder eine Auszeichnungs-Karte, siehe careerRewardOptions). Das passiert nicht hier, sondern über chooseCareerReward.
+ * (eine Auszeichnungs-Karte, falls man eine Auszeichnung gewonnen hat, siehe careerRewardOptions). Das passiert nicht hier, sondern über chooseCareerReward.
  */
 export function creditCareer(
   club: ClubState,
@@ -472,16 +472,17 @@ export function creditCareer(
 /** Wartet diese beendete Karriere noch auf die Wahl der Belohnungskarte? (Alte Spielstände mit Ikone zählen als erledigt.) */
 export function rewardPending(club: ClubState, career: Career): boolean {
   return career.phase === 'retired' && career.history.length > 0 && !club.rewardChosen?.[career.id] &&
-    !club.specials.some((c) => c.id === iconId(career));
+    !club.specials.some((c) => c.id === iconId(career)) && careerRewardOptions(career).length > 0;
 }
 
 /**
- * Wahl am Karriereende: immer die eigene Ikone, dazu je eine Karte für jede große Auszeichnung der Karriere.
- * Grundlage ist die beste Saison mit dieser Auszeichnung, mehrfache Gewinne geben etwas mehr.
+ * Wahl am Karriereende: je eine Karte für jede große Auszeichnung der Karriere (Ballon d’Or, Weltmeister,
+ * Champions League, Spieler der Saison, Torschützenkönig, Golden Boy). Ohne Auszeichnung gibt es keine Karte –
+ * eine Ikone bekommt man nicht mehr geschenkt. Grundlage ist die beste Saison mit dieser Auszeichnung.
  */
 export function careerRewardOptions(career: Career): CollectCard[] {
   const p = career.player;
-  const opts: CollectCard[] = [careerIcon(career)];
+  const opts: CollectCard[] = [];
   const add = (variant: AwardVariant, test: (r: SeasonRecord) => boolean, bonus: number, one: (season: string) => string, many: (n: number) => string) => {
     const hits = career.history.filter(test);
     if (!hits.length) return;

@@ -4,7 +4,7 @@ import type { Career } from '../game/types';
 import { getClubState, setClubState } from '../clubStore';
 import UtCard from './UtCard';
 
-/** Karriereende: eine Karte wählen – die eigene Ikone oder eine Auszeichnungs-Karte. Die Wahl ist endgültig. */
+/** Karriereende: eine Auszeichnungs-Karte wählen (nur wenn es eine Auszeichnung gab). Die Wahl ist endgültig. */
 export default function CareerReward({ career, onDone }: { career: Career; onDone: () => void }) {
   const options = careerRewardOptions(career);
   const [pick, setPick] = useState(options[0].id);
@@ -20,8 +20,8 @@ export default function CareerReward({ career, onDone }: { career: Career; onDon
         <h2 id="reward-title">Wähle deine Karte</h2>
         <p className="muted">
           {options.length > 1
-            ? 'Nimm deine Ikone – oder eine Karte für einen der größten Momente deiner Karriere. Du bekommst genau eine.'
-            : 'Für eine Auszeichnungs-Karte (Ballon d’Or, Spieler des Jahres, Torschützenkönig …) hat es diesmal nicht gereicht – deine Ikone wartet.'}
+            ? 'Du hast dir eine Auszeichnungs-Karte verdient. Wähle den größten Moment deiner Karriere – du bekommst genau eine.'
+            : 'Du hast dir eine Auszeichnungs-Karte verdient – sie kommt in deine Sammlung.'}
         </p>
         <div className="reward-options">
           {options.map((o) => (
@@ -31,7 +31,7 @@ export default function CareerReward({ career, onDone }: { career: Career; onDon
           ))}
         </div>
         {options.length > 1 && <p className="reward-hint">← wischen · {options.length} Karten zur Wahl →</p>}
-        <button className="btn primary big" onClick={confirm}>{chosen.label ?? 'Ikone'} ({chosen.ovr}) nehmen</button>
+        <button className="btn primary big" onClick={confirm}>{chosen.label} ({chosen.ovr}) nehmen</button>
       </div>
     </div>
   );

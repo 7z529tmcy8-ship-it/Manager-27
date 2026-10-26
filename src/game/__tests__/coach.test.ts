@@ -50,32 +50,33 @@ it('Heimkehr und Abenteuer erscheinen als eigene Möglichkeiten', () => {
   if (home) expect(applyChoice(c, home).homecoming).toBe(true);
 });
 
-it('Karriereende: genau eine Karte – Ikone oder Auszeichnung –, keine Saison-Sonderkarten', () => {
+it('Karriereende: keine Ikone mehr – nur eine Auszeichnungs-Karte, wenn es eine Auszeichnung gab', () => {
   const active = simulateToBreak(simulateToBreak(createCareer({ name: 'Aktiv', nation: 'Deutschland', position: 'ST', age: 24, ovr: 86, potential: 90, clubId: slugify('FC Bayern München') })));
   const a = creditCareer(freshClub(), { ...active, specialCards: [{ type: 'tots', season: active.history[0].season, name: 'Aktiv', position: 'ST', nation: 'Deutschland', clubId: active.history[0].clubId, ovr: 90 }] });
   expect(a.club.specials).toHaveLength(0);
   expect(a.icon).toBeNull();
   expect(rewardPending(a.club, active)).toBe(false);
+  // Ohne Auszeichnung: keine Karte, keine Wahl
   const done = retire(active);
-  const b = creditCareer(a.club, done);
-  expect(b.club.specials).toHaveLength(0);
-  expect(rewardPending(b.club, done)).toBe(true);
-  const opts = careerRewardOptions(done);
-  expect(opts[0].id).toBe(careerIcon(done).id);
-  expect(opts[0].ovr).toBeGreaterThanOrEqual(Math.max(...done.history.map((r) => r.ovrEnd)));
-  // Auszeichnungen der Karriere werden zu wählbaren Karten
-  const withAwards = structuredClone(done);
+  const plain = structuredClone(done);
+  for (const r of plain.history) { r.awards = []; r.trophies = r.trophies.filter((t) => t !== 'Champions League' && !t.startsWith('Weltmeisterschaft')); }
+  expect(careerRewardOptions(plain)).toHaveLength(0);
+  expect(rewardPending(creditCareer(a.club, plain).club, plain)).toBe(false);
+  // Mit Auszeichnungen: nur Auszeichnungs-Karten, keine Ikone
+  const withAwards = structuredClone(plain);
   withAwards.history[0].awards.push('Ballon d’Or');
   withAwards.history[0].trophies.push('Champions League');
+  const b = creditCareer(a.club, withAwards);
+  expect(rewardPending(b.club, withAwards)).toBe(true);
   const awardOpts = careerRewardOptions(withAwards);
-  expect(awardOpts.map((o) => o.variant)).toEqual(expect.arrayContaining(['icon', 'ballondor', 'ucl']));
-  expect(awardOpts[0].variant).toBe('icon');
-  const c = chooseCareerReward(b.club, withAwards, awardOpts[1].id);
+  expect(awardOpts.map((o) => o.variant).sort()).toEqual(['ballondor', 'ucl']);
+  expect(awardOpts.some((o) => o.variant === 'icon' || o.id === careerIcon(withAwards).id)).toBe(false);
+  const c = chooseCareerReward(b.club, withAwards, awardOpts[0].id);
   expect(c.specials).toHaveLength(1);
   expect(c.specials[0].variant).toBe('ballondor');
   expect(rewardPending(c, withAwards)).toBe(false);
   // Zweite Wahl ist nicht möglich
-  expect(chooseCareerReward(c, withAwards, awardOpts[0].id).specials).toHaveLength(1);
+  expect(chooseCareerReward(c, withAwards, awardOpts[1].id).specials).toHaveLength(1);
 });
 
 it('Trainerkarriere: Verein wählen, Saisons spielen, Bilanz und Ruhestand', () => {
