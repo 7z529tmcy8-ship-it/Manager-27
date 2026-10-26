@@ -148,12 +148,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           onDone={() => onChange(finishLiveFinal(career))}
         />
       )}
-      <div className="cs-side">
-      <div className="cs-nav">
-        <button className="cs-link" onClick={onExit}>‹ Menü</button>
-        <span className="cs-nav-name">{p.name}</span>
-        <LevelChip career={career} onOpen={() => setTree(true)} />
-      </div>
+      {/* Vollbild-Ebenen außerhalb der Spalten, sonst liegen sie im Querformat unter der rechten Spalte */}
       {tree && p.skills && <SkillTree career={career} onChange={onChange} onClose={() => setTree(false)} />}
       {panel === 'family' && <FamilyPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {panel === 'invest' && <InvestPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
@@ -163,6 +158,12 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       ) : (
         !panel && <LifePopups career={career} onChange={onChange} onFamily={() => setPanel('family')} />
       )}
+      <div className="cs-side">
+      <div className="cs-nav">
+        <button className="cs-link" onClick={onExit}>‹ Menü</button>
+        <span className="cs-nav-name">{p.name}</span>
+        <LevelChip career={career} onOpen={() => setTree(true)} />
+      </div>
 
       {/* Kopf: Wertung, Nation, Position, Alter, Verein, Marktwert */}
       <header className="cs-head">
