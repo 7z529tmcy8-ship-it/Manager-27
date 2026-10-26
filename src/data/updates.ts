@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-26-tots-ablage',
+    date: '26.10.2026',
+    title: 'Team der Saison und Pack-Ablage',
+    items: [
+      'Karriere: Mit einer konstant starken Saison (Ø-Note ab 7,25, mindestens 22 Ligaspiele) wirst du ins Team der Saison deiner Liga gewählt – leichter als Spieler der Saison, aber eine echte Auszeichnung. Bei echten Spielern gibt es dafür am Ende auch eine Karte zur Wahl.',
+      'Pack-Ablage: Packs aus dem Saison-Pass, aus Pack-Tauschen und vom Karriereende musst du nicht mehr sofort öffnen. Wähle „In die Ablage“ – sie warten im Store unter „Deine Packs“.',
+      'In der Ablage öffnest du Packs einzeln oder alle auf einmal. Die Zahl am Store-Symbol zeigt, wie viele noch warten.',
+    ],
+  },
+  {
     id: '2026-10-26-breno-friede-jindaoui',
     date: '26.10.2026',
     title: 'Neu: Breno, Sidney Friede und Nader Jindaoui',

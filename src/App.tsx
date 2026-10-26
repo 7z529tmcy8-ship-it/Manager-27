@@ -152,7 +152,7 @@ export default function App() {
       {news.length > 0 && <UpdateBanner notes={news} onClose={() => setNews([])} />}
       {saveFailed && <SaveWarning onRetry={() => { if (screen.name === 'game') saveCareer(screen.career); }} />}
       {toast && <div className="coin-toast" role="status"><Icon name="coin" size={16} className="coin-ic" />{noEmoji(toast)}</div>}
-      {reward && <CareerReward career={reward} onDone={() => { setToast('Deine Karriere-Belohnung liegt in der Sammlung!'); setReward(null); }} />}
+      {reward && <CareerReward career={reward} onDone={(msg) => { setToast(msg ?? 'Deine Karriere-Belohnung liegt in der Sammlung!'); setReward(null); }} />}
       <Suspense fallback={<ScreenSkeleton />}>
         <div className="screen-in" key={screen.name === 'game' ? 'game' : screen.name}>
       {screen.name === 'home' && (

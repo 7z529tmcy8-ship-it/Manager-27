@@ -62,6 +62,8 @@ export interface ClubState {
   careerIconsRemoved?: boolean;
   /** Alle eigenen Karriere-Karten wurden entfernt (einmalig). */
   ownCardsRemoved?: boolean;
+  /** Pack-Ablage: gewonnene Packs, die noch nicht geöffnet wurden. */
+  storedPacks?: StoredPack[];
   /** Erstattete Coins, noch nicht angezeigt. */
   refundNotice?: number;
   /** GIG-Event: Tag des letzten Gratis-Drehs (JJJJ-MM-TT) und Anzahl Drehs. */
@@ -498,7 +500,7 @@ export function careerRewardKind(career: Career): 'card' | 'packs' {
 export function careerRewardOptions(career: Career): CollectCard[] {
   const p = career.player;
   const opts: CollectCard[] = [];
-  const add = (variant: AwardVariant, test: (r: SeasonRecord) => boolean, bonus: number, one: (season: string) => string, many: (n: number) => string) => {
+  const add = (variant: CardVariant, test: (r: SeasonRecord) => boolean, bonus: number, one: (season: string) => string, many: (n: number) => string) => {
     const hits = career.history.filter(test);
     if (!hits.length) return;
     const best = [...hits].sort((a, b) => b.ovrEnd - a.ovrEnd)[0];
@@ -520,6 +522,7 @@ export function careerRewardOptions(career: Career): CollectCard[] {
   add('ucl', (r) => r.trophies.includes('Champions League'), 2, (s) => `Champions League ${s}`, (n) => `${n}× Champions League`);
   add('poty', (r) => r.awards.some((a) => a.startsWith('Spieler der Saison')), 2, (s) => `Spieler des Jahres ${s}`, (n) => `${n}× Spieler des Jahres`);
   add('topscorer', (r) => r.awards.some((a) => a.startsWith('Torschützenkönig')), 2, (s) => `Torschützenkönig ${s}`, (n) => `${n}× Torschützenkönig`);
+  add('tots', (r) => r.awards.some((a) => a.startsWith('Team der Saison')), 1, (s) => `Team der Saison ${s}`, (n) => `${n}× Team der Saison`);
   add('goldenboy', (r) => r.awards.includes('Golden Boy'), 5, (s) => `Golden Boy ${s}`, () => 'Golden Boy');
   return opts;
 }
@@ -553,9 +556,13 @@ export function careerRewardTier(career: Career): { tier: CareerRewardTier; scor
 }
 
 /** Belohnung abholen: alle Packs der Stufe öffnen (gratis), Karten landen in der Sammlung. Nur einmal pro Karriere. */
-export function claimCareerReward(club: ClubState, career: Career, rand = Math.random): { club: ClubState; result: PackResult; tier: CareerRewardTier } | null {
+export function claimCareerReward(club: ClubState, career: Career, rand = Math.random, store = false): { club: ClubState; result: PackResult; tier: CareerRewardTier } | null {
   if (!rewardPending(club, career) || careerRewardKind(career) !== 'packs') return null;
   const { tier } = careerRewardTier(career);
+  if (store) {
+    const stored = storePacks(club, tier.packs, `Karriereende ${career.player.name}`);
+    return { club: { ...stored, rewardChosen: { ...stored.rewardChosen, [career.id]: `packs:${tier.id}` } }, result: { cards: [], items: [] }, tier };
+  }
   let next = club;
   const cards: PackResult['cards'] = [];
   const items: PackResult['items'] = [];
@@ -718,6 +725,26 @@ export function removeOwnCareerCards(club: ClubState, careers: Career[]): ClubSt
     evo,
     ownCardsRemoved: true,
   };
+}
+
+// ---------- Pack-Ablage ----------
+// Gewonnene Packs (Saison-Pass, Karriereende, Pack-Tausche) muss man nicht sofort öffnen – sie warten in der Ablage im Store.
+export interface StoredPack { id: string; pack: string; from: string; at: number }
+
+let storeSeq = 0;
+export function storePacks(club: ClubState, packIds: string[], from: string, now = Date.now()): ClubState {
+  const add = packIds.filter((id) => PACKS.some((p) => p.id === id)).map((pack) => ({ id: `sp-${now.toString(36)}-${(storeSeq++).toString(36)}`, pack, from, at: now }));
+  return add.length ? { ...club, storedPacks: [...(club.storedPacks ?? []), ...add] } : club;
+}
+
+/** Ein Pack aus der Ablage öffnen (gratis). */
+export function openStoredPack(club: ClubState, id: string, rand = Math.random): { club: ClubState; result: PackResult; name: string } | null {
+  const entry = (club.storedPacks ?? []).find((p) => p.id === id);
+  if (!entry) return null;
+  const rest = { ...club, storedPacks: club.storedPacks!.filter((p) => p.id !== id) };
+  const res = openPack(rest, entry.pack, rand, true);
+  if (!res) return null;
+  return { club: res.club, result: res.result, name: PACKS.find((p) => p.id === entry.pack)!.name };
 }
 
 // ---------- Mega Super XXL Pack (einmalig, gratis) ----------

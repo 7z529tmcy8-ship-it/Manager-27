@@ -3790,3 +3790,22 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .cr-tiers li.done { color: var(--text-2); background: rgba(163, 92, 255, .12); }
 .cr-tiers li.on { color: #fff; background: linear-gradient(135deg, #6d28ff, #a35cff); box-shadow: 0 0 12px rgba(163, 92, 255, .5); }
 .cs-row.cs-nation.youth { opacity: .85; }
+
+/* Pack-Ablage */
+.pack-prompt-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+.pack-prompt-actions .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.pack-prompt h2 { font-family: var(--display, inherit); text-transform: uppercase; letter-spacing: .04em; }
+.stored-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.stored-pack { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 16px; background: var(--panel, #0f1226); border: 1px solid rgba(163, 92, 255, .35); }
+.stored-pack .pack-art.mini { width: 44px; height: 58px; flex: none; border-radius: 8px; display: grid; place-items: center; font-size: .5625rem; font-weight: 800; text-transform: uppercase; text-align: center; line-height: 1.1;
+  background: linear-gradient(160deg, #2a2f5c, #0c0e22); color: #ffd76a; box-shadow: inset 0 0 0 1px rgba(255, 215, 106, .4); }
+.stored-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.stored-text small { color: var(--muted); font-size: .75rem; }
+.sg-stored .store-group-head .ic { color: #ffd76a; }
+.pack-prompt-actions { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.pack-prompt-actions .btn { min-width: 0; padding-left: 10px; padding-right: 10px; white-space: normal; line-height: 1.15; }
+.pack-prompt .cr-packs { gap: 6px; }
+.pack-prompt .cr-pack { padding: 7px 12px; font-size: .875rem; }
+.stored-pack .pack-art.mini { font-size: .5rem; padding: 2px; overflow: hidden; word-break: break-word; }
+.stored-all { width: 100%; margin-bottom: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.stored-list { max-height: 360px; overflow-y: auto; }

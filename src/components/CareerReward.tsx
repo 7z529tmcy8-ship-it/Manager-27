@@ -12,7 +12,7 @@ const fmt = (n: number) => n.toLocaleString('de-DE');
  * Karriereende. Echte Spieler, Ikonen und Kult-Helden mit Auszeichnung: eine Auszeichnungs-Karte wählen.
  * Selbst erstellte Spieler (und Karrieren ohne Auszeichnung): Packs je nach Bilanz.
  */
-export default function CareerReward({ career, onDone }: { career: Career; onDone: () => void }) {
+export default function CareerReward({ career, onDone }: { career: Career; onDone: (msg?: string) => void }) {
   return careerRewardKind(career) === 'card' ? <AwardChoice career={career} onDone={onDone} /> : <CareerPacks career={career} onDone={onDone} />;
 }
 
@@ -50,7 +50,7 @@ function AwardChoice({ career, onDone }: { career: Career; onDone: () => void })
 }
 
 /** Packs je nach Bilanz. */
-function CareerPacks({ career, onDone }: { career: Career; onDone: () => void }) {
+function CareerPacks({ career, onDone }: { career: Career; onDone: (msg?: string) => void }) {
   const { tier, score, next } = careerRewardTier(career);
   const [opened, setOpened] = useState<PackResult | null>(null);
   const packName = (id: string) => PACKS.find((p) => p.id === id)?.name ?? id;
@@ -60,6 +60,12 @@ function CareerPacks({ career, onDone }: { career: Career; onDone: () => void })
     if (!res) { onDone(); return; }
     setClubState(res.club);
     setOpened(res.result);
+  };
+
+  const store = () => {
+    const res = claimCareerReward(getClubState(), career, Math.random, true);
+    if (res) setClubState(res.club);
+    onDone(`${tier.packs.length} ${tier.packs.length === 1 ? 'Pack liegt' : 'Packs liegen'} in deiner Ablage im Store.`);
   };
 
   if (opened) return <PackOpening name={tier.name} result={opened} onClose={onDone} onCollection={onDone} />;
@@ -83,7 +89,10 @@ function CareerPacks({ career, onDone }: { career: Career; onDone: () => void })
           ))}
         </ol>
         {next && <p className="hint">Für die {next.name} hätten {fmt(next.min - score)} Punkte gefehlt. Punkte gibt es für Titel, Auszeichnungen, Bestwertung, Spiele, Tore und Legendenstatus.</p>}
-        <button className="btn primary big" onClick={open}><Icon name="pack" size={18} /> Packs öffnen</button>
+        <div className="pack-prompt-actions">
+          <button className="btn secondary big" onClick={store}><Icon name="folder" size={18} /> In die Ablage</button>
+          <button className="btn primary big" onClick={open}><Icon name="pack" size={18} /> Packs öffnen</button>
+        </div>
       </div>
     </div>
   );

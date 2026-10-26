@@ -1,6 +1,6 @@
 import { REAL_PLAYERS } from '../data/players';
 import { getClub } from '../data/leagues';
-import { openPack, PACKS, type ClubState, type CollectCard, type PackResult } from './club';
+import { openPack, PACKS, storePacks, type ClubState, type CollectCard, type PackResult } from './club';
 import { seasonId, seasonName } from './squad';
 
 // ---------- Saison-Pass ----------
@@ -137,15 +137,16 @@ export function passCard(season: string): CollectCard {
   };
 }
 
-export interface PassClaim { club: ClubState; coins?: number; pack?: { name: string; result: PackResult }; card?: CollectCard }
+export interface PassClaim { club: ClubState; coins?: number; pack?: { name: string; result: PackResult }; card?: CollectCard; /** In die Ablage gelegtes Pack. */ stored?: string }
 
 /** Belohnung einer Stufe abholen. */
-export function claimPassReward(club: ClubState, level: number, now = new Date(), rand = Math.random): PassClaim | null {
+export function claimPassReward(club: ClubState, level: number, now = new Date(), rand = Math.random, store = false): PassClaim | null {
   const p = passOf(club, now);
   const reward = PASS_REWARDS.find((r) => r.level === level);
   if (!reward || level > passLevel(p.xp) || p.claimed.includes(level)) return null;
   const pass = { ...p, claimed: [...p.claimed, level] };
   if (reward.kind === 'coins') return { club: { ...club, pass, coins: club.coins + reward.amount }, coins: reward.amount };
+  if (reward.kind === 'pack' && store) return { club: storePacks({ ...club, pass }, [reward.pack], `Saison-Pass Stufe ${level}`), stored: reward.pack };
   if (reward.kind === 'pack') {
     const res = openPack({ ...club, pass }, reward.pack, rand, true);
     if (!res) return null;
@@ -196,12 +197,13 @@ export function unclaimedProLevels(club: Pick<ClubState, 'pass'>, now = new Date
   return PRO_REWARDS.filter((r) => r.level <= passLevel(p.xp) && !(p.proClaimed ?? []).includes(r.level)).map((r) => r.level);
 }
 
-export function claimProReward(club: ClubState, level: number, now = new Date(), rand = Math.random): PassClaim | null {
+export function claimProReward(club: ClubState, level: number, now = new Date(), rand = Math.random, store = false): PassClaim | null {
   const p = passOf(club, now);
   const reward = PRO_REWARDS.find((r) => r.level === level);
   if (!p.pro || !reward || level > passLevel(p.xp) || (p.proClaimed ?? []).includes(level)) return null;
   const pass = { ...p, proClaimed: [...(p.proClaimed ?? []), level] };
   if (reward.kind === 'coins') return { club: { ...club, pass, coins: club.coins + reward.amount }, coins: reward.amount };
+  if (reward.kind === 'pack' && store) return { club: storePacks({ ...club, pass }, [reward.pack], `Pro-Pass Stufe ${level}`), stored: reward.pack };
   if (reward.kind === 'pack') {
     const res = openPack({ ...club, pass }, reward.pack, rand, true);
     if (!res) return null;

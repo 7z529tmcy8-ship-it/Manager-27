@@ -7,7 +7,7 @@ import {
 } from '../game/pass';
 import { PACKS } from '../game/club';
 import Icon from './Icon';
-import { PackOpening } from './Store';
+import { PackOpening, PackPrompt } from './Store';
 import UtCard from './UtCard';
 
 const fmt = (n: number) => n.toLocaleString('de-DE');
@@ -44,19 +44,31 @@ export default function SeasonPass({ onBack, onCollection }: { onBack: () => voi
 
   const flash = (t: string) => { setToast(t); setTimeout(() => setToast(null), 2000); };
 
-  /** Stufen abholen: Coins sofort, Packs und Karte kommen nacheinander als Pack-Öffnung. */
+  const [prompt, setPrompt] = useState<{ levels: number[]; proLevels: number[]; packs: string[] } | null>(null);
+  /** Stufen abholen: Sind Packs dabei, fragen wir erst: jetzt öffnen oder in die Ablage? */
   const claim = (levels: number[], proLevels: number[] = []) => {
+    const packs = [
+      ...levels.map((l) => PASS_REWARDS.find((r) => r.level === l)),
+      ...proLevels.map((l) => PRO_REWARDS.find((r) => r.level === l)),
+    ].flatMap((r) => (r?.kind === 'pack' ? [r.pack] : []));
+    if (packs.length) setPrompt({ levels, proLevels, packs });
+    else doClaim(levels, proLevels, false);
+  };
+  /** Coins sofort, Packs entweder nacheinander öffnen oder in die Ablage, die Karte kommt direkt. */
+  const doClaim = (levels: number[], proLevels: number[], store: boolean) => {
     let coins = 0;
+    let stored = 0;
     const packs: Opening[] = [];
     for (const [l, isPro] of [...levels.map((l) => [l, false] as const), ...proLevels.map((l) => [l, true] as const)]) {
-      const res = isPro ? claimProReward(getClubState(), l) : claimPassReward(getClubState(), l);
+      const res = isPro ? claimProReward(getClubState(), l, new Date(), Math.random, store) : claimPassReward(getClubState(), l, new Date(), Math.random, store);
       if (!res) continue;
       setClubState(res.club);
+      if (res.stored) stored++;
       coins += res.coins ?? 0;
       if (res.pack) packs.push({ id: ++seq.current, ...res.pack });
       if (res.card) packs.push({ id: ++seq.current, name: isPro ? 'Pro-Pass' : 'Saison-Pass', result: { cards: [{ card: res.card as CollectCard, duplicate: false }], items: [] } });
     }
-    if (coins) flash(`+${fmt(coins)} Coins`);
+    if (coins || stored) flash([coins ? `+${fmt(coins)} Coins` : '', stored ? `${stored} ${stored === 1 ? 'Pack' : 'Packs'} in der Ablage (Store)` : ''].filter(Boolean).join(' · '));
     if (packs.length) setQueue((q) => [...q, ...packs]);
   };
 
@@ -154,6 +166,11 @@ export default function SeasonPass({ onBack, onCollection }: { onBack: () => voi
       <p className="hint pass-foot">Nicht abgeholte Belohnungen verfallen am Monatsende – dann startet ein neuer Pass mit neuem Saison-Helden.</p>
 
       {toast && <div className="coin-toast" role="status"><Icon name="coin" size={16} className="coin-ic" />{toast}</div>}
+      {prompt && (
+        <PackPrompt packs={prompt.packs}
+          onOpen={() => { const pr = prompt; setPrompt(null); doClaim(pr.levels, pr.proLevels, false); }}
+          onStore={() => { const pr = prompt; setPrompt(null); doClaim(pr.levels, pr.proLevels, true); }} />
+      )}
       {queue[0] && (
         <PackOpening key={queue[0].id} name={queue[0].name} result={queue[0].result}
           onClose={() => setQueue((q) => q.slice(1))} onCollection={() => { setQueue([]); onCollection(); }} />

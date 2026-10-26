@@ -1,7 +1,7 @@
 import { PASS_XP, addPassXp } from '../game/pass';
 import { useEffect, useState, type CSSProperties } from 'react';
 import { play } from '../sound';
-import { ITEMS, PACKS, TOTW_PACK, activePacks, isoWeek, oddsAtLeast, openMegaSuper, openPack, openTotwPack, packTier, rarity, teamOfTheWeek, type PackDef, type PackResult } from '../game/club';
+import { ITEMS, PACKS, TOTW_PACK, activePacks, openStoredPack, isoWeek, oddsAtLeast, openMegaSuper, openPack, openTotwPack, packTier, rarity, teamOfTheWeek, type PackDef, type PackResult } from '../game/club';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { motionReduced } from '../settings';
 import Confetti from './Confetti';
@@ -83,6 +83,8 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
           <small>Ein Gold-Pack geschenkt – jetzt öffnen!</small>
         </button>
       )}
+
+      <StoredPacks onOpen={(r) => setOpening((o) => ({ result: r.result, name: r.name, packId: '', free: true, n: (o?.n ?? 0) + 1 }))} />
 
       <TotwSection coins={club.coins} onBuy={() => buy(TOTW_PACK.id)} />
 
@@ -195,6 +197,73 @@ function MegaCrash({ onDone }: { onDone: () => void }) {
         </div>
       )}
     </div>
+  );
+}
+
+/** Auswahl nach einem gewonnenen Pack: sofort öffnen oder in die Ablage (später im Store öffnen). */
+export function PackPrompt({ packs, onOpen, onStore }: { packs: string[]; onOpen: () => void; onStore: () => void }) {
+  // Gleiche Packs zusammenfassen: „2× Ultimate-Pack“
+  const counts = new Map<string, number>();
+  for (const id of packs) counts.set(id, (counts.get(id) ?? 0) + 1);
+  const names = [...counts].map(([id, n]) => `${n > 1 ? `${n}× ` : ''}${PACKS.find((p) => p.id === id)?.name ?? id}`);
+  return (
+    <div className="reward pack-prompt" role="dialog" aria-modal="true" aria-label="Packs öffnen oder ablegen">
+      <div className="reward-card">
+        <h2>{packs.length === 1 ? 'Pack bekommen' : `${packs.length} Packs bekommen`}</h2>
+        <ul className="cr-packs">{names.map((n, i) => <li key={`${n}-${i}`} className="cr-pack"><Icon name="pack" size={20} /><span>{n}</span></li>)}</ul>
+        <p className="muted">Du kannst sie jetzt öffnen – oder in die Ablage legen und später im Store öffnen.</p>
+        <div className="pack-prompt-actions">
+          <button className="btn secondary big" onClick={onStore}><Icon name="folder" size={18} /> In die Ablage</button>
+          <button className="btn primary big" onClick={onOpen}><Icon name="pack" size={18} /> Jetzt öffnen</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Ablage: gewonnene, noch ungeöffnete Packs. */
+function StoredPacks({ onOpen }: { onOpen: (res: { name: string; result: PackResult }) => void }) {
+  const club = useClub();
+  const list = club.storedPacks ?? [];
+  if (!list.length) return null;
+  const open = (id: string) => {
+    const res = openStoredPack(getClubState(), id);
+    if (!res) return;
+    setClubState(res.club);
+    onOpen({ name: res.name, result: res.result });
+  };
+  const openAll = () => {
+    let club = getClubState();
+    const cards: PackResult['cards'] = [];
+    const items: PackResult['items'] = [];
+    for (const sp of club.storedPacks ?? []) {
+      const res = openStoredPack(club, sp.id);
+      if (!res) continue;
+      club = res.club;
+      cards.push(...res.result.cards);
+      items.push(...res.result.items);
+    }
+    cards.sort((a, b) => rarity(b.card) - rarity(a.card));
+    setClubState(club);
+    if (cards.length) onOpen({ name: `${list.length} Packs aus der Ablage`, result: { cards, items } });
+  };
+  return (
+    <section className="store-group sg-stored" aria-label="Deine Packs">
+      <h2 className="store-group-head"><Icon name="folder" size={18} />Deine Packs<small>{list.length} in der Ablage</small></h2>
+      {list.length > 1 && <button className="btn primary stored-all" onClick={openAll}><Icon name="pack" size={18} /> Alle {list.length} öffnen</button>}
+      <ul className="stored-list">
+        {list.map((sp) => {
+          const def = PACKS.find((p) => p.id === sp.pack);
+          return (
+            <li key={sp.id} className={`stored-pack p-${sp.pack}`}>
+              <span className="pack-art mini" aria-hidden="true"><span>{(def?.name ?? sp.pack).replace('-Pack', '')}</span></span>
+              <span className="stored-text"><strong>{def?.name ?? sp.pack}</strong><small>{sp.from}</small></span>
+              <button className="btn primary small" onClick={() => open(sp.id)}>Öffnen</button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 

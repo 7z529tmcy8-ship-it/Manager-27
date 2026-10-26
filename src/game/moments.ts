@@ -56,8 +56,11 @@ export function detectMoments(prev: Career, next: Career): Moment[] {
         extra: titles.length > 1 ? `Dazu: ${titles.slice(1).join(' · ')}` : undefined,
       });
     }
-    for (const a of r.awards.filter((x) => x === 'Golden Boy' || x.startsWith('Spieler der Saison'))) {
-      out.push({ kind: 'award', title: a.startsWith('Spieler der Saison') ? 'Spieler der Saison!' : 'Golden Boy!', sub: a.replace('Spieler der Saison ', ''), extra: `Saison ${r.season}` });
+    // Team der Saison nur zeigen, wenn es nicht ohnehin zum Spieler der Saison gereicht hat
+    const poty = r.awards.some((x) => x.startsWith('Spieler der Saison'));
+    for (const a of r.awards.filter((x) => x === 'Golden Boy' || x.startsWith('Spieler der Saison') || (!poty && x.startsWith('Team der Saison')))) {
+      const title = a.startsWith('Spieler der Saison') ? 'Spieler der Saison!' : a.startsWith('Team der Saison') ? 'Team der Saison!' : 'Golden Boy!';
+      out.push({ kind: 'award', title, sub: a.replace('Spieler der Saison ', '').replace('Team der Saison ', ''), extra: `Saison ${r.season}` });
     }
   }
 

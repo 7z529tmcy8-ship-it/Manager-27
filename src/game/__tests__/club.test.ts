@@ -61,9 +61,9 @@ it('Karriere-Saisons werden genau einmal ausgezahlt', () => {
 });
 
 it('Sonderkarten nach starken Saisons', () => {
-  const r = { avgRating: 7.6, apps: 40, goals: 31, trophies: ['Champions League'] } as unknown as SeasonRecord;
+  const r = { avgRating: 7.6, apps: 40, goals: 31, trophies: ['Champions League'], awards: ['Team der Saison Bundesliga'] } as unknown as SeasonRecord;
   expect(specialsFor(r, [{ stage: 0, leagueId: 'bl1', apps: 5, goals: 4, assists: 1, avgRating: 8.2, position: 1, points: 15 }]).sort()).toEqual(['champion', 'potm', 'record', 'tots']);
-  const weak = { avgRating: 6.5, apps: 10, goals: 1, trophies: [] } as unknown as SeasonRecord;
+  const weak = { avgRating: 6.5, apps: 10, goals: 1, trophies: [], awards: [] } as unknown as SeasonRecord;
   expect(specialsFor(weak, [])).toEqual([]);
 });
 

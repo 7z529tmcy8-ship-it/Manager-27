@@ -742,6 +742,10 @@ export function finishSeason(career: Career, prog: SeasonProgress): SeasonOutcom
   if (leagueStats.avgRating !== null && leagueStats.avgRating >= 7.5 && leagueStats.apps >= 20 && position <= 4) {
     awards.push(`Spieler der Saison ${league.name}`);
   }
+  // Team der Saison: die elf Besten der Liga – leichter als Spieler der Saison, aber nur mit konstant starken Noten.
+  if (leagueStats.avgRating !== null && leagueStats.avgRating >= 7.25 && leagueStats.apps >= 22) {
+    awards.push(`Team der Saison ${league.name}`);
+  }
   const avgRating = stats.avgRating;
   if (player.age <= 20 && player.ovr >= 80 && avgRating !== null && avgRating >= 7.2 && played.length >= 25 && chance(0.6)) {
     awards.push('Golden Boy');

@@ -3,7 +3,7 @@ import Icon, { Glyph } from './Icon';
 import { evoAfterDuel, getPath, stepText, type EvoProgress } from '../game/evolutions';
 import { getCard as poolCard } from '../game/club';
 import { useEffect, useRef, useState } from 'react';
-import { PACKS, openPack, rarity, type CollectCard, type PackResult } from '../game/club';
+import { PACKS, openPack, rarity, storePacks, type CollectCard, type PackResult } from '../game/club';
 import {
   FORMATIONS, FORMATION_ORDER, TASKS, changeFormation, slotsOf, autoSquad, cardById, chemistry, completeTask, fit, ownedCards,
   setSlot, swapSlots, chemLinks, taskPick, teamRating, teamStrength, type DuelResult,
@@ -12,7 +12,7 @@ import { getClubState, setClubState, useClub } from '../clubStore';
 import { FRIEND_REWARD, SLOT_LABELS, exportTeam, importTeam, playFriendDuel, record, removeFriend, resultText, saveFriend, withOwnerId, type FriendTeam } from '../game/friends';
 import { motionReduced } from '../settings';
 import { SEASON_RANKS, claimSeason, nextRank, seasonId, seasonName, seasonPoints, seasonRank, unclaimedSeasons } from '../game/squad';
-import { PackOpening } from './Store';
+import { PackOpening, PackPrompt } from './Store';
 import UtCard from './UtCard';
 import {
   ELITE, LOWEST, PROMOTE_AT, SAFE_DIVISIONS, STYLE_LABEL, TACTIC_TEXT, divName, divReward, divisionOf, playDivisionDuel, promoBonus, squadFit, withOpponent, type Tactic,
@@ -665,9 +665,14 @@ function Tasks() {
     if (!confirm(`Diese Karten abgeben?\n\n${pick.map((id) => cardById(getClubState(), id)!.name).join(', ')}`)) return;
     const done = completeTask(getClubState(), task);
     if (!done) return;
-    const pack = openPack(done.club, task.reward, Math.random, true)!;
-    setClubState(addPassXp(pack.club, PASS_XP.task));
-    setOpening({ name: PACKS.find((p) => p.id === task.reward)!.name, result: pack.result });
+    setClubState(addPassXp(done.club, PASS_XP.task));
+    setPrompt(task.reward);
+  };
+  const [prompt, setPrompt] = useState<string | null>(null);
+  const openNow = (packId: string) => {
+    const pack = openPack(getClubState(), packId, Math.random, true)!;
+    setClubState(pack.club);
+    setOpening({ name: PACKS.find((p) => p.id === packId)!.name, result: pack.result });
   };
   return (
     <>
@@ -689,6 +694,7 @@ function Tasks() {
           );
         })}
       </div>
+      {prompt && <PackPrompt packs={[prompt]} onOpen={() => { const id = prompt; setPrompt(null); openNow(id); }} onStore={() => { setClubState(storePacks(getClubState(), [prompt], 'Pack-Tausch')); setPrompt(null); }} />}
       {opening && <PackOpening name={opening.name} result={opening.result} onClose={() => setOpening(null)} onCollection={() => setOpening(null)} />}
     </>
   );

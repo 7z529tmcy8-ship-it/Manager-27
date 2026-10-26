@@ -70,3 +70,12 @@ it('WM 2026 live: K.-o.-Spiele nacheinander, wer verliert ist raus, Titel nur mi
   expect(koSeen).toBeGreaterThan(4);
   expect(titles).toBeLessThan(12);
 });
+
+it('Team der Saison: starke Saison bringt die Auszeichnung, sie zählt als Belohnungs-Karte', async () => {
+  const { careerRewardOptions } = await import('../club');
+  const c = createCareer({ name: 'Erling Haaland', nation: 'Norwegen', position: 'ST', age: 25, ovr: 91, potential: 92, clubId: slugify('Manchester City') });
+  const done = structuredClone(c);
+  done.history = [{ ...(simulateToBreak(simulateToBreak(c)).history[0]), awards: ['Team der Saison Premier League'] }];
+  done.phase = 'retired';
+  expect(careerRewardOptions(done).map((o) => o.variant)).toContain('tots');
+});
