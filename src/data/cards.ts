@@ -242,8 +242,8 @@ export const GALA_NOMINEES: [string, number][] = [
   ['Vitinha', 92],
   ['Lionel Messi', 91],
 ];
-/** Sieger der Wahl – wird nach der Verleihung eingetragen (bis dahin null). */
-export const BALLON_WINNER_2026: string | null = null;
+/** Sieger der Wahl (Verleihung 26.10.2026, per Websuche geprüft: ESPN, NBC Sports, Eurosport). */
+export const BALLON_WINNER_2026: string | null = 'Harry Kane';
 
 /**
  * Comeback-Karten: Rückkehr nach schwerer Verletzung, Krankheit oder Rückschlag.

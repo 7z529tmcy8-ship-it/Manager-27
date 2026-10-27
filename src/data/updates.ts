@@ -19,6 +19,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-27-ballondor',
+    date: '27.10.2026',
+    title: 'Harry Kane gewinnt den Ballon d’Or',
+    items: [
+      'Harry Kane ist der Sieger des Ballon d’Or 2026 – vor Kylian Mbappé und Lamine Yamal. Richtig getippt? Dein Gala-Pack wartet im Hub.',
+      'Neue SBC in der Gala-Woche: „Ballon d’Or 2026“ – die Siegerkarte von Harry Kane (96), nur bis 9. November.',
+    ],
+  },
+  {
     id: '2026-10-26-talente2',
     date: '26.10.2026',
     title: '19 weitere Talente',
