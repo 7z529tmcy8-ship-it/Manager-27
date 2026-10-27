@@ -32,7 +32,12 @@ export interface League {
   topScorerGoals: number;
   /** Exotische Liga (MLS, Saudi-Arabien …): Angebote von dort erst gegen Karriereende. */
   exotic?: boolean;
+  /** Junioren-Liga (NLZ-Mannschaften): kein Auf-/Abstieg, kein Europapokal. */
+  youth?: NlzTeam;
 }
+
+/** Nachwuchs-Mannschaft im Nachwuchsleistungszentrum (NLZ). */
+export type NlzTeam = 'U17' | 'U19';
 
 export interface Contract {
   clubId: string;
@@ -65,6 +70,8 @@ export interface PlayerState {
   profile: number[];
   contract: Contract;
   loan: Loan | null;
+  /** Spielt (noch) im NLZ seines Vereins statt bei den Profis. */
+  nlz?: { team: NlzTeam; role: Role };
   caps: number;
   internationalGoals: number;
   /** Einsätze in den U-Nationalmannschaften (U17, U19, U21). */

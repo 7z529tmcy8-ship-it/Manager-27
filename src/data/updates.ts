@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-27-nlz',
+    date: '27.10.2026',
+    title: 'NLZ und Junioren-Ligen',
+    items: [
+      'Junge Talente (bis 18) starten bei Vereinen mit Nachwuchsleistungszentrum in der U17 oder U19 – mit eigener Liga, Tabelle und Junioren-Pokal.',
+      'Neue Ligen: U19- und U17-Nachwuchsliga A (Bundesligisten) und B (Zweitligisten), U18 Premier League, División de Honor Juvenil, Primavera 1, Championnat National U19, Juniores (Portugal) und Onder 19 Divisie.',
+      'Hocharbeiten: U17 → U19 → Profis. Wer stark spielt, wird früher hochgezogen; mit 19 ist Schluss in der U19 – dann Profis oder zweite Mannschaft.',
+      'Rückschläge: Wer als junger Profi kaum spielt oder schwach ist, kann zurück in die U19 oder in die zweite Mannschaft versetzt werden – und sich von dort wieder hochspielen.',
+    ],
+  },
+  {
     id: '2026-10-27-ballondor',
     date: '27.10.2026',
     title: 'Harry Kane gewinnt den Ballon d’Or',

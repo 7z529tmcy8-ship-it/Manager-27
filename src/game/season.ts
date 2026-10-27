@@ -1,4 +1,4 @@
-import { CLUBS, LEAGUES, canPlayIn, getClub, getLeague } from '../data/leagues';
+import { CLUBS, LEAGUES, SIM_CLUBS, SIM_LEAGUES, canPlayIn, getClub, getLeague } from '../data/leagues';
 import { getNation } from '../data/players';
 import {
   ROLE_BONUS,
@@ -93,10 +93,10 @@ export function roundRobin(ids: string[]): [string, string][][] {
 
 /** Ältere Spielstände kennen neu hinzugekommene Ligen noch nicht – deren Tabellen leer anlegen. */
 export function ensureLeagueRows(career: Career, prog: SeasonProgress): void {
-  for (const l of LEAGUES) {
-    if (!prog.rows[l.id]) prog.rows[l.id] = CLUBS.filter((c) => clubLeagueId(career, c.id) === l.id).map((c) => emptyRow(c.id));
+  for (const l of SIM_LEAGUES) {
+    if (!prog.rows[l.id]) prog.rows[l.id] = SIM_CLUBS.filter((c) => clubLeagueId(career, c.id) === l.id).map((c) => emptyRow(c.id));
   }
-  for (const c of CLUBS) if (prog.strength[c.id] === undefined) prog.strength[c.id] = clubStrength(career, c.id);
+  for (const c of SIM_CLUBS) if (prog.strength[c.id] === undefined) prog.strength[c.id] = clubStrength(career, c.id);
 }
 
 export function emptyRow(clubId: string): TableRow {
@@ -266,8 +266,13 @@ const cupName = (ctx: SeasonContext) => getLeague(clubLeagueId(ctx.career, ctx.c
 
 function scheduleCup(ctx: SeasonContext, leagueGoals: number): Scheduled[] {
   const cup = ctx.prog.cup;
-  const country = getLeague(clubLeagueId(ctx.career, ctx.clubId)).country;
-  const pool = CLUBS.filter((c) => getLeague(clubLeagueId(ctx.career, c.id)).country === country && c.id !== ctx.clubId);
+  const own = getLeague(clubLeagueId(ctx.career, ctx.clubId));
+  // Junioren-Ligen ohne Pokal (z. B. U17) spielen keinen; im Junioren-Pokal treffen nur Nachwuchsteams aufeinander.
+  if (!own.cup) return [];
+  const pool = SIM_CLUBS.filter((c) => {
+    const l = getLeague(clubLeagueId(ctx.career, c.id));
+    return l.country === own.country && l.youth === own.youth && c.id !== ctx.clubId;
+  });
   const sorted = [...pool].sort((a, b) => (ctx.prog.strength[a.id] ?? 0) - (ctx.prog.strength[b.id] ?? 0));
   return CUP_ROUNDS.map((name, i) => ({
     at: CUP_AT[i],
@@ -428,10 +433,10 @@ function tournamentName(nation: string, summer: number): string | null {
 export function startSeason(career: Career): SeasonProgress {
   const clubId = currentClubId(career.player);
   const strength: Record<string, number> = {};
-  for (const c of CLUBS) strength[c.id] = clubStrength(career, c.id) + normal(0, 1.2);
+  for (const c of SIM_CLUBS) strength[c.id] = clubStrength(career, c.id) + normal(0, 1.2);
   const rows: Record<string, TableRow[]> = {};
-  for (const l of LEAGUES) {
-    rows[l.id] = CLUBS.filter((c) => clubLeagueId(career, c.id) === l.id).map((c) => emptyRow(c.id));
+  for (const l of SIM_LEAGUES) {
+    rows[l.id] = SIM_CLUBS.filter((c) => clubLeagueId(career, c.id) === l.id).map((c) => emptyRow(c.id));
   }
   const slot = career.europeSlots[clubId];
   return {
@@ -444,7 +449,10 @@ export function startSeason(career: Career): SeasonProgress {
     notes: [],
     startClubId: clubId,
     ovrStart: career.player.ovr,
-    cup: { alive: true, eligible: true, reached: '', won: false, used: [] },
+    // Ohne Pokalwettbewerb (z. B. U17-Nachwuchsliga) gibt es kein Pokalspiel.
+    cup: getLeague(clubLeagueId(career, clubId)).cup
+      ? { alive: true, eligible: true, reached: '', won: false, used: [] }
+      : { alive: false, eligible: false, reached: 'kein Pokal', won: false, used: [] },
     euro: slot
       ? { competition: slot, eligible: true, points: 0, stage: 'phase', reached: '', won: false, used: [], opponentId: null, agg: [0, 0] }
       : null,
@@ -511,7 +519,7 @@ export function playStage(career: Career, prog: SeasonProgress, stage: number): 
   const inHalf = (at: number) => (half === 1 ? at < 0.5 : at >= 0.5);
 
   ensureLeagueRows(career, prog);
-  for (const l of LEAGUES) {
+  for (const l of SIM_LEAGUES) {
     const rowList = prog.rows[l.id];
     const rows = new Map(rowList.map((r) => [r.clubId, r]));
     const rounds = leagueRounds(prog, l.id);
@@ -717,7 +725,7 @@ export function finishSeason(career: Career, prog: SeasonProgress): SeasonOutcom
 
   const tables: Record<string, TableRow[]> = {};
   ensureLeagueRows(career, prog);
-  for (const l of LEAGUES) tables[l.id] = sortTable(prog.rows[l.id]);
+  for (const l of SIM_LEAGUES) tables[l.id] = sortTable(prog.rows[l.id]);
 
   const table = tables[leagueId];
   const position = table.findIndex((r) => r.clubId === clubId) + 1;
@@ -727,7 +735,8 @@ export function finishSeason(career: Career, prog: SeasonProgress): SeasonOutcom
 
   const allTrophies: string[] = [];
   if (playedForEndClub && position === 1) {
-    allTrophies.push(league.tier === 1 ? `Meister (${league.name})` : `Meister (${league.name}, Aufstieg)`);
+    // Junioren-Titel zählen nicht als Meisterschaft der Profis.
+    allTrophies.push(league.youth ? `Junioren-Meister (${league.name})` : league.tier === 1 ? `Meister (${league.name})` : `Meister (${league.name}, Aufstieg)`);
   }
   // Titel zählen nur, wenn der Spieler im Wettbewerb auch eingesetzt wurde.
   const playedIn = (c: Competition) => played.some((m) => m.competition === c);
@@ -738,13 +747,19 @@ export function finishSeason(career: Career, prog: SeasonProgress): SeasonOutcom
   const leagueStats = summarize(matches, 'Liga');
   // Torjägerkanone: Wer im Torjäger-Rennen der Liga vorne liegt (mindestens 8 Tore).
   const race = scorerRace(table, seasonLabel(career.year), { name: player.name, clubId, goals: leagueStats.goals });
-  if (leagueStats.goals >= 8 && raceRank(race) === 1) awards.push(`Torschützenkönig ${league.name}`);
-  if (leagueStats.avgRating !== null && leagueStats.avgRating >= 7.5 && leagueStats.apps >= 20 && position <= 4) {
-    awards.push(`Spieler der Saison ${league.name}`);
-  }
-  // Team der Saison: die elf Besten der Liga – leichter als Spieler der Saison, aber nur mit konstant starken Noten.
-  if (leagueStats.avgRating !== null && leagueStats.avgRating >= 7.25 && leagueStats.apps >= 22) {
-    awards.push(`Team der Saison ${league.name}`);
+  if (league.youth) {
+    // Im NLZ gibt es eigene Auszeichnungen – ohne Sonderkarten und ohne Profi-Erfolge.
+    if (leagueStats.goals >= 8 && raceRank(race) === 1) awards.push(`Bester Torschütze der ${league.name}`);
+    if (leagueStats.avgRating !== null && leagueStats.avgRating >= 7.4 && leagueStats.apps >= 15) awards.push(`Talent der Saison (${league.name})`);
+  } else {
+    if (leagueStats.goals >= 8 && raceRank(race) === 1) awards.push(`Torschützenkönig ${league.name}`);
+    if (leagueStats.avgRating !== null && leagueStats.avgRating >= 7.5 && leagueStats.apps >= 20 && position <= 4) {
+      awards.push(`Spieler der Saison ${league.name}`);
+    }
+    // Team der Saison: die elf Besten der Liga – leichter als Spieler der Saison, aber nur mit konstant starken Noten.
+    if (leagueStats.avgRating !== null && leagueStats.avgRating >= 7.25 && leagueStats.apps >= 22) {
+      awards.push(`Team der Saison ${league.name}`);
+    }
   }
   const avgRating = stats.avgRating;
   if (player.age <= 20 && player.ovr >= 80 && avgRating !== null && avgRating >= 7.2 && played.length >= 25 && chance(0.6)) {

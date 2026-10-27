@@ -3810,3 +3810,13 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .stored-all { width: 100%; margin-bottom: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 .stored-list { max-height: 360px; overflow-y: auto; }
 .cs-option { color: #ffd76a; font-weight: 700; }
+
+/* NLZ-Leiste im Karriere-Kopf */
+.cs-nlz { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; padding: 8px 12px; border-radius: 14px;
+  background: linear-gradient(135deg, rgba(163, 92, 255, .16), rgba(0, 229, 255, .08)); border: 1px solid rgba(163, 92, 255, .35); }
+.cs-nlz-tag { flex: none; font-weight: 800; font-size: .78rem; letter-spacing: .06em; padding: 4px 8px; border-radius: 8px;
+  background: var(--violet, #a35cff); color: #fff; }
+.cs-nlz-main { flex: 1; min-width: 0; display: grid; gap: 6px; }
+.cs-nlz-main small { color: var(--muted); line-height: 1.35; }
+.cs-nlz-track { height: 5px; border-radius: 3px; background: rgba(255, 255, 255, .1); overflow: hidden; }
+.cs-nlz-track i { display: block; height: 100%; background: linear-gradient(90deg, #a35cff, #00e5ff); border-radius: inherit; }

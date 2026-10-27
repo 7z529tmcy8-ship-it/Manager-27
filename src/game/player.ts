@@ -1,4 +1,4 @@
-import { getClub } from '../data/leagues';
+import { getClub, youthClubOf } from '../data/leagues';
 import { clamp, randInt } from './random';
 import type { Career, PlayerState, Position, Role } from './types';
 
@@ -107,11 +107,13 @@ export function seasonLabel(year: number): string {
 
 /** Verein, für den der Spieler aktuell aufläuft (Leihverein oder Stammverein). */
 export function currentClubId(p: PlayerState): string {
-  return p.loan ? p.loan.clubId : p.contract.clubId;
+  if (p.loan) return p.loan.clubId;
+  if (p.nlz) return youthClubOf(p.contract.clubId, p.nlz.team)?.id ?? p.contract.clubId;
+  return p.contract.clubId;
 }
 
 export function currentRole(p: PlayerState): Role {
-  return p.loan ? p.loan.role : p.contract.role;
+  return p.loan ? p.loan.role : p.nlz ? p.nlz.role : p.contract.role;
 }
 
 export function clubStrength(career: Career, clubId: string): number {

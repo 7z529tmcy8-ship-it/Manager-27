@@ -1,6 +1,6 @@
 import { developAttributes } from './attributes';
 import type { Avatar, OriginId } from './creator';
-import { getClub, getLeague, initialClubLeague } from '../data/leagues';
+import { getClub, getLeague, initialClubLeague, youthClubOf } from '../data/leagues';
 import { developPlayer, performanceIndex } from './development';
 import { rollEvents } from './events';
 import { APPLICATIONS_PER_WINDOW, APPLICATION_AGE, answerApplication, generateOffers, type OfferMode } from './offers';
@@ -33,6 +33,7 @@ import { applyTraining } from './training';
 import { hasTrait, type TraitId } from './traits';
 import { advanceFinal, autoFinal, finalRating, startFinal } from './final';
 import { addNews, summerNews, winterNews } from './news';
+import { nlzDevOptions, nlzRole, nlzSeasonEnd, nlzStartTeam } from './nlz';
 import { createRival, simulateRivalSeason } from './rival';
 import type { Career, DecisionResult, FinalState, GameEvent, MatchLine, Offer, Position, Role, SeasonRecord, StageLoad, TrainingFocus, TransferEntry } from './types';
 
@@ -105,11 +106,19 @@ export function createCareer(np: NewPlayer): Career {
     secondChance: np.secondChance || undefined,
     homeClubId: club.id,
   };
+  // Junge Talente starten im Nachwuchsleistungszentrum und müssen sich zu den Profis hocharbeiten.
+  const team = nlzStartTeam(np.age, np.ovr, club.id, club.strength);
+  if (team) {
+    career.player.nlz = { team, role: nlzRole(career, team) };
+    career.player.contract.wage = Math.min(career.player.contract.wage, 2_000);
+  }
   career.seasonGoals = createSeasonGoals(career);
   postInbox(career, {
     kind: 'welcome',
     title: `Willkommen bei ${club.name}!`,
-    text: 'Hier im Postfach landen Angebote, Ereignisse, Presse-Ergebnisse und Erfolge. Viel Erfolg!',
+    text: team
+      ? `Du startest in der ${youthClubOf(club.id, team)!.name} im Nachwuchsleistungszentrum. Überzeuge mit Einsätzen und guten Noten – dann holt dich der Cheftrainer zu den Profis. Hier im Postfach landen Angebote, Ereignisse und Erfolge.`
+      : 'Hier im Postfach landen Angebote, Ereignisse, Presse-Ergebnisse und Erfolge. Viel Erfolg!',
   });
   goalsInbox(career);
   if (isKidnapName(np.name)) return kidnap(career);
@@ -333,7 +342,7 @@ function winterTransition(career: Career, quick: boolean): Career {
   const ovrBefore = p.ovr;
   const attrsBefore = attributes(p);
   p.potentialStart ??= p.potential;
-  const dev = developPlayer(p, stats, strength, { weight: 0.5 });
+  const dev = developPlayer(p, stats, strength, { weight: 0.5, ...nlzDevOptions(career) });
   p.ovr = adjustGrowth(career, ovrBefore, dev.ovr, dev.potential);
   p.potential = dev.potential;
   const trainingNote = applyTraining(p, ovrBefore);
@@ -402,6 +411,7 @@ export function acceptWinterOffer(prev: Career, offer: Offer, quick = false): Ca
     p.contract = { clubId: offer.clubId, yearsLeft: offer.years, wage: offer.wage, role: offer.role };
     p.loan = null;
   }
+  p.nlz = undefined;
   prog.winterMove = { fromClubId, toClubId: offer.clubId, type: offer.type };
   p.captainOf = null;
   // Pokal und Europapokal laufen mit dem alten Verein weiter – der Spieler ist dort nicht mehr dabei.
@@ -494,6 +504,7 @@ function finishSecondHalf(career: Career): Career {
   p.potentialStart ??= p.potential;
   const dev = developPlayer(p, second, strength, {
     weight: 0.5,
+    ...nlzDevOptions(career),
     potentialStats: halfStats(prog.matches),
   });
   p.ovr = adjustGrowth(career, ovrBefore, dev.ovr, dev.potential);
@@ -548,7 +559,8 @@ function completeSeason(career: Career): Career {
   }
   if (record.caps > 0) firstCall('A', `Nominiert für ${p.nation}!`, `Der erste Anruf aus der A-Nationalmannschaft: ${record.caps} Länderspiele in dieser Saison${record.internationalGoals ? `, ${record.internationalGoals} Tore` : ''}. Ein großer Moment.`);
   record.ovrWinter = prog.ovrWinter;
-  const specials = makeSpecials(career, record, specialsFor(record, prog.stageLog ?? []));
+  // Im NLZ gibt es keine Sonderkarten – die gibt es erst bei den Profis.
+  const specials = getLeague(record.leagueId).youth ? [] : makeSpecials(career, record, specialsFor(record, prog.stageLog ?? []));
   if (specials.length) {
     career.specialCards = [...(career.specialCards ?? []), ...specials];
     for (const sc of specials) {
@@ -590,6 +602,7 @@ function completeSeason(career: Career): Career {
     }
     p.loan = null;
   }
+  nlzSeasonEnd(career, record);
   ownerSeasonEnd(career, record.notes);
   if (p.contract.yearsLeft <= 0) record.notes.push('Dein Vertrag ist ausgelaufen – du bist ablösefrei.');
   record.marketValue = playerValue(p);
@@ -847,6 +860,8 @@ export function acceptOffer(prev: Career, offer: Offer): Career {
     p.contract = { clubId: offer.clubId, yearsLeft: offer.years, wage: offer.wage, role: offer.role };
     p.loan = null;
   }
+  // Wer wechselt oder verliehen wird, spielt bei den Profis; eine Verlängerung lässt ihn im NLZ.
+  if (offer.type !== 'Verlängerung') p.nlz = undefined;
   return startNextSeason(career);
 }
 
@@ -865,6 +880,7 @@ export function stayAtClub(prev: Career): Career {
   const career: Career = structuredClone(prev);
   const p = career.player;
   p.contract.role = stayRole(career);
+  if (p.nlz) p.nlz.role = nlzRole(career, p.nlz.team);
   return startNextSeason(career);
 }
 

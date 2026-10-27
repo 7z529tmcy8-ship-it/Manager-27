@@ -1,4 +1,4 @@
-import type { Club, League } from '../game/types';
+import type { Club, League, NlzTeam } from '../game/types';
 
 // Vereine und Ligen: Stand Saison 2025/26.
 // Die Teamstärken sind eigene Schätzungen (keine offiziellen EA-Ratings).
@@ -265,8 +265,60 @@ export const CLUBS: Club[] = Object.entries(RAW).flatMap(([leagueId, clubs]) =>
   clubs.map(([name, strength]) => ({ id: slugify(name), name, leagueId, strength })),
 );
 
-const CLUB_MAP = new Map(CLUBS.map((c) => [c.id, c]));
-const LEAGUE_MAP = new Map(LEAGUES.map((l) => [l.id, l]));
+// ---------- Nachwuchsleistungszentren (NLZ) ----------
+// Vereinfacht: Die DFB-Nachwuchsligen (U19 und U17) spielen in der Hauptrunde in Liga A und Liga B. Hier stellen die
+// Bundesligisten Liga A, die Zweitligisten Liga B (ohne Vorrunde und Endrunde). Im Ausland gibt es je eine U19-Liga
+// der Erstligisten, dort spielen auch die 16-Jährigen mit. Die Stärken sind eigene Schätzungen.
+const YOUTH_DEF: { id: string; name: string; country: string; cup: string; team: NlzTeam; from: string; tier: 1 | 2; goals: number }[] = [
+  { id: 'u19a', name: 'U19-Nachwuchsliga A', country: 'Deutschland', cup: 'DFB-Junioren-Vereinspokal', team: 'U19', from: 'bl1', tier: 1, goals: 3.4 },
+  { id: 'u19b', name: 'U19-Nachwuchsliga B', country: 'Deutschland', cup: 'DFB-Junioren-Vereinspokal', team: 'U19', from: 'bl2', tier: 2, goals: 3.4 },
+  { id: 'u17a', name: 'U17-Nachwuchsliga A', country: 'Deutschland', cup: '', team: 'U17', from: 'bl1', tier: 1, goals: 3.6 },
+  { id: 'u17b', name: 'U17-Nachwuchsliga B', country: 'Deutschland', cup: '', team: 'U17', from: 'bl2', tier: 2, goals: 3.6 },
+  { id: 'u18pl', name: 'U18 Premier League', country: 'England', cup: 'FA Youth Cup', team: 'U19', from: 'pl', tier: 1, goals: 3.4 },
+  { id: 'dhj', name: 'División de Honor Juvenil', country: 'Spanien', cup: 'Copa del Rey Juvenil', team: 'U19', from: 'll', tier: 1, goals: 3.2 },
+  { id: 'pri1', name: 'Primavera 1', country: 'Italien', cup: 'Coppa Italia Primavera', team: 'U19', from: 'sa', tier: 1, goals: 3.0 },
+  { id: 'u19fr', name: 'Championnat National U19', country: 'Frankreich', cup: 'Coupe Gambardella', team: 'U19', from: 'l1', tier: 1, goals: 3.2 },
+  { id: 'u19pt', name: 'Campeonato Nacional de Juniores', country: 'Portugal', cup: '', team: 'U19', from: 'lp', tier: 1, goals: 3.2 },
+  { id: 'u19nl', name: 'Onder 19 Divisie 1', country: 'Niederlande', cup: '', team: 'U19', from: 'ere', tier: 1, goals: 3.4 },
+];
+
+export const YOUTH_LEAGUES: League[] = YOUTH_DEF.map((d) => ({
+  id: d.id, name: d.name, country: d.country, cup: d.cup, tier: d.tier, goalsPerGame: d.goals,
+  europe: { cl: 0, el: 0, conf: 0 }, topScorerGoals: 18, youth: d.team,
+}));
+
+/** Stärke einer Nachwuchsmannschaft aus der Stärke der Profis (U17 etwas schwächer als U19). */
+export const youthStrength = (parent: number, team: NlzTeam) => Math.round(50 + (parent - 60) * 0.5) - (team === 'U17' ? 5 : 0);
+
+export const YOUTH_CLUBS: Club[] = YOUTH_DEF.flatMap((d) =>
+  CLUBS.filter((c) => c.leagueId === d.from && !/ (II|III)$/.test(c.name)).map((c) => ({
+    id: `${c.id}-${d.team.toLowerCase()}`, name: `${c.name} ${d.team}`, leagueId: d.id, strength: youthStrength(c.strength, d.team),
+  })),
+);
+
+/** Alles, was in einer Saison simuliert wird: Profi- und Junioren-Ligen. */
+export const SIM_LEAGUES: League[] = [...LEAGUES, ...YOUTH_LEAGUES];
+export const SIM_CLUBS: Club[] = [...CLUBS, ...YOUTH_CLUBS];
+
+const CLUB_MAP = new Map(SIM_CLUBS.map((c) => [c.id, c]));
+const LEAGUE_MAP = new Map(SIM_LEAGUES.map((l) => [l.id, l]));
+
+/** Nachwuchsmannschaft eines Vereins (U17 fällt im Ausland auf die U19 zurück) – oder null ohne NLZ. */
+export function youthClubOf(parentId: string, team: NlzTeam): Club | null {
+  return CLUB_MAP.get(`${parentId}-${team.toLowerCase()}`) ?? (team === 'U17' ? CLUB_MAP.get(`${parentId}-u19`) ?? null : null);
+}
+
+/** Zweite Mannschaft (U23/II) eines Vereins – oder null. */
+export function reserveClubOf(parentId: string): Club | null {
+  const parent = CLUB_MAP.get(parentId);
+  return parent ? CLUB_MAP.get(slugify(`${parent.name} II`)) ?? null : null;
+}
+
+/** Erste Mannschaft zu einer zweiten Mannschaft (… II) – oder null. */
+export function firstTeamOf(clubId: string): Club | null {
+  const m = CLUB_MAP.get(clubId)?.name.match(/^(.*) II$/);
+  return m ? CLUB_MAP.get(slugify(m[1])) ?? null : null;
+}
 
 export function getClub(id: string): Club {
   const club = CLUB_MAP.get(id);

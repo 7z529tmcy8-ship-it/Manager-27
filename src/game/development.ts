@@ -43,6 +43,10 @@ export interface DevOptions {
   weight: number;
   /** Nur am Saisonende: ganze Saison, nach der das Potenzial angepasst wird. */
   potentialStats?: DevStats;
+  /** Trainingsniveau, falls es von der Spielstärke abweicht (NLZ: Training am Profi-Standort). */
+  training?: number;
+  /** Wachstum skalieren (NLZ: Junioren-Spiele bringen weniger als Profi-Einsätze). */
+  growthScale?: number;
 }
 
 export interface DevelopmentResult {
@@ -111,7 +115,7 @@ export function developPlayer(
   p: PlayerState,
   stats: DevStats,
   teamStrength: number,
-  { weight, potentialStats }: DevOptions = { weight: 1 },
+  { weight, potentialStats, training, growthScale = 1 }: DevOptions = { weight: 1 },
 ): DevelopmentResult {
   const share = shareOf(stats);
   const perf = performanceIndex(stats);
@@ -125,7 +129,7 @@ export function developPlayer(
 
   const ptFactor = 0.35 + 0.95 * Math.min(1, share / 0.75);
   const perfFactor = clamp(1 + 0.25 * perf, 0.5, 1.5);
-  const trainingFactor = 1 + (teamStrength - 75) * 0.01;
+  const trainingFactor = 1 + ((training ?? teamStrength) - 75) * 0.01;
   const age = p.age - (p.position === 'TW' ? 2 : 0);
   const strongHalf = perf >= 0.6 && share >= 0.4;
 
@@ -162,7 +166,7 @@ export function developPlayer(
     if (hasTrait(p, 'party')) growth *= 0.9;
     if (p.sideProject) growth *= 0.92;
     if (p.hooked) growth *= 0.8;
-    growth *= skillMods(p).growth;
+    growth *= skillMods(p).growth * growthScale;
     // Weltklasse ist schwer: Je näher an der Spitze, desto zäher geht es voran.
     growth *= p.ovr >= 96 ? 0.08 : p.ovr >= 94 ? 0.15 : p.ovr >= 90 ? 0.4 : p.ovr >= 86 ? 0.65 : 1;
     change = growth - setback;

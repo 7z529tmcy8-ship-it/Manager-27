@@ -19,6 +19,7 @@ import { getClub, getLeague } from '../data/leagues';
 import { attributeLabels, attributes, clubLeagueId, currentClubId, formatMoney, playerValue } from '../game/player';
 import { ATTR_WEIGHTS } from '../game/attributes';
 import { halfStats } from '../game/season';
+import { nlzStatus } from '../game/nlz';
 import { freePoints, levelInfo } from '../game/skills';
 import { play } from '../sound';
 import { isBroke } from '../game/gambling';
@@ -185,6 +186,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           </div>
         </div>
       </header>
+      {!retired && <NlzBar career={career} />}
 
       {/* Familie und Vermögen */}
       <div className="cs-life">
@@ -481,5 +483,26 @@ function ChoiceCard({ career, c, selected, onPick }: { career: Career; c: Choice
       {c.kind === 'retire' && <span className="cs-choice-meta">Mit {career.player.age} Jahren aufhören</span>}
       {c.kind === 'camp' && <span className="cs-choice-meta">Chance auf +1 Wertung – je mehr Spielpraxis, desto besser. Kleines Verletzungsrisiko.</span>}
     </button>
+  );
+}
+
+/** NLZ-Leiste: Mannschaft und Profi-Reife. */
+function NlzBar({ career }: { career: Career }) {
+  const st = nlzStatus(career);
+  if (!st) return null;
+  const ovr = career.player.ovr;
+  const pct = Math.max(0, Math.min(100, ((ovr - (st.readyAt - 15)) / 15) * 100));
+  return (
+    <div className="cs-nlz" aria-label="Nachwuchsleistungszentrum">
+      <span className="cs-nlz-tag">NLZ · {st.team}</span>
+      <div className="cs-nlz-main">
+        <small>
+          {ovr >= st.readyAt
+            ? `Reif für die Profis von ${st.parent} – am Saisonende wirst du hochgezogen.`
+            : `Profis von ${st.parent}: ab Wertung ${st.readyAt} – mit starker Saison (Note 7,0+, viel Spielzeit) schon ab ${st.strongAt}.`}
+        </small>
+        <div className="cs-nlz-track"><i style={{ width: `${pct}%` }} /></div>
+      </div>
+    </div>
   );
 }
