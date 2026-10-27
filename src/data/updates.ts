@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-27-polarlicht',
+    date: '27.10.2026',
+    title: 'Polarlicht-Kalender',
+    items: [
+      'Neuer Premium-Adventskalender: schon jetzt für 1.000.000 Coins freischaltbar – im Hub ganz oben.',
+      'Ab 1. Dezember öffnet jeden Tag ein Türchen gratis. Wer nicht warten will, kauft die Türchen jetzt schon der Reihe nach frei (32.500 bis 90.000 Coins).',
+      'Drin: 5 Winter-Wunder-Karten (Türchen 24: die stärkste, die dir fehlt), Winter-Wunder-, Ikonen- und Ultimate-Pack und viele Coins.',
+    ],
+  },
+  {
     id: '2026-10-27-talente16',
     date: '27.10.2026',
     title: '21 neue 16-jährige Talente',

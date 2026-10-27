@@ -14,6 +14,8 @@ import UtCard from './UtCard';
 import Icon from './Icon';
 import { divName, divisionOf } from '../game/divisions';
 import AdventCalendar from './AdventCalendar';
+import PolarCalendar from './PolarCalendar';
+import { POLAR_UNLOCK, polarNextBuyable, polarVisible } from '../game/polar';
 import { adventToday, claimNewYearGift, newYearGiftOpen } from '../game/winter';
 import { PASS_LEVELS, XP_PER_LEVEL, passLevel, passOf, unclaimedLevels, unclaimedProLevels } from '../game/pass';
 
@@ -48,6 +50,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   const [tipPack, setTipPack] = useState<PackResult | null>(null);
   const [nyPack, setNyPack] = useState<PackResult | null>(null);
   const [advent, setAdvent] = useState(false);
+  const [polar, setPolar] = useState(false);
   const tipWon = ballonTipCorrect(club) === true && !club.ballonTipClaimed;
   // Event-Hinweis oben: das gerade wichtigste Event
   const gigLastDay = new Date().getDate() === 18;
@@ -114,6 +117,18 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
           <button className="ny-call alt" onClick={onStore}>
             <span className="ny-call-year">31.12.</span>
             <span className="ny-call-text"><b>Silvester-Event</b><small>Feuerwerks-Pack im Store · Dembélé, Mbappé, Yamal bis 96 · nur 2 Tage</small></span>
+            <Icon name="arrow" size={22} />
+          </button>
+        )}
+        {polarVisible() && (
+          <button className="polar-call" onClick={() => setPolar(true)}>
+            <span className="polar-call-num">{club.polar?.opened.length ?? 0}<small>/24</small></span>
+            <span className="polar-call-text">
+              <b>Polarlicht-Kalender</b>
+              <small>{club.polar?.unlocked
+                ? polarNextBuyable(club) ? `Türchen ${polarNextBuyable(club)} jetzt freikaufen – oder im Dezember gratis` : 'Heutige Türchen gratis öffnen'
+                : `Jetzt für ${(POLAR_UNLOCK / 1e6).toLocaleString('de-DE')} Mio. Coins freischalten · 5 Winter-Karten`}</small>
+            </span>
             <Icon name="arrow" size={22} />
           </button>
         )}
@@ -229,6 +244,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
       )}
       {backup && <Backup onClose={() => setBackup(false)} />}
       {tipOpen && <BallonTip onClose={() => setTipOpen(false)} />}
+      {polar && <PolarCalendar onClose={() => setPolar(false)} onCollection={() => { setPolar(false); onCollection(); }} />}
       {advent && <AdventCalendar onClose={() => setAdvent(false)} onCollection={() => { setAdvent(false); onCollection(); }} />}
       {nyPack && <PackOpening name="Feuerwerks-Pack" theme="silvester" result={nyPack} onClose={() => setNyPack(null)} onCollection={() => { setNyPack(null); onCollection(); }} />}
       {tipPack && <PackOpening name="Gala-Pack" theme="gala" result={tipPack} onClose={() => setTipPack(null)} onCollection={() => { setTipPack(null); onCollection(); }} />}

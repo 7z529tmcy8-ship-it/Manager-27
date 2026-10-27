@@ -3834,3 +3834,110 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 @media (min-width: 561px) {
   .cs-choices.cs-choices-window:has(> :nth-child(4)) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* ===== Polarlicht-Kalender (Premium-Adventskalender) ===== */
+.polar { --ice: #bfe9ff; --ice-2: #7fd3ff; --aurora-a: #3dffb5; --aurora-b: #39c6ff; --aurora-c: #a35cff; --polar-gold: #ffd76a;
+  background: radial-gradient(120% 70% at 50% -10%, #0d2a4d 0%, #061325 45%, #02060f 100%); color: #eaf6ff; isolation: isolate; }
+.polar .overlay-inner { position: relative; z-index: 1; max-width: 760px; padding-bottom: 40px; }
+/* Himmel: Sterne + drei langsam ziehende Polarlicht-Bänder */
+.polar-sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  background:
+    radial-gradient(1px 1px at 12% 18%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 78% 12%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 42% 8%, #dff4ff 50%, transparent 51%), radial-gradient(1px 1px at 63% 30%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 88% 44%, #cfefff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 25% 40%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 6% 62%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 52% 55%, #e6f7ff 50%, transparent 51%); }
+.polar-sky i { position: absolute; left: -30%; width: 160%; height: 46vh; border-radius: 50%; filter: blur(42px); opacity: .55; mix-blend-mode: screen;
+  animation: polar-drift 18s ease-in-out infinite alternate; }
+.polar-sky i:nth-child(1) { top: -14vh; background: linear-gradient(90deg, transparent 5%, var(--aurora-a) 30%, var(--aurora-b) 55%, transparent 85%); transform: rotate(-8deg); }
+.polar-sky i:nth-child(2) { top: -4vh; background: linear-gradient(90deg, transparent 15%, var(--aurora-b) 40%, var(--aurora-c) 70%, transparent 95%); opacity: .38; animation-duration: 24s; animation-delay: -6s; transform: rotate(6deg); }
+.polar-sky i:nth-child(3) { top: 8vh; height: 30vh; background: linear-gradient(90deg, transparent 30%, var(--aurora-a) 60%, transparent 90%); opacity: .22; animation-duration: 30s; animation-delay: -12s; }
+@keyframes polar-drift { from { translate: -8% 0; } to { translate: 8% 3vh; } }
+
+.polar-hero { position: relative; margin: 6px 0 18px; }
+.polar-kicker { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 999px; font-family: var(--display, inherit);
+  font-weight: 700; font-size: .8rem; letter-spacing: .16em; text-transform: uppercase; color: var(--ice);
+  background: rgba(127, 211, 255, .12); border: 1px solid rgba(191, 233, 255, .45); }
+.polar-title { margin: 12px 0 8px; font-family: var(--display, inherit); font-weight: 700; font-size: clamp(2.2rem, min(11vw, 13vh), 4.2rem); line-height: .92; letter-spacing: .01em; text-transform: uppercase;
+  background: linear-gradient(100deg, #ffffff 0%, var(--ice) 30%, var(--aurora-a) 55%, var(--aurora-b) 75%, var(--aurora-c) 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); }
+.polar-sub { margin: 0 0 14px; max-width: 34rem; color: #b9d4ea; font-size: .95rem; line-height: 1.45; }
+.polar-meter { display: grid; gap: 6px; max-width: 22rem; margin-bottom: 14px; }
+.polar-meter span { font-size: .85rem; color: #b9d4ea; }
+.polar-meter b { font-family: var(--display, inherit); font-size: 1.35rem; color: #fff; font-variant-numeric: tabular-nums; }
+.polar-track { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.polar-track i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--aurora-a), var(--aurora-b), var(--aurora-c)); }
+/* Einzige laute Aktion im gesperrten Zustand */
+.polar-unlock { display: flex; align-items: center; justify-content: space-between; gap: 14px; width: 100%; max-width: 26rem; height: 56px; padding: 0 18px; border: 0; border-radius: 16px; cursor: pointer;
+  font: inherit; font-family: var(--display, inherit); font-weight: 700; font-size: 1.15rem; letter-spacing: .04em; text-transform: uppercase; color: #041322;
+  background: linear-gradient(100deg, var(--aurora-a), var(--aurora-b) 60%, #c9a2ff); box-shadow: 0 10px 30px rgba(57, 198, 255, .35), 0 0 0 1px rgba(255, 255, 255, .35) inset; }
+.polar-unlock b { display: inline-flex; align-items: center; gap: 6px; font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+.polar-unlock:active { transform: scale(.98); }
+.polar-status { margin: 0; padding: 10px 14px; border-radius: 14px; background: rgba(6, 20, 38, .7); border: 1px solid rgba(191, 233, 255, .2); color: #cfe6f7; font-size: .9rem; line-height: 1.45; }
+.polar-status b { color: #fff; font-variant-numeric: tabular-nums; }
+
+/* Türchen: Eis-Kacheln mit Kristall-Muster */
+.polar-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 620px) { .polar-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.polar-door button { position: relative; width: 100%; height: 100%; min-height: 0; aspect-ratio: 1; padding: 8px 6px; border-radius: 16px; overflow: hidden; cursor: pointer; font: inherit; color: inherit; text-align: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  border: 1px solid rgba(191, 233, 255, .22);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .10), transparent 40%),
+    repeating-conic-gradient(from 30deg at 50% 50%, rgba(191, 233, 255, .05) 0 10deg, transparent 10deg 60deg),
+    linear-gradient(165deg, #12304f, #081a30 70%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .12) inset, 0 6px 16px rgba(0, 0, 0, .35);
+  transition: transform var(--t-fast, .15s), border-color var(--t-fast, .15s); }
+.polar-num { position: absolute; top: 5px; left: 8px; font-family: var(--display, inherit); font-weight: 700; font-size: 1.35rem; line-height: 1; color: #eaf6ff; font-variant-numeric: tabular-nums; }
+.polar-door.is-big .polar-num { color: var(--polar-gold); }
+.polar-reward { display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ice-2); }
+.polar-reward small { font-size: .62rem; font-weight: 700; line-height: 1.1; color: #9fc3df; overflow-wrap: anywhere; }
+.polar-door.is-big .polar-reward small { color: var(--polar-gold); }
+.polar-door button { padding: 22px 6px 8px; justify-content: flex-end; }
+.polar-tag { position: absolute; top: 6px; right: 6px; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; height: 18px; padding: 0 6px; border-radius: 999px; font-size: .6rem; font-weight: 800; letter-spacing: .04em; }
+.polar-lock { position: absolute; top: 8px; right: 8px; color: rgba(191, 233, 255, .45); }
+/* Winter-Karten-Türchen: eisiger Holo-Rand */
+.polar-door.is-card button { border-color: rgba(127, 211, 255, .55);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .16), transparent 45%),
+    repeating-conic-gradient(from 30deg at 50% 50%, rgba(191, 233, 255, .09) 0 10deg, transparent 10deg 60deg),
+    linear-gradient(165deg, #1b4a78, #0a2240 70%); }
+.polar-door.is-card .polar-reward { color: #fff; }
+.polar-door.is-big button { border: 1.5px solid rgba(255, 215, 106, .7);
+  background:
+    radial-gradient(80% 60% at 50% 0%, rgba(61, 255, 181, .22), transparent 70%),
+    repeating-conic-gradient(from 30deg at 50% 55%, rgba(255, 215, 106, .08) 0 10deg, transparent 10deg 60deg),
+    linear-gradient(165deg, #1d3f6e, #0a1a33 75%); }
+.polar-door.is-big .polar-reward { color: var(--polar-gold); }
+/* Zustände */
+.polar-door.s-locked button { cursor: default; filter: saturate(.6); opacity: .62; }
+.polar-grid.is-locked .polar-door.s-locked button { opacity: .8; }
+.polar-door.s-buy button { border-color: var(--aurora-b); box-shadow: 0 0 0 1px rgba(57, 198, 255, .5), 0 8px 22px rgba(57, 198, 255, .22); }
+.polar-door.s-buy button:hover { transform: translateY(-2px); }
+.polar-tag.buy { color: #041322; background: linear-gradient(90deg, var(--aurora-b), #9be7ff); }
+.polar-door.s-free button { border-color: var(--aurora-a); box-shadow: 0 0 0 2px rgba(61, 255, 181, .55), 0 0 26px rgba(61, 255, 181, .45); animation: polar-pulse 1.8s ease-in-out infinite; }
+.polar-tag.free { color: #03170f; background: var(--aurora-a); }
+@keyframes polar-pulse { 50% { box-shadow: 0 0 0 2px rgba(61, 255, 181, .8), 0 0 36px rgba(61, 255, 181, .6); } }
+.polar-door.s-open button { cursor: default; background: linear-gradient(165deg, #0b1f36, #050f1e); border-color: rgba(191, 233, 255, .14); }
+.polar-door.s-open .polar-num { color: #6f8fab; }
+.polar-door.s-open .polar-reward { color: var(--polar-gold); }
+.polar-door.s-open .polar-reward small { color: #e6f3ff; }
+.polar-tag.done { color: #041322; background: var(--ice); padding: 0 5px; }
+.polar-door.pop button { animation: polar-pop .55s cubic-bezier(.2, .9, .3, 1.4); }
+@keyframes polar-pop { 0% { transform: scale(.85) rotateY(90deg); } 100% { transform: scale(1) rotateY(0); } }
+.polar-foot { margin: 16px 0 0; color: #7f9db8; font-size: .8rem; text-align: center; }
+/* Ruhiger auf schwachen Geräten und bei reduzierter Bewegung */
+.lite .polar-sky i, .paused .polar-sky i { animation: none; filter: blur(28px); }
+.lite .polar-door.s-free button { animation: none; }
+@media (prefers-reduced-motion: reduce) { .polar-sky i, .polar-door.s-free button, .polar-door.pop button { animation: none; } }
+
+/* Hub-Eintrag */
+.polar-call { position: relative; display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px 16px; border-radius: 18px; cursor: pointer; overflow: hidden; text-align: left; font: inherit; color: #fff;
+  border: 1px solid rgba(127, 211, 255, .55);
+  background: radial-gradient(90% 140% at 100% 0%, rgba(61, 255, 181, .28), transparent 60%), radial-gradient(70% 120% at 30% 0%, rgba(163, 92, 255, .25), transparent 60%), linear-gradient(100deg, #0d2a4d, #050f1e 75%); }
+.polar-call-num { flex: none; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; font-family: var(--display, inherit); font-weight: 700; font-size: 1.4rem; line-height: 1;
+  color: #041322; background: linear-gradient(140deg, #3dffb5, #39c6ff 60%, #c9a2ff); }
+.polar-call-num small { display: block; font-size: .62rem; margin-top: -10px; }
+.polar-call-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.polar-call-text b { font-family: var(--display, inherit); font-size: 1.1rem; letter-spacing: .03em; text-transform: uppercase;
+  background: linear-gradient(90deg, #fff, #bfe9ff 40%, #3dffb5); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.polar-call-text small { color: #b9d4ea; font-size: .8rem; line-height: 1.3; }

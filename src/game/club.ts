@@ -72,6 +72,8 @@ export interface ClubState {
   advent?: number[];
   /** Silvester: Neujahrs-Geschenk schon abgeholt? */
   newYearClaimed?: boolean;
+  /** Polarlicht-Kalender (Premium-Adventskalender): freigeschaltet und geöffnete Türchen. */
+  polar?: { unlocked: boolean; opened: number[] };
   /** Saison-Pass des aktuellen Monats. */
   pass?: import('./pass').PassState;
   /** Aufstellung (11 Karten-IDs im 4-3-3, null = leer). */
