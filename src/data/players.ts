@@ -309,7 +309,32 @@ const YOUTH_2026_B: typeof RAW = [
   ['Faik Sakar', 'Deutschland', 'ZM', 18, 61, 77, 'RB Leipzig'],
 ];
 
-export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026, ...ADDITIONS_2026, ...WORLD_STARS_2026, ...DEPTH_2026, ...OCTOBER_2026, ...YOUTH_2026, ...YOUTH_2026_B].map(
+/** Jahrgang 2009/2010: 16-jährige Talente (Stand Oktober 2026). Positionen teils geschätzt. */
+const YOUTH_2026_C: typeof RAW = [
+  ['Filip Pavić', 'Kroatien', 'IV', 16, 62, 84, 'FC Bayern München'],
+  ['Marli Salmon', 'England', 'IV', 16, 63, 84, 'Arsenal FC'],
+  ['JJ Gabriel', 'England', 'ST', 16, 60, 85, 'Manchester United'],
+  ['Enzo Alves', 'Spanien', 'ST', 16, 60, 82, 'Real Madrid'],
+  ['Mathis Albert', 'USA', 'FL', 16, 62, 82, 'Borussia Dortmund'],
+  ['Louis Lemke', 'Deutschland', 'AV', 16, 63, 80, 'Hamburger SV'],
+  ['Marko Soldić', 'Deutschland', 'ZM', 16, 60, 79, '1. FC Nürnberg'],
+  ['Niko Ilievic', 'Deutschland', 'ZOM', 16, 58, 81, 'Eintracht Frankfurt'],
+  ['Ebrima Tunkara', 'Spanien', 'FL', 16, 59, 82, 'FC Barcelona'],
+  ['Carlos Macià', 'Spanien', 'ZM', 16, 61, 80, 'Villarreal CF'],
+  ['Jadiel Pereira da Gama', 'Niederlande', 'ZDM', 16, 61, 79, 'PEC Zwolle'],
+  ['Mezian Mesloub', 'Frankreich', 'ZM', 16, 63, 82, 'RC Lens'],
+  ['Adil Hamdani', 'Frankreich', 'FL', 16, 60, 79, 'Olympique Lyon'],
+  ['David Boly', 'Frankreich', 'AV', 16, 60, 80, 'Paris Saint-Germain'],
+  ['Tyrese Noubissie', 'Frankreich', 'ZM', 16, 60, 79, 'RC Straßburg'],
+  ['Brian Madjo', 'Frankreich', 'ST', 16, 60, 78, 'FC Metz'],
+  ['Believe Munongo', 'Frankreich', 'ZM', 16, 59, 78, 'FC Metz'],
+  ['Antonio Arena', 'Italien', 'ST', 16, 62, 81, 'AS Rom'],
+  ['Destiny Elimoghale', 'Italien', 'FL', 16, 60, 80, 'Juventus Turin'],
+  ['Leonard Prescott', 'Deutschland', 'ZM', 16, 59, 79, 'FC Bayern München'],
+  ['Leonhard Bockeloh', 'Deutschland', 'IV', 16, 59, 78, 'TSG Hoffenheim'],
+];
+
+export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026, ...ADDITIONS_2026, ...WORLD_STARS_2026, ...DEPTH_2026, ...OCTOBER_2026, ...YOUTH_2026, ...YOUTH_2026_B, ...YOUTH_2026_C].map(
   ([name, nation, position, age, ovr, potential, club]) => ({
     name, nation, position, age, ovr, potential, clubId: slugify(club),
   }),

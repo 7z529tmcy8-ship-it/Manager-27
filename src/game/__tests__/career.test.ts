@@ -57,7 +57,7 @@ describe('Saison-Simulation', () => {
     expect(avg(young)).toBeGreaterThan(73) // langsamere Entwicklung seit Oktober 2026: deutlich, aber kein Raketenstart;
     expect(avg(young)).toBeLessThanOrEqual(90);
     expect(avg(old)).toBeLessThan(83);
-  });
+  }, 20_000); // 40 Karrieren mit je 4–5 Saisons – braucht unter Last mehr als 5 s
 
   it('Leihe wechselt den Verein für eine Saison und kehrt dann zurück', () => {
     let c = createCareer({ name: 'Leih', nation: 'Deutschland', position: 'FL', age: 18, ovr: 68, potential: 86, clubId: slugify('FC Bayern München') });

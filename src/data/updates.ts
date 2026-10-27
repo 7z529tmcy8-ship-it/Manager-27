@@ -19,6 +19,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-27-talente16',
+    date: '27.10.2026',
+    title: '21 neue 16-jährige Talente',
+    items: [
+      'Jahrgang 2009/2010: u. a. Filip Pavić, Marli Salmon, JJ Gabriel, Enzo Alves, Mathis Albert, Louis Lemke, Mezian Mesloub und Antonio Arena.',
+      'Alle starten mit 16 im NLZ ihres Vereins (Wertung 58–63) – arbeite dich mit ihnen von der U17 zu den Profis hoch.',
+    ],
+  },
+  {
     id: '2026-10-27-angebote',
     date: '27.10.2026',
     title: 'Realistischere Angebote für junge Spieler',
