@@ -339,9 +339,11 @@ export interface Offer {
   fee: number;
   message: string;
   /** Besondere Angebote gegen Karriereende: Rückkehr zum Heimatverein oder Abenteuer im Ausland. */
-  tag?: 'home' | 'exotic';
+  tag?: 'home' | 'exotic' | 'nlz' | 'u23';
   /** Leihe mit Kaufoption (Ablöse in €). */
   buyOption?: number;
+  /** Wechsel ins NLZ des Vereins: Man spielt dort in dieser Nachwuchsmannschaft. */
+  nlz?: NlzTeam;
 }
 
 export interface Career {

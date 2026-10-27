@@ -860,8 +860,10 @@ export function acceptOffer(prev: Career, offer: Offer): Career {
     p.contract = { clubId: offer.clubId, yearsLeft: offer.years, wage: offer.wage, role: offer.role };
     p.loan = null;
   }
-  // Wer wechselt oder verliehen wird, spielt bei den Profis; eine Verlängerung lässt ihn im NLZ.
-  if (offer.type !== 'Verlängerung') p.nlz = undefined;
+  // Wer wechselt oder verliehen wird, spielt bei den Profis – außer beim Wechsel in ein anderes NLZ;
+  // eine Verlängerung lässt ihn im NLZ.
+  if (offer.nlz) p.nlz = { team: offer.nlz, role: offer.role };
+  else if (offer.type !== 'Verlängerung') p.nlz = undefined;
   return startNextSeason(career);
 }
 

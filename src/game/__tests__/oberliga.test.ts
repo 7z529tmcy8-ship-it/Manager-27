@@ -11,7 +11,7 @@ it('Karriere in der Oberliga Niedersachsen: Saison läuft, Angebote kommen, Auf-
   const r = c.history[0];
   expect(getLeague(r.leagueId).name).toBe('Oberliga Niedersachsen');
   expect(r.table).toHaveLength(16);
-  expect(seasonChoices(c).length).toBe(3);
+  expect(seasonChoices(c).length).toBe(c.offers.some((o) => o.tag === 'nlz' || o.tag === 'u23') ? 4 : 3);
   // Nach der Saison: genau 2 Oberliga-Teams sind jetzt in der Regionalliga und 2 RL-Teams in der Oberliga.
   const ondn = Object.values(c.clubLeague).filter((l) => l === 'ondn').length;
   expect(ondn).toBe(16);

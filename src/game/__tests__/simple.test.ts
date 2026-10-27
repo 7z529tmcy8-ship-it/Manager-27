@@ -14,8 +14,9 @@ it('Ablauf: Winterpause → Saisonende → drei Möglichkeiten → neue Saison',
   expect(c.history).toHaveLength(1);
   expect(c.decision).toBeNull();
   const choices = seasonChoices(c);
-  expect(choices).toHaveLength(3);
-  expect(new Set(choices.map((x) => x.offer?.id ?? x.kind)).size).toBe(3);
+  // Junge Spieler: eine vierte Karte, wenn ein NLZ- oder U23-Angebot dabei ist.
+  expect(choices).toHaveLength(c.offers.some((o) => o.tag === 'nlz' || o.tag === 'u23') ? 4 : 3);
+  expect(new Set(choices.map((x) => x.offer?.id ?? x.kind)).size).toBe(choices.length);
   c = applyChoice(c, choices.find((x) => x.kind === 'stay' || x.kind === 'extend') ?? choices[0]);
   expect(c.phase).toBe('season');
 });
@@ -27,7 +28,7 @@ it('Viele Saisons am Stück: immer drei Optionen, Spiel endet sauber', () => {
     if (c.phase !== 'window') continue;
     const ch = seasonChoices(c);
     // Jüngere Spieler haben immer drei Möglichkeiten; ältere manchmal weniger (realistisch).
-    if (c.player.age <= 28) expect(ch).toHaveLength(3);
+    if (c.player.age <= 28) expect(ch).toHaveLength(c.offers.some((o) => o.tag === 'nlz' || o.tag === 'u23') ? 4 : 3);
     else expect(ch.length).toBeGreaterThanOrEqual(1);
     c = applyChoice(c, ch[i % ch.length]);
   }

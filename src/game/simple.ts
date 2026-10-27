@@ -1,5 +1,5 @@
 import { bonusOvr } from './development';
-import { getClub } from '../data/leagues';
+import { getClub, youthClubOf } from '../data/leagues';
 import { acceptOffer, acceptWinterOffer, autoPlayFinal, canStay, finishFinal, playFirstHalf, playSeasonUntilFinal, requestOffers, retire, stayAtClub } from './career';
 import { chance, randInt } from './random';
 import { clubStrength } from './player';
@@ -84,7 +84,7 @@ function ensureOffers(c: Career): Career {
   return out;
 }
 
-export type ChoiceKind = 'transfer' | 'loan' | 'stay' | 'extend' | 'retire' | 'camp' | 'home' | 'exotic';
+export type ChoiceKind = 'transfer' | 'loan' | 'stay' | 'extend' | 'retire' | 'camp' | 'home' | 'exotic' | 'nlz' | 'u23';
 
 export interface Choice {
   kind: ChoiceKind;
@@ -102,6 +102,8 @@ const TITLES: Record<ChoiceKind, string> = {
   camp: 'Trainingslager',
   home: 'Heimkehr',
   exotic: 'Abenteuer',
+  nlz: 'NLZ-Wechsel',
+  u23: 'U23',
 };
 
 /** Die drei Möglichkeiten im Sommer: bester Wechsel, beste Leihe, Bleiben – mit sinnvollen Ersatzoptionen. */
@@ -114,10 +116,13 @@ export function seasonChoices(career: Career): Choice[] {
   const extension = career.offers.find((o) => o.type === 'Verlängerung');
   const home = career.offers.find((o) => o.tag === 'home');
   const exotic = career.offers.find((o) => o.tag === 'exotic');
+  // Junge Spieler: das beste Angebot eines anderen NLZ bzw. einer U23 als vierte Karte.
+  const youth = career.offers.filter((o) => o.tag === 'nlz' || o.tag === 'u23').sort(byStrength)[0];
 
   const out: Choice[] = [];
+  const max = youth ? 4 : 3;
   const take = (kind: ChoiceKind, offer?: Offer) => {
-    if (out.length < 3 && !(offer && out.some((c) => c.offer?.id === offer.id))) out.push({ kind, title: TITLES[kind], offer });
+    if (out.length < max && !(offer && out.some((c) => c.offer?.id === offer.id))) out.push({ kind, title: TITLES[kind], offer });
   };
   // Gegen Karriereende ersetzen Heimkehr und Abenteuer im Ausland die normalen Optionen.
   if (home) take('home', home);
@@ -125,12 +130,16 @@ export function seasonChoices(career: Career): Choice[] {
   if (exotic) take('exotic', exotic);
   else if (loans[0]) take('loan', loans[0]);
   else if (transfers[home ? 0 : 1]) take('transfer', transfers[home ? 0 : 1]);
+  if (youth) take(youth.tag as 'nlz' | 'u23', youth);
   if (extension) take('extend', extension);
   else if (canStay(career)) take('stay');
   // Auffüllen, falls weniger als drei: weitere Angebote, sonst Karriereende.
   for (const o of [...transfers.slice(1), ...loans.slice(1)]) take(o.type === 'Leihe' ? 'loan' : 'transfer', o);
-  if (canStay(career) && !out.some((c) => c.kind === 'stay')) take('stay');
+  if (canStay(career) && !out.some((c) => c.kind === 'stay' || c.kind === 'extend')) take('stay');
   if (out.length < 3) take('retire');
+  // Die Reihenfolge der Karten: Wechsel, Nachwuchs, Leihe …, Bleiben/Verlängern zuletzt.
+  const order: ChoiceKind[] = ['home', 'transfer', 'nlz', 'u23', 'exotic', 'loan', 'extend', 'stay', 'retire'];
+  out.sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
   return out;
 }
 
@@ -142,8 +151,20 @@ export function applyChoice(prev: Career, choice: Choice): Career {
   return { ...next, decision: null };
 }
 
-export const choiceClub = (career: Career, c: Choice) =>
-  c.offer ? getClub(c.offer.clubId).name : c.kind === 'stay' ? getClub(career.player.contract.clubId).name : '';
+/** Vereinsname auf der Karte – bei NLZ-Wechsel bzw. Bleiben im NLZ die Nachwuchsmannschaft. */
+export function choiceClubId(career: Career, c: Choice): string | null {
+  const p = career.player;
+  if (c.offer) {
+    const team = c.offer.nlz ?? (c.offer.type === 'Verlängerung' ? p.nlz?.team : undefined);
+    return team ? youthClubOf(c.offer.clubId, team)?.id ?? c.offer.clubId : c.offer.clubId;
+  }
+  if (c.kind === 'stay') return p.nlz ? youthClubOf(p.contract.clubId, p.nlz.team)?.id ?? p.contract.clubId : p.contract.clubId;
+  return null;
+}
+export const choiceClub = (career: Career, c: Choice) => {
+  const id = choiceClubId(career, c);
+  return id ? getClub(id).name : '';
+};
 
 // ---------- Winterpause ----------
 

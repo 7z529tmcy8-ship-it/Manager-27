@@ -520,6 +520,8 @@ export function playStage(career: Career, prog: SeasonProgress, stage: number): 
 
   ensureLeagueRows(career, prog);
   for (const l of SIM_LEAGUES) {
+    // Junioren-Ligen nur simulieren, wenn der Spieler selbst dort spielt (spart Rechenzeit).
+    if (l.youth && l.id !== leagueId) continue;
     const rowList = prog.rows[l.id];
     const rows = new Map(rowList.map((r) => [r.clubId, r]));
     const rounds = leagueRounds(prog, l.id);

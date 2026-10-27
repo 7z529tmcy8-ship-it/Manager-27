@@ -24,7 +24,7 @@ import { freePoints, levelInfo } from '../game/skills';
 import { play } from '../sound';
 import { isBroke } from '../game/gambling';
 import { useClub } from '../clubStore';
-import { applyChoice, applyWinterChoice, choiceClub, finishLiveFinal, seasonChoices, simulateToBreak, winterChoices, type Choice } from '../game/simple';
+import { applyChoice, applyWinterChoice, choiceClub, choiceClubId, finishLiveFinal, seasonChoices, simulateToBreak, winterChoices, type Choice } from '../game/simple';
 import { STAGES_PER_HALF } from '../game/season';
 import type { Career, FinalState, SeasonRecord } from '../game/types';
 
@@ -462,7 +462,8 @@ function SeasonRow({ r, open, onToggle }: { r: SeasonRecord; open: boolean; onTo
 
 function ChoiceCard({ career, c, selected, onPick }: { career: Career; c: Choice; selected: boolean; onPick: () => void }) {
   const o = c.offer;
-  const league = o ? getLeague(clubLeagueId(career, o.clubId)).name : c.kind === 'stay' ? getLeague(clubLeagueId(career, career.player.contract.clubId)).name : '';
+  const clubId = choiceClubId(career, c);
+  const league = clubId ? getLeague(clubLeagueId(career, clubId)).name : '';
   return (
     <button className={`cs-choice k-${c.kind} ${selected ? 'on' : ''}`} onClick={onPick} aria-pressed={selected}>
       <small>{c.title}</small>
@@ -479,6 +480,8 @@ function ChoiceCard({ career, c, selected, onPick }: { career: Career; c: Choice
       )}
       {c.kind === 'home' && <span className="cs-choice-meta">Zurück, wo alles begann</span>}
       {c.kind === 'exotic' && <span className="cs-choice-meta">Abenteuer mit Top-Gehalt</span>}
+      {c.kind === 'nlz' && <span className="cs-choice-meta">Im NLZ hocharbeiten</span>}
+      {c.kind === 'u23' && <span className="cs-choice-meta">Spielpraxis, nah an den Profis</span>}
       {c.kind === 'stay' && <span className="cs-choice-meta">Vertrag noch {career.player.contract.yearsLeft} J.</span>}
       {c.kind === 'retire' && <span className="cs-choice-meta">Mit {career.player.age} Jahren aufhören</span>}
       {c.kind === 'camp' && <span className="cs-choice-meta">Chance auf +1 Wertung – je mehr Spielpraxis, desto besser. Kleines Verletzungsrisiko.</span>}

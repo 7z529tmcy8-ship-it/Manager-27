@@ -1,4 +1,4 @@
-import { CLUBS, getClub, getLeague } from '../data/leagues';
+import { CLUBS, firstTeamOf, getClub, getLeague, youthClubOf } from '../data/leagues';
 import { clubLeagueId, clubStrength, formatMoney, playerValue, roleFor, wageFor } from './player';
 import { chance, clamp, poisson, rand, randInt, uid, weightedPick } from './random';
 import type { Career, Offer } from './types';
@@ -38,10 +38,16 @@ export function generateOffers(
   const freeAgent = p.contract.yearsLeft <= 0;
   const rating = last?.avgRating ?? 6.6;
   const share = last && last.possibleMinutes > 0 ? last.minutes / last.possibleMinutes : 0.5;
-  const perf = clamp((rating - 6.8) * 3, -3, 4);
+  // Noten aus Junioren-Ligen zählen für Profivereine nur halb.
+  const youthBasis = !!last && !!getLeague(getClub(last.clubId).leagueId).youth;
+  const perf = clamp((rating - 6.8) * 3, -3, 4) * (youthBasis ? 0.5 : 1);
   const upside = p.age <= 23 ? (p.potential - p.ovr) * 0.4 : 0;
   const agePenalty = Math.max(0, p.age - 30) * 1.2;
   const appeal = p.ovr + upside + perf - agePenalty;
+  // Junge Spieler werden von Profivereinen vor allem nach ihrem aktuellen Können bewertet –
+  // mit wenig Wertung kommen die Angebote eher aus der 2. oder 3. Liga als aus der Bundesliga.
+  const young = p.age <= 21;
+  const proAppeal = young ? p.ovr + upside * 0.4 + perf : appeal;
   const country = getLeague(clubLeagueId(career, parentId)).country;
   const offers: Offer[] = [];
   const taken = new Set<string>([parentId]);
@@ -49,8 +55,11 @@ export function generateOffers(
   // Vertragsverlängerung beim eigenen Verein
   const wanted = share >= 0.35 || (p.age <= 22 && p.potential >= parentStrength) || p.ovr >= parentStrength - 2;
   if (!winter && p.contract.yearsLeft <= 2 && wanted && !(p.age >= 34 && p.ovr < parentStrength - 3)) {
-    const role = roleFor(p.ovr, parentStrength, p.age);
-    const wage = Math.max(p.contract.wage, Math.round(wageFor(p.ovr, parentStrength) * rand(1.0, 1.2) / 500) * 500);
+    // Im NLZ verlängert man in der Nachwuchsmannschaft (Fördervertrag).
+    const role = p.nlz ? p.nlz.role : roleFor(p.ovr, parentStrength, p.age);
+    const proWage = Math.round(wageFor(p.ovr, parentStrength) * rand(1.0, 1.2) / 500) * 500;
+    // Im NLZ gibt es einen Fördervertrag, kein Profigehalt.
+    const wage = Math.max(p.contract.wage, p.nlz ? Math.min(3_000, proWage) : proWage);
     offers.push({
       id: uid(),
       type: 'Verlängerung',
@@ -82,15 +91,16 @@ export function generateOffers(
   if (p.age >= 35) count = Math.min(count, 2);
   for (let i = 0; i < count; i++) {
     // Nur Vereine, für die der Spieler sportlich überhaupt in Frage kommt.
+    // Zweite Mannschaften kommen über eigene U23-Angebote (siehe unten).
     const options = CLUBS.filter((c) => {
-      const d = clubStrength(career, c.id) - appeal;
-      return !taken.has(c.id) && d <= 6 && d >= -10 && (!getLeague(clubLeagueId(career, c.id)).exotic || p.age >= EXOTIC_AGE);
+      const d = clubStrength(career, c.id) - proAppeal;
+      return !taken.has(c.id) && !firstTeamOf(c.id) && d <= (young ? 5 : 6) && d >= (young ? -16 : -10) && (!getLeague(clubLeagueId(career, c.id)).exotic || p.age >= EXOTIC_AGE);
     });
     if (!options.length) break;
     const club = weightedPick(options, (c) => {
       const s = clubStrength(career, c.id);
-      const d = s - appeal;
-      let w = Math.exp(-((d + 2) ** 2) / (2 * 3.5 ** 2));
+      const d = s - proAppeal;
+      let w = young ? Math.exp(-((d + 4) ** 2) / (2 * 4.5 ** 2)) : Math.exp(-((d + 2) ** 2) / (2 * 3.5 ** 2));
       if (d > 3) w *= Math.exp(-(d - 3));
       if (getLeague(clubLeagueId(career, c.id)).country === country) w *= 1.3;
       return w + 1e-6;
@@ -136,6 +146,7 @@ export function generateOffers(
   }
 
   if (!winter && mode !== 'loan') {
+    offers.push(...nlzOffers(career, taken, freeAgent, perf), ...u23Offers(career, taken, freeAgent, share));
     const home = homecomingOffer(career, taken, freeAgent);
     if (home) offers.push(home);
     const exotic = exoticOffer(career, taken, appeal, freeAgent);
@@ -143,6 +154,73 @@ export function generateOffers(
   }
 
   return offers;
+}
+
+/**
+ * Andere Nachwuchsleistungszentren werben junge Talente ab (bis 18): Sie scouten nach Potenzial,
+ * man wechselt in deren U17/U19 und muss sich dort zu den Profis hocharbeiten.
+ */
+function nlzOffers(career: Career, taken: Set<string>, freeAgent: boolean, perf: number): Offer[] {
+  const p = career.player;
+  // Nur wer (noch) im Nachwuchs spielt oder vereinslos ist – Profis wechseln nicht zurück in eine U19.
+  if (p.age > 18 || (!p.nlz && !freeAgent)) return [];
+  const team = p.age <= 16 ? 'U17' : 'U19';
+  const home = getLeague(clubLeagueId(career, p.contract.clubId)).country;
+  const count = Math.min(3, poisson(clamp(0.5 + (p.potential - 72) / 8 + perf * 0.15, 0.2, 2.5)));
+  const out: Offer[] = [];
+  for (let i = 0; i < count; i++) {
+    const options = CLUBS.filter((c) => !taken.has(c.id) && youthClubOf(c.id, team));
+    if (!options.length) break;
+    // Meist aus dem eigenen Land – ein NLZ im Ausland ist die Ausnahme.
+    const club = weightedPick(options, (c) =>
+      Math.exp(-((clubStrength(career, c.id) - (p.potential - 3)) ** 2) / (2 * 5 ** 2)) * (getLeague(c.leagueId).country === home ? 4 : 1) + 1e-6);
+    taken.add(club.id);
+    const youth = youthClubOf(club.id, team)!;
+    const ys = clubStrength(career, youth.id);
+    const fee = freeAgent ? 0 : Math.round((playerValue(p) * rand(0.25, 0.5)) / 5e4) * 5e4;
+    const actual = youth.id.endsWith('-u17') ? 'U17' : 'U19';
+    out.push({
+      id: uid(),
+      type: freeAgent ? 'Ablösefrei' : 'Transfer',
+      clubId: club.id,
+      role: roleFor(p.ovr, ys, p.age),
+      wage: Math.min(2_500, Math.max(500, Math.round(wageFor(p.ovr, ys) / 250) * 250)),
+      years: 3,
+      fee,
+      message: `${club.name} will dich in sein Nachwuchsleistungszentrum holen: Du spielst in der ${youth.name} (${getLeague(youth.leagueId).name}) und trainierst nah an den Profis.` +
+        (fee > 0 ? ` Ausbildungsentschädigung: ${formatMoney(fee)}.` : ''),
+      tag: 'nlz',
+      nlz: actual,
+    });
+  }
+  return out;
+}
+
+/** U23 bzw. zweite Mannschaften (bis 22): Spielpraxis bei den Männern, kurzer Weg zu den Profis des Vereins. */
+function u23Offers(career: Career, taken: Set<string>, freeAgent: boolean, share: number): Offer[] {
+  const p = career.player;
+  if (p.age > 22) return [];
+  const count = Math.min(2, poisson(clamp(0.5 + (share < 0.3 ? 0.6 : 0) + (p.nlz ? 0.4 : 0), 0.2, 1.6)));
+  const out: Offer[] = [];
+  for (let i = 0; i < count; i++) {
+    const options = CLUBS.filter((c) => {
+      const first = firstTeamOf(c.id);
+      return !!first && !taken.has(c.id) && first.id !== p.contract.clubId && first.id !== firstTeamOf(p.contract.clubId)?.id;
+    });
+    if (!options.length) break;
+    // Passend, wenn man in der zweiten Mannschaft wirklich spielt – etwa auf Augenhöhe mit ihr.
+    const club = weightedPick(options, (c) => Math.exp(-((clubStrength(career, c.id) - (p.ovr - 2)) ** 2) / (2 * 4 ** 2)) + 1e-6);
+    taken.add(club.id);
+    const first = firstTeamOf(club.id)!;
+    const s = clubStrength(career, club.id);
+    const offer = transferOffer(career, club.id, s, freeAgent, '');
+    offer.fee = Math.round((offer.fee * 0.5) / 5e4) * 5e4;
+    offer.message = `Die U23 von ${first.name} will dich: Spielpraxis in der ${getLeague(clubLeagueId(career, club.id)).name} – und der Weg zu den Profis ist kurz.` +
+      (offer.fee > 0 ? ` Ablöse: ${formatMoney(offer.fee)}.` : '');
+    offer.tag = 'u23';
+    out.push(offer);
+  }
+  return out;
 }
 
 /** Ab diesem Alter kommen Angebote aus MLS, Saudi-Arabien, Japan und Australien. */

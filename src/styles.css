@@ -3820,3 +3820,17 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .cs-nlz-main small { color: var(--muted); line-height: 1.35; }
 .cs-nlz-track { height: 5px; border-radius: 3px; background: rgba(255, 255, 255, .1); overflow: hidden; }
 .cs-nlz-track i { display: block; height: 100%; background: linear-gradient(90deg, #a35cff, #00e5ff); border-radius: inherit; }
+
+/* Vier Karten im Transferfenster (junge Spieler: NLZ/U23-Angebot) */
+.cs-choices.n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cs-choice.k-nlz small, .cs-choice.k-u23 small { color: var(--violet, #a35cff); }
+/* Lange Liganamen (z. B. Junioren-Ligen) dürfen den Vereinsnamen nicht zerquetschen */
+@media (max-width: 560px) {
+  .cs-choices-window .cs-choice { grid-template-columns: minmax(0, 1fr) minmax(0, max-content); }
+  .cs-choices-window .cs-choice > .cs-choice-league { max-width: 9.5rem; text-align: right; line-height: 1.25; }
+  .cs-choices-window .cs-choice > strong { overflow-wrap: break-word; }
+}
+/* Vier Angebote: zwei Spalten statt drei plus Rest */
+@media (min-width: 561px) {
+  .cs-choices.cs-choices-window:has(> :nth-child(4)) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

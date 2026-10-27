@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-27-angebote',
+    date: '27.10.2026',
+    title: 'Realistischere Angebote für junge Spieler',
+    items: [
+      'Junge Spieler mit noch niedriger Wertung bekommen Profi-Angebote vor allem aus der 2. und 3. Liga oder Regionalliga – nicht mehr gleich aus der Bundesliga.',
+      'Neu: Andere Nachwuchsleistungszentren werben dich ab (bis 18) – du wechselst in deren U17/U19 und arbeitest dich dort hoch.',
+      'Neu: U23-Angebote von zweiten Mannschaften (bis 22) – Spielpraxis bei den Männern, kurzer Weg zu den Profis.',
+      'Das beste NLZ- oder U23-Angebot erscheint als vierte Karte im Transferfenster. Noten aus Junioren-Ligen zählen für Profivereine nur halb.',
+    ],
+  },
+  {
     id: '2026-10-27-nlz',
     date: '27.10.2026',
     title: 'NLZ und Junioren-Ligen',
