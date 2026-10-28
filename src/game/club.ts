@@ -74,6 +74,8 @@ export interface ClubState {
   newYearClaimed?: boolean;
   /** Flutlicht-Drops: ungeöffnete Drops, Duell-Drops heute, insgesamt geöffnet. */
   drops?: number;
+  /** Mega-Drops (mindestens Episch). */
+  megaDrops?: number;
   dropDay?: { day: string; n: number };
   dropsOpened?: number;
   /** Ruhmesweg: aktuelle und beste Trophäen, abgeholte Stufen (Trophäen-Marke). */

@@ -1,4 +1,4 @@
-import { PACKS, storePacks, type ClubState } from './club';
+import { CARD_POOL, PACKS, eventOfCard, storePacks, type ClubState, type CollectCard } from './club';
 
 // ---------- Flutlicht-Drops und Ruhmesweg ----------
 // Drops sind Überraschungs-Belohnungen: Die Seltenheit wird beim Öffnen Stufe für Stufe enthüllt.
@@ -13,30 +13,57 @@ export const DROP_LABEL: Record<DropRarity, string> = { selten: 'Selten', supers
 export const DROP_ODDS: Record<DropRarity, number> = { selten: 50, superselten: 28, episch: 15, mythisch: 5.5, legendaer: 1.5 };
 export const DROPS_PER_DAY = 6;
 
-export type DropReward = { kind: 'coins'; amount: number } | { kind: 'pack'; pack: string };
+export type DropReward = { kind: 'coins'; amount: number } | { kind: 'pack'; pack: string } | { kind: 'card'; card: CollectCard };
+export type DropKind = 'normal' | 'mega';
+
+/** Mega-Drop: mindestens Episch. */
+export const MEGA_ODDS: Partial<Record<DropRarity, number>> = { episch: 66, mythisch: 26, legendaer: 8 };
 
 const dayKey = (now: Date) => `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
 
-export function rollRarity(rand: () => number = Math.random): DropRarity {
+export function rollRarity(rand: () => number = Math.random, kind: DropKind = 'normal'): DropRarity {
+  const odds = kind === 'mega' ? MEGA_ODDS : DROP_ODDS;
   let r = rand() * 100;
-  for (const k of DROP_ORDER) if ((r -= DROP_ODDS[k]) < 0) return k;
-  return 'selten';
+  for (const k of DROP_ORDER) if ((r -= odds[k] ?? 0) < 0) return k;
+  return kind === 'mega' ? 'episch' : 'selten';
 }
 
 const between = (lo: number, hi: number, rand: () => number) => Math.round((lo + rand() * (hi - lo)) / 100) * 100;
 
+/** Zufällige Karte aus dem normalen Kartenpool (keine Event-Karten), eher die schwächeren der Spanne. */
+function cardIn(filter: (c: CollectCard) => boolean, rand: () => number): CollectCard | null {
+  const pool = CARD_POOL.filter((c) => !eventOfCard(c) && filter(c)).sort((x, y) => x.ovr - y.ovr);
+  if (!pool.length) return null;
+  return pool[Math.floor(rand() ** 1.6 * pool.length)];
+}
+
+const SPECIAL = ['debut', 'comeback', 'flashback', 'cult'];
+
 export function dropReward(rarity: DropRarity, rand: () => number = Math.random): DropReward {
   const r = rand();
+  const card = (f: (c: CollectCard) => boolean, fallback: DropReward): DropReward => {
+    const c = cardIn(f, rand);
+    return c ? { kind: 'card', card: c } : fallback;
+  };
   switch (rarity) {
-    case 'selten': return { kind: 'coins', amount: between(1_500, 3_000, rand) };
-    case 'superselten': return r < 0.6 ? { kind: 'coins', amount: between(4_000, 7_000, rand) } : { kind: 'pack', pack: 'gold' };
-    case 'episch': return r < 0.5 ? { kind: 'coins', amount: between(10_000, 15_000, rand) } : { kind: 'pack', pack: r < 0.75 ? 'jumbo' : 'wonder' };
-    case 'mythisch': return r < 0.4 ? { kind: 'coins', amount: between(30_000, 40_000, rand) } : { kind: 'pack', pack: r < 0.75 ? 'premium' : 'worldstar' };
-    case 'legendaer': return { kind: 'pack', pack: r < 0.75 ? 'icon' : 'ultimate' };
+    case 'selten': return r < 0.7 ? { kind: 'coins', amount: between(2_000, 4_000, rand) } : { kind: 'pack', pack: 'standard' };
+    case 'superselten': return r < 0.45 ? { kind: 'coins', amount: between(6_000, 10_000, rand) } : r < 0.8 ? { kind: 'pack', pack: 'gold' } : { kind: 'pack', pack: 'mystery' };
+    case 'episch':
+      return r < 0.35 ? { kind: 'coins', amount: between(15_000, 25_000, rand) }
+        : r < 0.65 ? card((c) => c.variant === 'gold-rare' && c.ovr >= 84 && c.ovr <= 87, { kind: 'pack', pack: 'premium' })
+          : { kind: 'pack', pack: r < 0.85 ? 'premium' : 'megagold' };
+    case 'mythisch':
+      return r < 0.3 ? { kind: 'coins', amount: between(50_000, 80_000, rand) }
+        : r < 0.65 ? card((c) => SPECIAL.includes(c.variant) || (c.variant === 'gold-rare' && c.ovr >= 88), { kind: 'pack', pack: 'worldstar' })
+          : { kind: 'pack', pack: r < 0.85 ? 'worldstar' : 'megagold' };
+    case 'legendaer':
+      return r < 0.4 ? card((c) => c.variant === 'icon', { kind: 'pack', pack: 'icon' })
+        : r < 0.7 ? { kind: 'pack', pack: 'icon' } : r < 0.9 ? { kind: 'pack', pack: 'ultimate' } : { kind: 'pack', pack: 'goat' };
   }
 }
 
-export const dropRewardText = (r: DropReward) => (r.kind === 'coins' ? `${r.amount.toLocaleString('de-DE')} Coins` : PACKS.find((p) => p.id === r.pack)?.name ?? r.pack);
+export const dropRewardText = (r: DropReward) =>
+  r.kind === 'coins' ? `${r.amount.toLocaleString('de-DE')} Coins` : r.kind === 'card' ? `${r.card.name} (${r.card.ovr})` : PACKS.find((p) => p.id === r.pack)?.name ?? r.pack;
 
 /** Drop gutschreiben (Duell-Sieg: höchstens DROPS_PER_DAY pro Tag). */
 export function grantDrop(club: ClubState, now = new Date(), fromDuel = true): { club: ClubState; granted: boolean } {
@@ -49,16 +76,40 @@ export function grantDrop(club: ClubState, now = new Date(), fromDuel = true): {
 export const dropsLeftToday = (club: Pick<ClubState, 'dropDay'>, now = new Date()) =>
   DROPS_PER_DAY - (club.dropDay?.day === dayKey(now) ? club.dropDay.n : 0);
 
-export interface DropOpen { club: ClubState; rarity: DropRarity; steps: DropRarity[]; reward: DropReward }
+// ---------- Drop-Shop ----------
+export interface DropOffer { id: string; name: string; text: string; price: number; kind: DropKind; n: number }
+export const DROP_SHOP: DropOffer[] = [
+  { id: 'drop1', name: 'Flutlicht-Drop', text: 'Normale Chancen – von Selten bis Legendär.', price: 12_000, kind: 'normal', n: 1 },
+  { id: 'drop5', name: '5er-Bündel', text: '5 Flutlicht-Drops, einer gratis.', price: 48_000, kind: 'normal', n: 5 },
+  { id: 'mega', name: 'Mega-Drop', text: 'Mindestens Episch – 8 % Legendär.', price: 90_000, kind: 'mega', n: 1 },
+];
 
-/** Einen Drop öffnen: Seltenheit würfeln, Belohnung gutschreiben (Packs landen in der Ablage). */
-export function openDrop(club: ClubState, rand: () => number = Math.random, now = Date.now()): DropOpen | null {
-  if (!(club.drops ?? 0)) return null;
-  const rarity = rollRarity(rand);
+export function buyDrops(club: ClubState, offerId: string): ClubState | null {
+  const o = DROP_SHOP.find((x) => x.id === offerId);
+  if (!o || club.coins < o.price) return null;
+  const base = { ...club, coins: club.coins - o.price };
+  return o.kind === 'mega' ? { ...base, megaDrops: (base.megaDrops ?? 0) + o.n } : { ...base, drops: (base.drops ?? 0) + o.n };
+}
+
+export interface DropOpen { club: ClubState; rarity: DropRarity; steps: DropRarity[]; reward: DropReward; kind: DropKind; duplicate: boolean }
+
+/** Einen Drop öffnen: Seltenheit würfeln, Belohnung gutschreiben (Packs in die Ablage, Karten in die Sammlung). */
+export function openDrop(club: ClubState, rand: () => number = Math.random, now = Date.now(), kind: DropKind = 'normal'): DropOpen | null {
+  const have = kind === 'mega' ? club.megaDrops ?? 0 : club.drops ?? 0;
+  if (!have) return null;
+  const rarity = rollRarity(rand, kind);
   const reward = dropReward(rarity, rand);
-  let next: ClubState = { ...club, drops: club.drops! - 1, dropsOpened: (club.dropsOpened ?? 0) + 1 };
-  next = reward.kind === 'coins' ? { ...next, coins: next.coins + reward.amount } : storePacks(next, [reward.pack], `Drop (${DROP_LABEL[rarity]})`, now);
-  return { club: next, rarity, steps: DROP_ORDER.slice(0, DROP_ORDER.indexOf(rarity) + 1), reward };
+  let next: ClubState = { ...club, [kind === 'mega' ? 'megaDrops' : 'drops']: have - 1, dropsOpened: (club.dropsOpened ?? 0) + 1 };
+  let duplicate = false;
+  if (reward.kind === 'coins') next = { ...next, coins: next.coins + reward.amount };
+  else if (reward.kind === 'pack') next = storePacks(next, [reward.pack], `Drop (${DROP_LABEL[rarity]})`, now);
+  else {
+    duplicate = (next.cards[reward.card.id] ?? 0) > 0;
+    next = { ...next, cards: { ...next.cards, [reward.card.id]: (next.cards[reward.card.id] ?? 0) + 1 } };
+  }
+  // Mega-Drops starten die Enthüllung bei Episch
+  const from = kind === 'mega' ? DROP_ORDER.indexOf('episch') : 0;
+  return { club: next, rarity, steps: DROP_ORDER.slice(from, DROP_ORDER.indexOf(rarity) + 1), reward, kind, duplicate };
 }
 
 // ---------- Trophäen ----------

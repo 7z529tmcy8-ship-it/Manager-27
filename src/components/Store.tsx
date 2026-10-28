@@ -7,6 +7,7 @@ import { motionReduced } from '../settings';
 import Confetti from './Confetti';
 import UtCard from './UtCard';
 import Icon, { Glyph } from './Icon';
+import { DropCenter } from './GloryRoad';
 
 const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 
@@ -85,6 +86,11 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
       )}
 
       <StoredPacks onOpen={(r) => setOpening((o) => ({ result: r.result, name: r.name, packId: '', free: true, n: (o?.n ?? 0) + 1 }))} />
+
+      <section className="store-group sg-drops" aria-label="Flutlicht-Drops">
+        <h2 className="store-group-head"><Icon name="spark" size={18} />Flutlicht-Drops<small>Überraschung von Selten bis Legendär</small></h2>
+        <DropCenter />
+      </section>
 
       <TotwSection coins={club.coins} onBuy={() => buy(TOTW_PACK.id)} />
 

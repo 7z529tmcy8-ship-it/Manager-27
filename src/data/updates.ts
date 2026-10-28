@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-28-drops2',
+    date: '28.10.2026',
+    title: 'Flutlicht-Drops 2.0',
+    items: [
+      'Drops jetzt kaufen: im Store und im Ruhmesweg – Flutlicht-Drop 12.000, 5er-Bündel 48.000 (einer gratis) und Mega-Drop 90.000 Coins (mindestens Episch, 8 % Legendär).',
+      'Stärkere Belohnungen: Episch kann eine Gold-Karte ab 84 bringen, Mythisch eine Spezialkarte (Debüt, Comeback, Rückblende, Kult) oder 88+, Legendär eine Ikone direkt – oder ein Ikonen-, Ultimate- oder sogar GOAT-Pack.',
+      'Neue Enthüllung: Lichtstrahlen, Flutlicht-Kegel, der Edelstein bebt bei jedem Antippen, springt mit einem Blitz eine Seltenheit höher und platzt am Ende mit Funkenregen auf.',
+    ],
+  },
+  {
     id: '2026-10-28-ruhmesweg',
     date: '28.10.2026',
     title: 'Ruhmesweg und Flutlicht-Drops',

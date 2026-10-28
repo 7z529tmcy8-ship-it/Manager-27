@@ -305,13 +305,14 @@ function GloryTile({ onClick }: { onClick: () => void }) {
   const best = club.trophyBest ?? 0;
   const next = ROAD.find((s) => s.at > best);
   const prevAt = [...ROAD].reverse().find((s) => s.at <= best)?.at ?? 0;
-  const open = roadReady(club) + (club.drops ?? 0);
+  const drops = (club.drops ?? 0) + (club.megaDrops ?? 0);
+  const open = roadReady(club) + drops;
   return (
     <button className="hub-tile hub-pass hub-glory" onClick={onClick}>
       <span className="hub-tile-icon" aria-hidden="true"><Icon name="trophy" /></span>
       <span className="hub-pass-text">
         <strong>Ruhmesweg</strong>
-        <small>{club.drops ? `${club.drops} Drop${club.drops > 1 ? 's' : ''} öffnen` : roadReady(club) ? `${roadReady(club)} Stufe${roadReady(club) > 1 ? 'n' : ''} abholen` : next ? `Noch ${next.at - best} Trophäen bis zur nächsten Stufe` : 'Komplett – Legende!'}</small>
+        <small>{drops ? `${drops} Drop${drops > 1 ? 's' : ''} öffnen` : roadReady(club) ? `${roadReady(club)} Stufe${roadReady(club) > 1 ? 'n' : ''} abholen` : next ? `Noch ${next.at - best} Trophäen bis zur nächsten Stufe` : 'Komplett – Legende!'}</small>
         <span className="evo-bar"><i style={{ width: `${next ? ((best - prevAt) / (next.at - prevAt)) * 100 : 100}%` }} /></span>
       </span>
       <span className="hub-pass-level"><b>{(club.trophies ?? 0).toLocaleString('de-DE')}</b><small>Trophäen</small></span>

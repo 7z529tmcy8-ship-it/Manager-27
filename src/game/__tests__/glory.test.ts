@@ -47,3 +47,28 @@ it('Ruhmesweg: Bestwert zählt, jede Stufe nur einmal', () => {
   expect(roadReady(all)).toBe(0);
   expect(addTrophies(freshClub(), -50).trophies).toBe(0);
 });
+
+it('Drop-Shop: kaufen, Mega-Drop mindestens Episch, Karten-Belohnungen landen in der Sammlung', async () => {
+  const { buyDrops, DROP_SHOP, dropReward } = await import('../glory');
+  expect(buyDrops({ ...freshClub(), coins: 1000 }, 'drop1')).toBeNull();
+  let c = buyDrops({ ...freshClub(), coins: 200_000 }, 'drop5')!;
+  expect(c.drops).toBe(5);
+  expect(c.coins).toBe(200_000 - DROP_SHOP.find((o) => o.id === 'drop5')!.price);
+  c = buyDrops(c, 'mega')!;
+  expect(c.megaDrops).toBe(1);
+  for (let i = 0; i < 200; i++) {
+    const m = openDrop({ ...c }, Math.random, Date.now(), 'mega')!;
+    expect(['episch', 'mythisch', 'legendaer']).toContain(m.rarity);
+    expect(m.steps[0]).toBe('episch');
+    expect(m.club.megaDrops).toBe(0);
+  }
+  let cards = 0;
+  for (let i = 0; i < 300; i++) {
+    const r = dropReward('legendaer');
+    if (r.kind === 'card') { cards++; expect(r.card.variant).toBe('icon'); }
+  }
+  expect(cards).toBeGreaterThan(50);
+  const withCard = openDrop({ ...freshClub(), drops: 1 }, (() => { const seq = [0.99, 0.1, 0.5]; let k = 0; return () => seq[k++ % 3]; })())!;
+  expect(withCard.reward.kind).toBe('card');
+  if (withCard.reward.kind === 'card') expect(withCard.club.cards[withCard.reward.card.id]).toBe(1);
+});
