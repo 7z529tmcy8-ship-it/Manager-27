@@ -1,5 +1,6 @@
 import type { ClubState, CollectCard } from './club';
 import { clamp, poisson, randInt } from './random';
+import { DUEL_TROPHIES, addTrophies, grantDrop } from './glory';
 import { DUEL_STRENGTH, cardAttrs, cardById, duelPoints, seasonId, slotsOf, teamStrength, type DuelResult } from './squad';
 
 // ---------- Duell-Divisionen ----------
@@ -145,9 +146,14 @@ export function playDivisionDuel(club: ClubState, tactic: Tactic, now = new Date
   const sid = seasonId(now);
   const duelSeasons = points ? { ...club.duelSeasons, [sid]: (club.duelSeasons?.[sid] ?? 0) + points } : club.duelSeasons;
   const division: DivisionState = { ...state, rewarded: bonus ? [...rewarded, state.div] : rewarded, next: makeOpponent(state.div, rand) };
+  // Ruhmesweg: Trophäen für jedes Duell, Flutlicht-Drop für Siege (Tageslimit)
+  const trophyDelta = DUEL_TROPHIES[outcome];
+  let after = addTrophies({ ...club, coins: club.coins + coins, duels: { ...club.duels, [key]: club.duels[key] + 1 }, duelSeasons, division, duelLevel: Math.min(10, Math.max(club.duelLevel, divLevel(state.best))) }, trophyDelta);
+  let drop = false;
+  if (outcome === 'win') ({ club: after, granted: drop } = grantDrop(after, now));
   return {
-    club: { ...club, coins: club.coins + coins, duels: { ...club.duels, [key]: club.duels[key] + 1 }, duelSeasons, division, duelLevel: Math.min(10, Math.max(club.duelLevel, divLevel(state.best))) },
-    result: { own, opp: against, outcome, coins, goals, points },
+    club: after,
+    result: { own, opp: against, outcome, coins, goals, points, trophies: trophyDelta, drop },
     move, bonus, edge, fit, opponent: opp, level,
   };
 }

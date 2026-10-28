@@ -15,6 +15,8 @@ import Icon from './Icon';
 import { divName, divisionOf } from '../game/divisions';
 import AdventCalendar from './AdventCalendar';
 import PolarCalendar from './PolarCalendar';
+import GloryRoad from './GloryRoad';
+import { ROAD, roadReady } from '../game/glory';
 import { POLAR_UNLOCK, polarNextBuyable, polarVisible } from '../game/polar';
 import { adventToday, claimNewYearGift, newYearGiftOpen } from '../game/winter';
 import { PASS_LEVELS, XP_PER_LEVEL, passLevel, passOf, unclaimedLevels, unclaimedProLevels } from '../game/pass';
@@ -51,6 +53,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   const [nyPack, setNyPack] = useState<PackResult | null>(null);
   const [advent, setAdvent] = useState(false);
   const [polar, setPolar] = useState(false);
+  const [glory, setGlory] = useState(false);
   const tipWon = ballonTipCorrect(club) === true && !club.ballonTipClaimed;
   // Event-Hinweis oben: das gerade wichtigste Event
   const gigLastDay = new Date().getDate() === 18;
@@ -184,6 +187,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
         </section>
 
         <PassTile onClick={onPass} />
+        <GloryTile onClick={() => setGlory(true)} />
         <Tile icon="ball" title="Neue Karriere" sub="Eigener Spieler, Profi, Legende oder zweite Chance" onClick={onNew} />
         <Tile icon="pack" title="Store" sub={!club.megaSuperClaimed ? 'MEGA SUPER XXL Pack gratis!' : !club.megaXxlClaimed ? 'MEGA-XXL-Pack gratis!' : club.welcomeClaimed ? 'Packs mit Coins öffnen' : 'Gratis-Pack wartet!'}
           badge={freePacks ? String(freePacks) : undefined} onClick={onStore} accent />
@@ -244,6 +248,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
       )}
       {backup && <Backup onClose={() => setBackup(false)} />}
       {tipOpen && <BallonTip onClose={() => setTipOpen(false)} />}
+      {glory && <GloryRoad onClose={() => setGlory(false)} onStore={() => { setGlory(false); onStore(); }} />}
       {polar && <PolarCalendar onClose={() => setPolar(false)} onCollection={() => { setPolar(false); onCollection(); }} />}
       {advent && <AdventCalendar onClose={() => setAdvent(false)} onCollection={() => { setAdvent(false); onCollection(); }} />}
       {nyPack && <PackOpening name="Feuerwerks-Pack" theme="silvester" result={nyPack} onClose={() => setNyPack(null)} onCollection={() => { setNyPack(null); onCollection(); }} />}
@@ -289,6 +294,27 @@ function PassTile({ onClick }: { onClick: () => void }) {
         <span className="evo-bar"><i style={{ width: `${(inLevel / XP_PER_LEVEL) * 100}%` }} /></span>
       </span>
       <span className="hub-pass-level"><b>{level}</b><small>/{PASS_LEVELS}</small></span>
+      {open > 0 && <span className="hub-badge">{open}</span>}
+    </button>
+  );
+}
+
+/** Ruhmesweg-Kachel: Trophäen, Fortschritt zur nächsten Stufe, offene Drops und Belohnungen. */
+function GloryTile({ onClick }: { onClick: () => void }) {
+  const club = useClub();
+  const best = club.trophyBest ?? 0;
+  const next = ROAD.find((s) => s.at > best);
+  const prevAt = [...ROAD].reverse().find((s) => s.at <= best)?.at ?? 0;
+  const open = roadReady(club) + (club.drops ?? 0);
+  return (
+    <button className="hub-tile hub-pass hub-glory" onClick={onClick}>
+      <span className="hub-tile-icon" aria-hidden="true"><Icon name="trophy" /></span>
+      <span className="hub-pass-text">
+        <strong>Ruhmesweg</strong>
+        <small>{club.drops ? `${club.drops} Drop${club.drops > 1 ? 's' : ''} öffnen` : roadReady(club) ? `${roadReady(club)} Stufe${roadReady(club) > 1 ? 'n' : ''} abholen` : next ? `Noch ${next.at - best} Trophäen bis zur nächsten Stufe` : 'Komplett – Legende!'}</small>
+        <span className="evo-bar"><i style={{ width: `${next ? ((best - prevAt) / (next.at - prevAt)) * 100 : 100}%` }} /></span>
+      </span>
+      <span className="hub-pass-level"><b>{(club.trophies ?? 0).toLocaleString('de-DE')}</b><small>Trophäen</small></span>
       {open > 0 && <span className="hub-badge">{open}</span>}
     </button>
   );

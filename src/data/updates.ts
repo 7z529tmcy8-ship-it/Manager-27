@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-28-ruhmesweg',
+    date: '28.10.2026',
+    title: 'Ruhmesweg und Flutlicht-Drops',
+    items: [
+      'Neu im Hub: der Ruhmesweg – 40 Stufen bis 3.000 Trophäen mit Coins, Drops und Packs bis zum GOAT-Pack.',
+      'Trophäen gibt es für Duelle (Sieg +10, Unentschieden +3, Niederlage −4) und für jede Karriere-Saison (+20, jeder Titel +10). Belohnungen zählen nach deinem Bestwert.',
+      'Flutlicht-Drops: Für Duell-Siege (bis zu 6 pro Tag) und auf dem Ruhmesweg. Antippen hebt die Seltenheit Stufe für Stufe – von Selten bis Legendär mit Ikonen- oder Ultimate-Pack.',
+    ],
+  },
+  {
     id: '2026-10-27-polarlicht',
     date: '27.10.2026',
     title: 'Polarlicht-Kalender',

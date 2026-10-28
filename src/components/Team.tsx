@@ -458,6 +458,9 @@ function DuelLive({ name, result, onClose, onShare }: { name: string; result: Du
               {result.points ? ` · +${result.points} Saisonpunkte` : ''}
               {result.passXp ? ` · +${result.passXp} Pass-XP` : ''}
             </p>
+            {result.trophies !== undefined && (
+              <p className="duel-glory"><Icon name="trophy" size={16} />{result.trophies >= 0 ? '+' : ''}{result.trophies} Trophäen{result.drop ? ' · Flutlicht-Drop erhalten!' : ''}</p>
+            )}
             {result.tactic && <p className="duel-tactic">{result.tactic}</p>}
             {result.division && <p className={`duel-division ${result.division.startsWith('Auf') ? 'up' : 'down'}`}>{result.division}</p>}
             {result.evo && <p className="duel-evo"><Icon name="evo" size={18} />{result.evo}</p>}

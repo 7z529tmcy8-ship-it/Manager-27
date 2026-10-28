@@ -72,6 +72,14 @@ export interface ClubState {
   advent?: number[];
   /** Silvester: Neujahrs-Geschenk schon abgeholt? */
   newYearClaimed?: boolean;
+  /** Flutlicht-Drops: ungeöffnete Drops, Duell-Drops heute, insgesamt geöffnet. */
+  drops?: number;
+  dropDay?: { day: string; n: number };
+  dropsOpened?: number;
+  /** Ruhmesweg: aktuelle und beste Trophäen, abgeholte Stufen (Trophäen-Marke). */
+  trophies?: number;
+  trophyBest?: number;
+  roadClaimed?: number[];
   /** Polarlicht-Kalender (Premium-Adventskalender): freigeschaltet und geöffnete Türchen. */
   polar?: { unlocked: boolean; opened: number[] };
   /** Saison-Pass des aktuellen Monats. */
@@ -449,9 +457,12 @@ export function creditCareer(
   const done = club.credited[career.id] ?? 0;
   const fresh = career.history.slice(done);
   let gained = 0;
+  // Ruhmesweg: Trophäen für jede Saison (+20) und jeden Titel (+10)
+  let trophies = 0;
   for (const r of fresh) {
     const mine = (career.specialCards ?? []).filter((s) => s.season === r.season);
     gained += seasonCoins(r, mine.length);
+    trophies += 20 + r.trophies.length * 10;
   }
   const coachKey = `${career.id}:coach`;
   const coachSeasons = career.coach?.history ?? [];
@@ -470,6 +481,8 @@ export function creditCareer(
     club: {
       ...club,
       coins: Math.max(0, club.coins + gained),
+      trophies: (club.trophies ?? 0) + trophies,
+      trophyBest: Math.max(club.trophyBest ?? 0, (club.trophies ?? 0) + trophies),
       credited: { ...club.credited, [career.id]: career.history.length, [coachKey]: coachSeasons.length, [hhKey]: hhTotal },
     },
     gained,

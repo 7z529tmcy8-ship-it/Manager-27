@@ -211,7 +211,7 @@ export const opponent = (level: number): DuelOpponent => ({
 /** Wie stark ein Stärke-Unterschied durchschlägt (kleiner = Außenseiter haben weniger Chancen). */
 const DUEL_SPREAD = 10;
 
-export interface DuelResult { own: number; opp: number; outcome: 'win' | 'draw' | 'loss'; coins: number; goals: { minute: number; own: boolean }[]; points?: number; /** Hinweis zur laufenden Evolution. */ evo?: string; /** Gewonnene Saison-Pass-XP. */ passXp?: number; /** Wie die Taktik gewirkt hat. */ tactic?: string; /** Auf- oder Abstieg. */ division?: string }
+export interface DuelResult { own: number; opp: number; outcome: 'win' | 'draw' | 'loss'; coins: number; goals: { minute: number; own: boolean }[]; points?: number; /** Hinweis zur laufenden Evolution. */ evo?: string; /** Gewonnene Saison-Pass-XP. */ passXp?: number; /** Wie die Taktik gewirkt hat. */ tactic?: string; /** Auf- oder Abstieg. */ division?: string; /** Trophäen für den Ruhmesweg (+/−). */ trophies?: number; /** Flutlicht-Drop erhalten? */ drop?: boolean }
 
 // ---------- Duell-Saison ----------
 // Jeder Kalendermonat ist eine Saison. Siege bringen Punkte (je höher die Stufe, desto mehr),
