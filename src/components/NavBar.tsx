@@ -19,7 +19,7 @@ export default function NavBar({ active, onGo }: { active: NavTarget | null; onG
   const club = useClub();
   const freePacks = (club.welcomeClaimed ? 0 : 1) + (club.megaXxlClaimed ? 0 : 1) + (club.megaSuperClaimed ? 0 : 1);
   const passOpen = unclaimedLevels(club).length + unclaimedProLevels(club).length;
-  const badge: Partial<Record<NavTarget, number>> = { store: freePacks + (club.storedPacks?.length ?? 0), pass: passOpen };
+  const badge: Partial<Record<NavTarget, number>> = { store: freePacks + (club.storedPacks?.length ?? 0) + (club.drops ?? 0) + (club.megaDrops ?? 0), pass: passOpen };
   return (
     <nav className="navbar" aria-label="Hauptnavigation">
       <img className="navbar-logo" src="/logo.webp" alt="" width="640" height="640" aria-hidden="true" />

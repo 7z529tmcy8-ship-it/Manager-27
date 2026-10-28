@@ -4093,3 +4093,67 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .drop-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 6px; }
 .lite .dr-rays, .lite .dr-beam, .paused .dr-rays, .paused .dr-beam, .lite .dc-gem::after { animation: none; }
 @media (prefers-reduced-motion: reduce) { .dr-rays, .dr-beam, .dc-gem::after, .dc-gem.huge, .drop-rarity, .dr-sparks i, .dc-slot.has .dc-gem { animation: none !important; } }
+
+/* ===== Drop öffnen: halten, Risse, Scherben ===== */
+.dopen { position: fixed; inset: 0; z-index: 70; display: grid; place-content: center; justify-items: center; gap: 14px; padding: 24px; overflow: hidden; text-align: center;
+  touch-action: none; user-select: none; -webkit-user-select: none;
+  background: radial-gradient(55% 45% at 50% 44%, color-mix(in srgb, var(--r) 30%, transparent), transparent 72%), radial-gradient(120% 80% at 50% 100%, color-mix(in srgb, var(--r2) 35%, transparent), transparent 60%), #03040c;
+  animation: story-in .2s ease; }
+.dopen > * { position: relative; z-index: 1; }
+.dopen > .dr-rays, .dopen > .dr-beam, .dopen > .dopen-floor { position: absolute; z-index: 0; }
+.dopen > .dr-flash { position: absolute; z-index: 3; }
+.dr-flash.off { display: none; }
+
+/* Edelstein-Knopf mit Lade-Ring */
+.dopen-gem { position: relative; display: grid; place-items: center; width: min(62vw, 250px); aspect-ratio: 1; padding: 0; border: 0; background: none; cursor: pointer; touch-action: none;
+  -webkit-tap-highlight-color: transparent; }
+.dopen-gem:focus-visible { outline: 2px solid var(--r); outline-offset: 6px; border-radius: 50%; }
+.dopen-gem .dc-gem.huge { width: 74%; height: 86%; animation: dr-pop .45s cubic-bezier(.2, 1.3, .3, 1); }
+.dopen-gem .dc-gem.huge.hit { animation: gem-hit .42s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes gem-hit { 0% { transform: scale(1.18); filter: brightness(2.4); } 60% { transform: scale(.96); } 100% { transform: scale(1); filter: none; } }
+.dopen-gem.charging .dc-gem.huge { animation: gem-charge .09s linear infinite; transform: scale(calc(1 + var(--charge) * .1)); filter: brightness(calc(1 + var(--charge) * .8)); }
+@keyframes gem-charge { 0% { translate: calc(var(--charge) * -4px) 0; } 50% { translate: calc(var(--charge) * 4px) calc(var(--charge) * -2px); } 100% { translate: 0 calc(var(--charge) * 2px); } }
+.dopen-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); pointer-events: none; }
+.dopen-ring circle { fill: none; stroke-width: 3; }
+.dopen-ring .bg { stroke: rgba(255, 255, 255, .08); }
+.dopen-ring .fg { stroke: var(--r); stroke-dasharray: 289; stroke-linecap: round; filter: drop-shadow(0 0 6px var(--r)); transition: stroke-dashoffset .05s linear; }
+.dopen-gem:not(.charging) .dopen-ring .fg { transition: stroke-dashoffset .25s ease-out; }
+
+/* Risse: Licht der nächsten Seltenheit dringt durch */
+.dopen-cracks { position: absolute; left: 13%; top: 7%; width: 74%; height: 86%; pointer-events: none; overflow: visible; }
+.dopen-cracks path { fill: none; stroke: #fff; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 120; stroke-dashoffset: 120;
+  filter: drop-shadow(0 0 3px var(--next)) drop-shadow(0 0 8px var(--next)); transition: stroke-dashoffset .35s ease-out; }
+.dopen-cracks g { opacity: 0; transition: opacity .2s; }
+.crack-1 .dopen-cracks .c1, .crack-2 .dopen-cracks .c1, .crack-2 .dopen-cracks .c2, .crack-3 .dopen-cracks g { opacity: 1; }
+.crack-1 .dopen-cracks .c1 path, .crack-2 .dopen-cracks .c1 path, .crack-2 .dopen-cracks .c2 path, .crack-3 .dopen-cracks path { stroke-dashoffset: 0; }
+.crack-3 .dopen-cracks path { stroke-width: 2.4; animation: crack-glow .5s ease-in-out infinite alternate; }
+@keyframes crack-glow { to { filter: drop-shadow(0 0 5px var(--next)) drop-shadow(0 0 16px var(--next)); } }
+.crack-3 .dc-gem.huge { animation: gem-tremble .12s linear infinite; }
+@keyframes gem-tremble { 50% { translate: 1.5px -1px; } }
+
+/* Scherben: fliegen raus und bleiben leuchtend am Boden liegen */
+.dopen-floor { inset: 0; pointer-events: none; }
+.shard { position: absolute; left: 50%; top: 44%; width: calc(26px * var(--s)); height: calc(30px * var(--s)); margin: calc(-15px * var(--s)) 0 0 calc(-13px * var(--s));
+  background: linear-gradient(150deg, #fff, var(--c) 45%, color-mix(in srgb, var(--c) 45%, #000)); filter: drop-shadow(0 0 8px var(--c));
+  animation: shard-fly 1.1s cubic-bezier(.15, .7, .35, 1) forwards; }
+.sh-0 { clip-path: polygon(50% 0, 100% 70%, 20% 100%); } .sh-1 { clip-path: polygon(0 20%, 100% 0, 70% 100%); }
+.sh-2 { clip-path: polygon(30% 0, 100% 40%, 60% 100%, 0 70%); } .sh-3 { clip-path: polygon(0 0, 100% 30%, 40% 100%); }
+@keyframes shard-fly {
+  0% { left: 50%; top: 44%; transform: rotate(0) scale(.4); }
+  55% { top: calc(var(--y) - 30%); }
+  100% { left: var(--x); top: var(--y); transform: rotate(var(--r)) scale(1); }
+}
+.shard.old { animation: none; left: var(--x); top: var(--y); transform: rotate(var(--r)); opacity: .45; filter: drop-shadow(0 0 4px var(--c)); transition: opacity .6s; }
+.is-open .dc-gem.huge { display: none; }
+
+/* Drops als normale Produkte im Store */
+.drop-art { display: flex; align-items: center; justify-content: center; gap: 0; background: radial-gradient(70% 70% at 50% 45%, rgba(74, 168, 255, .25), transparent 70%), linear-gradient(160deg, #141a44, #070a1c) !important; }
+.d-mega .drop-art { background: radial-gradient(70% 70% at 50% 45%, rgba(255, 210, 74, .3), transparent 70%), linear-gradient(160deg, #2a1f0c, #070a1c) !important; }
+.drop-art .dc-gem { width: 46px; height: 54px; }
+.d-drop5 .drop-art .dc-gem { width: 34px; height: 40px; margin: 0 -4px; }
+.d-drop5 .drop-art .dc-gem:nth-child(2) { width: 42px; height: 50px; z-index: 1; }
+.stored-drop .dc-gem { margin: 0 8px 0 4px; }
+.dc-buy { justify-self: start; display: inline-flex; align-items: center; gap: 6px; }
+@media (prefers-reduced-motion: reduce) { .shard, .dopen-gem .dc-gem.huge, .crack-3 .dc-gem.huge, .dopen-gem.charging .dc-gem.huge { animation: none !important; } .shard { left: var(--x); top: var(--y); } }
+.lite .crack-3 .dopen-cracks path { animation: none; }
+.dopen .dc-gem.huge::before { display: none; }

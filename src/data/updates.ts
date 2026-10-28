@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-28-drops3',
+    date: '28.10.2026',
+    title: 'Drops: neu öffnen und im Store',
+    items: [
+      'Flutlicht-Drops gibt es jetzt als normale Produkte im Store – deine Drops liegen bei „Deine Packs“.',
+      'Öffnen neu: Edelstein gedrückt halten, er lädt sich mit Ring, Ton und Vibration auf – loslassen trifft ihn.',
+      'Jeder Treffer reißt ihn weiter auf, durch die Risse leuchtet schon die nächste Seltenheit. Am Ende zerspringt er in Scherben, die leuchtend liegen bleiben – der nächste Drop landet mitten zwischen ihnen.',
+    ],
+  },
+  {
     id: '2026-10-28-drops2',
     date: '28.10.2026',
     title: 'Flutlicht-Drops 2.0',

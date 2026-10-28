@@ -7,7 +7,8 @@ import { motionReduced } from '../settings';
 import Confetti from './Confetti';
 import UtCard from './UtCard';
 import Icon, { Glyph } from './Icon';
-import { DropCenter } from './GloryRoad';
+import DropOpener from './DropOpener';
+import { DROP_LABEL, DROP_ODDS, DROP_SHOP, MEGA_ODDS, buyDrops, type DropKind } from '../game/glory';
 
 const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 
@@ -15,6 +16,7 @@ const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 export default function Store({ onBack, onCollection }: { onBack: () => void; onCollection: () => void }) {
   const club = useClub();
   const [opening, setOpening] = useState<{ result: PackResult; name: string; theme?: string; art?: string; packId: string; free: boolean; n: number } | null>(null);
+  const [dropOpen, setDropOpen] = useState<DropKind | null>(null);
   const [mega, setMega] = useState(false);
   const [superPack, setSuperPack] = useState<PackResult | null>(null);
   const [superCharging, setSuperCharging] = useState(false);
@@ -85,12 +87,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         </button>
       )}
 
-      <StoredPacks onOpen={(r) => setOpening((o) => ({ result: r.result, name: r.name, packId: '', free: true, n: (o?.n ?? 0) + 1 }))} />
-
-      <section className="store-group sg-drops" aria-label="Flutlicht-Drops">
-        <h2 className="store-group-head"><Icon name="spark" size={18} />Flutlicht-Drops<small>Überraschung von Selten bis Legendär</small></h2>
-        <DropCenter />
-      </section>
+      <StoredPacks onDrop={setDropOpen} onOpen={(r) => setOpening((o) => ({ result: r.result, name: r.name, packId: '', free: true, n: (o?.n ?? 0) + 1 }))} />
 
       <TotwSection coins={club.coins} onBuy={() => buy(TOTW_PACK.id)} />
 
@@ -117,10 +114,37 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
             </div>
           );
         })}
+
             </div>
           </section>
         );
       })}
+
+      <section className="store-group sg-drops" aria-label="Flutlicht-Drops">
+        <h2 className="store-group-head"><Icon name="spark" size={18} />Flutlicht-Drops<small>Gedrückt halten, aufbrechen – von Selten bis Legendär</small></h2>
+        <div className="store-grid">
+          {DROP_SHOP.map((o) => {
+            const afford = club.coins >= o.price;
+            return (
+              <div key={o.id} className={`pack-card drop-card d-${o.id}`}>
+                <div className="pack-art drop-art" aria-hidden="true">
+                  {Array.from({ length: o.id === 'drop5' ? 3 : 1 }, (_, k) => <span key={k} className={`dc-gem ${o.kind === 'mega' ? 'r-legendaer' : k === 1 ? 'r-episch' : 'r-superselten'}`}><i /><b /></span>)}
+                </div>
+                <strong>{o.name}</strong>
+                <small>{o.text}</small>
+                <small className="pack-odds">{o.kind === 'mega'
+                  ? `Episch ${MEGA_ODDS.episch} % · Mythisch ${MEGA_ODDS.mythisch} % · Legendär ${MEGA_ODDS.legendaer} %`
+                  : `${DROP_LABEL.legendaer} ${DROP_ODDS.legendaer.toLocaleString('de-DE')} % · ${DROP_LABEL.mythisch} ${DROP_ODDS.mythisch.toLocaleString('de-DE')} %`}</small>
+                <button className="btn primary" disabled={!afford} onClick={() => { const c = buyDrops(getClubState(), o.id); if (c) { setClubState(c); setDropOpen(o.kind); } }}
+                  aria-label={afford ? `${o.name} kaufen für ${fmtCoins(o.price)} Coins` : `Dir fehlen ${fmtCoins(o.price - club.coins)} Coins`}>
+                  <Icon name="coin" size={16} className="coin-ic" />{afford ? fmtCoins(o.price) : `−${fmtCoins(o.price - club.coins)}`}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
 
       {mega && <MegaCrash onDone={onBack} />}
       {superPack && superCharging && <MegaCharge title={'MEGA<br />SUPER<br />XXL'} onDone={() => setSuperCharging(false)} />}
@@ -128,6 +152,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         <PackOpening name="MEGA SUPER XXL PACK" result={superPack} onClose={() => setSuperPack(null)} onCollection={() => { setSuperPack(null); onCollection(); }} />
       )}
 
+      {dropOpen && <DropOpener kind={dropOpen} onClose={() => setDropOpen(null)} />}
       {opening && (
         <PackOpening
           key={opening.n}
@@ -228,10 +253,12 @@ export function PackPrompt({ packs, onOpen, onStore }: { packs: string[]; onOpen
 }
 
 /** Ablage: gewonnene, noch ungeöffnete Packs. */
-function StoredPacks({ onOpen }: { onOpen: (res: { name: string; result: PackResult }) => void }) {
+function StoredPacks({ onOpen, onDrop }: { onOpen: (res: { name: string; result: PackResult }) => void; onDrop: (kind: DropKind) => void }) {
   const club = useClub();
   const list = club.storedPacks ?? [];
-  if (!list.length) return null;
+  const drops = club.drops ?? 0;
+  const mega = club.megaDrops ?? 0;
+  if (!list.length && !drops && !mega) return null;
   const open = (id: string) => {
     const res = openStoredPack(getClubState(), id);
     if (!res) return;
@@ -255,9 +282,16 @@ function StoredPacks({ onOpen }: { onOpen: (res: { name: string; result: PackRes
   };
   return (
     <section className="store-group sg-stored" aria-label="Deine Packs">
-      <h2 className="store-group-head"><Icon name="folder" size={18} />Deine Packs<small>{list.length} in der Ablage</small></h2>
-      {list.length > 1 && <button className="btn primary stored-all" onClick={openAll}><Icon name="pack" size={18} /> Alle {list.length} öffnen</button>}
+      <h2 className="store-group-head"><Icon name="folder" size={18} />Deine Packs<small>{list.length + drops + mega} in der Ablage</small></h2>
+      {list.length > 1 && <button className="btn primary stored-all" onClick={openAll}><Icon name="pack" size={18} /> Alle {list.length} Packs öffnen</button>}
       <ul className="stored-list">
+        {([['mega', mega, 'Mega-Drop', 'Mindestens Episch'], ['normal', drops, 'Flutlicht-Drop', 'Von Selten bis Legendär']] as const).filter(([, n]) => n > 0).map(([kind, n, name, sub]) => (
+          <li key={kind} className={`stored-pack stored-drop ${kind}`}>
+            <span className={`dc-gem small ${kind === 'mega' ? 'r-legendaer' : 'r-superselten'}`} aria-hidden="true"><i /><b /></span>
+            <span className="stored-text"><strong>{n}× {name}</strong><small>{sub}</small></span>
+            <button className="btn primary small" onClick={() => onDrop(kind)}>Öffnen</button>
+          </li>
+        ))}
         {list.map((sp) => {
           const def = PACKS.find((p) => p.id === sp.pack);
           return (
