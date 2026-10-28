@@ -1,4 +1,4 @@
-import { CLUBS, firstTeamOf, getClub, getLeague, youthClubOf } from '../data/leagues';
+import { CLUBS, firstTeamOf, getClub, getLeague, youthClubOf, youthTeamOfClub } from '../data/leagues';
 import { clubLeagueId, clubStrength, formatMoney, playerValue, roleFor, wageFor } from './player';
 import { chance, clamp, poisson, rand, randInt, uid, weightedPick } from './random';
 import type { Career, Offer } from './types';
@@ -164,7 +164,7 @@ function nlzOffers(career: Career, taken: Set<string>, freeAgent: boolean, perf:
   const p = career.player;
   // Nur wer (noch) im Nachwuchs spielt oder vereinslos ist – Profis wechseln nicht zurück in eine U19.
   if (p.age > 18 || (!p.nlz && !freeAgent)) return [];
-  const team = p.age <= 16 ? 'U17' : 'U19';
+  const team = p.age <= 14 ? 'U15' : p.age <= 16 ? 'U17' : 'U19';
   const home = getLeague(clubLeagueId(career, p.contract.clubId)).country;
   const count = Math.min(3, poisson(clamp(0.5 + (p.potential - 72) / 8 + perf * 0.15, 0.2, 2.5)));
   const out: Offer[] = [];
@@ -178,7 +178,7 @@ function nlzOffers(career: Career, taken: Set<string>, freeAgent: boolean, perf:
     const youth = youthClubOf(club.id, team)!;
     const ys = clubStrength(career, youth.id);
     const fee = freeAgent ? 0 : Math.round((playerValue(p) * rand(0.25, 0.5)) / 5e4) * 5e4;
-    const actual = youth.id.endsWith('-u17') ? 'U17' : 'U19';
+    const actual = youthTeamOfClub(youth.id) ?? 'U19';
     out.push({
       id: uid(),
       type: freeAgent ? 'Ablösefrei' : 'Transfer',

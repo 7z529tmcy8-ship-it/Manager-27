@@ -744,6 +744,7 @@ export function finishSeason(career: Career, prog: SeasonProgress): SeasonOutcom
   const playedIn = (c: Competition) => played.some((m) => m.competition === c);
   if (prog.cup.won && playedIn('Pokal')) allTrophies.push(getLeague(clubLeagueId(career, prog.startClubId)).cup);
   if (prog.euro?.won && playedIn(prog.euro.competition)) allTrophies.push(prog.euro.competition);
+  for (const c of prog.youthComps ?? []) if (c.won) allTrophies.push(c.name);
 
   const awards: string[] = [];
   const leagueStats = summarize(matches, 'Liga');

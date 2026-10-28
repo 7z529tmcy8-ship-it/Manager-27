@@ -3812,7 +3812,7 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .cs-option { color: #ffd76a; font-weight: 700; }
 
 /* NLZ-Leiste im Karriere-Kopf */
-.cs-nlz { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; padding: 8px 12px; border-radius: 14px;
+.cs-nlz { display: grid; gap: 8px; margin: 8px 0 4px; padding: 8px 12px; border-radius: 14px;
   background: linear-gradient(135deg, rgba(163, 92, 255, .16), rgba(0, 229, 255, .08)); border: 1px solid rgba(163, 92, 255, .35); }
 .cs-nlz-tag { flex: none; font-weight: 800; font-size: .78rem; letter-spacing: .06em; padding: 4px 8px; border-radius: 8px;
   background: var(--violet, #a35cff); color: #fff; }
@@ -3941,3 +3941,15 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .polar-call-text b { font-family: var(--display, inherit); font-size: 1.1rem; letter-spacing: .03em; text-transform: uppercase;
   background: linear-gradient(90deg, #fff, #bfe9ff 40%, #3dffb5); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .polar-call-text small { color: #b9d4ea; font-size: .8rem; line-height: 1.3; }
+
+/* NLZ-Leiste: Förderprogramm und Profi-Training */
+.cs-nlz-head { display: flex; align-items: center; gap: 10px; }
+.cs-nlz-programs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.cs-nlz-prog { height: 32px; padding: 0 4px; border-radius: 10px; border: 1px solid var(--line-strong, rgba(255, 255, 255, .2)); background: transparent; color: var(--text); font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cs-nlz-prog.on { background: rgba(163, 92, 255, .22); border-color: var(--violet, #a35cff); color: #fff; }
+.cs-nlz-hint { color: var(--muted); font-size: .78rem; }
+.cs-nlz-pro { display: grid; gap: 4px; }
+.cs-nlz-pro small { color: var(--muted); font-size: .78rem; line-height: 1.35; }
+.cs-nlz-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 10px; font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer;
+  color: var(--text); background: transparent; border: 1px solid var(--line-strong, rgba(255, 255, 255, .2)); }
+.cs-nlz-toggle.on { color: #041322; background: linear-gradient(90deg, #00e5ff, #a35cff); border-color: transparent; }

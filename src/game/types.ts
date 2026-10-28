@@ -37,7 +37,9 @@ export interface League {
 }
 
 /** Nachwuchs-Mannschaft im Nachwuchsleistungszentrum (NLZ). */
-export type NlzTeam = 'U17' | 'U19';
+export type NlzTeam = 'U15' | 'U17' | 'U19' | 'U23';
+/** Förderprogramme im NLZ. */
+export type NlzProgram = 'technik' | 'athletik' | 'taktik' | 'mental';
 
 export interface Contract {
   clubId: string;
@@ -71,7 +73,20 @@ export interface PlayerState {
   contract: Contract;
   loan: Loan | null;
   /** Spielt (noch) im NLZ seines Vereins statt bei den Profis. */
-  nlz?: { team: NlzTeam; role: Role };
+  nlz?: {
+    team: NlzTeam;
+    role: Role;
+    /** Abgeschlossene Saisons in dieser Mannschaft (Aufrücken frühestens nach einer Saison). */
+    seasons?: number;
+    /** Förderprogramm (Schwerpunkt der Ausbildung). */
+    program?: NlzProgram;
+    /** Trainiert bei den Profis mit (Debüt-Chance, Doppelbelastung). */
+    proTraining?: boolean;
+  };
+  /** Einsätze bei den Profis, während man noch im NLZ war. */
+  proApps?: number;
+  /** Positions-Umschulung im NLZ schon angeboten? */
+  nlzRetrainOffered?: boolean;
   caps: number;
   internationalGoals: number;
   /** Einsätze in den U-Nationalmannschaften (U17, U19, U21). */
@@ -208,6 +223,8 @@ export interface CompetitionStats {
 }
 
 export interface SeasonRecord {
+  /** Einsätze bei den Profis aus dem NLZ heraus. */
+  proApps?: number;
   season: string;
   age: number;
   clubId: string;
@@ -279,6 +296,10 @@ export interface EuroState {
 
 /** Zwischenstand einer laufenden Saison (wird zur Winterpause gespeichert). */
 export interface SeasonProgress {
+  /** Jugend-Wettbewerbe dieser Saison (Youth League, Junioren-Endrunde). */
+  youthComps?: { name: string; reached: string; won: boolean }[];
+  /** Profi-Einsätze aus dem NLZ in dieser Saison. */
+  proApps?: number;
   strength: Record<string, number>;
   rows: Record<string, TableRow[]>;
   matches: MatchLine[];
@@ -728,7 +749,9 @@ export interface Application {
 }
 
 export interface PendingFinal {
-  kind: 'cup' | 'euro' | 'national' | 'league';
+  kind: 'cup' | 'euro' | 'national' | 'league' | 'youth';
+  /** Jugend-Wettbewerb (Youth League, Junioren-Meisterschaft): Titel, der beim Sieg vergeben wird. */
+  comp?: string;
   title: string;
   opponentId?: string;
   opponentName: string;

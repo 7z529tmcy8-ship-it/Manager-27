@@ -19,14 +19,14 @@ import { getClub, getLeague } from '../data/leagues';
 import { attributeLabels, attributes, clubLeagueId, currentClubId, formatMoney, playerValue } from '../game/player';
 import { ATTR_WEIGHTS } from '../game/attributes';
 import { halfStats } from '../game/season';
-import { nlzStatus } from '../game/nlz';
+import { NLZ_PROGRAMS, nlzStatus, setNlzProgram, setProTraining } from '../game/nlz';
 import { freePoints, levelInfo } from '../game/skills';
 import { play } from '../sound';
 import { isBroke } from '../game/gambling';
 import { useClub } from '../clubStore';
 import { applyChoice, applyWinterChoice, choiceClub, choiceClubId, finishLiveFinal, seasonChoices, simulateToBreak, winterChoices, type Choice } from '../game/simple';
 import { STAGES_PER_HALF } from '../game/season';
-import type { Career, FinalState, SeasonRecord } from '../game/types';
+import type { Career, FinalState, NlzProgram, SeasonRecord } from '../game/types';
 
 interface Props {
   career: Career;
@@ -186,7 +186,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           </div>
         </div>
       </header>
-      {!retired && <NlzBar career={career} />}
+      {!retired && <NlzBar career={career} onChange={onChange} />}
 
       {/* Familie und Vermögen */}
       <div className="cs-life">
@@ -452,6 +452,7 @@ function SeasonRow({ r, open, onToggle }: { r: SeasonRecord; open: boolean; onTo
         <div className="cs-detail">
           <span>Saison {r.season} · {getLeague(r.leagueId).name} · Platz {r.leaguePosition}</span>
           <span>Ø-Note {r.avgRating?.toFixed(2) ?? '–'} · Wertung {r.ovrStart} → {r.ovrEnd} · Marktwert {formatMoney(r.marketValue)}</span>
+          {r.proApps ? <span>{r.proApps} Einsätze bei den Profis</span> : null}
           {titles.length > 0 && <span>{titles.join(' · ')}</span>}
           {(r.events ?? []).length > 0 && <span>{(r.events ?? []).map((e) => e.title).join(' · ')}</span>}
         </div>
@@ -489,23 +490,46 @@ function ChoiceCard({ career, c, selected, onPick }: { career: Career; c: Choice
   );
 }
 
-/** NLZ-Leiste: Mannschaft und Profi-Reife. */
-function NlzBar({ career }: { career: Career }) {
+/** NLZ-Leiste: Mannschaft, Weg zu den Profis, Förderprogramm und Profi-Training. */
+function NlzBar({ career, onChange }: { career: Career; onChange: (c: Career) => void }) {
   const st = nlzStatus(career);
   if (!st) return null;
   const ovr = career.player.ovr;
-  const pct = Math.max(0, Math.min(100, ((ovr - (st.readyAt - 15)) / 15) * 100));
+  const senior = st.team === 'U19' || st.team === 'U23';
+  const target = senior ? st.readyAt : st.exceptionalAt;
+  const pct = Math.max(0, Math.min(100, ((ovr - (target - 15)) / 15) * 100));
   return (
     <div className="cs-nlz" aria-label="Nachwuchsleistungszentrum">
-      <span className="cs-nlz-tag">NLZ · {st.team}</span>
-      <div className="cs-nlz-main">
-        <small>
-          {ovr >= st.readyAt
-            ? `Reif für die Profis von ${st.parent} – am Saisonende wirst du hochgezogen.`
-            : `Profis von ${st.parent}: ab Wertung ${st.readyAt} – mit starker Saison (Note 7,0+, viel Spielzeit) schon ab ${st.strongAt}.`}
-        </small>
-        <div className="cs-nlz-track"><i style={{ width: `${pct}%` }} /></div>
+      <div className="cs-nlz-head">
+        <span className="cs-nlz-tag">NLZ · {st.team}</span>
+        <div className="cs-nlz-main">
+          <small>
+            {senior
+              ? ovr >= st.readyAt
+                ? `Reif für die Profis von ${st.parent} – am Saisonende wirst du hochgezogen.`
+                : `Profis von ${st.parent}: ab Wertung ${st.readyAt} – mit starker Saison (Note 7,0+, viel Spielzeit) schon ab ${st.strongAt}.`
+              : `Nächste Stufe spätestens mit ${st.maxAge + 1} – mit starker Saison früher. Direkt zu den Profis nur als Ausnahmetalent (ab Wertung ${st.exceptionalAt}).`}
+          </small>
+          <div className="cs-nlz-track"><i style={{ width: `${pct}%` }} /></div>
+        </div>
       </div>
+      <div className="cs-nlz-programs" role="group" aria-label="Förderprogramm">
+        {(Object.keys(NLZ_PROGRAMS) as NlzProgram[]).map((id) => (
+          <button key={id} className={`cs-nlz-prog ${st.program === id ? 'on' : ''}`} aria-pressed={st.program === id} title={NLZ_PROGRAMS[id].hint}
+            onClick={() => onChange(setNlzProgram(career, id))}>{NLZ_PROGRAMS[id].label}</button>
+        ))}
+      </div>
+      <small className="cs-nlz-hint">{NLZ_PROGRAMS[st.program].hint}</small>
+      {senior && (
+        <div className="cs-nlz-pro">
+          {st.canProTrain ? (
+            <button className={`cs-nlz-toggle ${st.proTraining ? 'on' : ''}`} aria-pressed={st.proTraining} onClick={() => onChange(setProTraining(career, !st.proTraining))}>
+              <Icon name="whistle" size={16} />{st.proTraining ? 'Profi-Training: an' : 'Bei den Profis mittrainieren'}
+            </button>
+          ) : <small>Profi-Training ab Wertung {st.proTrainAt}.</small>}
+          <small>{st.proTraining ? 'Schneller besser und Chance auf Profi-Einsätze – aber Doppelbelastung (Verletzungsrisiko).' : st.proApps ? `${st.proApps} Profi-Einsätze bisher.` : ''}</small>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { Glyph } from './Icon';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { play } from '../sound';
 import { motionReduced } from '../settings';
-import { CLUBS, LEAGUES, getClub } from '../data/leagues';
+import { CLUBS, LEAGUES, getClub, youthClubOf } from '../data/leagues';
 import { NATIONS, POSITIONS, REAL_PLAYERS, type RealPlayerTemplate } from '../data/players';
 import { CULT_LEGENDS, FAILED_TALENTS, HANNOVER_2018, ICON_LEGENDS, LEGENDS, type LegendTemplate } from '../data/legends';
 import { createCareer } from '../game/career';
@@ -114,11 +114,14 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
     storeSpin(null);
     const rolled = rollBuild({ position, age, height, weight, points });
     const o = getOrigin(origin);
-    const ovr = rolled.ovr + o.ovr;
+    // Mit 14 oder 15 ist man noch deutlich schwächer – dafür bleibt mehr Zeit im NLZ.
+    const ovr = rolled.ovr + o.ovr - Math.max(0, 16 - age) * 3;
     const potential = Math.max(ovr + 4, Math.min(94, rolled.potential + o.potential));
     const profile = applyOrigin({ ovr, potential, offsets: rolled.profile }, origin, position === 'TW').offsets;
     // Zufälliger Verein: einer, bei dem der Spieler realistische Chancen auf Einsätze hat.
-    const club = clubId ? getClub(clubId) : pick(CLUBS.filter((c) => c.strength >= ovr + 2 && c.strength <= ovr + 9));
+    // Ganz junge Spieler: ein Verein mit Nachwuchsleistungszentrum.
+    const nlzClubs = age <= 16 ? CLUBS.filter((c) => youthClubOf(c.id, 'U15') && c.strength >= ovr + 8 && c.strength <= ovr + 24) : [];
+    const club = clubId ? getClub(clubId) : pick(nlzClubs.length ? nlzClubs : CLUBS.filter((c) => c.strength >= ovr + 2 && c.strength <= ovr + 9));
     onCreate(
       createCareer({ name: name.trim() || 'Namenloser Held', nation, position, age, ovr, potential, clubId: club.id, traits, profile, height, weight, origin, avatar }),
     );
@@ -155,7 +158,7 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
         <label>
           Alter
           <select value={age} onChange={(e) => setAge(Number(e.target.value))}>
-            {[16, 17, 18, 19, 20].map((a) => <option key={a} value={a}>{a} Jahre</option>)}
+            {[14, 15, 16, 17, 18, 19, 20].map((a) => <option key={a} value={a}>{a} Jahre{a <= 15 ? ' (NLZ)' : ''}</option>)}
           </select>
         </label>
       </div>

@@ -33,7 +33,7 @@ import { applyTraining } from './training';
 import { hasTrait, type TraitId } from './traits';
 import { advanceFinal, autoFinal, finalRating, startFinal } from './final';
 import { addNews, summerNews, winterNews } from './news';
-import { nlzDevOptions, nlzRole, nlzSeasonEnd, nlzStartTeam } from './nlz';
+import { nlzCompetitions, nlzDevOptions, nlzHalfEnd, nlzMentalBonus, nlzRole, nlzSeasonEnd, nlzStartTeam } from './nlz';
 import { createRival, simulateRivalSeason } from './rival';
 import type { Career, DecisionResult, FinalState, GameEvent, MatchLine, Offer, Position, Role, SeasonRecord, StageLoad, TrainingFocus, TransferEntry } from './types';
 
@@ -109,7 +109,7 @@ export function createCareer(np: NewPlayer): Career {
   // Junge Talente starten im Nachwuchsleistungszentrum und müssen sich zu den Profis hocharbeiten.
   const team = nlzStartTeam(np.age, np.ovr, club.id, club.strength);
   if (team) {
-    career.player.nlz = { team, role: nlzRole(career, team) };
+    career.player.nlz = { team, role: nlzRole(career, team), seasons: 0 };
     career.player.contract.wage = Math.min(career.player.contract.wage, 2_000);
   }
   career.seasonGoals = createSeasonGoals(career);
@@ -353,6 +353,7 @@ function winterTransition(career: Career, quick: boolean): Career {
   prog.events = rollEvents(career, 1, stats, prog.injuryWeeks, strength);
   prog.winterEventDelta = p.ovr - beforeEvents;
   prog.ovrWinter = p.ovr;
+  nlzHalfEnd(career, 1);
 
   career.phase = 'winter';
   // Verliehene Spieler bleiben bis Saisonende beim Leihverein.
@@ -522,8 +523,13 @@ function finishSecondHalf(career: Career): Career {
   }
   const injuryWeeks = prog.injuryWeeks - (prog.injuryWeeksWinter ?? 0);
   prog.events = [...(prog.events ?? []), ...rollEvents(career, 2, second, injuryWeeks, strength)];
+  const mental = nlzMentalBonus(p);
+  if (mental) dev.reasons.push(mental);
+  nlzHalfEnd(career, 2);
   prog.devReasons = dev.reasons;
   prog.national = computeNational(career, prog);
+  // Jugend-Wettbewerbe (Youth League, Junioren-Endrunde) – Finale live
+  nlzCompetitions(career);
 
   if (prog.pendingFinals?.length) {
     career.phase = 'final';
@@ -542,6 +548,7 @@ function completeSeason(career: Career): Career {
   const goalResults = evaluateGoals(career.seasonGoals ?? [], prog.matches);
   const { record, tables } = finishSeason(career, prog);
   record.goalResults = goalResults;
+  if (prog.proApps) record.proApps = prog.proApps;
   applyGoalConsequences(career, record);
   p.caps += record.caps;
   p.internationalGoals += record.internationalGoals;
@@ -810,6 +817,10 @@ export function finishFinal(prev: Career): Career {
       // Raus: die restlichen Runden fallen weg
       prog.pendingFinals = [prog.pendingFinals![0], ...prog.pendingFinals!.slice(1).filter((x) => x.kind !== 'national')];
     } else if (!isFinal) nat.notes.push(`${round} gegen ${f.opponentName} gewonnen (${state.score[0]}:${state.score[1]}).`);
+  } else if (f.kind === 'youth') {
+    const comp = prog.youthComps?.find((c) => c.name === f.comp);
+    if (comp) { comp.won = state.won; comp.reached = state.won ? 'Sieger' : 'Finale'; }
+    prog.notes.push(`${f.title}: ${state.score[0]}:${state.score[1]} gegen ${f.opponentName}${state.won ? ' – Titel!' : '.'}${state.playerGoals ? ` ${state.playerGoals} Tor${state.playerGoals > 1 ? 'e' : ''} von dir.` : ''}`);
   } else {
     const competition = f.kind === 'cup' ? 'Pokal' : prog.euro!.competition;
     const line: MatchLine = {

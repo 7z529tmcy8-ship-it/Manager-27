@@ -37,6 +37,14 @@ function ageBias(p: PlayerState): number[] {
   return [-0.3, 0.2, 0.8, -0.1, 0.6, -0.6];
 }
 
+/** NLZ-Förderprogramme: welche Attribute zusätzlich wachsen (Feldspieler bzw. Torhüter). */
+const PROGRAM_BIAS: Record<string, { field: number[]; keeper: number[] }> = {
+  technik: { field: [0, 0, 0.6, 0.6, 0, 0], keeper: [0, 0.6, 0.6, 0, 0, 0] },
+  athletik: { field: [0.6, 0, 0, 0, 0, 0.6], keeper: [0.6, 0, 0, 0.6, 0, 0] },
+  taktik: { field: [0, 0, 0.5, 0, 0.6, 0], keeper: [0, 0, 0, 0, 0, 0.8] },
+  mental: { field: [0, 0, 0, 0, 0, 0], keeper: [0, 0, 0, 0, 0, 0] },
+};
+
 const weightedMean = (v: number[], w: number[]) => v.reduce((a, x, i) => a + x * w[i], 0);
 
 /**
@@ -48,7 +56,8 @@ export function developAttributes(p: PlayerState, before: number[], rand: () => 
   const age = ageBias(p);
   const arch = p.skills ? ARCHETYPE_BIAS[p.skills.archetype] ?? [0, 0, 0, 0, 0, 0] : [0, 0, 0, 0, 0, 0];
   const focus = typeof p.trainingFocus === 'number' ? p.trainingFocus : -1;
-  const raw = age.map((a, i) => a + arch[i] * 0.6 + (i === focus ? 0.6 : 0) + (rand() - 0.5) * 0.8);
+  const bias = p.nlz?.program ? PROGRAM_BIAS[p.nlz.program][p.position === 'TW' ? 'keeper' : 'field'] : null;
+  const raw = age.map((a, i) => a + arch[i] * 0.6 + (i === focus ? 0.6 : 0) + (bias?.[i] ?? 0) + (rand() - 0.5) * 0.8);
   // Gewichteten Mittelwert abziehen: Die Gesamtwertung bleibt gleich, nur die Verteilung ändert sich.
   const mean = weightedMean(raw, w);
   const shift = raw.map((v) => v - mean);

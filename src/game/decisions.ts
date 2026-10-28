@@ -5,6 +5,7 @@ import { generateOffers } from './offers';
 import { resolveLotto } from './owner';
 import { resolvePress } from './press';
 import { postInbox } from './inbox';
+import { applyRetrain, retrainSuggestion } from './nlz';
 import { createProfile, currentClubId, seasonLabel } from './player';
 import { chance, clamp, pick, randInt } from './random';
 import { hasTrait, type TraitId } from './traits';
@@ -164,6 +165,38 @@ const DECISIONS: DecisionDef[] = [
       }
       morale(career, -1);
       return { title: 'Position behalten', text: 'Der Trainer akzeptiert es – begeistert ist er nicht.', tone: 'neutral' };
+    },
+  },
+  {
+    // NLZ: Der Jugendtrainer schlägt eine Umschulung auf die Position vor, zu der die Attribute besser passen.
+    id: 'nlzRetrain',
+    weight: 8,
+    when: (c) => !!c.career.player.nlz && !c.career.player.loan && !c.career.player.nlzRetrainOffered && !!retrainSuggestion(c.career.player),
+    build: (c) => {
+      const p = c.career.player;
+      const s = retrainSuggestion(p)!;
+      p.nlzRetrainOffered = true;
+      return {
+        id: 'nlzRetrain',
+        title: 'Umschulung im NLZ?',
+        text: `Dein Jugendtrainer hat genau hingeschaut: „Deine Stärken passen besser zum ${positionLabel(s.to)} als zum ${positionLabel(p.position)}.“ Dort käme deine Wertung auf etwa ${s.ovr}.`,
+        options: [
+          { id: 'yes', label: `Umschulen zum ${positionLabel(s.to)}`, hint: `Neue Position, Wertung ca. ${s.ovr}, Potenzial +1` },
+          { id: 'no', label: `${positionLabel(p.position)} bleiben`, hint: 'Du bleibst bei deiner Position' },
+        ],
+        data: { to: s.to },
+      };
+    },
+    resolve: (career, option, d) => {
+      const p = career.player;
+      if (option === 'yes') {
+        const to = d.data!.to as Position;
+        const before = p.ovr;
+        applyRetrain(p, to);
+        morale(career, 1);
+        return { title: `Umgeschult: ${positionLabel(to)}`, text: `Die Umschulung passt: Wertung ${before} → ${p.ovr}, dazu wächst das Potenzial.`, tone: 'good' };
+      }
+      return { title: 'Position behalten', text: 'Der Jugendtrainer respektiert deine Entscheidung.', tone: 'neutral' };
     },
   },
   {

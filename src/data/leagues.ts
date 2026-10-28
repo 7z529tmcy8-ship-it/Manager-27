@@ -267,19 +267,30 @@ export const CLUBS: Club[] = Object.entries(RAW).flatMap(([leagueId, clubs]) =>
 
 // ---------- Nachwuchsleistungszentren (NLZ) ----------
 // Vereinfacht: Die DFB-Nachwuchsligen (U19 und U17) spielen in der Hauptrunde in Liga A und Liga B. Hier stellen die
-// Bundesligisten Liga A, die Zweitligisten Liga B (ohne Vorrunde und Endrunde). Im Ausland gibt es je eine U19-Liga
-// der Erstligisten, dort spielen auch die 16-Jährigen mit. Die Stärken sind eigene Schätzungen.
-const YOUTH_DEF: { id: string; name: string; country: string; cup: string; team: NlzTeam; from: string; tier: 1 | 2; goals: number }[] = [
+// Bundesligisten Liga A, die Zweitligisten Liga B (ohne Vorrunde und Endrunde). Die U15 spielt in Deutschland eigentlich
+// regional (C-Junioren-Regionalligen) – hier zusammengefasst zu Liga A/B. Nach der U19 gibt es für Klubs ohne eigene
+// zweite Mannschaft im Spiel eine U23-Stufe (in England die echte Premier League 2, U21). Im Ausland fehlt teils die
+// U17 bzw. U15 – dann spielt man in der nächsthöheren Mannschaft. Die Stärken sind eigene Schätzungen.
+interface YouthDef { id: string; name: string; country: string; cup: string; team: NlzTeam; from: string; tier: 1 | 2; goals: number; label?: string }
+const YOUTH_DEF: YouthDef[] = [
+  { id: 'u23de', name: 'U23-Reserveliga', country: 'Deutschland', cup: '', team: 'U23', from: 'bl1', tier: 1, goals: 3.1 },
   { id: 'u19a', name: 'U19-Nachwuchsliga A', country: 'Deutschland', cup: 'DFB-Junioren-Vereinspokal', team: 'U19', from: 'bl1', tier: 1, goals: 3.4 },
   { id: 'u19b', name: 'U19-Nachwuchsliga B', country: 'Deutschland', cup: 'DFB-Junioren-Vereinspokal', team: 'U19', from: 'bl2', tier: 2, goals: 3.4 },
   { id: 'u17a', name: 'U17-Nachwuchsliga A', country: 'Deutschland', cup: '', team: 'U17', from: 'bl1', tier: 1, goals: 3.6 },
   { id: 'u17b', name: 'U17-Nachwuchsliga B', country: 'Deutschland', cup: '', team: 'U17', from: 'bl2', tier: 2, goals: 3.6 },
+  { id: 'u15a', name: 'U15-Junioren-Liga A', country: 'Deutschland', cup: '', team: 'U15', from: 'bl1', tier: 1, goals: 3.8 },
+  { id: 'u15b', name: 'U15-Junioren-Liga B', country: 'Deutschland', cup: '', team: 'U15', from: 'bl2', tier: 2, goals: 3.8 },
+  { id: 'pl2', name: 'Premier League 2', country: 'England', cup: '', team: 'U23', from: 'pl', tier: 1, goals: 3.3, label: 'U21' },
   { id: 'u18pl', name: 'U18 Premier League', country: 'England', cup: 'FA Youth Cup', team: 'U19', from: 'pl', tier: 1, goals: 3.4 },
   { id: 'dhj', name: 'División de Honor Juvenil', country: 'Spanien', cup: 'Copa del Rey Juvenil', team: 'U19', from: 'll', tier: 1, goals: 3.2 },
   { id: 'pri1', name: 'Primavera 1', country: 'Italien', cup: 'Coppa Italia Primavera', team: 'U19', from: 'sa', tier: 1, goals: 3.0 },
+  { id: 'u17it', name: 'Campionato Under 17 Serie A e B', country: 'Italien', cup: '', team: 'U17', from: 'sa', tier: 1, goals: 3.2 },
   { id: 'u19fr', name: 'Championnat National U19', country: 'Frankreich', cup: 'Coupe Gambardella', team: 'U19', from: 'l1', tier: 1, goals: 3.2 },
+  { id: 'u17fr', name: 'Championnat National U17', country: 'Frankreich', cup: '', team: 'U17', from: 'l1', tier: 1, goals: 3.4 },
   { id: 'u19pt', name: 'Campeonato Nacional de Juniores', country: 'Portugal', cup: '', team: 'U19', from: 'lp', tier: 1, goals: 3.2 },
+  { id: 'u17pt', name: 'Campeonato Nacional de Juniores B', country: 'Portugal', cup: '', team: 'U17', from: 'lp', tier: 1, goals: 3.4 },
   { id: 'u19nl', name: 'Onder 19 Divisie 1', country: 'Niederlande', cup: '', team: 'U19', from: 'ere', tier: 1, goals: 3.4 },
+  { id: 'u17nl', name: 'Onder 17 Divisie 1', country: 'Niederlande', cup: '', team: 'U17', from: 'ere', tier: 1, goals: 3.6 },
 ];
 
 export const YOUTH_LEAGUES: League[] = YOUTH_DEF.map((d) => ({
@@ -287,12 +298,14 @@ export const YOUTH_LEAGUES: League[] = YOUTH_DEF.map((d) => ({
   europe: { cl: 0, el: 0, conf: 0 }, topScorerGoals: 18, youth: d.team,
 }));
 
-/** Stärke einer Nachwuchsmannschaft aus der Stärke der Profis (U17 etwas schwächer als U19). */
-export const youthStrength = (parent: number, team: NlzTeam) => Math.round(50 + (parent - 60) * 0.5) - (team === 'U17' ? 5 : 0);
+const YOUTH_OFFSET: Record<NlzTeam, number> = { U15: -10, U17: -5, U19: 0, U23: 4 };
+/** Stärke einer Nachwuchsmannschaft aus der Stärke der Profis (U19 als Bezug). */
+export const youthStrength = (parent: number, team: NlzTeam) => Math.round(50 + (parent - 60) * 0.5) + YOUTH_OFFSET[team];
 
+const CLUB_NAMES = new Set(CLUBS.map((c) => c.name));
 export const YOUTH_CLUBS: Club[] = YOUTH_DEF.flatMap((d) =>
-  CLUBS.filter((c) => c.leagueId === d.from && !/ (II|III)$/.test(c.name)).map((c) => ({
-    id: `${c.id}-${d.team.toLowerCase()}`, name: `${c.name} ${d.team}`, leagueId: d.id, strength: youthStrength(c.strength, d.team),
+  CLUBS.filter((c) => c.leagueId === d.from && !/ (II|III)$/.test(c.name) && !(d.team === 'U23' && CLUB_NAMES.has(`${c.name} II`))).map((c) => ({
+    id: `${c.id}-${d.team.toLowerCase()}`, name: `${c.name} ${d.label ?? d.team}`, leagueId: d.id, strength: youthStrength(c.strength, d.team),
   })),
 );
 
@@ -303,10 +316,24 @@ export const SIM_CLUBS: Club[] = [...CLUBS, ...YOUTH_CLUBS];
 const CLUB_MAP = new Map(SIM_CLUBS.map((c) => [c.id, c]));
 const LEAGUE_MAP = new Map(SIM_LEAGUES.map((l) => [l.id, l]));
 
-/** Nachwuchsmannschaft eines Vereins (U17 fällt im Ausland auf die U19 zurück) – oder null ohne NLZ. */
+/** Reihenfolge der Nachwuchsmannschaften. */
+export const NLZ_TEAMS: NlzTeam[] = ['U15', 'U17', 'U19', 'U23'];
+
+/**
+ * Nachwuchsmannschaft eines Vereins – fehlt die Altersstufe (z. B. U15 im Ausland), die nächsthöhere bis zur U19.
+ * Die U23 gibt es nur genau so (sonst null).
+ */
 export function youthClubOf(parentId: string, team: NlzTeam): Club | null {
-  return CLUB_MAP.get(`${parentId}-${team.toLowerCase()}`) ?? (team === 'U17' ? CLUB_MAP.get(`${parentId}-u19`) ?? null : null);
+  if (team === 'U23') return CLUB_MAP.get(`${parentId}-u23`) ?? null;
+  for (const t of NLZ_TEAMS.slice(NLZ_TEAMS.indexOf(team), 3)) {
+    const c = CLUB_MAP.get(`${parentId}-${t.toLowerCase()}`);
+    if (c) return c;
+  }
+  return null;
 }
+
+/** Welche Nachwuchsmannschaft ein Junioren-Verein ist (oder null). */
+export const youthTeamOfClub = (clubId: string): NlzTeam | null => LEAGUE_MAP.get(CLUB_MAP.get(clubId)?.leagueId ?? '')?.youth ?? null;
 
 /** Zweite Mannschaft (U23/II) eines Vereins – oder null. */
 export function reserveClubOf(parentId: string): Club | null {
