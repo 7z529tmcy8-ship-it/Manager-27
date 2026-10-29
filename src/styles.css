@@ -4326,3 +4326,46 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
   :root[data-theme="arena"] .hub-top .hub-coins { padding: 6px 8px; font-size: .86rem; }
   .hub-top { gap: 5px; }
 }
+
+/* ===== Vertragsverhandlung ===== */
+.cs-choice-wrap { display: grid; gap: 6px; min-width: 0; }
+.cs-choice-wrap > .cs-choice { width: 100%; }
+.cs-nego-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; }
+.nego { position: fixed; inset: 0; z-index: 72; display: grid; place-items: end center; padding: max(12px, env(safe-area-inset-top)) 0 0; background: rgba(3, 4, 12, .72); animation: story-in .18s ease; }
+@media (min-width: 700px) { .nego { place-items: center; padding: 24px; } }
+.nego-card { width: min(100%, 560px); max-height: 100%; overflow-y: auto; display: grid; gap: 12px; padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+  border-radius: 24px 24px 0 0; background: linear-gradient(180deg, #151a3d, #0a0d22); border: 1px solid var(--line, rgba(255, 255, 255, .12)); box-shadow: 0 -20px 50px rgba(0, 0, 0, .5);
+  animation: nego-up .28s cubic-bezier(.2, 1, .3, 1); }
+@media (min-width: 700px) { .nego-card { border-radius: 24px; } }
+@keyframes nego-up { from { transform: translateY(40px); opacity: 0; } }
+.nego-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.nego-head > div { display: grid; gap: 2px; min-width: 0; }
+.nego-head small { color: var(--muted); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+.nego-head strong { font-family: var(--display, inherit); font-size: 1.5rem; line-height: 1.05; }
+.nego-head span { color: var(--text-2, #c8cbe0); font-size: .85rem; }
+.nego-x { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line, rgba(255, 255, 255, .12)); background: none; color: var(--text); cursor: pointer; transition: transform .12s; }
+.nego-x:active { transform: scale(.92); }
+.nego-power { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px; font-size: .8rem; color: var(--muted); }
+.nego-bar { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.nego-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #ff4d6d, #ffd24a 45%, #39ff88); transition: width .3s; }
+.nego-offer { margin: 0; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, .04); font-size: .88rem; line-height: 1.4; }
+.nego-reply { margin: 0; padding: 10px 12px; border-radius: 12px; font-weight: 700; font-size: .9rem; line-height: 1.4; animation: nego-pop .3s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes nego-pop { from { transform: scale(.94); opacity: 0; } }
+.nego-reply.agreed { background: rgba(57, 255, 136, .14); color: #8dffbe; box-shadow: inset 0 0 0 1px rgba(57, 255, 136, .45); }
+.nego-reply.counter, .nego-reply.final { background: rgba(255, 210, 74, .12); color: #ffe29a; box-shadow: inset 0 0 0 1px rgba(255, 210, 74, .4); }
+.nego-reply.walked, .nego-reply.bad { background: rgba(255, 77, 109, .14); color: #ff9cb0; box-shadow: inset 0 0 0 1px rgba(255, 77, 109, .45); }
+.nego-form { display: grid; gap: 12px; }
+.nego-row { display: grid; gap: 6px; font-size: .88rem; }
+.nego-row > span b { font-family: var(--display, inherit); font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.nego-row > span em { font-style: normal; color: #ffd24a; font-weight: 700; margin-left: 4px; }
+.nego-row small, .nego-check small { color: var(--muted); }
+.nego-row input[type="range"] { width: 100%; accent-color: #39ff88; height: 28px; }
+.nego-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.nego-chips button { min-height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--line-strong, rgba(255, 255, 255, .2)); background: transparent; color: var(--text); font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; transition: transform .12s, background .15s; }
+.nego-chips button:active { transform: scale(.95); }
+.nego-chips button.on { background: rgba(57, 255, 136, .16); border-color: #39ff88; color: #fff; }
+.nego-check { display: flex; align-items: flex-start; gap: 10px; font-size: .88rem; cursor: pointer; }
+.nego-check input { width: 22px; height: 22px; accent-color: #39ff88; flex: none; margin-top: 1px; }
+.nego-mood { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-weight: 800; font-size: .88rem; }
+.nego-mood.good { color: #8dffbe; } .nego-mood.warn { color: #ffd24a; } .nego-mood.bad { color: #ff8ea3; }
+.nego-actions { display: grid; gap: 8px; }

@@ -19,6 +19,8 @@ import { getClub, getLeague } from '../data/leagues';
 import { attributeLabels, attributes, clubLeagueId, currentClubId, formatMoney, playerValue } from '../game/player';
 import { ATTR_WEIGHTS } from '../game/attributes';
 import { halfStats } from '../game/season';
+import Negotiation from './Negotiation';
+import { negotiable } from '../game/negotiation';
 import { NLZ_PROGRAMS, nlzStatus, setNlzProgram, setProTraining } from '../game/nlz';
 import { freePoints, levelInfo } from '../game/skills';
 import { play } from '../sound';
@@ -107,6 +109,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   };
   // Transferfenster: ein Tipp entscheidet, ein paar Sekunden lang lässt es sich rückgängig machen.
   const [undo, setUndo] = useState<{ prev: Career; title: string } | null>(null);
+  const [nego, setNego] = useState<string | null>(null);
   // Die Zeit läuft erst, wenn eine Transfer-Feier (Moment) wieder zu ist.
   useEffect(() => {
     if (!undo || moments.length) return;
@@ -221,10 +224,24 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           <p className="cs-sub">Die Saison ist vorbei. Wähle, wie es weitergeht.</p>
           <div className="cs-choices cs-choices-window">
             {choices.map((c, i) => (
-              <ChoiceCard key={c.offer?.id ?? c.kind} career={career} c={c} selected={false} onPick={() => chooseNow(i)} />
+              <div key={c.offer?.id ?? c.kind} className="cs-choice-wrap">
+                <ChoiceCard career={career} c={c} selected={false} onPick={() => chooseNow(i)} />
+                {c.offer && negotiable(c.offer) && (
+                  <button className="btn secondary small cs-nego-btn" onClick={() => setNego(c.offer!.id)}><Icon name="handshake" size={16} />Verhandeln</button>
+                )}
+              </div>
             ))}
           </div>
-          <p className="hint cs-tap-hint">Tippe auf ein Angebot – du kannst es danach kurz rückgängig machen.</p>
+          <p className="hint cs-tap-hint">Tippe auf ein Angebot – du kannst es danach kurz rückgängig machen. Mit „Verhandeln“ stellst du vorher Forderungen.</p>
+          {nego && (
+            <Negotiation career={career} offerId={nego} onChange={onChange} onClose={() => setNego(null)}
+              onSign={(cur, o) => {
+                setNego(null);
+                const c: Choice = { kind: o.type === 'Verlängerung' ? 'extend' : 'transfer', title: o.type === 'Verlängerung' ? 'Verlängern' : 'Wechsel', offer: o };
+                onChange(applyChoice(cur, c));
+                setUndo({ prev: career, title: `${c.title}: ${choiceClub(cur, c)}` });
+              }} />
+          )}
           {p.age >= 30 && !choices.some((c) => c.kind === 'retire') && (
             <button className="btn secondary small cs-go" onClick={() => window.confirm('Karriere wirklich beenden?') && onChange(applyChoice(career, { kind: 'retire', title: 'Karriere beenden' }))}>
               Karriere beenden
@@ -477,6 +494,10 @@ function ChoiceCard({ career, c, selected, onPick }: { career: Career; c: Choice
           {formatMoney(o.wage)}/Woche{o.type !== 'Leihe' ? ` · ${o.years} J.` : ''}
           {o.fee > 0 ? <><br />Ablöse {formatMoney(o.fee)}</> : null}
           {o.buyOption ? <><br /><b className="cs-option">Kaufoption {formatMoney(o.buyOption)}</b></> : null}
+          {o.clauses?.releaseClause ? <><br />Klausel {formatMoney(o.clauses.releaseClause)}</> : null}
+          {o.clauses?.goalBonus ? <><br />Torprämie {formatMoney(o.clauses.goalBonus)}</> : null}
+          {o.clauses?.starterGuarantee ? <><br />Einsatzgarantie</> : null}
+          {o.talkState ? <><br /><b className="cs-option">{o.talkState === 'agreed' ? 'Ausgehandelt' : 'Letztes Angebot'}</b></> : null}
         </span>
       )}
       {c.kind === 'home' && <span className="cs-choice-meta">Zurück, wo alles begann</span>}

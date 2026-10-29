@@ -113,6 +113,21 @@ export function generateOffers(
     );
   }
 
+  // Ausstiegsklausel: Größere Vereine zahlen sie – je günstiger die Klausel im Verhältnis zum Marktwert, desto eher.
+  const clause = p.contract.clauses?.releaseClause;
+  if (clause && !freeAgent && !p.loan && chance(clamp(0.2 + (playerValue(p) / clause) * 0.55, 0.1, 0.85))) {
+    const bigger = CLUBS.filter((c) => !taken.has(c.id) && !firstTeamOf(c.id) && clubStrength(career, c.id) >= parentStrength + 1 && clubStrength(career, c.id) <= appeal + 8
+      && (!getLeague(clubLeagueId(career, c.id)).exotic || p.age >= EXOTIC_AGE));
+    if (bigger.length) {
+      const club = weightedPick(bigger, (c) => Math.exp(-((clubStrength(career, c.id) - (appeal + 2)) ** 2) / 18) + 1e-6);
+      taken.add(club.id);
+      const offer = transferOffer(career, club.id, clubStrength(career, club.id), false, '');
+      offer.fee = clause;
+      offer.message = `${club.name} zieht deine Ausstiegsklausel über ${formatMoney(clause)} – dein Verein kann nichts dagegen tun.`;
+      offers.push(offer);
+    }
+  }
+
   // Leihangebote für junge Spieler mit wenig Spielzeit
   if (!freeAgent && p.age <= 23 && (share < (winter ? 0.3 : 0.45) || mode === 'loan')) {
     const loans = mode === 'loan' ? randInt(3, 4) : randInt(1, 2);

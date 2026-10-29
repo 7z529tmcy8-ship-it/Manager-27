@@ -33,6 +33,7 @@ import { applyTraining } from './training';
 import { hasTrait, type TraitId } from './traits';
 import { advanceFinal, autoFinal, finalRating, startFinal } from './final';
 import { addNews, summerNews, winterNews } from './news';
+import { contractClausesSeasonEnd } from './clauses';
 import { nlzCompetitions, nlzDevOptions, nlzHalfEnd, nlzMentalBonus, nlzRole, nlzSeasonEnd, nlzStartTeam } from './nlz';
 import { createRival, simulateRivalSeason } from './rival';
 import type { Career, DecisionResult, FinalState, GameEvent, MatchLine, Offer, Position, Role, SeasonRecord, StageLoad, TrainingFocus, TransferEntry } from './types';
@@ -409,7 +410,7 @@ export function acceptWinterOffer(prev: Career, offer: Offer, quick = false): Ca
   if (offer.type === 'Leihe') {
     p.loan = { clubId: offer.clubId, parentClubId: p.contract.clubId, role: offer.role, buyOption: offer.buyOption };
   } else {
-    p.contract = { clubId: offer.clubId, yearsLeft: offer.years, wage: offer.wage, role: offer.role };
+    p.contract = { clubId: offer.clubId, yearsLeft: offer.years, wage: offer.wage, role: offer.role, clauses: offer.clauses };
     p.loan = null;
   }
   p.nlz = undefined;
@@ -610,6 +611,7 @@ function completeSeason(career: Career): Career {
     p.loan = null;
   }
   nlzSeasonEnd(career, record);
+  contractClausesSeasonEnd(career, record);
   ownerSeasonEnd(career, record.notes);
   if (p.contract.yearsLeft <= 0) record.notes.push('Dein Vertrag ist ausgelaufen – du bist ablösefrei.');
   record.marketValue = playerValue(p);
@@ -868,7 +870,7 @@ export function acceptOffer(prev: Career, offer: Offer): Career {
   if (offer.type === 'Leihe') {
     p.loan = { clubId: offer.clubId, parentClubId: p.contract.clubId, role: offer.role, buyOption: offer.buyOption };
   } else {
-    p.contract = { clubId: offer.clubId, yearsLeft: offer.years, wage: offer.wage, role: offer.role };
+    p.contract = { clubId: offer.clubId, yearsLeft: offer.years, wage: offer.wage, role: offer.role, clauses: offer.clauses };
     p.loan = null;
   }
   // Wer wechselt oder verliehen wird, spielt bei den Profis – außer beim Wechsel in ein anderes NLZ;

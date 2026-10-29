@@ -47,6 +47,18 @@ export interface Contract {
   /** Gehalt in € pro Woche. */
   wage: number;
   role: Role;
+  /** Ausgehandelte Klauseln (Vertragsverhandlung). */
+  clauses?: ContractClauses;
+}
+
+/** Klauseln, die man in der Vertragsverhandlung aushandeln kann. */
+export interface ContractClauses {
+  /** Ausstiegsklausel in € – ein Verein, der sie zahlt, darf dich holen. */
+  releaseClause?: number;
+  /** Torprämie in € pro Pflichtspieltor. */
+  goalBonus?: number;
+  /** Einsatzgarantie: Bekommst du keine Stammspieler-Einsätze, wirst du am Saisonende ablösefrei. */
+  starterGuarantee?: boolean;
 }
 
 export interface Loan {
@@ -365,6 +377,11 @@ export interface Offer {
   buyOption?: number;
   /** Wechsel ins NLZ des Vereins: Man spielt dort in dieser Nachwuchsmannschaft. */
   nlz?: NlzTeam;
+  /** Vertragsverhandlung: Klauseln, Anzahl Runden, Ergebnis. */
+  clauses?: ContractClauses;
+  talks?: number;
+  /** 'agreed' = Einigung erzielt, 'final' = letztes Angebot (keine weitere Runde). */
+  talkState?: 'agreed' | 'final';
 }
 
 export interface Career {

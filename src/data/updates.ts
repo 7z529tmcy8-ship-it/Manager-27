@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-29-verhandlung',
+    date: '29.10.2026',
+    title: 'Vertragsverhandlung',
+    items: [
+      'Im Transferfenster kannst du jetzt verhandeln: Gehalt, Laufzeit, Rolle und Klauseln selbst fordern – statt nur annehmen oder ablehnen.',
+      'Klauseln: Ausstiegsklausel (größere Vereine dürfen dich dafür holen), Torprämie pro Tor und Einsatzgarantie (spielst du zu wenig, wirst du ablösefrei).',
+      'Der Verein antwortet je nach deiner Verhandlungsmacht: Einigung, Gegenangebot – oder er bricht ab, wenn du zu hoch pokerst. Nach drei Runden gibt es das letzte Angebot.',
+    ],
+  },
+  {
     id: '2026-10-29-hub',
     date: '29.10.2026',
     title: 'Neues Startmenü und Profil',
