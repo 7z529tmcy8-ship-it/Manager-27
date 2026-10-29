@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-29-ewig',
+    date: '29.10.2026',
+    title: 'Ewig-Karten: 99 bis 102',
+    items: [
+      'Fünf neue SBCs mit der stärksten Kartenart im Spiel: „Ewig“ – schwarz wie Obsidian, mit drehendem Regenbogen-Rand.',
+      'Cristiano Ronaldo (ST, 102) – EM 2016, Neymar (FL, 101) – Olympia-Gold 2016, Andrés Iniesta (ZM, 100) – WM 2010, Franz Beckenbauer (IV, 100) – EM 1972, Lew Jaschin (TW, 99) – Ballon d’Or 1963.',
+      'Du findest sie unter SBC. Jede gibt es nur einmal – und die Anforderungen sind hart.',
+    ],
+  },
+  {
     id: '2026-10-29-verhandlung',
     date: '29.10.2026',
     title: 'Vertragsverhandlung',
