@@ -111,15 +111,16 @@ it('Förderprogramm und Profi-Training ändern die Entwicklung; Profi-Training b
   expect(nlzDevOptions(c).training).toBe(85);
   // Zu schwach für Profi-Training
   expect(setProTraining(talent(17, 60), true).player.nlz?.proTraining).toBeUndefined();
+  // Einsätze sind Zufall (im Schnitt ~0,3 pro Halbserie) – genug Durchläufe, damit der Test nicht wackelt
   let apps = 0;
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 120; i++) {
     const t = structuredClone(c);
     t.progress = startSeason(t);
     nlzHalfEnd(t, 1);
     apps += t.player.proApps ?? 0;
   }
-  expect(apps).toBeGreaterThan(5);
-});
+  expect(apps).toBeGreaterThan(10);
+}, 20000);
 
 it('Umschulung: Vorschlag passt zu den Attributen, Wertung ergibt sich neu', () => {
   const c = talent(16, 62);
