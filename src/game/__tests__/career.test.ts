@@ -101,9 +101,10 @@ describe('Saison-Simulation', () => {
     expect(s.winterMove?.toClubId).toBe(loan.clubId);
     expect(s.clubId).toBe(loan.clubId);
     expect(s.onLoan).toBe(true);
-    // Nach Saisonende kehrt der Spieler zurück.
+    // Nach Saisonende kehrt der Spieler zurück – außer der Leihverein zieht eine Kaufoption.
     expect(done.player.loan).toBeNull();
-    expect(done.player.contract.clubId).toBe(slugify('FC Bayern München'));
+    const bought = !!loan.buyOption && s.notes.some((n) => n.startsWith('Kaufoption gezogen'));
+    expect(done.player.contract.clubId).toBe(bought ? loan.clubId : slugify('FC Bayern München'));
   });
 
   it('Bewerbungen ab 30: Zweitligisten sagen fast immer zu, Limit pro Fenster', () => {
