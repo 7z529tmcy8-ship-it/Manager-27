@@ -122,7 +122,7 @@ export default function DropOpener({ kind, onClose, onStore }: { kind: DropKind;
       <div className="dopen-floor" aria-hidden="true">
         {shards.map((s) => (
           <i key={s.id} className={`shard sh-${s.shape} ${s.old ? 'old' : ''}`}
-            style={{ '--x': `${s.x}%`, '--y': `${s.y}%`, '--r': `${s.r}deg`, '--s': s.s, '--c': s.color } as React.CSSProperties} />
+            style={{ '--xn': s.x, '--yn': s.y, '--r': `${s.r}deg`, '--s': s.s, '--c': s.color } as React.CSSProperties} />
         ))}
       </div>
 

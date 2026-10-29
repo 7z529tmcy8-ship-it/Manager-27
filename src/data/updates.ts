@@ -19,6 +19,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-29-fluessig',
+    date: '29.10.2026',
+    title: 'Flüssiger',
+    items: [
+      'Der Store öffnet beim ersten Mal deutlich schneller: Bereiche außerhalb des Bildschirms werden erst beim Hinscrollen gezeichnet.',
+      'Drop-Öffnen läuft flüssiger – gleicher Look, aber günstiger gezeichnet. Beim Aufladen steht der Hintergrund still: Ruhe vor dem Schlag.',
+    ],
+  },
+  {
     id: '2026-10-28-drops3',
     date: '28.10.2026',
     title: 'Drops: neu öffnen und im Store',
