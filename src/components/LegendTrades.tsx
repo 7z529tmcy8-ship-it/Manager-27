@@ -16,7 +16,7 @@ export default function LegendTrades() {
   return (
     <section className="legend-trades">
       <h2>Spezial-Tausch · Legendäre Momente</h2>
-      <p className="hub-sub small">Gib 11 starke Karten ab und bekomme eine Momentkarte (91–96). Jede gibt es nur einmal. „Automatisch füllen“ sucht dir die günstigste passende Abgabe heraus – du kannst danach noch tauschen.</p>
+      <p className="hub-sub small">Gib 11 starke Karten ab und bekomme eine Momentkarte (91–102). Jede gibt es nur einmal. „Automatisch füllen“ sucht dir die günstigste passende Abgabe heraus – du kannst danach noch tauschen.</p>
       <div className="lt-list">
         {MOMENTS.filter((m) => momentVisible(club, m)).map((m) => {
           const done = momentDone(club, m);

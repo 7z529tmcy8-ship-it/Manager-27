@@ -58,8 +58,68 @@ function galaWinnerSbc(): MomentSbc[] {
   }];
 }
 
+/** „Ewig“: die größten Momente der Fußballgeschichte – dreistellige Wertung (99–102), eigenes Obsidian-Prisma-Design. */
+const eternal = (id: string, name: string, position: CollectCard['position'], nat: string, club: string, ovr: number, label: string): CollectCard =>
+  ({ id: `moment-${id}`, name, position, nation: nat, club, league: 'Ewig', ovr, variant: 'ewig', label });
+const isSpecial = (c: CollectCard) => !['silver', 'gold', 'gold-rare', 'icon'].includes(c.variant);
+
 export const MOMENTS: MomentSbc[] = [
   ...galaWinnerSbc(),
+  // ----- Ewig (99–102) -----
+  {
+    id: 'moment-ewig-pele',
+    reward: eternal('ewig-pele', 'Pelé', 'ST', 'Brasilien', 'WM 1970', 102, 'Mexiko 1970 · 3. WM-Titel'),
+    story: 'Aztekenstadion, 21. Juni 1970: Pelé köpft das 1:0 im Finale gegen Italien, Brasilien gewinnt 4:1 – sein dritter WM-Titel. Das schafft bis heute niemand sonst.',
+    minAvg: 93, minEach: 90,
+    needs: [
+      { label: 'Ikonen', count: 4, test: isIcon },
+      { label: 'Brasilianer', count: 2, test: nation('Brasilien') },
+      { label: 'Spezialkarten', count: 2, test: isSpecial },
+    ],
+  },
+  {
+    id: 'moment-ewig-maradona',
+    reward: eternal('ewig-maradona', 'Diego Maradona', 'ZOM', 'Argentinien', 'WM 1986', 101, 'Mexiko 1986 · Tor des Jahrhunderts'),
+    story: 'Viertelfinale gegen England: Maradona nimmt den Ball in der eigenen Hälfte, lässt fünf Engländer und Torwart Shilton stehen – das Tor des Jahrhunderts. Am Ende ist Argentinien Weltmeister.',
+    minAvg: 92, minEach: 89,
+    needs: [
+      { label: 'Ikonen', count: 3, test: isIcon },
+      { label: 'Argentinier', count: 2, test: nation('Argentinien') },
+      { label: 'Spezialkarten', count: 2, test: isSpecial },
+    ],
+  },
+  {
+    id: 'moment-ewig-iniesta',
+    reward: eternal('ewig-iniesta', 'Andrés Iniesta', 'ZM', 'Spanien', 'WM 2010', 100, "Johannesburg 2010 · 116'"),
+    story: 'WM-Finale 2010 gegen die Niederlande, Verlängerung, 116. Minute: Iniesta trifft zum 1:0 – Spaniens erster WM-Titel.',
+    minAvg: 92, minEach: 88,
+    needs: [
+      { label: 'Spanier', count: 3, test: nation('Spanien') },
+      { label: 'LaLiga-Spieler', count: 3, test: league('LaLiga') },
+      { label: 'Ikonen', count: 2, test: isIcon },
+    ],
+  },
+  {
+    id: 'moment-ewig-beckenbauer',
+    reward: eternal('ewig-beckenbauer', 'Franz Beckenbauer', 'IV', 'Deutschland', 'EM 1972', 100, '1972 · Europameister & Ballon d’Or'),
+    story: 'Sommer 1972: Kapitän Beckenbauer führt Deutschland zum EM-Titel, im Dezember bekommt er den Ballon d’Or – als Libero, der das Spiel von hinten lenkt.',
+    minAvg: 92, minEach: 88,
+    needs: [
+      { label: 'Deutsche', count: 3, test: nation('Deutschland') },
+      { label: 'Bundesliga-Spieler', count: 3, test: league('Bundesliga') },
+      { label: 'Ikonen', count: 2, test: isIcon },
+    ],
+  },
+  {
+    id: 'moment-ewig-jaschin',
+    reward: eternal('ewig-jaschin', 'Lew Jaschin', 'TW', 'Russland', 'Ballon d’Or 1963', 99, '1963 · einziger Torwart mit Ballon d’Or'),
+    story: '1963 gewinnt Lew Jaschin, die „Schwarze Spinne“, den Ballon d’Or – als bisher einziger Torwart in der Geschichte der Auszeichnung.',
+    minAvg: 91, minEach: 88,
+    needs: [
+      { label: 'Torhüter', count: 2, test: (c) => c.position === 'TW' },
+      { label: 'Ikonen', count: 3, test: isIcon },
+    ],
+  },
   // ----- Unvergessen (neues Kartendesign) -----
   {
     id: 'moment-zidane-volley',

@@ -365,6 +365,7 @@ export function cardAttrs(c: CollectCard): number[] {
   let h = hash(c.id);
   return PROFILE[c.position].map((off) => {
     h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0;
-    return clamp(Math.round(c.ovr + off + ((h % 9) - 4)), 25, 99);
+    // Über 99 nur bei Karten mit dreistelliger Wertung („Ewig“)
+    return clamp(Math.round(c.ovr + off + ((h % 9) - 4)), 25, Math.max(99, c.ovr));
   });
 }

@@ -13,7 +13,7 @@ import type { Career, CoachSeason, Position, SeasonRecord, SpecialCard, SpecialT
 
 /** Auszeichnungs-Karten, die man am Karriereende statt der Ikone wählen kann. */
 export type AwardVariant = 'ballondor' | 'poty' | 'topscorer' | 'goldenboy' | 'ucl' | 'worldcup';
-export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | 'gala' | 'totw' | 'comeback' | 'flashback' | 'pass' | 'gig' | 'winter' | 'silvester' | 'unvergessen' | AwardVariant | SpecialType;
+export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | 'gala' | 'totw' | 'comeback' | 'flashback' | 'pass' | 'gig' | 'winter' | 'silvester' | 'unvergessen' | 'ewig' | AwardVariant | SpecialType;
 
 export interface CollectCard {
   id: string;
@@ -210,7 +210,7 @@ export function sellValue(c: CollectCard): number {
 
 /** Seltenheit für Sortierung und „bester Zug“. */
 export function rarity(c: CollectCard): number {
-  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, gala: 3.9, totw: 3.1, comeback: 3.3, flashback: 3.5, pass: 3.95, gig: 4.1, winter: 3.85, silvester: 4.05, unvergessen: 4.1, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
+  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, gala: 3.9, totw: 3.1, comeback: 3.3, flashback: 3.5, pass: 3.95, gig: 4.1, winter: 3.85, silvester: 4.05, unvergessen: 4.1, ewig: 4.6, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
   return base * 100 + c.ovr;
 }
 
