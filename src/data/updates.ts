@@ -19,6 +19,14 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-29-alter',
+    date: '29.10.2026',
+    title: 'Altersfilter bei echten Spielern',
+    items: [
+      'Beim Erstellen einer Karriere kannst du echte Spieler jetzt nach Alter filtern: bis 18, 19–21, 22–25, 26–29 oder ab 30 Jahre.',
+    ],
+  },
+  {
     id: '2026-10-29-ewig',
     date: '29.10.2026',
     title: 'Ewig-Karten: 99 bis 102',

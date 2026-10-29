@@ -4403,3 +4403,6 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .ucard.v-ewig.md .ucard-ovr { font-size: 1.6rem; }
 .ucard.v-ewig.lg .ucard-ovr { font-size: 2.5rem; }
 .ucard.v-ewig.md .ucard-name { font-size: .76rem; letter-spacing: 0; }
+/* Echte Spieler: Suche über die ganze Breite, Liga und Alter nebeneinander */
+.real-filter { grid-template-columns: 1fr 1fr; }
+.real-filter .search { grid-column: 1 / -1; }

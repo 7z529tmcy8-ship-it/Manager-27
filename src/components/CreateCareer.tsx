@@ -291,25 +291,40 @@ function OriginWheel({ result, onResult }: { result: OriginId | null; onResult: 
   );
 }
 
+const AGE_RANGES: { label: string; range: [number, number] }[] = [
+  { label: 'Jedes Alter', range: [0, 99] },
+  { label: 'Bis 18 Jahre', range: [0, 18] },
+  { label: '19–21 Jahre', range: [19, 21] },
+  { label: '22–25 Jahre', range: [22, 25] },
+  { label: '26–29 Jahre', range: [26, 29] },
+  { label: 'Ab 30 Jahre', range: [30, 99] },
+];
+
 function RealPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
   const [query, setQuery] = useState('');
   const [leagueId, setLeagueId] = useState('');
+  const [age, setAge] = useState(0);
   const q = query.trim().toLowerCase();
+  const [minAge, maxAge] = AGE_RANGES[age].range;
   const list = REAL_PLAYERS.filter(
     (p) =>
       (!q || p.name.toLowerCase().includes(q) || p.nation.toLowerCase().includes(q) || getClub(p.clubId).name.toLowerCase().includes(q)) &&
-      (!leagueId || getClub(p.clubId).leagueId === leagueId),
+      (!leagueId || getClub(p.clubId).leagueId === leagueId) &&
+      p.age >= minAge && p.age <= maxAge,
   ).sort((a, b) => b.ovr - a.ovr || a.age - b.age);
 
   const start = (p: RealPlayerTemplate) => onCreate(createCareer({ ...p }));
 
   return (
     <section className="panel">
-      <div className="row">
+      <div className="row real-filter">
         <input className="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Name, Verein oder Nation…" />
         <select value={leagueId} onChange={(e) => setLeagueId(e.target.value)} aria-label="Liga">
           <option value="">Alle Ligen</option>
           {LEAGUES.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+        </select>
+        <select value={age} onChange={(e) => setAge(Number(e.target.value))} aria-label="Alter">
+          {AGE_RANGES.map((r, i) => <option key={r.label} value={i}>{r.label}</option>)}
         </select>
       </div>
       <p className="hint">
