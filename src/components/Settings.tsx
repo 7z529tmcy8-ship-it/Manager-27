@@ -9,7 +9,7 @@ import { halloweenActive } from '../game/club';
 import { DIFFICULTIES, setCareerSettings, settingsOf } from '../game/difficulty';
 import type { Career, Difficulty } from '../game/types';
 import { UNLOCK_KEY } from './PasswordGate';
-import { updateSettings, useSettings, type AppSettings, lockLandscape, unlockOrientation } from '../settings';
+import { canFullscreen, enterFullscreen, exitFullscreen, updateSettings, useSettings, type AppSettings, lockLandscape, unlockOrientation } from '../settings';
 import { play } from '../sound';
 import Icon from './Icon';
 
@@ -106,7 +106,12 @@ export default function Settings({ career, onChange, onClose }: Props) {
           <Toggle label="Animationen" checked={app.animations} onToggle={() => set({ animations: !app.animations })} hint="Pack-Öffnung, Konfetti und Hochzählen." />
           <Toggle label="Im Querformat spielen" checked={!!app.landscape} onToggle={async () => {
             if (!app.landscape) { set({ landscape: true }); await lockLandscape(); } else { set({ landscape: false }); unlockOrientation(); }
-          }} hint="Das Spiel ist fürs Querformat optimiert. Auf Android wird die Drehung im Vollbild gesperrt, am iPhone einfach das Handy drehen (Ausrichtungssperre aus)." />
+          }} hint="Startmenü und Shop sind fürs Hochformat gebaut, die Karriere fühlt sich quer am besten an. Auf Android wird die Drehung im Vollbild gesperrt, am iPhone einfach das Handy drehen (Ausrichtungssperre aus)." />
+          {canFullscreen() && (
+            <Toggle label="Vollbild" checked={app.fullscreen !== false} onToggle={async () => {
+              if (app.fullscreen === false) { set({ fullscreen: true }); await enterFullscreen(); } else { set({ fullscreen: false }); exitFullscreen(); }
+            }} hint="Ohne Browser-Leisten spielen – am Handy automatisch beim ersten Tippen." />
+          )}
           <Toggle label="Karten mit dem Handy neigen" checked={app.tilt !== false} onToggle={async () => {
             if (app.tilt === false) { set({ tilt: true }); await startMotion(); } else { set({ tilt: false }); stopMotion(); }
           }} hint="Große Karten kippen in 3D und der Glanz wandert mit – am PC mit der Maus, am Handy durch Neigen." />

@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-29-hub',
+    date: '29.10.2026',
+    title: 'Neues Startmenü und Profil',
+    items: [
+      'Startmenü fürs Hochformat aufgeräumt: oben dein Profil, darunter nur die laufenden Events, deine Karriere, die großen Knöpfe „Neue Karriere“ und „Shop“, dann Pass, Ruhmesweg und der Rest.',
+      'Neues Profil wie in Brawl Stars: Wappen und Farbe wählen, Name ändern, Manager-Level, Trophäen, Lieblingskarte und Statistiken.',
+      'Vollbild: Am Handy startet das Spiel beim ersten Tippen ohne Browser-Leisten (abschaltbar), oben gibt es einen Vollbild-Knopf. Als App installiert läuft es direkt im Vollbild.',
+      'Der Store heißt jetzt Shop. Der Polarlicht-Kalender ist in den Shop umgezogen.',
+    ],
+  },
+  {
     id: '2026-10-29-fluessig',
     date: '29.10.2026',
     title: 'Flüssiger',

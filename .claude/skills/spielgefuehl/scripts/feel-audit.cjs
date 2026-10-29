@@ -139,10 +139,10 @@ const nav = (page, label) => page.click(`.navbar-item:has-text("${label}")`, { t
 /** Die geprüften Abläufe. Neue Spielteile hier ergänzen (siehe SKILL.md). */
 const FLOWS = {
   navigation: async (p) => {
-    for (const label of ['Store', 'Sammlung', 'Team', 'Duelle', 'Pass', 'Start']) { await nav(p, label); await p.waitForTimeout(450); }
+    for (const label of ['Shop', 'Sammlung', 'Team', 'Duelle', 'Pass', 'Start']) { await nav(p, label); await p.waitForTimeout(450); }
   },
   store: async (p) => {
-    await nav(p, 'Store'); await p.waitForTimeout(400);
+    await nav(p, 'Shop'); await p.waitForTimeout(400);
     await p.mouse.wheel(0, 900); await p.waitForTimeout(300); await p.mouse.wheel(0, -900);
     await p.click('.pack-card.p-gold button', { timeout: 3000 });
     await p.waitForTimeout(1600);
@@ -150,7 +150,7 @@ const FLOWS = {
     await p.waitForTimeout(800);
   },
   drop: async (p) => {
-    await nav(p, 'Store'); await p.waitForTimeout(400);
+    await nav(p, 'Shop'); await p.waitForTimeout(400);
     await p.click('.stored-drop button', { timeout: 3000 });
     await p.waitForTimeout(500);
     for (let i = 0; i < 8; i++) {
@@ -172,7 +172,7 @@ const FLOWS = {
     await p.mouse.wheel(0, 1500); await p.waitForTimeout(500); await p.mouse.wheel(0, -1500);
   },
   karriere: async (p) => {
-    await tile(p, 'Neue Karriere'); await p.waitForTimeout(600);
+    await p.click('.hb-new', { timeout: 4000 }); await p.waitForTimeout(600);
     await p.mouse.wheel(0, 800); await p.waitForTimeout(300);
   },
 };
@@ -210,7 +210,7 @@ async function reducedMotion(browser) {
     list.forEach((x) => found.add(x));
   };
   await home(p); await scan();
-  for (const label of ['Store', 'Pass']) { await nav(p, label).catch(() => {}); await p.waitForTimeout(400); await scan(); }
+  for (const label of ['Shop', 'Pass']) { await nav(p, label).catch(() => {}); await p.waitForTimeout(400); await scan(); }
   await ctx.close();
   return [...found].slice(0, 15);
 }

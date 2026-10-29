@@ -8,6 +8,8 @@ import Confetti from './Confetti';
 import UtCard from './UtCard';
 import Icon, { Glyph } from './Icon';
 import DropOpener from './DropOpener';
+import PolarCalendar from './PolarCalendar';
+import { POLAR_UNLOCK, polarNextBuyable, polarVisible } from '../game/polar';
 import { DROP_LABEL, DROP_ODDS, DROP_SHOP, MEGA_ODDS, buyDrops, type DropKind } from '../game/glory';
 
 const fmtCoins = (n: number) => n.toLocaleString('de-DE');
@@ -17,6 +19,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
   const club = useClub();
   const [opening, setOpening] = useState<{ result: PackResult; name: string; theme?: string; art?: string; packId: string; free: boolean; n: number } | null>(null);
   const [dropOpen, setDropOpen] = useState<DropKind | null>(null);
+  const [polar, setPolar] = useState(false);
   const [mega, setMega] = useState(false);
   const [superPack, setSuperPack] = useState<PackResult | null>(null);
   const [superCharging, setSuperCharging] = useState(false);
@@ -42,7 +45,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         <button className="hub-back" onClick={onBack}>‹ Hauptmenü</button>
         <span className="hub-coins"><Icon name="coin" size={16} className="coin-ic" />{fmtCoins(club.coins)}</span>
       </header>
-      <h1 className="hub-title">Store</h1>
+      <h1 className="hub-title">Shop</h1>
       <p className="hub-sub">Coins verdienst du in deinen Karrieren: pro Saison für Spiele, Tore, Vorlagen, Titel, Erfolge und Sonderkarten.</p>
 
       {!club.megaSuperClaimed && (
@@ -84,6 +87,19 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
           <span className="hub-tile-icon" aria-hidden="true"><Icon name="gift" /></span>
           <strong>Willkommens-Pack</strong>
           <small>Ein Gold-Pack geschenkt – jetzt öffnen!</small>
+        </button>
+      )}
+
+      {polarVisible() && (
+        <button className="polar-call" onClick={() => setPolar(true)}>
+          <span className="polar-call-num">{club.polar?.opened.length ?? 0}<small>/24</small></span>
+          <span className="polar-call-text">
+            <b>Polarlicht-Kalender</b>
+            <small>{club.polar?.unlocked
+              ? polarNextBuyable(club) ? `Türchen ${polarNextBuyable(club)} jetzt freikaufen – oder im Dezember gratis` : 'Heutige Türchen gratis öffnen'
+              : `Jetzt für ${(POLAR_UNLOCK / 1e6).toLocaleString('de-DE')} Mio. Coins freischalten · 5 Winter-Karten`}</small>
+          </span>
+          <Icon name="arrow" size={22} />
         </button>
       )}
 
@@ -152,6 +168,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         <PackOpening name="MEGA SUPER XXL PACK" result={superPack} onClose={() => setSuperPack(null)} onCollection={() => { setSuperPack(null); onCollection(); }} />
       )}
 
+      {polar && <PolarCalendar onClose={() => setPolar(false)} onCollection={() => { setPolar(false); onCollection(); }} />}
       {dropOpen && <DropOpener kind={dropOpen} onClose={() => setDropOpen(null)} />}
       {opening && (
         <PackOpening
@@ -231,7 +248,7 @@ function MegaCrash({ onDone }: { onDone: () => void }) {
   );
 }
 
-/** Auswahl nach einem gewonnenen Pack: sofort öffnen oder in die Ablage (später im Store öffnen). */
+/** Auswahl nach einem gewonnenen Pack: sofort öffnen oder in die Ablage (später im Shop öffnen). */
 export function PackPrompt({ packs, onOpen, onStore }: { packs: string[]; onOpen: () => void; onStore: () => void }) {
   // Gleiche Packs zusammenfassen: „2× Ultimate-Pack“
   const counts = new Map<string, number>();
@@ -242,7 +259,7 @@ export function PackPrompt({ packs, onOpen, onStore }: { packs: string[]; onOpen
       <div className="reward-card">
         <h2>{packs.length === 1 ? 'Pack bekommen' : `${packs.length} Packs bekommen`}</h2>
         <ul className="cr-packs">{names.map((n, i) => <li key={`${n}-${i}`} className="cr-pack"><Icon name="pack" size={20} /><span>{n}</span></li>)}</ul>
-        <p className="muted">Du kannst sie jetzt öffnen – oder in die Ablage legen und später im Store öffnen.</p>
+        <p className="muted">Du kannst sie jetzt öffnen – oder in die Ablage legen und später im Shop öffnen.</p>
         <div className="pack-prompt-actions">
           <button className="btn secondary big" onClick={onStore}><Icon name="folder" size={18} /> In die Ablage</button>
           <button className="btn primary big" onClick={onOpen}><Icon name="pack" size={18} /> Jetzt öffnen</button>

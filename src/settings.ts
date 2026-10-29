@@ -17,15 +17,23 @@ export interface AppSettings {
   tilt?: boolean;
   /** Im Querformat spielen (Handy quer halten; wo möglich wird die Drehung gesperrt). */
   landscape?: boolean;
+  /** Vollbild: beim ersten Tippen ohne Browser-Leisten spielen (Standard an). */
+  fullscreen?: boolean;
+  /** Einmalige Umstellung: Querformat-Sperre nicht mehr standardmäßig (Startmenü fürs Hochformat). */
+  orientationV2?: boolean;
 }
 
 const KEY = 'fc-manager-settings';
-const DEFAULTS: AppSettings = { theme: 'arena', animations: true, casino: true, sound: true, volume: 0.6, landscape: true };
+const DEFAULTS: AppSettings = { theme: 'arena', animations: true, casino: true, sound: true, volume: 0.6, landscape: false, fullscreen: true, orientationV2: true };
 
 function load(): AppSettings {
   try {
     const raw = localStorage.getItem(KEY);
-    return raw ? { ...DEFAULTS, ...JSON.parse(raw) } : DEFAULTS;
+    if (!raw) return DEFAULTS;
+    const saved = JSON.parse(raw) as AppSettings;
+    // Früher war Querformat Standard – jetzt ist das Startmenü fürs Hochformat gebaut: einmalig zurücksetzen.
+    if (!saved.orientationV2) { saved.landscape = false; saved.orientationV2 = true; }
+    return { ...DEFAULTS, ...saved };
   } catch {
     return DEFAULTS;
   }
@@ -94,6 +102,24 @@ export async function lockLandscape(): Promise<boolean> {
     return false;
   }
 }
+/** Kann dieser Browser echtes Vollbild? (iPhone-Safari: nein – dort hilft „Zum Home-Bildschirm“.) */
+export const canFullscreen = () => typeof document !== 'undefined' && !!document.documentElement.requestFullscreen && document.fullscreenEnabled !== false;
+export const isFullscreen = () => typeof document !== 'undefined' && !!document.fullscreenElement;
+
+/** Vollbild an (muss aus einem Tippen heraus aufgerufen werden). */
+export async function enterFullscreen(): Promise<boolean> {
+  try {
+    if (!canFullscreen() || document.fullscreenElement) return !!document.fullscreenElement;
+    await document.documentElement.requestFullscreen({ navigationUI: 'hide' } as FullscreenOptions);
+    return true;
+  } catch {
+    return false;
+  }
+}
+export function exitFullscreen(): void {
+  try { if (document.fullscreenElement) void document.exitFullscreen(); } catch { /* egal */ }
+}
+
 export function unlockOrientation(): void {
   try {
     (screen.orientation as ScreenOrientation & { unlock?: () => void })?.unlock?.();

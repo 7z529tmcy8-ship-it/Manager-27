@@ -65,7 +65,7 @@ function CareerPacks({ career, onDone }: { career: Career; onDone: (msg?: string
   const store = () => {
     const res = claimCareerReward(getClubState(), career, Math.random, true);
     if (res) setClubState(res.club);
-    onDone(`${tier.packs.length} ${tier.packs.length === 1 ? 'Pack liegt' : 'Packs liegen'} in deiner Ablage im Store.`);
+    onDone(`${tier.packs.length} ${tier.packs.length === 1 ? 'Pack liegt' : 'Packs liegen'} in deiner Ablage im Shop.`);
   };
 
   if (opened) return <PackOpening name={tier.name} result={opened} onClose={onDone} onCollection={onDone} />;

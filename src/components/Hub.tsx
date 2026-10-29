@@ -14,10 +14,11 @@ import UtCard from './UtCard';
 import Icon from './Icon';
 import { divName, divisionOf } from '../game/divisions';
 import AdventCalendar from './AdventCalendar';
-import PolarCalendar from './PolarCalendar';
+import ProfileScreen, { Emblem } from './ProfileScreen';
 import GloryRoad from './GloryRoad';
 import { ROAD, roadReady } from '../game/glory';
-import { POLAR_UNLOCK, polarNextBuyable, polarVisible } from '../game/polar';
+import { profileOf } from '../game/profile';
+import { canFullscreen, enterFullscreen, exitFullscreen, isFullscreen } from '../settings';
 import { adventToday, claimNewYearGift, newYearGiftOpen } from '../game/winter';
 import { PASS_LEVELS, XP_PER_LEVEL, passLevel, passOf, unclaimedLevels, unclaimedProLevels } from '../game/pass';
 
@@ -52,18 +53,13 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   const [tipPack, setTipPack] = useState<PackResult | null>(null);
   const [nyPack, setNyPack] = useState<PackResult | null>(null);
   const [advent, setAdvent] = useState(false);
-  const [polar, setPolar] = useState(false);
+  const [profile, setProfile] = useState(false);
+  const [full, setFull] = useState(isFullscreen());
   const [glory, setGlory] = useState(false);
   const tipWon = ballonTipCorrect(club) === true && !club.ballonTipClaimed;
-  // Event-Hinweis oben: das gerade wichtigste Event
   const gigLastDay = new Date().getDate() === 18;
-  const chip = eventActive('silvester') ? 'Silvester – nur bis 1.1.'
-    : eventActive('winter') ? 'Winter-Wunder bis 27.12.'
-    : eventActive('gig') ? (gigLastDay ? 'GIG-Event – nur noch heute' : 'GIG-Event – nur bis morgen')
-    : eventActive('geisternacht') ? 'Geisternacht – nur bis 31.10.'
-    : eventActive('gala') ? 'Gala-Woche bis 9.11.'
-    : halloweenActive() ? 'Halloween bis 2.11.' : null;
-  const chipIcon = eventActive('silvester') ? 'spark' : eventActive('winter') ? 'gift' : eventActive('gig') ? 'dice' : eventActive('geisternacht') ? 'ghost' : eventActive('gala') ? 'medal' : 'pumpkin';
+  const me = profileOf(club);
+  const toggleFull = async () => { if (isFullscreen()) exitFullscreen(); else await enterFullscreen(); setTimeout(() => setFull(isFullscreen()), 200); };
   const latest = [...saves].sort((a, b) => b.updatedAt - a.updatedAt)[0];
   const progress = collectionProgress(club);
   const hasHistory = saves.some((c) => c.history.length > 0);
@@ -79,10 +75,13 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   return (
     <main className="hub">
       <header className="hub-top">
-        <img className="hub-logo" src="/logo.webp" alt="Manager Sim" width="640" height="640" />
-        {chip && <span className="hw-chip" title={chip}><Icon name={chipIcon} size={16} />{chip}</span>}
+        <button className="hub-profile" onClick={() => setProfile(true)} aria-label={`Profil von ${me.name}`}>
+          <Emblem emblem={me.emblem} color={me.color} size={44} />
+          <span className="hub-profile-text"><strong>{me.name}</strong><small><Icon name="trophy" size={13} />{(club.trophies ?? 0).toLocaleString('de-DE')}</small></span>
+        </button>
         <span className="hub-coins" title="Coins – verdienst du im Karrieremodus"><Icon name="coin" size={18} />{fmtCoins(club.coins)}</span>
-        <button className="hub-icon" onClick={onNews} aria-label="Neuigkeiten" title="Neuigkeiten"><Icon name="news" size={20} /></button>
+        <button className="hub-icon hub-news" onClick={onNews} aria-label="Neuigkeiten" title="Neuigkeiten"><Icon name="news" size={20} /></button>
+        {canFullscreen() && <button className="hub-icon" onClick={toggleFull} aria-label={full ? 'Vollbild beenden' : 'Vollbild'} title="Vollbild"><Icon name={full ? 'shrink' : 'expand'} size={20} /></button>}
         <button className="hub-icon" onClick={() => setSettings(true)} aria-label="Einstellungen"><Icon name="gear" size={20} /></button>
       </header>
 
@@ -119,26 +118,28 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
         {eventActive('silvester') && (
           <button className="ny-call alt" onClick={onStore}>
             <span className="ny-call-year">31.12.</span>
-            <span className="ny-call-text"><b>Silvester-Event</b><small>Feuerwerks-Pack im Store · Dembélé, Mbappé, Yamal bis 96 · nur 2 Tage</small></span>
+            <span className="ny-call-text"><b>Silvester-Event</b><small>Feuerwerks-Pack im Shop · Dembélé, Mbappé, Yamal bis 96 · nur 2 Tage</small></span>
             <Icon name="arrow" size={22} />
           </button>
         )}
-        {polarVisible() && (
-          <button className="polar-call" onClick={() => setPolar(true)}>
-            <span className="polar-call-num">{club.polar?.opened.length ?? 0}<small>/24</small></span>
-            <span className="polar-call-text">
-              <b>Polarlicht-Kalender</b>
-              <small>{club.polar?.unlocked
-                ? polarNextBuyable(club) ? `Türchen ${polarNextBuyable(club)} jetzt freikaufen – oder im Dezember gratis` : 'Heutige Türchen gratis öffnen'
-                : `Jetzt für ${(POLAR_UNLOCK / 1e6).toLocaleString('de-DE')} Mio. Coins freischalten · 5 Winter-Karten`}</small>
-            </span>
+        {halloweenActive() && (
+          <button className="ev-call ev-halloween" onClick={onStore}>
+            <span className="ev-call-icon"><Icon name="pumpkin" size={24} /></span>
+            <span className="ev-call-text"><b>{eventActive('geisternacht') ? 'Geisternacht' : 'Halloween'}</b><small>{eventActive('geisternacht') ? 'Nur bis 31.10. · Geisternacht-Pack im Shop' : 'Bis 2.11. · Kürbis- und Geisterstunde-Pack im Shop'}</small></span>
+            <Icon name="arrow" size={22} />
+          </button>
+        )}
+        {eventActive('gala') && (
+          <button className="ev-call ev-gala" onClick={onSbc}>
+            <span className="ev-call-icon"><Icon name="medal" size={24} /></span>
+            <span className="ev-call-text"><b>Gala-Woche</b><small>Bis 9.11. · Gala-Pack im Shop · SBC „Ballon d’Or 2026“</small></span>
             <Icon name="arrow" size={22} />
           </button>
         )}
         {adventToday() > 0 && (
           <button className="winter-call" onClick={() => setAdvent(true)}>
             <span className="winter-call-num">{adventToday()}</span>
-            <span className="winter-call-text"><b>Adventskalender</b><small>{(club.advent ?? []).includes(adventToday()) ? 'Heute schon geöffnet – morgen geht’s weiter' : `Türchen ${adventToday()} wartet auf dich`} · Winter-Wunder-Pack im Store</small></span>
+            <span className="winter-call-text"><b>Adventskalender</b><small>{(club.advent ?? []).includes(adventToday()) ? 'Heute schon geöffnet – morgen geht’s weiter' : `Türchen ${adventToday()} wartet auf dich`} · Winter-Wunder-Pack im Shop</small></span>
             <Icon name="arrow" size={22} />
           </button>
         )}
@@ -186,19 +187,26 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
           )}
         </section>
 
+        <button className="hub-big hb-new" onClick={onNew}>
+          <Icon name="ball" size={30} />
+          <span><strong>Neue Karriere</strong><small>Talent bis Legende</small></span>
+        </button>
+        <button className="hub-big hb-shop" onClick={onStore}>
+          <Icon name="pack" size={30} />
+          <span><strong>Shop</strong><small>{!club.megaSuperClaimed || !club.megaXxlClaimed || !club.welcomeClaimed ? 'Gratis-Pack!' : 'Packs & Drops'}</small></span>
+          {(freePacks + (club.storedPacks?.length ?? 0) + (club.drops ?? 0) + (club.megaDrops ?? 0)) > 0 && <b className="hub-badge">{freePacks + (club.storedPacks?.length ?? 0) + (club.drops ?? 0) + (club.megaDrops ?? 0)}</b>}
+        </button>
         <PassTile onClick={onPass} />
         <GloryTile onClick={() => setGlory(true)} />
-        <Tile icon="ball" title="Neue Karriere" sub="Eigener Spieler, Profi, Legende oder zweite Chance" onClick={onNew} />
-        <Tile icon="pack" title="Store" sub={!club.megaSuperClaimed ? 'MEGA SUPER XXL Pack gratis!' : !club.megaXxlClaimed ? 'MEGA-XXL-Pack gratis!' : club.welcomeClaimed ? 'Packs mit Coins öffnen' : 'Gratis-Pack wartet!'}
-          badge={freePacks ? String(freePacks) : undefined} onClick={onStore} accent />
-        <Tile icon="cards" title="Sammlung" sub={`${progress.label} gesammelt · ${progress.have} von ${progress.total} Karten`} onClick={onCollection} />
-        <Tile icon="tactics" title="Mein Team" sub="Aufstellung und Freunde-Duelle" onClick={onTeam} />
-        <Tile icon="duel" title="Duelle" sub={`${divName(divisionOf(club).div)} · ${club.duels.w} Siege`} onClick={onDuels} />
-        <Tile icon="puzzle" title="SBC" sub="Legendäre Momente 91–93 und Pack-Tausche" onClick={onSbc} />
+        <Tile small icon="cards" title="Sammlung" sub={`${progress.label} gesammelt · ${progress.have} von ${progress.total} Karten`} onClick={onCollection} />
+        <Tile small icon="tactics" title="Mein Team" sub="Aufstellung und Freunde-Duelle" onClick={onTeam} />
+        <Tile small icon="duel" title="Duelle" sub={`${divName(divisionOf(club).div)} · ${club.duels.w} Siege`} onClick={onDuels} />
+        <Tile small icon="puzzle" title="SBC" sub="Legendäre Momente 91–93 und Pack-Tausche" onClick={onSbc} />
       </div>
 
       <h2 className="hub-section">Mehr</h2>
       <div className="hub-list">
+        <Row icon="news" title="Neuigkeiten" sub="Alle Updates im Überblick" onClick={onNews} />
         <Row icon="swap" title="Tauschbörse" sub="Karten mit echten Spielern tauschen – 100 % fair*" onClick={onTrade} />
         <Row icon="folder" title="Spielstände" sub={`${saves.length} gespeichert`} onClick={() => setShowSaves(true)} disabled={!saves.length} />
         <Row icon="trophy" title="Erfolge" sub="Karriereziele" onClick={onAchievements} disabled={!saves.length} />
@@ -249,7 +257,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
       {backup && <Backup onClose={() => setBackup(false)} />}
       {tipOpen && <BallonTip onClose={() => setTipOpen(false)} />}
       {glory && <GloryRoad onClose={() => setGlory(false)} onStore={() => { setGlory(false); onStore(); }} />}
-      {polar && <PolarCalendar onClose={() => setPolar(false)} onCollection={() => { setPolar(false); onCollection(); }} />}
+      {profile && <ProfileScreen careers={saves} onClose={() => setProfile(false)} />}
       {advent && <AdventCalendar onClose={() => setAdvent(false)} onCollection={() => { setAdvent(false); onCollection(); }} />}
       {nyPack && <PackOpening name="Feuerwerks-Pack" theme="silvester" result={nyPack} onClose={() => setNyPack(null)} onCollection={() => { setNyPack(null); onCollection(); }} />}
       {tipPack && <PackOpening name="Gala-Pack" theme="gala" result={tipPack} onClose={() => setTipPack(null)} onCollection={() => { setTipPack(null); onCollection(); }} />}
@@ -257,9 +265,9 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   );
 }
 
-function Tile({ icon, title, sub, onClick, disabled, badge, accent }: { icon: string; title: string; sub: string; onClick: () => void; disabled?: boolean; badge?: string; accent?: boolean }) {
+function Tile({ icon, title, sub, onClick, disabled, badge, accent, small }: { icon: string; title: string; sub: string; onClick: () => void; disabled?: boolean; badge?: string; accent?: boolean; small?: boolean }) {
   return (
-    <button className={`hub-tile ${accent ? 'accent' : ''}`} onClick={onClick} disabled={disabled}>
+    <button className={`hub-tile ${accent ? 'accent' : ''} ${small ? 'hub-tile-sm' : ''}`} onClick={onClick} disabled={disabled}>
       <span className="hub-tile-icon" aria-hidden="true"><Icon name={icon} /></span>
       <strong>{title}</strong>
       <small>{sub}</small>

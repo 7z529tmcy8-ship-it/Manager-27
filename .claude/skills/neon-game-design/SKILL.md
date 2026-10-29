@@ -15,6 +15,12 @@ Lies zuerst `references/tokens.md` (Farben, Schrift, Abstände, Ebenen). Bei Kar
 - Keine fremden Marken-Assets (EA, FIFA, Vereinslogos als Bilddatei). Eigene Formen und Symbole.
 - Event-Design (Halloween, Gala …) überlagert den Grundlook nur, wenn das Event aktiv ist.
 
+## Vollbild und Hochformat (bei jeder Entwicklung)
+- **Für Vollbild bauen:** Das Spiel läuft im Vollbild (ohne Browser-Leisten; als App `display: fullscreen`). Jeder Bildschirm muss bei 390×844 (Handy hochkant, volle Höhe) und 844×390 (quer) ohne Browser-Leisten funktionieren – Screenshots in genau diesen Größen.
+- **Sicherheitsabstände:** Oben/unten `env(safe-area-inset-*)` beachten (Notch, Home-Leiste); feste Leisten nie in diese Zonen legen. Höhen mit `dvh`, nicht `vh`.
+- **Startmenü, Shop, Profil, Sammlung: hochkant zuerst.** Die Karriere darf fürs Querformat optimiert sein; der Hinweis „Handy drehen“ erscheint nur dort.
+- **Startmenü-Reihenfolge:** Profil-Chip (Wappen, Name, Trophäen) · Coins · Vollbild · Einstellungen → nur laufende Events → Karriere fortsetzen → große Knöpfe „Neue Karriere“ und „Shop“ → Pass + Ruhmesweg → kompakte Kacheln → „Mehr“-Liste. Nichts, was kein laufendes Event ist, gehört in die Event-Leiste (Vorverkäufe wie der Polarlicht-Kalender stehen im Shop).
+
 ## Warum es bisher „billig“ aussah (nicht wiederholen)
 1. **Bunte Emojis als Icons** in der Oberfläche (Kacheln, Tabs, Buttons). Sie haben jeder eine eigene Farbe, Perspektive und Strichstärke – das zerstört jede Premium-Optik. → Oberflächen-Icons sind **einheitliche Linien-Icons (SVG)** in einer Farbe (siehe `references/icons.md`). Emojis nur noch im Fließtext/Story-Inhalt.
 2. **Glow überall.** Wenn alles leuchtet, leuchtet nichts. → Pro Bildschirm genau **ein** Element mit starkem Glow (die Hauptaktion oder der Held). Alles andere: feine 1-px-Kanten, keine Außenleuchten.

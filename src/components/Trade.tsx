@@ -267,7 +267,7 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
             </button>
           </div>
           {mine.length < TRADE_SIZE ? (
-            <p className="hub-sub">Du brauchst mindestens {TRADE_SIZE} Karten. Öffne erst ein paar Packs im Store.</p>
+            <p className="hub-sub">Du brauchst mindestens {TRADE_SIZE} Karten. Öffne erst ein paar Packs im Shop.</p>
           ) : (
             <>
               <input className="search" placeholder="Karte suchen …" value={query} onChange={(e) => setQuery(e.target.value)} />

@@ -9,7 +9,7 @@ const ITEMS: { id: NavTarget; icon: IconName; label: string }[] = [
   { id: 'career', icon: 'ball', label: 'Karriere' },
   { id: 'team', icon: 'tactics', label: 'Team' },
   { id: 'duels', icon: 'duel', label: 'Duelle' },
-  { id: 'store', icon: 'pack', label: 'Store' },
+  { id: 'store', icon: 'pack', label: 'Shop' },
   { id: 'collection', icon: 'cards', label: 'Sammlung' },
   { id: 'pass', icon: 'star', label: 'Pass' },
 ];

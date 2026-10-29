@@ -23,8 +23,9 @@ async function screens(ctx, size) {
   };
   await home();
   await shot('hub'); await shot('hub-full', true);
-  const open = async (title) => { await home(); await p.click(`.hub-tile:has(strong:text-is("${title}"))`, { timeout: 4000 }); await p.waitForTimeout(400); };
-  for (const [title, name] of [['Store', 'store'], ['Sammlung', 'collection'], ['Mein Team', 'team'], ['Duelle', 'duels'], ['SBC', 'sbc'], ['Neue Karriere', 'create']]) {
+  const BIG = { Shop: '.hb-shop', 'Neue Karriere': '.hb-new' };
+  const open = async (title) => { await home(); await p.click(BIG[title] ?? `.hub-tile:has(strong:text-is("${title}"))`, { timeout: 4000 }); await p.waitForTimeout(400); };
+  for (const [title, name] of [['Shop', 'store'], ['Sammlung', 'collection'], ['Mein Team', 'team'], ['Duelle', 'duels'], ['SBC', 'sbc'], ['Neue Karriere', 'create']]) {
     try { await open(title); await shot(name); } catch (e) { errors.push(`${name}: ${e.message.split('\n')[0]}`); }
   }
   await p.close();

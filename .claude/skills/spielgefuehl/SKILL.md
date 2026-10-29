@@ -18,6 +18,7 @@ Lies vor der Arbeit `references/rezepte.md` (wie man Momente baut) und `referenc
 Fehlt eine Schicht, fühlt es sich „tot“ an (keine Aktion-Rückmeldung) oder „egal“ (keine Belohnung). Ist eine Schicht zu lang, wird es nervig – deshalb: **alles Lange ist überspringbar**.
 
 ## Harte Regeln
+- **Vollbild:** Gemessen und gestaltet wird für den vollen Bildschirm (390×844 hochkant ohne Browser-Leisten). Kein Element darf von Notch oder Home-Leiste verdeckt werden.
 - **Flüssig vor schön.** Ein Effekt, der die Prüfung zum Ruckeln bringt, wird vereinfacht – nicht die Grenze gelockert. Teure Mittel auf großen, bewegten Flächen vermeiden: `filter` (blur, drop-shadow, brightness) animieren, `mask`, riesige rotierende Ebenen, Animation von `left/top/width/height`. Stattdessen: `transform` und `opacity` animieren, Leuchten als fester Lichthof (radial-gradient) statt Filter, `will-change: transform` nur bei wirklich bewegten Ebenen.
 - **Unsichtbares nicht rechnen:** Lange Listen und Bereiche unterhalb des Bildschirms bekommen `content-visibility: auto` (Store-Gruppen, Ruhmesweg-Stufen sind Beispiele). Endlos-Animationen außerhalb des Bildes kosten sonst trotzdem.
 - **Während der Spieler sich konzentriert, wird es ruhig:** z. B. stehen beim Aufladen eines Drops Hintergrund-Strahlen still – das wirkt stärker *und* spart Leistung.

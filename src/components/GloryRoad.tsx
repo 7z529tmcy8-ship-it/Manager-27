@@ -67,7 +67,7 @@ export default function GloryRoad({ onClose, onStore }: { onClose: () => void; o
   );
 }
 
-/** Eigene Drops öffnen (gekauft wird im Store). */
+/** Eigene Drops öffnen (gekauft wird im Shop). */
 export function DropCenter({ onStore }: { onStore?: () => void }) {
   const club = useClub();
   const [opening, setOpening] = useState<DropKind | null>(null);
@@ -85,7 +85,7 @@ export function DropCenter({ onStore }: { onStore?: () => void }) {
           <span className="dc-slot-text"><strong>{mega}× Mega-Drop</strong><small>{mega ? 'Antippen zum Öffnen' : 'Mindestens Episch'}</small></span>
         </button>
       </div>
-      {onStore && <button className="btn secondary small dc-buy" onClick={onStore}><Icon name="bag" size={16} />Drops im Store kaufen</button>}
+      {onStore && <button className="btn secondary small dc-buy" onClick={onStore}><Icon name="bag" size={16} />Drops im Shop kaufen</button>}
       {opening && <DropOpener kind={opening} onClose={() => setOpening(null)} onStore={onStore} />}
     </section>
   );

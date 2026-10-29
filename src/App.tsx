@@ -1,4 +1,4 @@
-import { getSettings, lockLandscape } from './settings';
+import { enterFullscreen, getSettings, lockLandscape } from './settings';
 import { PASS_XP, addPassXp } from './game/pass';
 import { autoStartMotion } from './tilt';
 import { cleanStorage, migrateSaves, onSaveStatus, storageBreakdown } from './game/storage';
@@ -84,10 +84,16 @@ export default function App() {
     document.addEventListener('visibilitychange', vis);
     return () => document.removeEventListener('visibilitychange', vis);
   }, []);
-  // Querformat gewünscht: beim ersten Tippen die Drehung sperren (geht nur nach einer Berührung)
+  // Beim ersten Tippen: Vollbild (Handy/Tablet) bzw. Querformat sperren, falls gewünscht (geht nur nach einer Berührung)
   useEffect(() => {
-    if (!getSettings().landscape) return;
-    const once = () => { void lockLandscape(); window.removeEventListener('pointerdown', once); };
+    const st = getSettings();
+    const touch = window.matchMedia?.('(pointer: coarse)').matches;
+    if (!st.landscape && !(st.fullscreen !== false && touch)) return;
+    const once = () => {
+      if (getSettings().landscape) void lockLandscape();
+      else void enterFullscreen();
+      window.removeEventListener('pointerdown', once);
+    };
     window.addEventListener('pointerdown', once);
     return () => window.removeEventListener('pointerdown', once);
   }, []);
@@ -143,7 +149,8 @@ export default function App() {
     <div className={`app ${showNav ? 'has-nav' : ''}`}>
       {showNav && <NavBar active={navActive} onGo={go} />}
       <HalloweenDecor />
-      {!hintClosed && (
+      {/* Hinweis aufs Querformat nur in der Karriere – das Startmenü ist fürs Hochformat gebaut */}
+      {!hintClosed && screen.name === 'game' && (
         <div className="rotate-hint" role="status">
           <Icon name="rise" size={22} /><span>Dreh dein Handy ins Querformat – das Spiel ist darauf ausgelegt.</span>
           <button className="rotate-hint-x" onClick={() => setHintClosed(true)} aria-label="Hinweis schließen"><Icon name="close" size={18} /></button>

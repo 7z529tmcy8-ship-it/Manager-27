@@ -182,7 +182,7 @@ export default function SeasonPass({ onBack, onCollection }: { onBack: () => voi
 const tileLabel = (r: PassReward) =>
   r.kind === 'coins' ? fmt(r.amount) : r.kind === 'pack' ? PACKS.find((x) => x.id === r.pack)!.name.replace('-Pack', '') : 'Saison-Held';
 
-/** Bild der Belohnung: Münzen, Mini-Pack im Store-Look oder die exklusive Karte. */
+/** Bild der Belohnung: Münzen, Mini-Pack im Shop-Look oder die exklusive Karte. */
 function RewardArt({ r, card }: { r: PassReward; card: CollectCard }) {
   if (r.kind === 'coins') return <span className="pass-art coins" aria-hidden="true"><Icon name="coin" size={30} /></span>;
   if (r.kind === 'pack') {

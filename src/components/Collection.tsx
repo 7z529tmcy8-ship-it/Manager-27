@@ -83,7 +83,7 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
         </div>
       ) : (
         <div className="hub-empty">
-          <p>{owned.length ? 'Keine Karten für diesen Filter.' : 'Noch keine Karten. Öffne dein erstes Pack im Store!'}</p>
+          <p>{owned.length ? 'Keine Karten für diesen Filter.' : 'Noch keine Karten. Öffne dein erstes Pack im Shop!'}</p>
           {!owned.length && <button className="btn primary" onClick={onStore}>Zum Store</button>}
         </div>
       )}

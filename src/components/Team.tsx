@@ -228,7 +228,7 @@ function Squad({ onStore }: { onStore: () => void }) {
   if (!owned.length) {
     return (
       <div className="hub-empty">
-        <p>Du hast noch keine Karten. Öffne zuerst ein Pack im Store.</p>
+        <p>Du hast noch keine Karten. Öffne zuerst ein Pack im Shop.</p>
         <button className="btn primary" onClick={onStore}>Zum Store</button>
       </div>
     );
