@@ -3111,11 +3111,6 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .cs-extras-out { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
 
 /* Rückgängig-Leiste nach einer Entscheidung */
-.cs-undo { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 80; width: min(440px, calc(100% - 32px));
-  display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 10px 10px 16px; border-radius: 16px;
-  background: rgba(10, 12, 34, .92); border: 1px solid var(--line-strong, rgba(160, 190, 255, .32)); color: var(--text);
-  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: 0 12px 30px rgba(0, 0, 0, .5); animation: mo-in .25s ease-out; }
-.cs-undo span { font-size: .9375rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Coins-Hinweis oben statt unten – kollidiert nicht mit Buttons und der Rückgängig-Leiste */
 .coin-toast { bottom: auto; top: max(14px, env(safe-area-inset-top)); animation-name: toast-down; max-width: calc(100% - 32px); }
 @keyframes toast-down { from { transform: translate(-50%, -30px); opacity: 0; } }
@@ -3602,7 +3597,7 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
   .cs-side .cs-life { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
   .cs-side .cs-life-btn { padding: 8px 4px; font-size: .8125rem; min-height: 40px; }
   .cs-side .cs-note { font-size: .8125rem; }
-  .cs-undo { grid-column: 1 / -1; }
+
 }
 :root[data-theme="arena"] .cs-head { background: radial-gradient(80% 120% at 0% 0%, rgba(163, 92, 255, .22), transparent 60%), var(--panel); border: 1px solid rgba(163, 92, 255, .3); }
 :root[data-theme="arena"] .cs-pos { background: var(--violet-soft); color: #e6d6ff; box-shadow: inset 0 0 0 1px var(--violet-line); }

@@ -1,5 +1,5 @@
 import Icon from './Icon';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import CoachPanel from './CoachPanel';
 import ScorerRace from './ScorerRace';
 import VicePanel from './VicePanel';
@@ -24,6 +24,7 @@ import Negotiation from './Negotiation';
 import { negotiable } from '../game/negotiation';
 import { NLZ_PROGRAMS, nlzStatus, setNlzProgram, setProTraining } from '../game/nlz';
 import { freePoints, levelInfo } from '../game/skills';
+import { motionReduced } from '../settings';
 import { play } from '../sound';
 import { isBroke } from '../game/gambling';
 import { useClub } from '../clubStore';
@@ -108,22 +109,22 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
     setKeyLive(null);
     onChange(simulateToBreak(next, live));
   };
-  // Transferfenster: ein Tipp entscheidet, ein paar Sekunden lang lässt es sich rückgängig machen.
-  const [undo, setUndo] = useState<{ prev: Career; title: string } | null>(null);
+  // Transferfenster: ein Tipp entscheidet.
   const [nego, setNego] = useState<string | null>(null);
-  // Die Zeit läuft erst, wenn eine Transfer-Feier (Moment) wieder zu ist.
-  useEffect(() => {
-    if (!undo || moments.length) return;
-    const t = setTimeout(() => setUndo(null), 6000);
-    return () => clearTimeout(t);
-  }, [undo, moments.length]);
   const chooseNow = (i: number) => {
     const c = choices[i];
     if (c.kind === 'retire' && !window.confirm('Karriere wirklich beenden?')) return;
-    const prev = career;
     onChange(applyChoice(career, c));
-    if (c.kind !== 'retire') setUndo({ prev, title: `${c.title}: ${choiceClub(career, c)}` });
   };
+  // Neue Phase (Transferfenster, nächste Saison …): direkt zur Aktion springen statt suchen und scrollen.
+  const mainRef = useRef<HTMLDivElement>(null);
+  const lastPhase = useRef(career.phase);
+  useEffect(() => {
+    // Erst springen, wenn eine Feier (Moment) zu ist – sonst ginge der Sprung verloren
+    if (lastPhase.current === career.phase || moments.length) return;
+    lastPhase.current = career.phase;
+    mainRef.current?.scrollIntoView({ block: 'start', behavior: motionReduced() ? 'auto' : 'smooth' });
+  }, [career.phase, moments.length]);
   const confirm = () => {
     if (picked === null) return;
     const c = choices[picked];
@@ -217,7 +218,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       )}
 
       </div>
-      <div className="cs-main">
+      <div className="cs-main" ref={mainRef}>
       {/* Aktion */}
       {needType && <ArchetypePicker career={career} onChange={onChange} />}
 
@@ -239,14 +240,13 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
               </div>
             ))}
           </div>
-          <p className="hint cs-tap-hint">Tippe auf ein Angebot – du kannst es danach kurz rückgängig machen. Mit „Verhandeln“ stellst du vorher Forderungen.</p>
+          <p className="hint cs-tap-hint">Tippe auf ein Angebot. Mit „Verhandeln“ stellst du vorher Forderungen.</p>
           {nego && (
             <Negotiation career={career} offerId={nego} onChange={onChange} onClose={() => setNego(null)}
               onSign={(cur, o) => {
                 setNego(null);
                 const c: Choice = { kind: o.type === 'Verlängerung' ? 'extend' : 'transfer', title: o.type === 'Verlängerung' ? 'Verlängern' : 'Wechsel', offer: o };
                 onChange(applyChoice(cur, c));
-                setUndo({ prev: career, title: `${c.title}: ${choiceClub(cur, c)}` });
               }} />
           )}
           {p.age >= 30 && !choices.some((c) => c.kind === 'retire') && (
@@ -392,12 +392,6 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       </div>
 
       </div>
-      {undo && !moments.length && (
-        <div className="cs-undo" role="status">
-          <span><b>{undo.title}</b> gewählt</span>
-          <button className="btn secondary small" onClick={() => { onChange(undo.prev); setUndo(null); }}>Rückgängig</button>
-        </div>
-      )}
     </main>
   );
 }

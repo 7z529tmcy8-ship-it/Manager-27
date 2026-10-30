@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-30-karriere-ruhe',
+    date: '30.10.2026',
+    title: 'Karriere ohne Nerv',
+    items: [
+      'Keine Coin-Einblendung mehr nach jeder Saison – das Geld kommt still aufs Konto.',
+      'Kein Rückgängig-Knopf mehr nach einer Transfer-Entscheidung.',
+      'Kein Scrollen mehr: Beginnt das Transferfenster oder ein neuer Abschnitt, springt die Karriere direkt dorthin.',
+    ],
+  },
+  {
     id: '2026-10-30-wochenpass',
     date: '30.10.2026',
     title: 'Wochenpass, längerer Ruhmesweg, Drops aus der Karriere',
