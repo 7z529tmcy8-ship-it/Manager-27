@@ -37,6 +37,11 @@ export interface PassSeason { id: string; name: string; start: Date; end: Date; 
 /** Feste Pass-Helden je Woche. Ohne Eintrag wählt das Spiel einen Weltstar per Zufall (fest pro Woche). */
 export const WEEK_HEROES: Record<string, string> = {
   '2026-W44': 'Harry Kane',
+  '2026-W45': 'Lamine Yamal',
+  '2026-W46': 'Jamal Musiala',
+  '2026-W47': 'William Saliba',
+  '2026-W48': 'Erling Haaland',
+  '2026-W49': 'Gianluigi Donnarumma',
 };
 /** Erste Wochenpass-Woche: übernimmt den Stand der alten „Saison 2“ (gleiche Stufe, gleiche Abholungen, Pro bleibt). */
 const FIRST_WEEK = '2026-W44';

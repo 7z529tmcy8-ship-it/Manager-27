@@ -24,6 +24,7 @@ export const UPDATES: UpdateNote[] = [
     title: 'Wochenpass, längerer Ruhmesweg, Drops aus der Karriere',
     items: [
       'Der Pass startet jetzt jede Woche neu (Montag bis Sonntag) – mit 60 Stufen und eigener Karte. Dein Fortschritt aus Saison 2 läuft in Woche 44 weiter.',
+      'Die Karten der nächsten Wochen: Lamine Yamal 96, Jamal Musiala 95, William Saliba 95, Erling Haaland 97 und Gianluigi Donnarumma 96.',
       'Ruhmesweg komplett neu: 100 Stufen bis 17.500 Trophäen, die Abstände werden immer größer. Neu dabei: Mega-Drops. Bereits Abgeholtes bleibt abgeholt.',
       'Karriere bringt jetzt Drops: jede Saison 1 Flutlicht-Drop, jeder Titel und jede große Auszeichnung einen Mega-Drop (bis zu 2 pro Saison).',
     ],

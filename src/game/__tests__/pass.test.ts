@@ -93,3 +93,15 @@ describe('Umstellung auf den Wochenpass', () => {
     expect(next.pro).toBeUndefined();
   });
 });
+
+it('Wochen-Helden 45–49 stehen fest und sind echte Spieler mit +7', () => {
+  const heroes: [string, string, number][] = [
+    ['2026-W45', 'Lamine Yamal', 96], ['2026-W46', 'Jamal Musiala', 95], ['2026-W47', 'William Saliba', 95],
+    ['2026-W48', 'Erling Haaland', 97], ['2026-W49', 'Gianluigi Donnarumma', 96],
+  ];
+  for (const [week, name, ovr] of heroes) {
+    const c = passCard(week);
+    expect(c.name).toBe(name);
+    expect(c.ovr).toBe(ovr);
+  }
+});
