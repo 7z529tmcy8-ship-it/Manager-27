@@ -4779,3 +4779,5 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .st-race .cz-outcome { bottom: 10px; transform: translateX(-50%); animation-name: cz-out; }
 .st-roulette { padding-bottom: 28px; }
 .st-roulette .cz-outcome { bottom: 6px; }
+/* Dock ohne Unschärfe-Filter: Blur über animierten Szenen kostet zu viel */
+.cz-dock { background: linear-gradient(180deg, rgba(14, 16, 44, .97), rgba(10, 12, 34, .99)); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 0 -12px 24px rgba(0, 0, 0, .35); }
