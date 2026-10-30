@@ -4593,3 +4593,91 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .real-list > li, .legend-list > li { content-visibility: auto; contain-intrinsic-size: auto 76px; }
 .cz-wheel-wrap, .cz-track { transition: transform .12s ease-out; }
 .cz-wheel-wrap.spinning:active, .cz-track.running:active { transform: scale(.985); }
+
+/* ---- Casino 2: fünf Spiele, freier Einsatz, All-in ---- */
+.cz-games { grid-template-columns: repeat(6, 1fr); }
+.cz-games .cz-game { grid-column: span 2; }
+.cz-games .cz-game:nth-child(4), .cz-games .cz-game:nth-child(5) { grid-column: span 3; }
+.cz-stake-box { display: grid; gap: 12px; }
+.cz-stakes { flex-wrap: wrap; gap: 10px; }
+.cz-chip { width: 54px; height: 54px; font-size: .95rem; }
+.cz-chip.v3 { --c: #1c1d2e; } .cz-chip.v1 { --c: #c4304a; } .cz-chip.v2 { --c: #12936a; }
+.cz-chip.allin { --c: #b8860b; font-size: .78rem; line-height: 1; letter-spacing: .04em; color: #1a1200;
+  background: radial-gradient(circle at 35% 30%, #ffe9a6, #ffd76a 45%, #c8961e); outline-color: rgba(26, 18, 0, .45); }
+.cz-chip.allin.on { box-shadow: 0 0 0 2px #fff, 0 0 22px rgba(255, 215, 106, .5); }
+.cz-slider { display: grid; gap: 6px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--hairline); background: rgba(0, 0, 0, .22); }
+.cz-slider span { font-size: .875rem; color: var(--text-2); }
+.cz-slider b { font-family: var(--display, inherit); font-size: 1.15rem; color: var(--gold); font-variant-numeric: tabular-nums; }
+.cz-slider input { width: 100%; height: 28px; accent-color: var(--gold); }
+.cz-slider.allin { border-color: var(--gold); background: rgba(255, 215, 106, .08); }
+
+/* Sololauf: Spielfeld von links nach rechts, Multiplikator ist der Held */
+.cz-solo, .cz-hilo { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.solo-pitch { position: relative; height: 190px; border-radius: 16px; overflow: hidden; container-type: inline-size; border: 1px solid var(--hairline);
+  background: repeating-linear-gradient(90deg, #0f3a24 0 10%, #0d331f 10% 20%); }
+.solo-goal { position: absolute; right: 0; top: 30%; width: 14px; height: 40%; border: 3px solid #f4f6ff; border-right: 0; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .2) 0 1px, transparent 1px 8px); }
+.solo-def { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #ff4d8d; box-shadow: 0 2px 0 rgba(0, 0, 0, .4); opacity: .85; }
+.solo-def.d1 { left: 38%; top: 30%; } .solo-def.d2 { left: 62%; top: 62%; } .solo-def.d3 { left: 82%; top: 38%; }
+.solo-runner { --x: 0; position: absolute; left: 12px; top: calc(50% - 13px); width: 26px; height: 26px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px rgba(255, 255, 255, .85), 0 3px 0 rgba(0, 0, 0, .4);
+  transform: translateX(calc(var(--x) * (100cqw - 60px))); will-change: transform; }
+.solo-pitch.run .solo-runner { animation: solo-bob .32s ease-in-out infinite alternate; }
+@keyframes solo-bob { to { translate: 0 -4px; } }
+.solo-pitch.tackled .solo-runner { background: var(--down); animation: solo-fall .4s ease-out both; }
+@keyframes solo-fall { 40% { rotate: 25deg; } to { rotate: 90deg; } }
+.solo-mult { position: absolute; left: 0; right: 0; top: 10px; text-align: center; font-family: var(--display, inherit); font-size: 2.75rem; line-height: 1; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 rgba(0, 0, 0, .45); }
+.solo-pitch.scored .solo-mult { color: var(--gold); }
+.solo-pitch.tackled .solo-mult { color: var(--down); }
+.solo-call { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; font-family: var(--display, inherit); font-size: 1.6rem; letter-spacing: .06em; text-transform: uppercase; animation: cz-pop .45s cubic-bezier(.2, 1.6, .4, 1) both; }
+.solo-call.good { color: var(--up); } .solo-call.bad { color: var(--down); }
+.solo-auto { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.solo-auto > span { font-size: .8125rem; color: var(--muted); margin-right: 4px; }
+.solo-auto .chip { min-height: 40px; }
+.btn.solo-cash { position: relative; background: linear-gradient(90deg, #ffd76a, #ffb84a); color: #1a1200; }
+.btn.solo-cash::after { content: ''; position: absolute; inset: -3px; border-radius: inherit; box-shadow: 0 0 0 3px rgba(255, 215, 106, .8), 0 0 22px rgba(255, 215, 106, .55); opacity: 0; animation: solo-pulse .6s ease-in-out infinite alternate; pointer-events: none; }
+@keyframes solo-pulse { to { opacity: 1; } }
+
+/* Kartenduell */
+.hilo-table { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; justify-items: center; align-items: center; padding: 12px; border-radius: 16px; border: 1px solid rgba(255, 215, 106, .22); background: linear-gradient(180deg, #0e2a2a, #0b1a24); }
+.hilo-slot { width: 100%; display: grid; place-items: center; min-height: 210px; }
+.hilo-slot .ucard.md { width: min(150px, 100%); }
+.hilo-slot:first-child { animation: hilo-in .35s ease-out both; }
+@keyframes hilo-in { from { transform: translateX(40%) scale(.9); opacity: 0; } }
+.hilo-cardback { width: min(150px, 100%); aspect-ratio: 3 / 4.2; display: grid; place-items: center; border-radius: 14px; color: rgba(255, 215, 106, .7);
+  background: repeating-linear-gradient(45deg, #1b1f3d 0 8px, #151933 8px 16px); border: 2px solid rgba(255, 215, 106, .45); }
+.hilo-slot.back.show { animation: hilo-flip .45s ease-out both; }
+@keyframes hilo-flip { from { transform: rotateY(90deg); } }
+.hilo-slot.back.ok .ucard { box-shadow: 0 0 0 3px var(--up), 0 0 22px rgba(57, 255, 136, .35); }
+.hilo-slot.back.bad .ucard { box-shadow: 0 0 0 3px var(--down); }
+.hilo-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.hilo-btn { display: grid; justify-items: center; gap: 2px; min-height: 64px; padding: 8px; border-radius: 14px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); font: inherit; font-weight: 700; cursor: pointer; transition: border-color .15s ease-out, transform .1s ease-out, background .15s ease-out; }
+.hilo-btn svg { transform: rotate(-90deg); }
+.hilo-btn.lower svg { transform: rotate(90deg); }
+.hilo-btn.higher { border-color: color-mix(in srgb, var(--up) 45%, transparent); }
+.hilo-btn.lower { border-color: color-mix(in srgb, var(--down) 45%, transparent); }
+.hilo-btn small { color: var(--muted); font-weight: 600; font-size: .8125rem; font-variant-numeric: tabular-nums; }
+.hilo-btn:active { transform: scale(.97); }
+.hilo-btn:disabled { opacity: .45; cursor: default; }
+
+/* Shop: Casino-Banner */
+.casino-call { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; width: 100%; margin: 0 0 24px; padding: 16px; border-radius: 20px; cursor: pointer; text-align: left; color: var(--text); font: inherit;
+  border: 1px solid rgba(255, 215, 106, .45); background: radial-gradient(120% 140% at 0% 0%, rgba(255, 215, 106, .18), transparent 55%), linear-gradient(135deg, #1a1030, #0b1a24); transition: transform .12s ease-out, border-color .15s ease-out; }
+.casino-call:active { transform: scale(.98); }
+.casino-call-icon { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 14px; color: #1a1200; background: linear-gradient(135deg, #ffe9a6, #ffd76a 50%, #c8961e); }
+.casino-call-text { display: grid; gap: 2px; min-width: 0; }
+.casino-call-text b { font-family: var(--display, inherit); font-size: 1.35rem; letter-spacing: .04em; text-transform: uppercase; color: var(--gold); }
+.casino-call-text small { color: var(--text-2); font-size: .8125rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .solo-pitch.run .solo-runner, .btn.solo-cash::after, .hilo-slot.back.show, .hilo-slot:first-child, .solo-call, .solo-pitch.tackled .solo-runner { animation: none; }
+}
+.lite .solo-pitch.run .solo-runner, .lite .btn.solo-cash::after { animation: none; }
+.cz-actions .btn.primary.solo-cash { background: linear-gradient(90deg, #ffd76a, #ffb84a); color: #1a1200; }
+.cz-net { color: var(--up); font-weight: 700; font-size: .875rem; }
+.polar-call + .casino-call { margin-top: 12px; }
+.hilo-slot.back { position: relative; }
+.hilo-slot.back::before { content: ''; position: absolute; inset: -6px; border-radius: 18px; opacity: 0; transition: opacity .2s ease-out; pointer-events: none; }
+.hilo-slot.back.ok::before { opacity: 1; background: radial-gradient(closest-side, rgba(57, 255, 136, .45), transparent); }
+.hilo-slot.back.bad::before { opacity: 1; background: radial-gradient(closest-side, rgba(255, 77, 141, .5), transparent); }
+/* Casino im Shop: Der Shop darunter ist verdeckt – nicht weiter animieren und zeichnen */
+.hub:has(> .casino-overlay) > :not(.casino-overlay) { visibility: hidden; }
+.hub:has(> .casino-overlay) > :not(.casino-overlay) * { animation-play-state: paused !important; }

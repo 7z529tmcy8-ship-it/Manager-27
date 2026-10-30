@@ -1,3 +1,4 @@
+import { REAL_PLAYERS, type RealPlayerTemplate } from '../data/players';
 import { randInt } from './random';
 import type { Career } from './types';
 
@@ -6,7 +7,7 @@ import type { Career } from './types';
 // das steht nirgends, aber ab dann verschwindet in jeder Pause das ganze Geld (wie bei den Drogen).
 // Wer viel verzockt und pleite ist, landet nach der Karriere im Trash-TV.
 
-export const BETS = [1_000, 5_000, 25_000, 100_000];
+export const BETS = [1_000, 10_000, 100_000, 1_000_000];
 
 // ---------- Roulette ----------
 // Europäisches Roulette: 37 Felder (0–36). Einfache Chancen zahlen ×2, Dutzende ×3, eine einzelne Zahl ×36.
@@ -123,6 +124,39 @@ export function shootPenalty(corner: Corner, rand = Math.random): PenaltyShot {
   const over = rand() < 0.04;
   return { goal: !over && keeper !== corner, keeper, over };
 }
+
+// ---------- Sololauf (steigender Multiplikator) ----------
+// Du läufst aufs Tor, der Multiplikator steigt. Irgendwann kommt die Grätsche – wer vorher abschließt, kassiert.
+// Der Zeitpunkt der Grätsche steht beim Anlauf fest: P(Grätsche erst ab ×m) = 0,96 / m.
+export const SOLO_EDGE = 0.96;
+export const SOLO_CAP = 50;
+/** Multiplikator nach t Millisekunden Lauf (×2 nach 4 s, ×10 nach gut 13 s). */
+export const soloMult = (ms: number) => Math.min(SOLO_CAP, Math.floor(Math.exp((ms * Math.LN2) / 4000) * 100) / 100);
+/** Ab welcher Laufzeit (ms) ein Multiplikator erreicht ist – Umkehrung von soloMult. */
+export const soloTimeFor = (m: number) => (Math.log(m) * 4000) / Math.LN2;
+/** Grätsche-Punkt: 1,00 heißt sofort weg (4 %). */
+export function soloCrash(rand = Math.random): number {
+  const u = rand();
+  const c = SOLO_EDGE / Math.max(1e-9, 1 - u);
+  return c < 1 ? 1 : Math.min(SOLO_CAP, Math.floor(c * 100) / 100);
+}
+/** Ehrliche Chance, mindestens ×m zu erreichen. */
+export const soloChance = (m: number) => Math.min(1, SOLO_EDGE / m);
+
+// ---------- Kartenduell (höher oder tiefer) ----------
+// Gezogen wird ein echter Spieler. Ist der nächste höher oder tiefer bewertet? Gleichstand verliert.
+// Auszahlung je Tipp = 0,94 / Chance – die Bank behält 6 %.
+export const HILO_POOL: RealPlayerTemplate[] = REAL_PLAYERS;
+export type HiLo = 'higher' | 'lower';
+export function hiloChance(r: number, dir: HiLo, pool: { ovr: number }[] = HILO_POOL): number {
+  const n = pool.filter((x) => (dir === 'higher' ? x.ovr > r : x.ovr < r)).length;
+  return n / pool.length;
+}
+export function hiloMult(r: number, dir: HiLo, pool: { ovr: number }[] = HILO_POOL): number {
+  const p = hiloChance(r, dir, pool);
+  return p > 0 ? Math.max(1.01, Math.floor((0.94 / p) * 100) / 100) : 0;
+}
+export const drawHilo = (rand = Math.random, pool = HILO_POOL) => pool[Math.min(pool.length - 1, Math.floor(rand() * pool.length))];
 
 /**
  * Nach jedem Spiel: Statistik und verborgene Spielsucht. Je mehr gespielt, je höher der Einsatz,

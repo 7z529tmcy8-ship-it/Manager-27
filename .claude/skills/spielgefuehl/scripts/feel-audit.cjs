@@ -186,6 +186,17 @@ const FLOWS = {
       await p.click('.pz-corner >> nth=0', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(1600);
     }
   },
+  shopcasino: async (p) => {
+    // Shop → Casino: Sololauf (Abschließen nach 1 s), dann ein Kartenduell-Tipp
+    await nav(p, 'Shop'); await p.waitForTimeout(400);
+    await p.click('.casino-call', { timeout: 3000 }); await p.waitForTimeout(400);
+    await p.click('.cz-game:has-text("Sololauf")', { timeout: 3000 }); await p.waitForTimeout(300);
+    await p.click('.cz-solo .btn.primary', { timeout: 3000 }); await p.waitForTimeout(1000);
+    await p.click('.solo-cash', { timeout: 800 }).catch(() => {}); await p.waitForTimeout(800);
+    await p.click('.cz-game:has-text("Duell")', { timeout: 3000 }); await p.waitForTimeout(300);
+    await p.click('.cz-hilo .btn.primary', { timeout: 3000 }); await p.waitForTimeout(400);
+    await p.click('.hilo-btn.higher', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(1300);
+  },
   karriere: async (p) => {
     await p.click('.hb-new', { timeout: 4000 }); await p.waitForTimeout(600);
     await p.mouse.wheel(0, 800); await p.waitForTimeout(300);

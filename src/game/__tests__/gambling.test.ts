@@ -64,3 +64,25 @@ it('Elfmeter-Serie: Trefferchance 64 %, jede Stufe ist auf Dauer ein Verlust', (
   // Torwart in derselben Ecke hält immer
   expect(shootPenalty(0, () => 0).goal).toBe(false);
 });
+
+it('Sololauf: Grätsche-Verteilung ehrlich (P(≥×2) ≈ 48 %), Bank gewinnt bei jeder Ausstiegsstufe', async () => {
+  const { soloCrash, soloChance, soloMult, soloTimeFor } = await import('../gambling');
+  let reach2 = 0;
+  const N = 40000;
+  for (let i = 0; i < N; i++) if (soloCrash() >= 2) reach2++;
+  expect(reach2 / N).toBeGreaterThan(0.46);
+  expect(reach2 / N).toBeLessThan(0.5);
+  for (const m of [1.2, 2, 5, 20]) expect(soloChance(m) * m).toBeLessThanOrEqual(0.96 + 1e-9);
+  expect(soloMult(0)).toBe(1);
+  expect(soloMult(soloTimeFor(2) + 1)).toBeGreaterThanOrEqual(2);
+});
+
+it('Kartenduell: Chancen aus dem Spielerpool, Auszahlung mit 6 % Bankvorteil, Gleichstand verliert', async () => {
+  const { hiloChance, hiloMult } = await import('../gambling');
+  const pool = [{ ovr: 70 }, { ovr: 80 }, { ovr: 80 }, { ovr: 90 }];
+  expect(hiloChance(80, 'higher', pool)).toBe(0.25);
+  expect(hiloChance(80, 'lower', pool)).toBe(0.25);
+  expect(hiloMult(80, 'higher', pool)).toBe(3.76);
+  expect(hiloMult(90, 'higher', pool)).toBe(0);
+  expect(hiloChance(80, 'higher', pool) * hiloMult(80, 'higher', pool)).toBeLessThan(1);
+});

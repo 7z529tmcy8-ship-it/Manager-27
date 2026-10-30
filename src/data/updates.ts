@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-30-casino-shop',
+    date: '30.10.2026',
+    title: 'Casino im Shop – mit All-in',
+    items: [
+      'Das Casino gibt es jetzt auch direkt im Shop – ohne Karriere.',
+      'Neu: Sololauf. Du läufst aufs Tor, der Multiplikator steigt bis ×50 – schließ ab, bevor die Grätsche kommt. Mit Auto-Abschluss.',
+      'Neu: Kartenduell. Echte Spieler, echte Wertungen: Ist der nächste höher oder tiefer? Jeder Treffer multipliziert.',
+      'Setze, was du willst: Jetons bis 1 Mio., ein Regler für jeden Betrag – oder ALL-IN mit deinem gesamten Geld.',
+    ],
+  },
+  {
     id: '2026-10-30-casino-position',
     date: '30.10.2026',
     title: 'Neues Casino und Positionstraining',

@@ -3,19 +3,23 @@ import { useEffect, useRef, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import {
   BETS, BROKE_OPTIONS, CORNERS, HORSES, PEN_CHANCE, PEN_MULT, ROULETTE, WHEEL, afterGamble, brokeOptionUsed, colorOf, doBroke, horseChance, isBroke,
-  playHorses, playRoulette, raceLegs, rouletteInfo, shootPenalty,
-  type Corner, type GambleResult, type PenaltyShot, type RouletteBet,
+  SOLO_CAP, drawHilo, hiloChance, hiloMult, playHorses, playRoulette, raceLegs, rouletteInfo, shootPenalty, soloChance, soloCrash, soloMult,
+  type Corner, type GambleResult, type HiLo, type PenaltyShot, type RouletteBet,
 } from '../game/gambling';
+import { getClub } from '../data/leagues';
+import type { RealPlayerTemplate } from '../data/players';
+import type { CollectCard } from '../game/club';
+import UtCard from './UtCard';
 import type { Career } from '../game/types';
 import { motionReduced } from '../settings';
 import { play } from '../sound';
 
 const fmt = (n: number) => n.toLocaleString('de-DE');
 const pct = (p: number) => `${(p * 100).toLocaleString('de-DE', { maximumFractionDigits: p < 0.1 ? 1 : 0 })} %`;
-const short = (n: number) => (n >= 1000 ? `${n / 1000}K` : String(n));
+const short = (n: number) => (n >= 1e6 ? `${n / 1e6}M` : n >= 1000 ? `${n / 1000}K` : String(n));
 const vibrate = (p: number | number[]) => { try { navigator.vibrate?.(p); } catch { /* nicht unterstützt */ } };
 
-type Game = 'roulette' | 'horses' | 'penalty';
+type Game = 'roulette' | 'horses' | 'penalty' | 'solo' | 'hilo';
 const SPIN_MS = 2600;
 const RACE_MS = 3200;
 const SEG = 360 / WHEEL.length;
@@ -38,16 +42,22 @@ function useCountUp(target: number, key: unknown): number {
   return v;
 }
 
-/** Casino: Roulette, Pferderennen und Elfmeter-Serie mit Coins. Spielsucht läuft verborgen im Hintergrund. */
-export default function CasinoTab({ career, onChange }: { career: Career; onChange: (c: Career) => void }) {
+/**
+ * Casino: Roulette, Rennen, Elfmeter-Serie, Sololauf und Kartenduell mit Coins.
+ * In der Karriere läuft die Spielsucht verborgen mit; im Shop (ohne Karriere) wird nur gespielt.
+ */
+export default function CasinoTab({ career, onChange }: { career?: Career; onChange?: (c: Career) => void }) {
   const club = useClub();
   const [game, setGame] = useState<Game>('roulette');
-  const [stake, setStake] = useState(BETS[0]);
+  const [stakeSet, setStake] = useState(BETS[0]);
+  const [allIn, setAllIn] = useState(false);
   const [msg, setMsg] = useState('');
   const [session, setSession] = useState(0);
   const [busy, setBusy] = useState(false);
-  const g = career.gambling;
-  const broke = isBroke(career, club.coins);
+  const g = career?.gambling;
+  const broke = !!career && isBroke(career, club.coins);
+  // All-in folgt immer dem aktuellen Kontostand
+  const stake = allIn ? club.coins : stakeSet;
 
   /** Einsatz abbuchen, Ergebnis in die (verborgene) Statistik. Auszahlung erst nach der Animation (`payout`). */
   const commit = (amount: number, res: GambleResult, prepaid = false): boolean => {
@@ -56,7 +66,7 @@ export default function CasinoTab({ career, onChange }: { career: Career; onChan
       if (amount <= 0 || amount > coins) return false;
       setClubState({ ...getClubState(), coins: coins - amount });
     }
-    onChange(afterGamble(career, amount, res, prepaid ? coins + amount : coins));
+    if (career && onChange) onChange(afterGamble(career, amount, res, prepaid ? coins + amount : coins));
     return true;
   };
   const payout = (amount: number, res: GambleResult) => {
@@ -71,14 +81,25 @@ export default function CasinoTab({ career, onChange }: { career: Career; onChan
     }
     setSession((s) => s + (res.win ? res.payout : 0) - amount);
   };
-  const allInOk = (amount: number) => amount !== getClubState().coins || window.confirm(`Alles setzen – ${fmt(amount)} Coins?`);
+  const allInOk = (amount: number) => amount !== getClubState().coins || window.confirm(`ALL-IN: dein gesamtes Geld setzen – ${fmt(amount)} Coins?`);
+  const sliderMax = Math.max(1000, club.coins);
   const chips = (
-    <div className="cz-stakes" role="radiogroup" aria-label="Einsatz">
-      {BETS.map((b) => (
-        <button key={b} role="radio" aria-checked={stake === b} className={`cz-chip v${BETS.indexOf(b)} ${stake === b ? 'on' : ''}`} disabled={b > club.coins || busy} onClick={() => { setStake(b); play('tap'); }}>
-          {short(b)}
+    <div className="cz-stake-box">
+      <div className="cz-stakes" role="radiogroup" aria-label="Einsatz">
+        {BETS.map((b) => (
+          <button key={b} role="radio" aria-checked={!allIn && stakeSet === b} className={`cz-chip v${BETS.indexOf(b)} ${!allIn && stakeSet === b ? 'on' : ''}`} disabled={b > club.coins || busy} onClick={() => { setAllIn(false); setStake(b); play('tap'); }}>
+            {short(b)}
+          </button>
+        ))}
+        <button role="radio" aria-checked={allIn} className={`cz-chip allin ${allIn ? 'on' : ''}`} disabled={club.coins <= 0 || busy} onClick={() => { setAllIn(true); play('tap'); vibrate(20); }}>
+          ALL<br />IN
         </button>
-      ))}
+      </div>
+      <label className={`cz-slider ${allIn ? 'allin' : ''}`}>
+        <span>{busy ? 'Einsatz läuft …' : <>Einsatz <b>{fmt(stake)}</b>{allIn ? ' · alles' : ''}</>}</span>
+        <input type="range" min={1000} max={sliderMax} step={1000} value={Math.min(stake, sliderMax)} disabled={busy || club.coins < 1000}
+          onChange={(e) => { const v = Number(e.target.value); setAllIn(v >= club.coins); setStake(v); }} aria-label="Einsatz frei wählen" />
+      </label>
     </div>
   );
   const shared = { stake, busy, setBusy, commit, payout, allInOk, coins: club.coins, chips };
@@ -91,14 +112,14 @@ export default function CasinoTab({ career, onChange }: { career: Career; onChan
           <p className="cs-sub">Die Karriere ist vorbei, das Geld ist weg. Aber das Fernsehen ruft …</p>
           <div className="vice-grid">
             {BROKE_OPTIONS.map((o) => {
-              const used = brokeOptionUsed(career, o.id);
+              const used = brokeOptionUsed(career!, o.id);
               return (
                 <button key={o.id} className="vice-card" disabled={used} onClick={() => {
-                  const r = doBroke(career, o.id, getClubState().coins);
+                  const r = doBroke(career!, o.id, getClubState().coins);
                   if (!r.text) return;
                   const c = getClubState();
                   setClubState({ ...c, coins: c.coins + r.coins });
-                  onChange(r.career);
+                  onChange?.(r.career);
                   setMsg(r.text);
                   play(r.coins >= 50_000 ? 'fanfare' : 'coin');
                 }}>
@@ -119,7 +140,7 @@ export default function CasinoTab({ career, onChange }: { career: Career; onChan
       </header>
 
       <div className="cz-games" role="tablist" aria-label="Spiel">
-        {([['roulette', 'Roulette', 'dice'], ['horses', 'Rennen', 'flag'], ['penalty', 'Elfmeter', 'ball']] as const).map(([id, label, icon]) => (
+        {([['roulette', 'Roulette', 'dice'], ['horses', 'Rennen', 'flag'], ['penalty', 'Elfmeter', 'ball'], ['solo', 'Sololauf', 'bolt'], ['hilo', 'Duell', 'cards']] as const).map(([id, label, icon]) => (
           <button key={id} role="tab" aria-selected={game === id} className={`cz-game ${game === id ? 'on' : ''}`} disabled={busy} onClick={() => { setGame(id); play('tap'); }}>
             <Icon name={icon} size={18} />{label}
           </button>
@@ -129,6 +150,8 @@ export default function CasinoTab({ career, onChange }: { career: Career; onChan
       {game === 'roulette' && <Roulette {...shared} />}
       {game === 'horses' && <Horses {...shared} />}
       {game === 'penalty' && <Penalty {...shared} />}
+      {game === 'solo' && <Solo {...shared} />}
+      {game === 'hilo' && <HiLoGame {...shared} />}
 
       {g && g.bets > 0 && (
         <p className="hint">Deine Bilanz: {g.bets} Spiele · gewonnen {fmt(g.won)} · verloren {fmt(g.lost)} Coins. Die Bank gewinnt auf Dauer immer.</p>
@@ -239,7 +262,6 @@ function Roulette({ stake, coins, busy, setBusy, commit, payout, allInOk, chips 
         <button className="btn primary big" disabled={busy || stake > coins} onClick={() => spin(stake)}>
           Drehen · <Icon name="coin" size={16} className="coin-ic" />{fmt(stake)}
         </button>
-        <button className="btn secondary" disabled={busy || coins <= 0} onClick={() => spin(coins)}>Alles</button>
       </div>
     </section>
   );
@@ -314,7 +336,6 @@ function Horses({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }:
         <button className="btn primary big" disabled={busy || stake > coins} onClick={() => start(stake)}>
           Starten · <Icon name="coin" size={16} className="coin-ic" />{fmt(stake)}
         </button>
-        <button className="btn secondary" disabled={busy || coins <= 0} onClick={() => start(coins)}>Alles</button>
       </div>
     </section>
   );
@@ -399,7 +420,7 @@ function Penalty({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }
 
       <p className={`cz-result ${series?.over ? (cashed ? 'good' : 'bad') : ''}`} aria-live="polite">
         {series?.over
-          ? cashed ? <>Kassiert <b>+{fmt(shown)}</b></> : `Serie vorbei – ${fmt(series.stake)} Coins weg.`
+          ? cashed ? <>Kassiert: <b>{fmt(shown)}</b> <small className="cz-net">(+{fmt(cashed - series.stake)})</small></> : `Serie vorbei – ${fmt(series.stake)} Coins weg.`
           : active ? (series.goals ? `${series.goals} Tore · jetzt ${fmt(win)} – nächster Treffer: ${fmt(nextWin)}` : 'Wähle eine Ecke. Der Torwart rät.')
             : `Bis zu 5 Elfmeter · jeder trifft mit ${pct(PEN_CHANCE)} · nach jedem Tor kassieren`}
       </p>
@@ -411,12 +432,223 @@ function Penalty({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }
             {series.goals ? <>Kassieren · <Icon name="coin" size={16} className="coin-ic" />{fmt(win)}</> : 'Erst ein Tor schießen'}
           </button>
         ) : (
-          <>
-            <button className="btn primary big" disabled={stake > coins} onClick={() => begin(stake)}>
-              Serie starten · <Icon name="coin" size={16} className="coin-ic" />{fmt(stake)}
-            </button>
-            <button className="btn secondary" disabled={coins <= 0} onClick={() => begin(coins)}>Alles</button>
-          </>
+          <button className="btn primary big" disabled={stake > coins || stake <= 0} onClick={() => begin(stake)}>
+            Serie starten · <Icon name="coin" size={16} className="coin-ic" />{fmt(stake)}
+          </button>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// ---------- Sololauf ----------
+const AUTO = [0, 1.5, 2, 3, 5, 10];
+const fmtX = (m: number) => `×${m.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+/** Laufweg auf dem Feld: bis ×10 Richtung Tor, danach steht man im Strafraum. */
+const soloX = (m: number) => Math.min(1, Math.log(m) / Math.log(10));
+
+function Solo({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }: Shared) {
+  const [phase, setPhase] = useState<'idle' | 'run' | 'tackled' | 'scored'>('idle');
+  const [auto, setAuto] = useState(0);
+  const [end, setEnd] = useState<{ mult: number; won: number; id: number; stake: number } | null>(null);
+  const run = useRef<{ crash: number; t0: number; stake: number; raf: number; done: boolean } | null>(null);
+  const multEl = useRef<HTMLElement>(null);
+  const runnerEl = useRef<HTMLElement>(null);
+  const shown = useCountUp(end?.won ?? 0, end?.id);
+  useEffect(() => () => { if (run.current) cancelAnimationFrame(run.current.raf); }, []);
+
+  const finish = (mult: number, scored: boolean) => {
+    const r = run.current;
+    if (!r || r.done) return;
+    r.done = true;
+    cancelAnimationFrame(r.raf);
+    const won = scored ? Math.round(r.stake * mult) : 0;
+    const res: GambleResult = { win: scored, payout: won, outcome: Math.round(mult * 100) };
+    commit(r.stake, res, true);
+    payout(r.stake, res);
+    setEnd({ mult, won, id: Date.now(), stake: r.stake });
+    setPhase(scored ? 'scored' : 'tackled');
+    setBusy(false);
+    if (!scored) vibrate([60, 30, 60]);
+  };
+  const begin = (amount: number) => {
+    if (busy || amount <= 0 || amount > coins || !allInOk(amount)) return;
+    const c = getClubState();
+    if (amount > c.coins) return;
+    setClubState({ ...c, coins: c.coins - amount });
+    const crash = soloCrash();
+    run.current = { crash, t0: performance.now(), stake: amount, raf: 0, done: false };
+    setEnd(null);
+    setPhase('run');
+    setBusy(true);
+    play('whistle');
+    // Ohne Animation: sofort zum Ende (Grätsche oder Auto-Abschluss)
+    if (motionReduced()) {
+      if (auto && crash >= auto) finish(auto, true);
+      else finish(crash, false);
+      return;
+    }
+    const tick = (t: number) => {
+      const r = run.current;
+      if (!r || r.done) return;
+      const m = soloMult(t - r.t0);
+      if (multEl.current) multEl.current.textContent = fmtX(m);
+      if (runnerEl.current) runnerEl.current.style.setProperty('--x', String(soloX(m)));
+      if (auto && m >= auto && r.crash >= auto) { finish(auto, true); return; }
+      if (m >= r.crash) { finish(r.crash, false); return; }
+      if (m >= SOLO_CAP) { finish(SOLO_CAP, true); return; }
+      r.raf = requestAnimationFrame(tick);
+    };
+    run.current.raf = requestAnimationFrame(tick);
+  };
+  const cashOut = () => {
+    const r = run.current;
+    if (!r || r.done) return;
+    const m = soloMult(performance.now() - r.t0);
+    // Wer im selben Bild wie die Grätsche drückt, ist zu spät
+    if (m >= r.crash) finish(r.crash, false);
+    else { play('reveal'); finish(m, true); }
+  };
+  const running = phase === 'run';
+
+  return (
+    <section className="cz-solo">
+      <div className={`solo-pitch ${phase}`} key={end?.id ?? 'pitch'}>
+        <span className="solo-goal" aria-hidden="true" />
+        <span className="solo-def d1" aria-hidden="true" /><span className="solo-def d2" aria-hidden="true" /><span className="solo-def d3" aria-hidden="true" />
+        <i ref={runnerEl} className="solo-runner" style={{ '--x': phase === 'idle' ? 0 : soloX(end?.mult ?? 1) } as React.CSSProperties} aria-hidden="true" />
+        <b ref={multEl} className="solo-mult" aria-live="off">{end ? fmtX(end.mult) : '×1,00'}</b>
+        {phase === 'tackled' && <strong className="solo-call bad">Grätsche</strong>}
+        {phase === 'scored' && <strong className="solo-call good">Abgeschlossen</strong>}
+      </div>
+
+      <p className={`cz-result ${end ? (end.won ? 'good' : 'bad') : ''}`} aria-live="polite">
+        {end ? (end.won ? <>Kassiert bei {fmtX(end.mult)}: <b>{fmt(shown)}</b> <small className="cz-net">(+{fmt(end.won - end.stake)})</small></> : `Grätsche bei ${fmtX(end.mult)} – ${fmt(end.stake)} Coins weg.`)
+          : running ? 'Lauf! Schließ ab, bevor die Grätsche kommt.'
+            : `Chance auf ×2: ${pct(soloChance(2))} · ×5: ${pct(soloChance(5))} · ×10: ${pct(soloChance(10))}`}
+      </p>
+
+      <div className="solo-auto" role="radiogroup" aria-label="Automatisch abschließen">
+        <span>Auto-Abschluss</span>
+        {AUTO.map((a) => (
+          <button key={a} role="radio" aria-checked={auto === a} className={`chip ${auto === a ? 'active' : ''}`} disabled={running} onClick={() => setAuto(a)}>
+            {a ? `×${String(a).replace('.', ',')}` : 'Aus'}
+          </button>
+        ))}
+      </div>
+
+      {chips}
+      <div className="cz-actions">
+        {running ? (
+          <button className="btn primary big solo-cash" onClick={cashOut}>Abschließen!</button>
+        ) : (
+          <button className="btn primary big" disabled={stake > coins || stake <= 0} onClick={() => begin(stake)}>
+            Loslaufen · <Icon name="coin" size={16} className="coin-ic" />{fmt(stake)}
+          </button>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// ---------- Kartenduell ----------
+const asCard = (p: RealPlayerTemplate, k: number): CollectCard => ({
+  id: `duel-${k}-${p.name}`, name: p.name, position: p.position, nation: p.nation, club: getClub(p.clubId).name, ovr: p.ovr,
+  variant: p.ovr >= 85 ? 'gold-rare' : p.ovr >= 75 ? 'gold' : 'silver',
+});
+
+function HiLoGame({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }: Shared) {
+  const [cur, setCur] = useState<RealPlayerTemplate>(() => drawHilo());
+  const [next, setNext] = useState<{ p: RealPlayerTemplate; ok: boolean; dir: HiLo } | null>(null);
+  const [series, setSeries] = useState<{ stake: number; mult: number; streak: number; over: boolean; id: number } | null>(null);
+  const [cashed, setCashed] = useState(0);
+  const [k, setK] = useState(0);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const shown = useCountUp(cashed, series?.id);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const active = !!series && !series.over;
+  const flipping = !!next && active;
+  const win = series ? Math.round(series.stake * series.mult) : 0;
+
+  const settle = (s: NonNullable<typeof series>, amount: number) => {
+    const res: GambleResult = { win: amount > 0, payout: amount, outcome: s.streak };
+    commit(s.stake, res, true);
+    payout(s.stake, res);
+    setCashed(amount);
+    setSeries({ ...s, over: true });
+    setBusy(false);
+  };
+  const begin = (amount: number) => {
+    if (busy || amount <= 0 || amount > coins || !allInOk(amount)) return;
+    const c = getClubState();
+    if (amount > c.coins) return;
+    setClubState({ ...c, coins: c.coins - amount });
+    setSeries({ stake: amount, mult: 1, streak: 0, over: false, id: Date.now() });
+    setNext(null);
+    setCashed(0);
+    setCur(drawHilo());
+    setK((x) => x + 1);
+    setBusy(true);
+    play('packShake');
+  };
+  const guess = (dir: HiLo) => {
+    if (!series || series.over || next) return;
+    const p = drawHilo();
+    const ok = dir === 'higher' ? p.ovr > cur.ovr : p.ovr < cur.ovr;
+    const m = hiloMult(cur.ovr, dir);
+    setNext({ p, ok, dir });
+    play('tap');
+    timer.current = setTimeout(() => {
+      if (!ok) { settle(series, 0); setNext({ p, ok, dir }); return; }
+      play('reveal');
+      vibrate([20, 20, 40]);
+      setSeries({ ...series, mult: Math.round(series.mult * m * 100) / 100, streak: series.streak + 1 });
+      setCur(p);
+      setNext(null);
+      setK((x) => x + 1);
+    }, motionReduced() ? 60 : 900);
+  };
+
+  const opt = (dir: HiLo) => {
+    const ch = hiloChance(cur.ovr, dir);
+    const m = hiloMult(cur.ovr, dir);
+    return (
+      <button className={`hilo-btn ${dir}`} disabled={!active || flipping || !m} onClick={() => guess(dir)}>
+        <Icon name="arrow" size={18} />
+        <span>{dir === 'higher' ? 'Höher' : 'Tiefer'}</span>
+        <small>{m ? `×${m.toLocaleString('de-DE')} · ${pct(ch)}` : 'unmöglich'}</small>
+      </button>
+    );
+  };
+
+  return (
+    <section className="cz-hilo">
+      <div className="hilo-table">
+        <div className="hilo-slot" key={`c-${k}`}><UtCard card={asCard(cur, k)} size="md" /></div>
+        <div className={`hilo-slot back ${next ? `show ${next.ok ? 'ok' : 'bad'}` : ''}`}>
+          {next ? <UtCard card={asCard(next.p, k + 1)} size="md" /> : <span className="hilo-cardback" aria-hidden="true"><Icon name="cards" size={34} /></span>}
+        </div>
+      </div>
+
+      <div className="hilo-choices">{opt('higher')}{opt('lower')}</div>
+
+      <p className={`cz-result ${series?.over ? (cashed ? 'good' : 'bad') : ''}`} aria-live="polite">
+        {series?.over
+          ? cashed ? <>Kassiert nach {series.streak} Treffern: <b>{fmt(shown)}</b> <small className="cz-net">(+{fmt(cashed - series.stake)})</small></> : `${next ? `${next.p.name} hat ${next.p.ovr}` : 'Daneben'} – ${fmt(series.stake)} Coins weg.`
+          : active ? (series.streak ? `${series.streak} richtig · ×${series.mult.toLocaleString('de-DE')} = ${fmt(win)}` : 'Ist der nächste Spieler höher oder tiefer bewertet? Gleichstand verliert.')
+            : 'Echte Spieler, echte Wertungen: Tipp höher oder tiefer – jeder Treffer multipliziert.'}
+      </p>
+
+      {chips}
+      <div className="cz-actions">
+        {active ? (
+          <button className="btn primary big" disabled={!series.streak || flipping} onClick={() => settle(series, win)}>
+            {series.streak ? <>Kassieren · <Icon name="coin" size={16} className="coin-ic" />{fmt(win)}</> : 'Erst einmal richtig tippen'}
+          </button>
+        ) : (
+          <button className="btn primary big" disabled={stake > coins || stake <= 0} onClick={() => begin(stake)}>
+            Duell starten · <Icon name="coin" size={16} className="coin-ic" />{fmt(stake)}
+          </button>
         )}
       </div>
     </section>

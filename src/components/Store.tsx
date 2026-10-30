@@ -7,6 +7,7 @@ import { motionReduced } from '../settings';
 import Confetti from './Confetti';
 import UtCard from './UtCard';
 import Icon, { Glyph } from './Icon';
+import CasinoTab from './CasinoTab';
 import DropOpener from './DropOpener';
 import PolarCalendar from './PolarCalendar';
 import { POLAR_UNLOCK, polarNextBuyable, polarVisible } from '../game/polar';
@@ -20,6 +21,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
   const [opening, setOpening] = useState<{ result: PackResult; name: string; theme?: string; art?: string; packId: string; free: boolean; n: number } | null>(null);
   const [dropOpen, setDropOpen] = useState<DropKind | null>(null);
   const [polar, setPolar] = useState(false);
+  const [casino, setCasino] = useState(false);
   const [mega, setMega] = useState(false);
   const [superPack, setSuperPack] = useState<PackResult | null>(null);
   const [superCharging, setSuperCharging] = useState(false);
@@ -103,6 +105,15 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         </button>
       )}
 
+      <button className="casino-call" onClick={() => setCasino(true)}>
+        <span className="casino-call-icon" aria-hidden="true"><Icon name="dice" size={26} /></span>
+        <span className="casino-call-text">
+          <b>Casino</b>
+          <small>Roulette · Rennen · Elfmeter · Sololauf · Duell – bis zum All-in</small>
+        </span>
+        <Icon name="arrow" size={22} />
+      </button>
+
       <StoredPacks onDrop={setDropOpen} onOpen={(r) => setOpening((o) => ({ result: r.result, name: r.name, packId: '', free: true, n: (o?.n ?? 0) + 1 }))} />
 
       <TotwSection coins={club.coins} onBuy={() => buy(TOTW_PACK.id)} />
@@ -168,6 +179,15 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         <PackOpening name="MEGA SUPER XXL PACK" result={superPack} onClose={() => setSuperPack(null)} onCollection={() => { setSuperPack(null); onCollection(); }} />
       )}
 
+      {casino && (
+        <div className="overlay casino-overlay" role="dialog" aria-modal="true" aria-label="Casino">
+          <div className="overlay-inner">
+            <header className="overlay-head"><button className="nav-back" onClick={() => setCasino(false)}>‹ Zurück zum Shop</button></header>
+            <h2 className="fam-title">Casino</h2>
+            <CasinoTab />
+          </div>
+        </div>
+      )}
       {polar && <PolarCalendar onClose={() => setPolar(false)} onCollection={() => { setPolar(false); onCollection(); }} />}
       {dropOpen && <DropOpener kind={dropOpen} onClose={() => setDropOpen(null)} />}
       {opening && (
