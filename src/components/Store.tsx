@@ -183,7 +183,6 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         <div className="overlay casino-overlay" role="dialog" aria-modal="true" aria-label="Casino">
           <div className="overlay-inner">
             <header className="overlay-head"><button className="nav-back" onClick={() => setCasino(false)}>‹ Zurück zum Shop</button></header>
-            <h2 className="fam-title">Casino</h2>
             <CasinoTab />
           </div>
         </div>

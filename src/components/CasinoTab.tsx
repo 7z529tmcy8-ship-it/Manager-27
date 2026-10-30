@@ -41,6 +41,17 @@ function useCountUp(target: number, key: unknown): number {
   return v;
 }
 
+/** Ergebnis direkt in der Szene: Gewinn gold mit Reingewinn, Verlust rot. */
+function Outcome({ won, stake, label }: { won: number; stake: number; label?: string }) {
+  const shown = useCountUp(won, `${won}-${stake}-${label}`);
+  return (
+    <div className={`cz-outcome ${won ? 'win' : 'lose'}`} role="status">
+      {label && <small>{label}</small>}
+      {won ? <><b>+{fmt(shown)}</b><em>+{fmt(won - stake)} Gewinn</em></> : <b>−{fmt(stake)}</b>}
+    </div>
+  );
+}
+
 /**
  * Casino: Roulette, Rennen, Elfmeter-Serie, Sololauf und Kartenduell mit Coins.
  * In der Karriere läuft die Spielsucht verborgen mit; im Shop (ohne Karriere) wird nur gespielt.
@@ -53,6 +64,7 @@ export default function CasinoTab({ career, onChange }: { career?: Career; onCha
   const [msg, setMsg] = useState('');
   const [session, setSession] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [free, setFree] = useState(false);
   const g = career?.gambling;
   const broke = !!career && isBroke(career, club.coins);
   // All-in folgt immer dem aktuellen Kontostand
@@ -84,6 +96,10 @@ export default function CasinoTab({ career, onChange }: { career?: Career; onCha
   const sliderMax = Math.max(1000, club.coins);
   const chips = (
     <div className="cz-stake-box">
+      {free && !busy && (
+        <input className="cz-range" type="range" min={1000} max={sliderMax} step={1000} value={Math.min(stake, sliderMax)} disabled={club.coins < 1000}
+          onChange={(e) => { const v = Number(e.target.value); setAllIn(v >= club.coins); setStake(v); }} aria-label="Einsatz frei wählen" />
+      )}
       <div className="cz-stakes" role="radiogroup" aria-label="Einsatz">
         {BETS.map((b) => (
           <button key={b} role="radio" aria-checked={!allIn && stakeSet === b} className={`cz-chip v${BETS.indexOf(b)} ${!allIn && stakeSet === b ? 'on' : ''}`} disabled={b > club.coins || busy} onClick={() => { setAllIn(false); setStake(b); play('tap'); }}>
@@ -93,12 +109,10 @@ export default function CasinoTab({ career, onChange }: { career?: Career; onCha
         <button role="radio" aria-checked={allIn} className={`cz-chip allin ${allIn ? 'on' : ''}`} disabled={club.coins <= 0 || busy} onClick={() => { setAllIn(true); play('tap'); vibrate(20); }}>
           ALL<br />IN
         </button>
+        <button className={`cz-free ${free ? 'on' : ''}`} disabled={busy} onClick={() => setFree((x) => !x)} aria-expanded={free} aria-label="Einsatz frei wählen">
+          <Icon name="pencil" size={16} />
+        </button>
       </div>
-      <label className={`cz-slider ${allIn ? 'allin' : ''}`}>
-        <span>{busy ? 'Einsatz läuft …' : <>Einsatz <b>{fmt(stake)}</b>{allIn ? ' · alles' : ''}</>}</span>
-        <input type="range" min={1000} max={sliderMax} step={1000} value={Math.min(stake, sliderMax)} disabled={busy || club.coins < 1000}
-          onChange={(e) => { const v = Number(e.target.value); setAllIn(v >= club.coins); setStake(v); }} aria-label="Einsatz frei wählen" />
-      </label>
     </div>
   );
   const shared = { stake, busy, setBusy, commit, payout, allInOk, coins: club.coins, chips };
@@ -133,15 +147,16 @@ export default function CasinoTab({ career, onChange }: { career?: Career; onCha
       )}
       {msg && <p className="cs-note neutral">{msg}</p>}
 
-      <header className="cz-bank">
-        <span className="cz-bank-coins"><Icon name="coin" size={20} />{fmt(club.coins)}</span>
-        {session !== 0 && <span className={`cz-session ${session > 0 ? 'up' : 'down'}`}>Heute {session > 0 ? '+' : '−'}{fmt(Math.abs(session))}</span>}
+      <header className="cz-top">
+        <span className="cz-top-title">Casino</span>
+        {session !== 0 && <span className={`cz-session ${session > 0 ? 'up' : 'down'}`}>{session > 0 ? '+' : '−'}{fmt(Math.abs(session))}</span>}
+        <span className="cz-bank-coins"><Icon name="coin" size={18} />{fmt(club.coins)}</span>
       </header>
 
       <div className="cz-games" role="tablist" aria-label="Spiel">
         {([['roulette', 'Roulette', 'dice'], ['horses', 'Rennen', 'flag'], ['penalty', 'Elfmeter', 'ball'], ['solo', 'Sololauf', 'bolt'], ['hilo', 'Duell', 'cards']] as const).map(([id, label, icon]) => (
           <button key={id} role="tab" aria-selected={game === id} className={`cz-game ${game === id ? 'on' : ''}`} disabled={busy} onClick={() => { setGame(id); play('tap'); }}>
-            <Icon name={icon} size={18} />{label}
+            <Icon name={icon} size={20} /><span>{label}</span>
           </button>
         ))}
       </div>
@@ -153,7 +168,7 @@ export default function CasinoTab({ career, onChange }: { career?: Career; onCha
       {game === 'hilo' && <HiLoGame {...shared} />}
 
       {g && g.bets > 0 && (
-        <p className="hint">Deine Bilanz: {g.bets} Spiele · gewonnen {fmt(g.won)} · verloren {fmt(g.lost)} Coins. Die Bank gewinnt auf Dauer immer.</p>
+        <p className="cz-stats">{g.bets} Spiele · +{fmt(g.won)} · −{fmt(g.lost)}</p>
       )}
     </div>
   );
@@ -179,7 +194,6 @@ function Roulette({ stake, coins, busy, setBusy, commit, payout, allInOk, chips 
   const [round, setRound] = useState<{ res: GambleResult; stake: number; id: number; done: boolean } | null>(null);
   const [numbers, setNumbers] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const shown = useCountUp(round?.done && round.res.win ? round.res.payout : 0, round?.id);
   useEffect(() => () => clearTimeout(timer.current), []);
 
   const finish = (r: NonNullable<typeof round>) => {
@@ -210,6 +224,8 @@ function Roulette({ stake, coins, busy, setBusy, commit, payout, allInOk, chips 
 
   return (
     <section className="cz-roulette">
+      <div className="cz-stage st-roulette">
+      <span className="cz-tag">{info.label} · ×{info.payout} · {pct(info.chance)}</span>
       <button type="button" className={`cz-wheel-wrap ${spinning ? 'spinning' : ''} ${round?.done ? (round.res.win ? 'won' : 'lost') : ''}`}
         aria-label={spinning ? 'Antippen zum Überspringen' : 'Roulette-Kessel'} onClick={() => spinning && round && finish(round)}>
         <span className="cz-pointer" aria-hidden="true" />
@@ -230,13 +246,11 @@ function Roulette({ stake, coins, busy, setBusy, commit, payout, allInOk, chips 
           <circle r="62" className="cz-wheel-inner" />
         </svg>
         <span className={`cz-hub ${resultColor ? `c-${resultColor}` : ''}`} key={round?.id}>
-          {round?.done ? <b>{round.res.outcome}</b> : <small>{spinning ? 'Antippen = sofort' : 'Setzen'}</small>}
+          {round?.done ? <b>{round.res.outcome}</b> : <small>{info.label}</small>}
         </span>
       </button>
-
-      <p className={`cz-result ${round?.done ? (round.res.win ? 'good' : 'bad') : ''}`} aria-live="polite">
-        {round?.done ? (round.res.win ? <>Gewonnen <b>+{fmt(shown)}</b></> : `Die ${round.res.outcome} – leider verloren (−${fmt(round.stake)})`) : spinning ? 'Die Kugel läuft …' : `${info.label} · ×${info.payout} · Chance ${pct(info.chance)}`}
-      </p>
+      {round?.done && <Outcome won={round.res.payout} stake={round.stake} key={round.id} />}
+      </div>
 
       <div className="cz-board">
         {(Object.keys(ROULETTE) as (keyof typeof ROULETTE)[]).map((k) => (
@@ -246,7 +260,7 @@ function Roulette({ stake, coins, busy, setBusy, commit, payout, allInOk, chips 
         ))}
       </div>
       <button className={`cz-more ${numbers ? 'open' : ''}`} onClick={() => setNumbers((x) => !x)} aria-expanded={numbers}>
-        Auf eine Zahl setzen · ×36{bet.startsWith('n') ? ` · gewählt: ${bet.slice(1)}` : ''}
+        Zahl · ×36{bet.startsWith('n') ? ` · ${bet.slice(1)}` : ''}
       </button>
       {numbers && (
         <div className="cz-numbers">
@@ -256,11 +270,13 @@ function Roulette({ stake, coins, busy, setBusy, commit, payout, allInOk, chips 
         </div>
       )}
 
+      <div className="cz-dock">
       {chips}
       <div className="cz-actions">
         <button className="btn primary big" disabled={busy || stake > coins} onClick={() => spin(stake)}>
           Drehen · <Icon name="coin" size={16} className="coin-ic" />{fmt(stake)}
         </button>
+      </div>
       </div>
     </section>
   );
@@ -271,7 +287,6 @@ function Horses({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }:
   const [horse, setHorse] = useState(0);
   const [round, setRound] = useState<{ res: GambleResult; stake: number; legs: number[][]; id: number; done: boolean; pick: number } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const shown = useCountUp(round?.done && round.res.win ? round.res.payout : 0, round?.id);
   useEffect(() => () => clearTimeout(timer.current), []);
 
   const finish = (r: NonNullable<typeof round>) => {
@@ -294,6 +309,7 @@ function Horses({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }:
 
   return (
     <section className="cz-horses">
+      <div className="cz-stage st-race">
       <button type="button" className={`cz-track ${running ? 'running' : ''} ${round?.done ? 'done' : ''}`} key={round?.id ?? 'idle'}
         aria-label={running ? 'Antippen zum Überspringen' : 'Rennbahn'} onClick={() => running && round && finish(round)}>
         {HORSES.map((h, i) => {
@@ -311,12 +327,8 @@ function Horses({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }:
         })}
         <span className="cz-finish" aria-hidden="true" />
       </button>
-
-      <p className={`cz-result ${round?.done ? (round.res.win ? 'good' : 'bad') : ''}`} aria-live="polite">
-        {round?.done
-          ? round.res.win ? <>{HORSES[round.pick].name} gewinnt! <b>+{fmt(shown)}</b></> : `${HORSES[round.res.outcome].name} gewinnt – dein Pferd wird ${round.res.order!.indexOf(round.pick) + 1}. (−${fmt(round.stake)})`
-          : running ? 'Sie laufen … (antippen = Zieleinlauf)' : `Tipp: ${HORSES[horse].name} · Chance ${pct(horseChance(HORSES[horse]))}`}
-      </p>
+      {round?.done && <Outcome won={round.res.payout} stake={round.stake} label={`${HORSES[round.pick].name}: Platz ${round.res.order!.indexOf(round.pick) + 1}`} key={round.id} />}
+      </div>
 
       <ul className="cz-horse-list">
         {HORSES.map((h, i) => (
@@ -330,11 +342,13 @@ function Horses({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }:
         ))}
       </ul>
 
+      <div className="cz-dock">
       {chips}
       <div className="cz-actions">
         <button className="btn primary big" disabled={busy || stake > coins} onClick={() => start(stake)}>
           Starten · <Icon name="coin" size={16} className="coin-ic" />{fmt(stake)}
         </button>
+      </div>
       </div>
     </section>
   );
@@ -347,12 +361,10 @@ function Penalty({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }
   const [flying, setFlying] = useState(false);
   const [cashed, setCashed] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const shown = useCountUp(cashed, series?.id);
   useEffect(() => () => clearTimeout(timer.current), []);
 
   const active = !!series && !series.over;
   const win = series ? Math.round(series.stake * (series.goals ? PEN_MULT[series.goals - 1] : 0)) : 0;
-  const nextWin = series ? Math.round(series.stake * PEN_MULT[Math.min(series.goals, PEN_MULT.length - 1)]) : 0;
 
   const settle = (s: NonNullable<typeof series>, amount: number) => {
     // Erst am Ende der Serie zählt sie als ein Spiel (Statistik, verborgene Spielsucht)
@@ -395,7 +407,8 @@ function Penalty({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }
 
   return (
     <section className="cz-penalty">
-      <div className={`pz-goal ${shot && !flying ? (shot.goal ? 'goal' : 'saved') : ''} ${flying ? 'flying' : ''}`} key={shot?.n ?? 0}>
+      <div className={`cz-stage pz-goal ${shot && !flying ? (shot.goal ? 'goal' : 'saved') : ''} ${flying ? 'flying' : ''}`} key={shot?.n ?? 0}>
+        <span className="cz-tag">Treffer {pct(PEN_CHANCE)}</span>
         <span className="pz-net" aria-hidden="true" />
         <span className={`pz-keeper k${shot ? shot.keeper : 1} ${shot ? 'dive' : ''}`} aria-hidden="true"><i /><i /></span>
         <span className={`pz-ball ${shot ? `to${shot.corner} ${shot.over ? 'over' : ''}` : ''}`} aria-hidden="true" />
@@ -406,7 +419,8 @@ function Penalty({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }
             ))}
           </div>
         )}
-        {shot && !flying && <strong className="pz-call">{shot.goal ? 'Tor' : shot.over ? 'Drüber' : 'Gehalten'}</strong>}
+        {shot && !flying && !series?.over && <strong className="pz-call">{shot.goal ? 'Tor' : shot.over ? 'Drüber' : 'Gehalten'}</strong>}
+        {series?.over && <Outcome won={cashed} stake={series.stake} label={cashed ? `${series.goals} Tore` : shot?.over ? 'Drüber' : 'Gehalten'} key={series.id} />}
       </div>
 
       <ol className="pz-ladder" aria-label="Gewinnstufen">
@@ -417,24 +431,19 @@ function Penalty({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }
         ))}
       </ol>
 
-      <p className={`cz-result ${series?.over ? (cashed ? 'good' : 'bad') : ''}`} aria-live="polite">
-        {series?.over
-          ? cashed ? <>Kassiert: <b>{fmt(shown)}</b> <small className="cz-net">(+{fmt(cashed - series.stake)})</small></> : `Serie vorbei – ${fmt(series.stake)} Coins weg.`
-          : active ? (series.goals ? `${series.goals} Tore · jetzt ${fmt(win)} – nächster Treffer: ${fmt(nextWin)}` : 'Wähle eine Ecke. Der Torwart rät.')
-            : `Bis zu 5 Elfmeter · jeder trifft mit ${pct(PEN_CHANCE)} · nach jedem Tor kassieren`}
-      </p>
-
+      <div className="cz-dock">
       {chips}
       <div className="cz-actions">
         {active ? (
           <button className="btn primary big" disabled={!series.goals || flying} onClick={() => settle(series, win)}>
-            {series.goals ? <>Kassieren · <Icon name="coin" size={16} className="coin-ic" />{fmt(win)}</> : 'Erst ein Tor schießen'}
+            {series.goals ? <>Kassieren · <Icon name="coin" size={16} className="coin-ic" />{fmt(win)}</> : 'Ecke wählen'}
           </button>
         ) : (
           <button className="btn primary big" disabled={stake > coins || stake <= 0} onClick={() => begin(stake)}>
             Serie starten · <Icon name="coin" size={16} className="coin-ic" />{fmt(stake)}
           </button>
         )}
+      </div>
       </div>
     </section>
   );
@@ -453,7 +462,6 @@ function Solo({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }: S
   const run = useRef<{ crash: number; t0: number; stake: number; raf: number; done: boolean } | null>(null);
   const multEl = useRef<HTMLElement>(null);
   const runnerEl = useRef<HTMLElement>(null);
-  const shown = useCountUp(end?.won ?? 0, end?.id);
   useEffect(() => () => { if (run.current) cancelAnimationFrame(run.current.raf); }, []);
 
   const finish = (mult: number, scored: boolean) => {
@@ -512,23 +520,17 @@ function Solo({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }: S
 
   return (
     <section className="cz-solo">
-      <div className={`solo-pitch ${phase}`} key={end?.id ?? 'pitch'}>
+      <div className={`cz-stage solo-pitch ${phase}`} key={end?.id ?? 'pitch'}>
+        {phase === 'idle' && <span className="cz-tag">×2 {pct(soloChance(2))} · ×5 {pct(soloChance(5))} · ×10 {pct(soloChance(10))}</span>}
         <span className="solo-goal" aria-hidden="true" />
         <span className="solo-def d1" aria-hidden="true" /><span className="solo-def d2" aria-hidden="true" /><span className="solo-def d3" aria-hidden="true" />
         <i ref={runnerEl} className="solo-runner" style={{ '--x': phase === 'idle' ? 0 : soloX(end?.mult ?? 1) } as React.CSSProperties} aria-hidden="true" />
         <b ref={multEl} className="solo-mult" aria-live="off">{end ? fmtX(end.mult) : '×1,00'}</b>
-        {phase === 'tackled' && <strong className="solo-call bad">Grätsche</strong>}
-        {phase === 'scored' && <strong className="solo-call good">Abgeschlossen</strong>}
+        {end && <Outcome won={end.won} stake={end.stake} label={end.won ? 'Abgeschlossen' : 'Grätsche'} key={end.id} />}
       </div>
 
-      <p className={`cz-result ${end ? (end.won ? 'good' : 'bad') : ''}`} aria-live="polite">
-        {end ? (end.won ? <>Kassiert bei {fmtX(end.mult)}: <b>{fmt(shown)}</b> <small className="cz-net">(+{fmt(end.won - end.stake)})</small></> : `Grätsche bei ${fmtX(end.mult)} – ${fmt(end.stake)} Coins weg.`)
-          : running ? 'Lauf! Schließ ab, bevor die Grätsche kommt.'
-            : `Chance auf ×2: ${pct(soloChance(2))} · ×5: ${pct(soloChance(5))} · ×10: ${pct(soloChance(10))}`}
-      </p>
-
       <div className="solo-auto" role="radiogroup" aria-label="Automatisch abschließen">
-        <span>Auto-Abschluss</span>
+        <span><Icon name="target" size={16} />Auto</span>
         {AUTO.map((a) => (
           <button key={a} role="radio" aria-checked={auto === a} className={`chip ${auto === a ? 'active' : ''}`} disabled={running} onClick={() => setAuto(a)}>
             {a ? `×${String(a).replace('.', ',')}` : 'Aus'}
@@ -536,6 +538,7 @@ function Solo({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }: S
         ))}
       </div>
 
+      <div className="cz-dock">
       {chips}
       <div className="cz-actions">
         {running ? (
@@ -545,6 +548,7 @@ function Solo({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }: S
             Loslaufen · <Icon name="coin" size={16} className="coin-ic" />{fmt(stake)}
           </button>
         )}
+      </div>
       </div>
     </section>
   );
@@ -562,7 +566,6 @@ function HiLoGame({ stake, coins, busy, setBusy, commit, payout, allInOk, chips 
   const [cashed, setCashed] = useState(0);
   const [k, setK] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const shown = useCountUp(cashed, series?.id);
   useEffect(() => () => clearTimeout(timer.current), []);
   const active = !!series && !series.over;
   const flipping = !!reveal && active;
@@ -632,12 +635,14 @@ function HiLoGame({ stake, coins, busy, setBusy, commit, payout, allInOk, chips 
 
   return (
     <section className="cz-hilo">
-      <div className="hilo-table">
+      <div className="cz-stage hilo-table">
+        {active && series.streak > 0 && <span className="cz-tag gold">{series.streak} richtig · ×{series.mult.toLocaleString('de-DE')}</span>}
         <div className="hilo-slot" key={`c-${k}`}><UtCard card={shownCard(cur)} size="md" /></div>
         <div className={`hilo-slot back ${reveal ? `show ${reveal.ok ? 'ok' : 'bad'}` : ''}`} key={`n-${k}`}>
           {reveal || series?.over ? <UtCard card={shownCard(nxt.d)} size="md" /> : (
             <div className="hilo-hidden" aria-label={`Verdeckte Karte: ${nxt.d.p.position}, ${labels[nxt.hints[0]]} ${nxt.d.attrs[nxt.hints[0]]}, ${labels[nxt.hints[1]]} ${nxt.d.attrs[nxt.hints[1]]}`}>
               <span className="hh-ovr">?</span>
+              <span className="hh-range">±{DUEL_RANGE}</span>
               <span className="hh-pos">{nxt.d.p.position}</span>
               <span className="hh-hints">
                 {nxt.hints.map((i) => <span key={i}><b>{nxt.d.attrs[i]}</b>{labels[i]}</span>)}
@@ -646,33 +651,29 @@ function HiLoGame({ stake, coins, busy, setBusy, commit, payout, allInOk, chips 
             </div>
           )}
         </div>
+        {series?.over && <Outcome won={cashed} stake={series.stake} label={cashed ? `${series.streak} richtig` : `${nxt.d.p.name}: ${nxt.d.p.ovr}`} key={series.id} />}
       </div>
 
       <div className="hilo-choices">{opt('higher')}{opt('lower')}</div>
       {active && (
         <button className="hilo-swap" disabled={flipping || series.swaps <= 0} onClick={swap}>
-          <Icon name="swap" size={16} />Karte tauschen · noch {series.swaps}
+          <Icon name="swap" size={16} />Tauschen · {series.swaps}
         </button>
       )}
 
-      <p className={`cz-result ${series?.over ? (cashed ? 'good' : 'bad') : ''}`} aria-live="polite">
-        {series?.over
-          ? cashed ? <>Kassiert nach {series.streak} Treffern: <b>{fmt(shown)}</b> <small className="cz-net">(+{fmt(cashed - series.stake)})</small></> : `${nxt.d.p.name} hat ${nxt.d.p.ovr} – ${fmt(series.stake)} Coins weg.`
-          : active ? (series.streak ? `${series.streak} richtig · ×${series.mult.toLocaleString('de-DE')} = ${fmt(win)}` : 'Zwei Werte der verdeckten Karte sind zu sehen. Höher oder tiefer bewertet? Gleichstand verliert.')
-            : `Echte Spieler, echte Wertungen. Die verdeckte Karte liegt höchstens ${DUEL_RANGE} Punkte daneben – Position und zwei Werte siehst du. Lies sie und tippe.`}
-      </p>
-
+      <div className="cz-dock">
       {chips}
       <div className="cz-actions">
         {active ? (
           <button className="btn primary big" disabled={!series.streak || flipping} onClick={() => settle(series, win)}>
-            {series.streak ? <>Kassieren · <Icon name="coin" size={16} className="coin-ic" />{fmt(win)}</> : 'Erst einmal richtig tippen'}
+            {series.streak ? <>Kassieren · <Icon name="coin" size={16} className="coin-ic" />{fmt(win)}</> : 'Höher oder tiefer?'}
           </button>
         ) : (
           <button className="btn primary big" disabled={stake > coins || stake <= 0} onClick={() => begin(stake)}>
             Duell starten · <Icon name="coin" size={16} className="coin-ic" />{fmt(stake)}
           </button>
         )}
+      </div>
       </div>
     </section>
   );

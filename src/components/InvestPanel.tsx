@@ -73,7 +73,7 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
             {investNotes.map((n) => <span key={n}>{n}</span>)}
           </div>
         )}
-        <p className="muted">Einnahmen werden am Ende jeder Saison (bzw. jedes Ruhestandsjahres) in deinen Club gezahlt. Beim Verkauf fallen {SELL_FEE * 100} % Gebühren an.</p>
+        {tab !== 'casino' && <p className="muted">Einnahmen werden am Ende jeder Saison (bzw. jedes Ruhestandsjahres) in deinen Club gezahlt. Beim Verkauf fallen {SELL_FEE * 100} % Gebühren an.</p>}
 
         <div className="chips inv-tabs">
           <button className={`chip ${tab === 'home' ? 'active' : ''}`} onClick={() => setTab('home')}>Immobilien</button>

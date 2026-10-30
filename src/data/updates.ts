@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-30-casino-look',
+    date: '30.10.2026',
+    title: 'Casino aufgeräumt',
+    items: [
+      'Neuer Look: Jedes Spiel hat eine eigene Bühne, Gewinn oder Verlust erscheint direkt darin – mit Reingewinn.',
+      'Jetons und Spielknopf sitzen jetzt immer unten am Bildschirm, ohne Scrollen. Freier Betrag über den Stift.',
+      'Weniger Text: Die Chancen stehen kurz an den Wetten, die langen Erklärungen sind weg.',
+    ],
+  },
+  {
     id: '2026-10-30-duell',
     date: '30.10.2026',
     title: 'Kartenduell 2.0',

@@ -4695,3 +4695,87 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .hilo-swap { justify-self: center; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--hairline); background: transparent; color: var(--text-2); font: inherit; font-size: .875rem; font-weight: 700; cursor: pointer; transition: border-color .15s ease-out, transform .1s ease-out; }
 .hilo-swap:active { transform: scale(.96); }
 .hilo-swap:disabled { opacity: .45; cursor: default; }
+
+/* ===================== Casino 3: Bühne + Dock ===================== */
+/* Kopfzeile: schmal, Coins rechts */
+.cz-top { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.cz-top-title { font-family: var(--display, inherit); font-weight: 700; font-size: 1.5rem; letter-spacing: .06em; text-transform: uppercase; color: var(--text); }
+.cz-top .cz-bank-coins { margin-left: auto; font-size: 1.25rem; }
+.cz-top .cz-session { order: 2; }
+
+/* Spielleiste: eine Zeile, Icon über Name */
+.cz-games { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.cz-games .cz-game, .cz-games .cz-game:nth-child(4), .cz-games .cz-game:nth-child(5) { grid-column: auto; flex-direction: column; gap: 2px; min-height: 56px; padding: 6px 2px; font-size: .8125rem; }
+.cz-game span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Bühne: Held jedes Spiels */
+.cz-stage { position: relative; overflow: hidden; border-radius: 20px; border: 1px solid rgba(255, 215, 106, .22);
+  background: radial-gradient(90% 70% at 50% 0%, rgba(255, 215, 106, .1), transparent 60%), radial-gradient(120% 90% at 50% 120%, rgba(0, 0, 0, .55), transparent 60%), linear-gradient(180deg, #0f2a26, #0a1a1c); }
+.st-roulette { display: grid; place-items: center; padding: 36px 0 20px; }
+.st-roulette .cz-wheel-wrap { width: min(232px, 64vw); margin: 0; }
+.st-race { border: 0; background: none; overflow: visible; }
+.cz-tag { position: absolute; z-index: 3; top: 10px; left: 10px; max-width: calc(100% - 20px); padding: 4px 10px; border-radius: 999px; font-size: .8125rem; font-weight: 700; color: var(--text-2);
+  background: rgba(5, 6, 15, .7); border: 1px solid var(--hairline); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.cz-tag.gold { color: var(--gold); border-color: rgba(255, 215, 106, .45); left: 50%; transform: translateX(-50%); }
+.pz-goal .cz-tag { top: auto; bottom: 10px; }
+.solo-pitch .cz-tag { top: auto; bottom: 10px; left: 50%; transform: translateX(-50%); }
+
+/* Ergebnis direkt in der Bühne */
+.cz-outcome { position: absolute; z-index: 4; left: 50%; bottom: 14px; transform: translateX(-50%); display: grid; justify-items: center; gap: 2px; min-width: 60%; padding: 10px 18px; border-radius: 18px;
+  background: rgba(5, 6, 15, .82); border: 1px solid rgba(255, 215, 106, .55); box-shadow: 0 10px 30px rgba(0, 0, 0, .5); animation: cz-out .45s cubic-bezier(.2, 1.4, .4, 1) both; pointer-events: none; }
+.cz-outcome b { font-family: var(--display, inherit); font-size: 2rem; line-height: 1; color: var(--gold); font-variant-numeric: tabular-nums; }
+.cz-outcome em { font-style: normal; font-size: .8125rem; font-weight: 700; color: var(--up); }
+.cz-outcome small { font-size: .8125rem; font-weight: 700; color: var(--text-2); }
+.cz-outcome.lose { border-color: color-mix(in srgb, var(--down) 55%, transparent); }
+.cz-outcome.lose b { color: var(--down); }
+@keyframes cz-out { from { transform: translateX(-50%) translateY(16px) scale(.85); opacity: 0; } }
+.st-race .cz-outcome { bottom: 50%; transform: translate(-50%, 50%); animation-name: cz-out-mid; }
+@keyframes cz-out-mid { from { transform: translate(-50%, 50%) scale(.85); opacity: 0; } }
+.st-roulette .cz-outcome { bottom: 10px; }
+
+/* Dock: Einsatz + Spielknopf immer sichtbar */
+.cz-dock { position: sticky; bottom: 0; z-index: 6; display: grid; gap: 10px; margin: 0 -16px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: rgba(10, 12, 34, .88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-top: 1px solid rgba(160, 190, 255, .24); }
+.cz-dock .cz-stake-box { gap: 10px; }
+.cz-dock .cz-stakes { justify-content: space-between; gap: 6px; flex-wrap: nowrap; }
+.cz-dock .cz-chip { width: 46px; height: 46px; flex: none; font-size: .875rem; outline-offset: -6px; }
+.cz-dock .cz-chip.on { transform: translateY(-3px); }
+.cz-dock .cz-chip.allin { font-size: .6875rem; }
+.cz-free { width: 46px; height: 46px; flex: none; display: grid; place-items: center; border-radius: 50%; border: 1px dashed var(--line-strong, rgba(160, 190, 255, .32)); background: transparent; color: var(--text-2); cursor: pointer; transition: border-color .15s ease-out, color .15s ease-out; }
+.cz-free.on { border-style: solid; border-color: var(--gold); color: var(--gold); }
+.cz-range { width: 100%; height: 28px; accent-color: var(--gold); }
+.cz-dock .btn.big { min-height: 52px; }
+.cz-stats { margin: 0; text-align: center; font-size: .8125rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Kleinigkeiten je Spiel */
+.cz-hub small { font-size: .8125rem; font-weight: 700; color: var(--text-2); }
+.hh-range { font-size: .75rem; font-weight: 700; color: var(--muted); margin-top: -2px; }
+.hilo-table { padding: 40px 12px 12px; }
+.solo-auto > span { display: inline-flex; align-items: center; gap: 4px; }
+.cz-solo .solo-auto { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.cz-solo .solo-auto .chip { flex: none; }
+@media (prefers-reduced-motion: reduce) { .cz-outcome { animation: none; } }
+/* Dock unten: Spiel füllt die Höhe, das Dock sitzt am unteren Rand */
+.casino { display: flex; flex-direction: column; min-height: calc(100dvh - 96px); }
+.cz-roulette, .cz-horses, .cz-penalty, .cz-solo, .cz-hilo { display: flex; flex-direction: column; flex: 1; }
+.cz-dock { margin-top: auto; }
+.cz-stats { order: -1; margin-top: -8px; text-align: right; }
+
+/* Rennen: Pferde als kompaktes 2er-Raster */
+.cz-horse-list { grid-template-columns: 1fr 1fr; gap: 6px; }
+.cz-horse { grid-template-columns: 26px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 8px; row-gap: 0; min-height: 52px; padding: 6px 10px; }
+.cz-horse .cz-dot { grid-row: span 2; }
+.cz-horse span { font-size: .875rem; }
+.cz-horse small { font-size: .75rem; }
+
+/* Sololauf: Auto-Stufen passen in eine Zeile, Feld mit Linien */
+.cz-solo .solo-auto { gap: 4px; }
+.cz-solo .solo-auto .chip { min-height: 40px; padding: 0 10px; }
+.solo-pitch::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: rgba(255, 255, 255, .14); }
+.solo-pitch::after { content: ''; position: absolute; right: 0; top: 18%; width: 18%; height: 64%; border: 1px solid rgba(255, 255, 255, .14); border-right: 0; }
+.cz-solo .solo-pitch { flex: 1; min-height: 190px; max-height: 340px; }
+.cz-outcome { min-width: 0; padding: 6px 18px 8px; gap: 0; }
+.cz-outcome b { font-size: 1.75rem; }
+.st-race .cz-outcome { bottom: 10px; transform: translateX(-50%); animation-name: cz-out; }
+.st-roulette { padding-bottom: 28px; }
+.st-roulette .cz-outcome { bottom: 6px; }
