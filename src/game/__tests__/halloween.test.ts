@@ -34,6 +34,7 @@ it('Geisternacht nur am 30. und 31. Oktober, Gala-Woche ab der Verleihung', () =
   expect(activePacks(new Date(2026, 9, 20)).map((p) => p.id)).not.toContain('geisternacht');
   expect(eventActive('gala', new Date(2026, 9, 26, 20))).toBe(false);
   expect(eventActive('gala', new Date(2026, 9, 26, 21, 30))).toBe(true);
+  expect(eventActive('gala', new Date(2026, 9, 30, 12))).toBe(false); // vorzeitig beendet
   const club = { ...freshClub(), coins: 1_000_000 };
   for (let i = 0; i < 20; i++) {
     expect(openPack(club, 'geisternacht')!.result.cards.some((c) => eventOfCard(c.card) === 'geisternacht')).toBe(true);

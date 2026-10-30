@@ -4681,3 +4681,17 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 /* Casino im Shop: Der Shop darunter ist verdeckt – nicht weiter animieren und zeichnen */
 .hub:has(> .casino-overlay) > :not(.casino-overlay) { visibility: hidden; }
 .hub:has(> .casino-overlay) > :not(.casino-overlay) * { animation-play-state: paused !important; }
+/* Kartenduell: verdeckte Karte mit zwei sichtbaren Werten */
+.hilo-hidden { position: relative; width: min(150px, 100%); aspect-ratio: 3 / 4.2; display: grid; grid-template-rows: auto auto 1fr auto; justify-items: center; gap: 4px; padding: 14px 10px 12px; border-radius: 14px; color: #fff;
+  background: radial-gradient(120% 80% at 50% 0%, rgba(255, 215, 106, .16), transparent 60%), repeating-linear-gradient(45deg, #1b1f3d 0 8px, #151933 8px 16px); border: 2px solid rgba(255, 215, 106, .55); box-shadow: 0 8px 20px rgba(0, 0, 0, .45); }
+.hh-ovr { font-family: var(--display, inherit); font-size: 2.4rem; line-height: 1; color: var(--gold); }
+.hh-pos { font-family: var(--display, inherit); font-weight: 700; font-size: .95rem; padding: 2px 10px; border-radius: 999px; background: rgba(255, 255, 255, .1); }
+.hh-hints { display: grid; gap: 6px; align-content: center; width: 100%; }
+.hh-hints span { display: flex; align-items: baseline; justify-content: center; gap: 6px; padding: 4px 6px; border-radius: 10px; background: rgba(0, 0, 0, .35); font-size: .8125rem; font-weight: 700; color: var(--text-2); }
+.hh-hints b { font-family: var(--display, inherit); font-size: 1.6rem; line-height: 1; color: #fff; font-variant-numeric: tabular-nums; }
+.hh-rest { display: flex; gap: 4px; }
+.hh-rest i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, .18); }
+.hh-rest i.on { background: var(--gold); }
+.hilo-swap { justify-self: center; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--hairline); background: transparent; color: var(--text-2); font: inherit; font-size: .875rem; font-weight: 700; cursor: pointer; transition: border-color .15s ease-out, transform .1s ease-out; }
+.hilo-swap:active { transform: scale(.96); }
+.hilo-swap:disabled { opacity: .45; cursor: default; }

@@ -3,12 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import {
   BETS, BROKE_OPTIONS, CORNERS, HORSES, PEN_CHANCE, PEN_MULT, ROULETTE, WHEEL, afterGamble, brokeOptionUsed, colorOf, doBroke, horseChance, isBroke,
-  SOLO_CAP, drawHilo, hiloChance, hiloMult, playHorses, playRoulette, raceLegs, rouletteInfo, shootPenalty, soloChance, soloCrash, soloMult,
-  type Corner, type GambleResult, type HiLo, type PenaltyShot, type RouletteBet,
+  SOLO_CAP, drawDuel, drawDuelNext, DUEL_RANGE, duelChance, duelHints, duelMult, playHorses, playRoulette, raceLegs, rouletteInfo, shootPenalty, soloChance, soloCrash, soloMult,
+  type Corner, type DuelCard, type GambleResult, type HiLo, type PenaltyShot, type RouletteBet,
 } from '../game/gambling';
 import { getClub } from '../data/leagues';
-import type { RealPlayerTemplate } from '../data/players';
-import type { CollectCard } from '../game/club';
+import { attributeLabels } from '../game/player';
 import UtCard from './UtCard';
 import type { Career } from '../game/types';
 import { motionReduced } from '../settings';
@@ -552,23 +551,24 @@ function Solo({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }: S
 }
 
 // ---------- Kartenduell ----------
-const asCard = (p: RealPlayerTemplate, k: number): CollectCard => ({
-  id: `duel-${k}-${p.name}`, name: p.name, position: p.position, nation: p.nation, club: getClub(p.clubId).name, ovr: p.ovr,
-  variant: p.ovr >= 85 ? 'gold-rare' : p.ovr >= 75 ? 'gold' : 'silver',
-});
+/** Karte mit Vereinsnamen für die Anzeige (Werte bleiben an der festen ID). */
+const shownCard = (d: DuelCard) => ({ ...d.card, club: getClub(d.p.clubId).name });
 
 function HiLoGame({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }: Shared) {
-  const [cur, setCur] = useState<RealPlayerTemplate>(() => drawHilo());
-  const [next, setNext] = useState<{ p: RealPlayerTemplate; ok: boolean; dir: HiLo } | null>(null);
-  const [series, setSeries] = useState<{ stake: number; mult: number; streak: number; over: boolean; id: number } | null>(null);
+  const [cur, setCur] = useState<DuelCard>(() => drawDuel());
+  const [nxt, setNxt] = useState<{ d: DuelCard; hints: [number, number] }>(() => ({ d: drawDuelNext(cur), hints: duelHints() }));
+  const [reveal, setReveal] = useState<{ ok: boolean } | null>(null);
+  const [series, setSeries] = useState<{ stake: number; mult: number; streak: number; over: boolean; id: number; swaps: number } | null>(null);
   const [cashed, setCashed] = useState(0);
   const [k, setK] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const shown = useCountUp(cashed, series?.id);
   useEffect(() => () => clearTimeout(timer.current), []);
   const active = !!series && !series.over;
-  const flipping = !!next && active;
+  const flipping = !!reveal && active;
   const win = series ? Math.round(series.stake * series.mult) : 0;
+  const labels = attributeLabels(nxt.d.p.position);
+  const deal = (from: DuelCard) => setNxt({ d: drawDuelNext(from), hints: duelHints() });
 
   const settle = (s: NonNullable<typeof series>, amount: number) => {
     const res: GambleResult = { win: amount > 0, payout: amount, outcome: s.streak };
@@ -583,40 +583,49 @@ function HiLoGame({ stake, coins, busy, setBusy, commit, payout, allInOk, chips 
     const c = getClubState();
     if (amount > c.coins) return;
     setClubState({ ...c, coins: c.coins - amount });
-    setSeries({ stake: amount, mult: 1, streak: 0, over: false, id: Date.now() });
-    setNext(null);
+    setSeries({ stake: amount, mult: 1, streak: 0, over: false, id: Date.now(), swaps: 3 });
+    setReveal(null);
     setCashed(0);
-    setCur(drawHilo());
+    const first = drawDuel();
+    setCur(first);
+    deal(first);
     setK((x) => x + 1);
     setBusy(true);
     play('packShake');
   };
   const guess = (dir: HiLo) => {
-    if (!series || series.over || next) return;
-    const p = drawHilo();
-    const ok = dir === 'higher' ? p.ovr > cur.ovr : p.ovr < cur.ovr;
-    const m = hiloMult(cur.ovr, dir);
-    setNext({ p, ok, dir });
+    if (!series || series.over || reveal) return;
+    const ok = dir === 'higher' ? nxt.d.p.ovr > cur.p.ovr : nxt.d.p.ovr < cur.p.ovr;
+    const m = duelMult(duelChance(cur, nxt.d, nxt.hints, dir));
+    setReveal({ ok });
     play('tap');
     timer.current = setTimeout(() => {
-      if (!ok) { settle(series, 0); setNext({ p, ok, dir }); return; }
+      if (!ok) { settle(series, 0); return; }
       play('reveal');
       vibrate([20, 20, 40]);
       setSeries({ ...series, mult: Math.round(series.mult * m * 100) / 100, streak: series.streak + 1 });
-      setCur(p);
-      setNext(null);
+      setCur(nxt.d);
+      deal(nxt.d);
+      setReveal(null);
       setK((x) => x + 1);
-    }, motionReduced() ? 60 : 900);
+    }, motionReduced() ? 60 : 1100);
   };
 
+  /** Zu eindeutig? Die verdeckte Karte tauschen – ändert die Chancen nicht, nur das Angebot. */
+  const swap = () => {
+    if (!series || series.over || reveal || series.swaps <= 0) return;
+    setSeries({ ...series, swaps: series.swaps - 1 });
+    deal(cur);
+    play('packShake');
+  };
   const opt = (dir: HiLo) => {
-    const ch = hiloChance(cur.ovr, dir);
-    const m = hiloMult(cur.ovr, dir);
+    const ch = duelChance(cur, nxt.d, nxt.hints, dir);
+    const m = duelMult(ch);
     return (
       <button className={`hilo-btn ${dir}`} disabled={!active || flipping || !m} onClick={() => guess(dir)}>
         <Icon name="arrow" size={18} />
         <span>{dir === 'higher' ? 'Höher' : 'Tiefer'}</span>
-        <small>{m ? `×${m.toLocaleString('de-DE')} · ${pct(ch)}` : 'unmöglich'}</small>
+        <small>{m ? `×${m.toLocaleString('de-DE')} · ${ch >= 1 ? 'sicher' : pct(ch)}` : 'unmöglich'}</small>
       </button>
     );
   };
@@ -624,19 +633,33 @@ function HiLoGame({ stake, coins, busy, setBusy, commit, payout, allInOk, chips 
   return (
     <section className="cz-hilo">
       <div className="hilo-table">
-        <div className="hilo-slot" key={`c-${k}`}><UtCard card={asCard(cur, k)} size="md" /></div>
-        <div className={`hilo-slot back ${next ? `show ${next.ok ? 'ok' : 'bad'}` : ''}`}>
-          {next ? <UtCard card={asCard(next.p, k + 1)} size="md" /> : <span className="hilo-cardback" aria-hidden="true"><Icon name="cards" size={34} /></span>}
+        <div className="hilo-slot" key={`c-${k}`}><UtCard card={shownCard(cur)} size="md" /></div>
+        <div className={`hilo-slot back ${reveal ? `show ${reveal.ok ? 'ok' : 'bad'}` : ''}`} key={`n-${k}`}>
+          {reveal || series?.over ? <UtCard card={shownCard(nxt.d)} size="md" /> : (
+            <div className="hilo-hidden" aria-label={`Verdeckte Karte: ${nxt.d.p.position}, ${labels[nxt.hints[0]]} ${nxt.d.attrs[nxt.hints[0]]}, ${labels[nxt.hints[1]]} ${nxt.d.attrs[nxt.hints[1]]}`}>
+              <span className="hh-ovr">?</span>
+              <span className="hh-pos">{nxt.d.p.position}</span>
+              <span className="hh-hints">
+                {nxt.hints.map((i) => <span key={i}><b>{nxt.d.attrs[i]}</b>{labels[i]}</span>)}
+              </span>
+              <span className="hh-rest" aria-hidden="true">{labels.map((l, i) => <i key={l} className={nxt.hints.includes(i) ? 'on' : ''} />)}</span>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="hilo-choices">{opt('higher')}{opt('lower')}</div>
+      {active && (
+        <button className="hilo-swap" disabled={flipping || series.swaps <= 0} onClick={swap}>
+          <Icon name="swap" size={16} />Karte tauschen · noch {series.swaps}
+        </button>
+      )}
 
       <p className={`cz-result ${series?.over ? (cashed ? 'good' : 'bad') : ''}`} aria-live="polite">
         {series?.over
-          ? cashed ? <>Kassiert nach {series.streak} Treffern: <b>{fmt(shown)}</b> <small className="cz-net">(+{fmt(cashed - series.stake)})</small></> : `${next ? `${next.p.name} hat ${next.p.ovr}` : 'Daneben'} – ${fmt(series.stake)} Coins weg.`
-          : active ? (series.streak ? `${series.streak} richtig · ×${series.mult.toLocaleString('de-DE')} = ${fmt(win)}` : 'Ist der nächste Spieler höher oder tiefer bewertet? Gleichstand verliert.')
-            : 'Echte Spieler, echte Wertungen: Tipp höher oder tiefer – jeder Treffer multipliziert.'}
+          ? cashed ? <>Kassiert nach {series.streak} Treffern: <b>{fmt(shown)}</b> <small className="cz-net">(+{fmt(cashed - series.stake)})</small></> : `${nxt.d.p.name} hat ${nxt.d.p.ovr} – ${fmt(series.stake)} Coins weg.`
+          : active ? (series.streak ? `${series.streak} richtig · ×${series.mult.toLocaleString('de-DE')} = ${fmt(win)}` : 'Zwei Werte der verdeckten Karte sind zu sehen. Höher oder tiefer bewertet? Gleichstand verliert.')
+            : `Echte Spieler, echte Wertungen. Die verdeckte Karte liegt höchstens ${DUEL_RANGE} Punkte daneben – Position und zwei Werte siehst du. Lies sie und tippe.`}
       </p>
 
       {chips}

@@ -19,6 +19,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-30-duell',
+    date: '30.10.2026',
+    title: 'Kartenduell 2.0',
+    items: [
+      'Von der verdeckten Karte siehst du jetzt Position und zwei Werte – lies sie und schätze die Wertung.',
+      'Die nächste Karte liegt immer höchstens 4 Punkte neben der offenen. Die Chancen auf den Knöpfen rechnen genau mit dem, was du siehst.',
+      'Zu eindeutig? Mit „Karte tauschen“ holst du dir dreimal pro Duell eine neue verdeckte Karte.',
+      'Das Ballon-d’Or-Event ist vorzeitig beendet. Deine Gala-Karten bleiben in der Sammlung.',
+    ],
+  },
+  {
     id: '2026-10-30-casino-shop',
     date: '30.10.2026',
     title: 'Casino im Shop – mit All-in',

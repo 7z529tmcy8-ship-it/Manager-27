@@ -803,7 +803,8 @@ export const EVENTS: Record<EventId, { start: Date; end: Date }> = {
   halloween: { start: new Date(2026, 9, 1), end: HALLOWEEN_END },
   // Zweite Halloween-Welle – still, ohne Ankündigung: nur zwei Tage.
   geisternacht: { start: new Date(2026, 9, 30, 0, 0, 0), end: new Date(2026, 9, 31, 23, 59, 59) },
-  gala: { start: BALLON_CEREMONY, end: new Date(2026, 10, 9, 23, 59, 59) },
+  // Vorzeitig beendet (ursprünglich bis 9. November)
+  gala: { start: BALLON_CEREMONY, end: new Date(2026, 9, 29, 23, 59, 59) },
   // GIG-Event: Glücksrad, nur zwei Tage.
   gig: { start: new Date(2026, 9, 17, 0, 0, 0), end: new Date(2026, 9, 18, 23, 59, 59) },
   // Winter-Wunder mit Adventskalender
