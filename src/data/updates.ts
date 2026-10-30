@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-30-bis50',
+    date: '30.10.2026',
+    title: 'Spielen bis 50',
+    items: [
+      'Das Karriereende mit 41 ist weg: Du kannst jetzt bis 50 Jahre spielen – oder vorher selbst aufhören.',
+      'Ein Comeback geht jetzt bis 48 Jahre.',
+      'Der Körper baut im Alter weiter ab – wer lange oben bleiben will, braucht Spielzeit und starke Leistungen.',
+    ],
+  },
+  {
     id: '2026-10-29-alter',
     date: '29.10.2026',
     title: 'Altersfilter bei echten Spielern',

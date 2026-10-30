@@ -39,7 +39,7 @@ import { createRival, simulateRivalSeason } from './rival';
 import type { Career, DecisionResult, FinalState, GameEvent, MatchLine, Offer, Position, Role, SeasonRecord, StageLoad, TrainingFocus, TransferEntry } from './types';
 
 export const START_YEAR = 2025;
-export const MAX_AGE = 41;
+export const MAX_AGE = 50;
 
 export interface NewPlayer {
   name: string;
@@ -245,7 +245,7 @@ export function banForSeasons(prev: Career, seasons: number, reason: string): Ca
 }
 
 /** Comeback nur einmal pro Karriere und nicht zu alt. */
-export const COMEBACK_MAX_AGE = 38;
+export const COMEBACK_MAX_AGE = 48;
 export function canComeback(career: Career): boolean {
   return career.phase === 'retired' && !career.comebackUsed && career.player.age <= COMEBACK_MAX_AGE && career.history.length > 0;
 }
