@@ -4,7 +4,7 @@ import { chance } from './random';
 import type { PlayerState, Position, TrainingFocus } from './types';
 
 /** Die zwei wichtigsten Attribute je Position (Index in der Attributliste). */
-const KEY_ATTRIBUTES: Record<Position, number[]> = {
+export const KEY_ATTRIBUTES: Record<Position, number[]> = {
   ST: [1, 0], FL: [0, 3], ZOM: [3, 2], ZM: [2, 3], ZDM: [4, 5], AV: [0, 4], IV: [4, 5], TW: [3, 0],
 };
 
@@ -53,7 +53,8 @@ export function injuryFactor(p: PlayerState): number {
  */
 export function applyTraining(p: PlayerState, ovrBeforeDev: number): string | null {
   const f = p.trainingFocus ?? 'balanced';
-  if (typeof f !== 'number') return null;
+  // Während eines Positionstrainings ruht der normale Trainingsschwerpunkt.
+  if (typeof f !== 'number' || p.retrain) return null;
   const gains = p.trainingGains ?? p.profile.map(() => 0);
   let note: string | null = null;
   if (gains[f] < MAX_GAIN) {

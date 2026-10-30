@@ -6,6 +6,7 @@ import { resolveLotto } from './owner';
 import { resolvePress } from './press';
 import { postInbox } from './inbox';
 import { applyRetrain, retrainSuggestion } from './nlz';
+import { retrainOptions, startRetrain } from './position';
 import { createProfile, currentClubId, seasonLabel } from './player';
 import { chance, clamp, pick, randInt } from './random';
 import { hasTrait, type TraitId } from './traits';
@@ -138,7 +139,7 @@ const DECISIONS: DecisionDef[] = [
   {
     id: 'position',
     weight: 2,
-    when: (c) => !!POSITION_SWITCH[c.career.player.position] && (c.career.player.age >= 28 || c.share < 0.5),
+    when: (c) => !!POSITION_SWITCH[c.career.player.position] && !c.career.player.retrain && (c.career.player.age >= 28 || c.share < 0.5),
     build: (c) => {
       const p = c.career.player;
       const to = POSITION_SWITCH[p.position]!(p.age);
@@ -165,6 +166,40 @@ const DECISIONS: DecisionDef[] = [
       }
       morale(career, -1);
       return { title: 'Position behalten', text: 'Der Trainer akzeptiert es – begeistert ist er nicht.', tone: 'neutral' };
+    },
+  },
+  {
+    // Profis: Der Co-Trainer hat die Daten ausgewertet – auf einer Nachbarposition wärst du stärker.
+    // Annehmen startet das Positionstraining (siehe position.ts), höchstens alle drei Jahre ein Vorschlag.
+    id: 'proRetrain',
+    weight: 3,
+    when: (c) => {
+      const p = c.career.player;
+      if (p.nlz || p.retrain || p.age < 19 || p.age > 33) return false;
+      if (p.retrainOfferedAge !== undefined && p.age < p.retrainOfferedAge + 3) return false;
+      return retrainOptions(p).some((o) => o.now >= p.ovr + 2);
+    },
+    build: (c) => {
+      const p = c.career.player;
+      const best = retrainOptions(p).filter((o) => o.now >= p.ovr + 2).sort((a, b) => b.after - a.after)[0];
+      p.retrainOfferedAge = p.age;
+      return {
+        id: 'proRetrain',
+        title: 'Neue Position?',
+        text: `Der Co-Trainer zeigt dir seine Auswertung: „Deine Werte passen besser zum ${positionLabel(best.to)} als zum ${positionLabel(p.position)}. Nach ${best.halves === 1 ? 'einer Halbserie' : `${best.halves} Halbserien`} Positionstraining kämst du dort auf etwa ${best.after}.“`,
+        options: [
+          { id: 'yes', label: `Training zum ${positionLabel(best.to)} starten`, hint: `Wertung dort ca. ${best.after} · normaler Trainingsschwerpunkt ruht so lange` },
+          { id: 'no', label: `Ich bleibe ${positionLabel(p.position)}`, hint: 'Kein Problem für den Trainer' },
+        ],
+        data: { to: best.to },
+      };
+    },
+    resolve: (career, option, d) => {
+      if (option !== 'yes') return { title: 'Position behalten', text: 'Der Co-Trainer nickt: „Die Tür bleibt offen.“', tone: 'neutral' };
+      const to = d.data!.to as Position;
+      const next = startRetrain(career, to);
+      career.player.retrain = next.player.retrain;
+      return { title: `Positionstraining: ${positionLabel(to)}`, text: 'Ab jetzt lernst du die neuen Laufwege. Den Fortschritt siehst du unter „Position“.', tone: 'good' };
     },
   },
   {

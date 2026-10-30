@@ -6,6 +6,7 @@ import VicePanel from './VicePanel';
 import FamilyPanel from './FamilyPanel';
 import InvestPanel from './InvestPanel';
 import ClinicPanel from './ClinicPanel';
+import PositionPanel from './PositionPanel';
 import LifePopups from './LifePopups';
 import MomentOverlay from './MomentOverlay';
 import LiveMatch from './LiveMatch';
@@ -67,7 +68,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   const [open, setOpen] = useState<string | null>(null);
   const [tree, setTree] = useState(false);
   const [full, setFull] = useState(false);
-  const [panel, setPanel] = useState<'family' | 'invest' | 'clinic' | null>(null);
+  const [panel, setPanel] = useState<'family' | 'invest' | 'clinic' | 'position' | null>(null);
   const kids = career.household?.children.length ?? 0;
   // Nur einklappen, wenn sich das lohnt (mindestens zwei ältere Saisons)
   const shown = full || career.history.length <= COLLAPSED + 1 ? career.history : career.history.slice(-COLLAPSED);
@@ -158,6 +159,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       {panel === 'family' && <FamilyPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {panel === 'invest' && <InvestPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {panel === 'clinic' && <ClinicPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
+      {panel === 'position' && <PositionPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {moments.length > 0 ? (
         <MomentOverlay key={moments.map((m) => m.title).join('|')} moments={moments} onDone={() => setMoments([])} />
       ) : (
@@ -198,6 +200,11 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         </button>
         <button className="cs-life-btn" onClick={() => setPanel('invest')}>Vermögen</button>
         <button className="cs-life-btn" onClick={() => setPanel('clinic')}>Klinik{career.glam ? ` · ${career.glam}` : ''}</button>
+        {!retired && (
+          <button className="cs-life-btn" onClick={() => setPanel('position')}>
+            Position{p.retrain ? ` · ${p.retrain.total - p.retrain.left}/${p.retrain.total}` : ''}
+          </button>
+        )}
       </div>
 
       {career.history.length > 0 && <CareerPulse career={career} />}

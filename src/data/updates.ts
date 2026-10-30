@@ -19,6 +19,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-30-casino-position',
+    date: '30.10.2026',
+    title: 'Neues Casino und Positionstraining',
+    items: [
+      'Casino komplett neu: echter Roulette-Kessel, der auf der gezogenen Zahl stehen bleibt, mehr Wetten (Dutzende, Hälften, einzelne Zahl) und bei jeder Wette die ehrliche Gewinnchance.',
+      'Pferderennen mit Rennbahn, auf der überholt wird – antippen bringt dich sofort zum Zieleinlauf.',
+      'Neues Spiel Elfmeter-Serie: Ecke wählen, der Torwart rät. Jedes Tor steigert den Gewinn bis ×8,3 – nach jedem Treffer kannst du kassieren, ein gehaltener Schuss und alles ist weg.',
+      'Neu in der Karriere: Position. Lerne gezielt eine Nachbarposition, z. B. vom Stürmer zum Zehner – mit Vorschau, welche Wertung du dort hättest.',
+      'Auch der Co-Trainer meldet sich jetzt, wenn deine Werte auf einer anderen Position klar besser passen.',
+    ],
+  },
+  {
     id: '2026-10-30-bis50',
     date: '30.10.2026',
     title: 'Spielen bis 50',

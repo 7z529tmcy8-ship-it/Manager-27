@@ -9,22 +9,49 @@ import type { Career } from './types';
 export const BETS = [1_000, 5_000, 25_000, 100_000];
 
 // ---------- Roulette ----------
-export type RouletteBet = 'red' | 'black' | 'green' | 'even' | 'odd';
-export const ROULETTE: Record<RouletteBet, { label: string; payout: number }> = {
-  red: { label: '🔴 Rot', payout: 2 },
-  black: { label: '⚫ Schwarz', payout: 2 },
+// Europäisches Roulette: 37 Felder (0–36). Einfache Chancen zahlen ×2, Dutzende ×3, eine einzelne Zahl ×36.
+/** Einfache Chancen, Dutzende oder eine Zahl als `n0` … `n36` ('green' = alte Schreibweise für die Null). */
+export type RouletteBet = 'red' | 'black' | 'even' | 'odd' | 'low' | 'high' | 'd1' | 'd2' | 'd3' | 'green' | `n${number}`;
+export const ROULETTE: Record<'red' | 'black' | 'even' | 'odd' | 'low' | 'high' | 'd1' | 'd2' | 'd3', { label: string; payout: number }> = {
+  red: { label: 'Rot', payout: 2 },
+  black: { label: 'Schwarz', payout: 2 },
   even: { label: 'Gerade', payout: 2 },
   odd: { label: 'Ungerade', payout: 2 },
-  green: { label: '🟢 Null', payout: 36 },
+  low: { label: '1–18', payout: 2 },
+  high: { label: '19–36', payout: 2 },
+  d1: { label: '1–12', payout: 3 },
+  d2: { label: '13–24', payout: 3 },
+  d3: { label: '25–36', payout: 3 },
 };
+/** Reihenfolge der Zahlen auf dem Kessel (im Uhrzeigersinn, ab der Null). */
+export const WHEEL = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
 const REDS = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
 export const colorOf = (n: number) => (n === 0 ? 'green' : REDS.has(n) ? 'red' : 'black');
 
-function rouletteWins(bet: RouletteBet, n: number): boolean {
-  if (bet === 'green') return n === 0;
+const singleOf = (bet: RouletteBet): number | null => (bet === 'green' ? 0 : bet.startsWith('n') ? Number(bet.slice(1)) : null);
+
+export function rouletteWins(bet: RouletteBet, n: number): boolean {
+  const single = singleOf(bet);
+  if (single !== null) return n === single;
   if (n === 0) return false;
-  if (bet === 'red' || bet === 'black') return colorOf(n) === bet;
-  return bet === 'even' ? n % 2 === 0 : n % 2 === 1;
+  switch (bet) {
+    case 'red': case 'black': return colorOf(n) === bet;
+    case 'even': return n % 2 === 0;
+    case 'odd': return n % 2 === 1;
+    case 'low': return n <= 18;
+    case 'high': return n >= 19;
+    case 'd1': return n <= 12;
+    case 'd2': return n >= 13 && n <= 24;
+    default: return n >= 25;
+  }
+}
+
+/** Anzeige einer Wette: Name, Auszahlung (×) und ehrliche Gewinnchance. */
+export function rouletteInfo(bet: RouletteBet): { label: string; payout: number; chance: number } {
+  const single = singleOf(bet);
+  if (single !== null) return { label: single === 0 ? 'Null' : `Zahl ${single}`, payout: 36, chance: 1 / 37 };
+  const r = ROULETTE[bet as keyof typeof ROULETTE];
+  return { label: r.label, payout: r.payout, chance: (r.payout === 3 ? 12 : 18) / 37 };
 }
 
 // ---------- Pferdewetten ----------
@@ -38,7 +65,7 @@ export const HORSES: Horse[] = [
   { name: 'Letzte Hoffnung', odds: 30 },
 ];
 /** Gewinnchance eines Pferdes: etwas unter dem fairen Wert (Buchmacher-Marge). */
-const horseChance = (h: Horse) => 0.86 / h.odds;
+export const horseChance = (h: Horse) => 0.86 / h.odds;
 
 export interface GambleResult {
   win: boolean;
@@ -53,7 +80,7 @@ export interface GambleResult {
 export function playRoulette(bet: RouletteBet, stake: number, rand = Math.random): GambleResult {
   const n = Math.floor(rand() * 37);
   const win = rouletteWins(bet, n);
-  return { win, payout: win ? stake * ROULETTE[bet].payout : 0, outcome: n };
+  return { win, payout: win ? stake * rouletteInfo(bet).payout : 0, outcome: n };
 }
 
 export function playHorses(pick: number, stake: number, rand = Math.random): GambleResult {
@@ -66,6 +93,35 @@ export function playHorses(pick: number, stake: number, rand = Math.random): Gam
   const rest = HORSES.map((_, i) => i).filter((i) => i !== winner).sort(() => rand() - 0.5);
   const win = winner === pick;
   return { win, payout: win ? Math.round(stake * HORSES[pick].odds) : 0, outcome: winner, order: [winner, ...rest] };
+}
+
+/**
+ * Rennverlauf für die Animation: Position jedes Pferdes (0–100 % der Bahn) nach 25/50/75/100 % der Zeit.
+ * Unterwegs wird überholt, das Ziel steht aber vorher fest (`order`) – die Animation zeigt nur, was gezogen wurde.
+ */
+export function raceLegs(order: number[], rand = Math.random): number[][] {
+  const legs: number[][] = HORSES.map(() => [0, 0, 0, 0]);
+  order.forEach((horse, place) => {
+    const end = 100 - place * 7;
+    legs[horse] = [0.25, 0.5, 0.75].map((f) => Math.min(96, Math.max(4, end * f + (rand() - 0.5) * 22))).concat(end);
+  });
+  return legs;
+}
+
+// ---------- Elfmeter-Serie ----------
+// Bis zu fünf Elfmeter. Jeder Treffer erhöht den Gewinn, nach jedem Tor darf man kassieren.
+// Der Torwart springt zufällig in eine der drei Ecken; dazu geht jeder 25. Schuss drüber.
+// Trefferchance also 2/3 × 0,96 = 64 % – die Stufen sind so gewählt, dass die Bank auf Dauer gewinnt.
+export const PEN_MULT = [1.5, 2.3, 3.5, 5.4, 8.3];
+export const PEN_CHANCE = (2 / 3) * 0.96;
+export type Corner = 0 | 1 | 2;
+export const CORNERS = ['Links', 'Mitte', 'Rechts'] as const;
+
+export interface PenaltyShot { goal: boolean; keeper: Corner; over: boolean }
+export function shootPenalty(corner: Corner, rand = Math.random): PenaltyShot {
+  const keeper = Math.min(2, Math.floor(rand() * 3)) as Corner;
+  const over = rand() < 0.04;
+  return { goal: !over && keeper !== corner, keeper, over };
 }
 
 /**

@@ -30,6 +30,7 @@ import { maybeDecision } from './decisions';
 import { checkAchievements } from './achievements';
 import { createSeasonGoals, evaluateGoals } from './goals';
 import { applyTraining } from './training';
+import { progressRetrain } from './position';
 import { hasTrait, type TraitId } from './traits';
 import { advanceFinal, autoFinal, finalRating, startFinal } from './final';
 import { addNews, summerNews, winterNews } from './news';
@@ -349,6 +350,8 @@ function winterTransition(career: Career, quick: boolean): Career {
   const trainingNote = applyTraining(p, ovrBefore);
   developAttributes(p, attrsBefore);
   if (trainingNote) prog.notes.push(trainingNote);
+  const retrainNote = progressRetrain(p);
+  if (retrainNote) prog.notes.push(retrainNote);
   prog.injuryWeeksWinter = prog.injuryWeeks;
   const beforeEvents = p.ovr;
   prog.events = rollEvents(career, 1, stats, prog.injuryWeeks, strength);
@@ -522,6 +525,9 @@ function finishSecondHalf(career: Career): Career {
     p.ovr = Math.max(p.ovr, prog.ovrStart + (prog.winterEventDelta ?? 0));
     p.potential = Math.max(p.potential, p.ovr);
   }
+  // Positionstraining erst nach der Saison-Absicherung: ein Wechsel darf die Wertung ehrlich verändern.
+  const retrainNote = progressRetrain(p);
+  if (retrainNote) dev.reasons.push(retrainNote);
   const injuryWeeks = prog.injuryWeeks - (prog.injuryWeeksWinter ?? 0);
   prog.events = [...(prog.events ?? []), ...rollEvents(career, 2, second, injuryWeeks, strength)];
   const mental = nlzMentalBonus(p);

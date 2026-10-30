@@ -99,6 +99,10 @@ export interface PlayerState {
   proApps?: number;
   /** Positions-Umschulung im NLZ schon angeboten? */
   nlzRetrainOffered?: boolean;
+  /** Laufendes Positionstraining: Ziel, verbleibende und gesamte Halbserien. */
+  retrain?: { to: Position; left: number; total: number };
+  /** Alter, in dem der Co-Trainer zuletzt einen Positionswechsel vorgeschlagen hat. */
+  retrainOfferedAge?: number;
   caps: number;
   internationalGoals: number;
   /** Einsätze in den U-Nationalmannschaften (U17, U19, U21). */

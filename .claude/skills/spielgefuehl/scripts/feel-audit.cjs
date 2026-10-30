@@ -171,6 +171,21 @@ const FLOWS = {
     await tile(p, 'Sammlung'); await p.waitForTimeout(500);
     await p.mouse.wheel(0, 1500); await p.waitForTimeout(500); await p.mouse.wheel(0, -1500);
   },
+  casino: async (p) => {
+    // Echter Spieler → Karriere → Vermögen → Casino: einmal Roulette drehen, dann (falls vorhanden) Elfmeter-Serie
+    await p.click('.hb-new', { timeout: 4000 }); await p.waitForTimeout(400);
+    await p.click('.tabs button:has-text("Echter")', { timeout: 3000 }); await p.waitForTimeout(300);
+    await p.click('.real-list button', { timeout: 3000 }); await p.waitForTimeout(800);
+    await p.click('.cs-life-btn:has-text("Vermögen")', { timeout: 3000 }); await p.waitForTimeout(400);
+    await p.click('.chip:has-text("Casino")', { timeout: 3000 }); await p.waitForTimeout(400);
+    await p.click('.casino .btn.primary', { timeout: 3000 }); await p.waitForTimeout(3000);
+    const pen = p.locator('.chip:has-text("Elfmeter")');
+    if (await pen.count()) {
+      await pen.click(); await p.waitForTimeout(300);
+      await p.click('.casino .btn.primary', { timeout: 3000 }); await p.waitForTimeout(400);
+      await p.click('.pz-corner >> nth=0', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(1600);
+    }
+  },
   karriere: async (p) => {
     await p.click('.hb-new', { timeout: 4000 }); await p.waitForTimeout(600);
     await p.mouse.wheel(0, 800); await p.waitForTimeout(300);
