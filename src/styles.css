@@ -4671,7 +4671,7 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
   .solo-pitch.run .solo-runner, .btn.solo-cash::after, .hilo-slot.back.show, .hilo-slot:first-child, .solo-call, .solo-pitch.tackled .solo-runner { animation: none; }
 }
 .lite .solo-pitch.run .solo-runner, .lite .btn.solo-cash::after { animation: none; }
-.cz-actions .btn.primary.solo-cash { background: linear-gradient(90deg, #ffd76a, #ffb84a); color: #1a1200; }
+:root[data-theme="arena"] .cz-actions .btn.primary.solo-cash, .cz-actions .btn.primary.solo-cash, :root[data-theme="arena"] .cz-actions .btn.primary.solo-cash:hover:not(:disabled) { background: linear-gradient(90deg, #ffd76a, #ffb84a); color: #1a1200; box-shadow: 0 8px 22px rgba(255, 184, 74, .4); }
 .cz-net { color: var(--up); font-weight: 700; font-size: .875rem; }
 .polar-call + .casino-call { margin-top: 12px; }
 .hilo-slot.back { position: relative; }
