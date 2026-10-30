@@ -40,8 +40,8 @@ it('Ruhmesweg: Bestwert zählt, jede Stufe nur einmal', () => {
   expect(c.trophies).toBe(300);
   expect(c.trophyBest).toBe(400);
   expect(roadReady(c)).toBe(ROAD.filter((s) => s.at <= 400).length);
-  const once = claimRoad(c, 75)!;
-  expect(claimRoad(once, 75)).toBeNull();
+  const once = claimRoad(c, 100)!;
+  expect(claimRoad(once, 100)).toBeNull();
   expect(claimRoad(c, 3000)).toBeNull();
   const all = claimAllRoad(c);
   expect(roadReady(all)).toBe(0);
@@ -71,4 +71,20 @@ it('Drop-Shop: kaufen, Mega-Drop mindestens Episch, Karten-Belohnungen landen in
   const withCard = openDrop({ ...freshClub(), drops: 1 }, (() => { const seq = [0.99, 0.1, 0.5]; let k = 0; return () => seq[k++ % 3]; })())!;
   expect(withCard.reward.kind).toBe('card');
   if (withCard.reward.kind === 'card') expect(withCard.club.cards[withCard.reward.card.id]).toBe(1);
+});
+
+it('Ruhmesweg 2: 100 Stufen bis 17.500, wachsende Abstände, alter Fortschritt zählt als abgeholt', async () => {
+  const { ROAD_TOP, roadState } = await import('../glory');
+  expect(ROAD).toHaveLength(100);
+  expect(ROAD_TOP).toBe(17_500);
+  expect(ROAD[1].at - ROAD[0].at).toBe(100);
+  expect(ROAD[99].at - ROAD[98].at).toBe(250);
+  expect(ROAD.filter((s) => s.reward.kind === 'mega').length).toBe(8);
+  // Wer im alten Weg bis 1.500 abgeholt hat, bekommt dort nichts doppelt – ab 1.600 geht es weiter
+  const old = { ...addTrophies(freshClub(), 2_000), roadClaimed: [75, 150, 1500] };
+  expect(roadState(old, ROAD.find((s) => s.at === 1_500)!)).toBe('claimed');
+  expect(roadState(old, ROAD.find((s) => s.at === 1_600)!)).toBe('ready');
+  const mega = ROAD.find((s) => s.reward.kind === 'mega')!;
+  const got = claimRoad(addTrophies(freshClub(), mega.at), mega.at)!;
+  expect(got.megaDrops).toBe(1);
 });

@@ -286,7 +286,7 @@ function Row({ icon, title, sub, onClick, disabled }: { icon: string; title: str
   );
 }
 
-/** Breite Kachel für den Saison-Pass: Stufe, Fortschritt und offene Belohnungen. */
+/** Breite Kachel für den Wochenpass: Stufe, Fortschritt und offene Belohnungen. */
 function PassTile({ onClick }: { onClick: () => void }) {
   const club = useClub();
   const p = passOf(club);
@@ -297,7 +297,7 @@ function PassTile({ onClick }: { onClick: () => void }) {
     <button className="hub-tile hub-pass" onClick={onClick}>
       <span className="hub-tile-icon" aria-hidden="true"><Icon name="star" /></span>
       <span className="hub-pass-text">
-        <strong>Saison-Pass</strong>
+        <strong>Wochenpass</strong>
         <small>{open ? `${open} ${open === 1 ? 'Belohnung' : 'Belohnungen'} abholen` : level >= PASS_LEVELS ? 'Komplett – stark!' : `Noch ${XP_PER_LEVEL - inLevel} XP bis Stufe ${level + 1}`}</small>
         <span className="evo-bar"><i style={{ width: `${(inLevel / XP_PER_LEVEL) * 100}%` }} /></span>
       </span>

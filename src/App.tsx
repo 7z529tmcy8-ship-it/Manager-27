@@ -113,9 +113,10 @@ export default function App() {
     let career = next;
     // Neue Saisons bringen Coins für den Club.
     const res = creditCareer(getClubState(), career);
-    if (res.gained > 0) {
+    if (res.gained > 0 || res.drops > 0) {
       setClubState(addPassXp(res.club, res.seasons * PASS_XP.careerSeason));
-      setToast(`+${res.gained.toLocaleString('de-DE')} Coins ${res.seasons === 0 ? 'aus Familie & Vermögen' : res.seasons === 1 ? 'für die Saison' : `für ${res.seasons} Saisons`}`);
+      const extra = [res.drops ? `${res.drops} Drop${res.drops > 1 ? 's' : ''}` : '', res.mega ? `${res.mega} Mega-Drop${res.mega > 1 ? 's' : ''}` : ''].filter(Boolean).join(' + ');
+      setToast(`+${res.gained.toLocaleString('de-DE')} Coins${extra ? ` + ${extra}` : ''} ${res.seasons === 0 ? 'aus Familie & Vermögen' : res.seasons === 1 ? 'für die Saison' : `für ${res.seasons} Saisons`}`);
     }
     // Karriere vorbei: Belohnungskarte wählen (Ikone oder Auszeichnung).
     if (rewardPending(getClubState(), career)) setReward(career);

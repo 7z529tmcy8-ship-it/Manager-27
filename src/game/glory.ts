@@ -123,38 +123,52 @@ export function addTrophies(club: ClubState, delta: number): ClubState {
 }
 
 // ---------- Ruhmesweg ----------
-export type RoadReward = { kind: 'coins'; amount: number } | { kind: 'pack'; pack: string } | { kind: 'drops'; n: number };
+export type RoadReward = { kind: 'coins'; amount: number } | { kind: 'pack'; pack: string } | { kind: 'drops'; n: number } | { kind: 'mega'; n: number };
 export interface RoadStep { at: number; reward: RoadReward }
 
-const BIG = ['worldstar', 'icon', 'ultimate', 'goat'];
-const MID = ['gold', 'premium', 'megagold', 'premium', 'megagold', 'worldstar', 'premium', 'megagold'];
+// Ruhmesweg 2: 100 Stufen bis 17.500 Trophäen. Die Abstände wachsen (100 → 150 → 200 → 250), die Belohnungen auch:
+// alle 25 Stufen ein großes Pack, alle 10 ein Mega-Drop, alle 5 ein Pack, gerade Stufen Drops, ungerade Coins.
+const BIG = ['icon', 'ultimate', 'goat', 'goat'];
+const MID = ['gold', 'premium', 'megagold', 'premium', 'worldstar', 'megagold', 'flashback', 'worldstar', 'comeback', 'ultimate'];
+const GAP = [100, 150, 200, 250];
 
-/** 40 Stufen im Abstand von 75 Trophäen (bis 3.000). */
-export const ROAD: RoadStep[] = Array.from({ length: 40 }, (_, k) => {
-  const i = k + 1;
-  const at = i * 75;
-  if (i % 10 === 0) return { at, reward: { kind: 'pack', pack: BIG[i / 10 - 1] } };
-  if (i % 5 === 0) return { at, reward: { kind: 'pack', pack: MID[(i / 5 - 1) % MID.length] } };
-  if (i % 2 === 0) return { at, reward: { kind: 'drops', n: i >= 20 ? 2 : 1 } };
-  return { at, reward: { kind: 'coins', amount: 2_000 + i * 500 } };
-});
+export const ROAD: RoadStep[] = (() => {
+  let at = 0;
+  return Array.from({ length: 100 }, (_, k) => {
+    const i = k + 1;
+    at += GAP[Math.floor(k / 25)];
+    if (i % 25 === 0) return { at, reward: { kind: 'pack', pack: BIG[i / 25 - 1] } };
+    if (i % 10 === 0) return { at, reward: { kind: 'mega', n: i >= 60 ? 2 : 1 } };
+    if (i % 5 === 0) return { at, reward: { kind: 'pack', pack: MID[(i / 5 - 1) % MID.length] } };
+    if (i % 2 === 0) return { at, reward: { kind: 'drops', n: i >= 50 ? 2 : 1 } };
+    return { at, reward: { kind: 'coins', amount: 3_000 + i * 700 } };
+  });
+})();
+export const ROAD_TOP = ROAD[ROAD.length - 1].at;
+/** Große Stufe (alle 25) – für die Darstellung. */
+export const roadBig = (step: RoadStep) => ROAD.indexOf(step) % 25 === 24;
 
 export const roadRewardText = (r: RoadReward) =>
-  r.kind === 'coins' ? `${r.amount.toLocaleString('de-DE')} Coins` : r.kind === 'drops' ? `${r.n} Drop${r.n > 1 ? 's' : ''}` : PACKS.find((p) => p.id === r.pack)?.name ?? r.pack;
+  r.kind === 'coins' ? `${r.amount.toLocaleString('de-DE')} Coins` : r.kind === 'drops' ? `${r.n} Drop${r.n > 1 ? 's' : ''}`
+    : r.kind === 'mega' ? `${r.n} Mega-Drop${r.n > 1 ? 's' : ''}` : PACKS.find((p) => p.id === r.pack)?.name ?? r.pack;
 
 export type RoadState = 'claimed' | 'ready' | 'locked';
-export const roadState = (club: Pick<ClubState, 'trophyBest' | 'roadClaimed'>, step: RoadStep): RoadState =>
-  (club.roadClaimed ?? []).includes(step.at) ? 'claimed' : (club.trophyBest ?? 0) >= step.at ? 'ready' : 'locked';
+type RoadClub = Pick<ClubState, 'trophyBest' | 'roadClaimed' | 'road2Claimed'>;
+/** Alter Ruhmesweg (bis 3.000): Alles bis zur höchsten dort abgeholten Stufe gilt im neuen Weg als abgeholt – nichts doppelt. */
+const legacyCut = (club: RoadClub) => Math.max(0, ...(club.roadClaimed ?? []));
+export const roadState = (club: RoadClub, step: RoadStep): RoadState =>
+  (club.road2Claimed ?? []).includes(step.at) || step.at <= legacyCut(club) ? 'claimed' : (club.trophyBest ?? 0) >= step.at ? 'ready' : 'locked';
 
-export const roadReady = (club: Pick<ClubState, 'trophyBest' | 'roadClaimed'>) => ROAD.filter((s) => roadState(club, s) === 'ready').length;
+export const roadReady = (club: RoadClub) => ROAD.filter((s) => roadState(club, s) === 'ready').length;
 
 export function claimRoad(club: ClubState, at: number, now = Date.now()): ClubState | null {
   const step = ROAD.find((s) => s.at === at);
   if (!step || roadState(club, step) !== 'ready') return null;
-  const base = { ...club, roadClaimed: [...(club.roadClaimed ?? []), at] };
+  const base = { ...club, road2Claimed: [...(club.road2Claimed ?? []), at] };
   const r = step.reward;
   if (r.kind === 'coins') return { ...base, coins: base.coins + r.amount };
   if (r.kind === 'drops') return { ...base, drops: (base.drops ?? 0) + r.n };
+  if (r.kind === 'mega') return { ...base, megaDrops: (base.megaDrops ?? 0) + r.n };
   return storePacks(base, [r.pack], `Ruhmesweg (${at} Trophäen)`, now);
 }
 

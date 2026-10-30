@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-30-wochenpass',
+    date: '30.10.2026',
+    title: 'Wochenpass, längerer Ruhmesweg, Drops aus der Karriere',
+    items: [
+      'Der Pass startet jetzt jede Woche neu (Montag bis Sonntag) – mit 60 Stufen und eigener Karte. Dein Fortschritt aus Saison 2 läuft in Woche 44 weiter.',
+      'Ruhmesweg komplett neu: 100 Stufen bis 17.500 Trophäen, die Abstände werden immer größer. Neu dabei: Mega-Drops. Bereits Abgeholtes bleibt abgeholt.',
+      'Karriere bringt jetzt Drops: jede Saison 1 Flutlicht-Drop, jeder Titel und jede große Auszeichnung einen Mega-Drop (bis zu 2 pro Saison).',
+    ],
+  },
+  {
     id: '2026-10-30-casino-look',
     date: '30.10.2026',
     title: 'Casino aufgeräumt',

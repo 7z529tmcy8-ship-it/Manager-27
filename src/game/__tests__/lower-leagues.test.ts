@@ -30,8 +30,8 @@ it('Dritte Mannschaft bleibt unter der zweiten und der ersten', () => {
 });
 
 it('Pass-XP aus Duellen: höchstens 200 pro Tag, am nächsten Tag wieder voll', () => {
-  const day1 = new Date(2026, 9, 25, 12);
-  const day2 = new Date(2026, 9, 26, 9);
+  const day1 = new Date(2026, 10, 11, 12); // Mittwoch – beide Tage in derselben Pass-Woche
+  const day2 = new Date(2026, 10, 12, 9);
   let club = freshClub();
   let total = 0;
   for (let i = 0; i < 10; i++) {

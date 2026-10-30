@@ -20,7 +20,7 @@ const VARIANT_LABEL: Partial<Record<CollectCard['variant'], string>> = {
   flashback: 'Rückblende',
   unvergessen: 'Unvergessen',
   ewig: 'Ewig',
-  pass: 'Saison-Pass',
+  pass: 'Wochenpass',
   gig: 'GIG',
   winter: 'Winter-Wunder',
   silvester: 'Silvester',

@@ -1,15 +1,16 @@
 import { REAL_PLAYERS } from '../data/players';
 import { getClub } from '../data/leagues';
-import { openPack, PACKS, storePacks, type ClubState, type CollectCard, type PackResult } from './club';
-import { seasonId, seasonName } from './squad';
+import { isoWeek, openPack, PACKS, storePacks, type ClubState, type CollectCard, type PackResult } from './club';
+import { seasonName } from './squad';
 
-// ---------- Saison-Pass ----------
-// Pass-Saisons mit 60 Stufen (Saison 2 ab 24.10.2026). Ohne eigene Saison gilt der Kalendermonat. XP gibt es für Duelle, Packs, Evolutions,
-// Tauschaufgaben und Karriere-Saisons. Ganz oben wartet eine exklusive Saison-Pass-Karte.
-// Nicht abgeholte Belohnungen verfallen mit dem Monatsende.
+// ---------- Wochenpass ----------
+// Jede Kalenderwoche (Mo 0:00 – So 23:59) ein neuer Pass mit 60 Stufen. XP gibt es für Duelle, Packs, Evolutions,
+// Tauschaufgaben und Karriere-Saisons. Ganz oben wartet die exklusive Karte der Woche.
+// Nicht abgeholte Belohnungen verfallen am Sonntag um Mitternacht.
 
 export const PASS_LEVELS = 60;
-export const XP_PER_LEVEL = 100;
+/** 60 Stufen in einer Woche: 50 XP pro Stufe (3.000 XP insgesamt). */
+export const XP_PER_LEVEL = 50;
 
 export interface PassState {
   season: string; xp: number; claimed: number[];
@@ -22,7 +23,7 @@ export interface PassState {
   duelXp?: number;
 }
 
-/** Preis für den Pro-Pass (pro Saison = Monat). */
+/** Preis für den Pro-Pass (gilt eine Woche). */
 export const PRO_PASS_PRICE = 200_000_000;
 
 export type PassReward =
@@ -30,28 +31,38 @@ export type PassReward =
   | { level: number; kind: 'pack'; pack: string }
   | { level: number; kind: 'card' };
 
-/** Pass-Saisons. Danach (oder dazwischen) läuft automatisch ein Monats-Pass. */
-export interface PassSeason { id: string; name: string; start: Date; end: Date; /** Fester Saison-Held (sonst per Zufall). */ hero?: string }
-export const PASS_SEASONS: PassSeason[] = [
-  { id: '2026-S2', name: 'Saison 2', start: new Date(2026, 9, 24, 0, 0, 0), end: new Date(2026, 10, 30, 23, 59, 59), hero: 'Harry Kane' },
-];
-/** Wer den Pro-Pass der ersetzten Saison gekauft hatte, behält ihn in der neuen. */
-const CARRY_PRO: Record<string, string> = { '2026-S2': '2026-10' };
+/** Ein Pass-Zeitraum: hier immer eine Kalenderwoche. */
+export interface PassSeason { id: string; name: string; start: Date; end: Date; /** Fester Held der Woche (sonst per Zufall). */ hero?: string }
+
+/** Feste Pass-Helden je Woche. Ohne Eintrag wählt das Spiel einen Weltstar per Zufall (fest pro Woche). */
+export const WEEK_HEROES: Record<string, string> = {
+  '2026-W44': 'Harry Kane',
+};
+/** Erste Wochenpass-Woche: übernimmt den Stand der alten „Saison 2“ (gleiche Stufe, gleiche Abholungen, Pro bleibt). */
+const FIRST_WEEK = '2026-W44';
+const LEGACY_SEASON = '2026-S2';
 
 export function currentPassSeason(now = new Date()): PassSeason {
-  const s = PASS_SEASONS.find((x) => now >= x.start && now <= x.end);
-  if (s) return s;
-  return { id: seasonId(now), name: seasonName(seasonId(now)), start: new Date(now.getFullYear(), now.getMonth(), 1), end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59) };
+  const w = isoWeek(now);
+  const start = new Date(w.monday.getFullYear(), w.monday.getMonth(), w.monday.getDate(), 0, 0, 0);
+  const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6, 23, 59, 59);
+  return { id: w.id, name: `Woche ${w.kw}`, start, end, hero: WEEK_HEROES[w.id] };
 }
-export const passSeasonName = (id: string) => PASS_SEASONS.find((x) => x.id === id)?.name ?? (/^\d{4}-\d{2}$/.test(id) ? seasonName(id) : id);
+export function passSeasonName(id: string): string {
+  const w = /^\d{4}-W(\d+)$/.exec(id);
+  if (w) return `Woche ${Number(w[1])}`;
+  if (id === LEGACY_SEASON) return 'Saison 2';
+  return /^\d{4}-\d{2}$/.test(id) ? seasonName(id) : id;
+}
 
-// Gratis-Reihe: jede gerade Stufe ein starkes Pack, alle 10 Stufen Ikonen, alle 5 Ultimate, GOAT auf 30 und 59.
-// Ungerade Stufen bringen Coins von 6.000 bis 64.000. Der Pro-Pass bleibt deutlich stärker.
-const FREE_ROTATION = ['premium', 'megagold', 'comeback', 'flashback', 'worldstar', 'cult', 'debut'];
+// Gratis-Reihe (jede Woche): gerade Stufen ein Pack, Ikonen auf 20 und 40, Ultimate auf 10/30/50, GOAT auf 59.
+// Ungerade Stufen bringen Coins von 3.500 bis 32.500. Weil der Pass jetzt jede Woche neu startet, ist er schlanker als der Monats-Pass.
+const FREE_ROTATION = ['gold', 'premium', 'megagold', 'comeback', 'flashback', 'premium', 'cult', 'debut'];
 const freePack = (level: number): string | null => {
-  if (level === 30 || level === 59) return 'goat';
-  if (level % 10 === 0) return 'icon';
-  if (level % 5 === 0) return 'ultimate';
+  if (level === 59) return 'goat';
+  if (level === 20 || level === 40) return 'icon';
+  if (level % 10 === 0) return 'ultimate';
+  if (level % 5 === 0) return 'worldstar';
   if (level % 2 === 0) return FREE_ROTATION[(level / 2) % FREE_ROTATION.length];
   return null;
 };
@@ -61,7 +72,7 @@ export const PASS_REWARDS: PassReward[] = Array.from({ length: PASS_LEVELS }, (_
   if (level === PASS_LEVELS) return { level, kind: 'card' as const };
   const pack = freePack(level);
   if (pack) return { level, kind: 'pack' as const, pack };
-  return { level, kind: 'coins' as const, amount: 5_000 + level * 1_000 };
+  return { level, kind: 'coins' as const, amount: 3_000 + level * 500 };
 });
 export const freePackCount = (id: string) => PASS_REWARDS.filter((r) => r.kind === 'pack' && r.pack === id).length;
 
@@ -71,16 +82,16 @@ export const PASS_XP = {
   pack: 15,
   evoStep: 60,
   task: 40,
-  careerSeason: 100,
+  careerSeason: 150,
 };
 
-/** Pass-Stand der aktuellen Saison (eine neue Saison startet bei 0). */
+/** Pass-Stand der laufenden Woche (eine neue Woche startet bei 0). */
 export function passOf(club: Pick<ClubState, 'pass'>, now = new Date()): PassState {
   const sid = currentPassSeason(now).id;
   if (club.pass?.season === sid) return club.pass;
-  // Neue Saison: Pro bleibt erhalten, wenn er für die ersetzte Saison gekauft wurde
-  const carry = CARRY_PRO[sid] && club.pass?.season === CARRY_PRO[sid] && club.pass?.pro;
-  return { season: sid, xp: 0, claimed: [], ...(carry ? { pro: true, proClaimed: [] } : {}) };
+  // Umstellung auf den Wochenpass: Die erste Woche übernimmt die alte Saison 2 – XP halbiert, weil eine Stufe jetzt 50 statt 100 XP kostet.
+  if (sid === FIRST_WEEK && club.pass?.season === LEGACY_SEASON) return { ...club.pass, season: sid, xp: Math.floor(club.pass.xp / 2) };
+  return { season: sid, xp: 0, claimed: [] };
 }
 
 /** Aus Duellen gibt es höchstens so viele Pass-XP pro Tag – Dauer-Duellieren füllt den Pass nicht mehr. */
@@ -116,7 +127,7 @@ export function unclaimedLevels(club: Pick<ClubState, 'pass'>, now = new Date())
   return PASS_REWARDS.filter((r) => r.level <= passLevel(p.xp) && !p.claimed.includes(r.level)).map((r) => r.level);
 }
 
-/** Tage bis zum Ende der Pass-Saison (Monatsende). */
+/** Tage bis zum Ende der Pass-Woche (Sonntag). */
 export function passDaysLeft(now = new Date()): number {
   const end = currentPassSeason(now).end;
   return Math.max(1, Math.ceil((end.getTime() - now.getTime()) / 86_400_000));
@@ -124,10 +135,10 @@ export function passDaysLeft(now = new Date()): number {
 
 const hash = (s: string) => [...s].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7);
 
-/** Die exklusive Karte der Saison: ein Weltstar mit +7 im Saison-Pass-Design – jeden Monat ein anderer. */
+/** Die exklusive Karte der Woche: ein Weltstar mit +7 im Pass-Design – jede Woche ein anderer. */
 export function passCard(season: string): CollectCard {
   const stars = [...REAL_PLAYERS].filter((p) => p.ovr >= 86 && p.age <= 33).sort((a, b) => b.ovr - a.ovr || a.name.localeCompare(b.name));
-  const fixed = PASS_SEASONS.find((x) => x.id === season)?.hero;
+  const fixed = WEEK_HEROES[season] ?? (season === LEGACY_SEASON ? 'Harry Kane' : undefined);
   const p = (fixed && REAL_PLAYERS.find((x) => x.name === fixed)) || stars[hash(season) % stars.length];
   const club = getClub(p.clubId);
   return {
@@ -163,7 +174,7 @@ export const rewardText = (r: PassReward, season: string) =>
     : `Exklusiv: ${passCard(season).name} ${passCard(season).ovr}`;
 
 // ---------- Pro-Pass ----------
-// Eine zweite, deutlich stärkere Belohnungsreihe über denselben 30 Stufen. Gilt für die laufende Saison;
+// Eine zweite, deutlich stärkere Belohnungsreihe über dieselben 60 Stufen. Gilt für die laufende Woche;
 // schon erreichte Stufen lassen sich nach dem Kauf sofort abholen.
 
 /** Pro-Reihe über 60 Stufen: alle 10 ein GOAT-Pack, alle 5 Ikonen, alle 3 Ultimate, dazwischen starke Packs und große Coins. */

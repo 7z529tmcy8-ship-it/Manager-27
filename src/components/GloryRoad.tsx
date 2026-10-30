@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../clubStore';
-import { DROPS_PER_DAY, ROAD, claimAllRoad, claimRoad, dropsLeftToday, roadReady, roadRewardText, roadState, type DropKind, type RoadReward } from '../game/glory';
+import { DROPS_PER_DAY, ROAD, ROAD_TOP, claimAllRoad, roadBig, claimRoad, dropsLeftToday, roadReady, roadRewardText, roadState, type DropKind, type RoadReward } from '../game/glory';
 import DropOpener from './DropOpener';
 import Icon, { type IconName } from './Icon';
 
 const fmt = (n: number) => n.toLocaleString('de-DE');
-const roadIcon = (r: RoadReward): IconName => (r.kind === 'coins' ? 'coin' : r.kind === 'drops' ? 'spark' : 'pack');
+const roadIcon = (r: RoadReward): IconName => (r.kind === 'coins' ? 'coin' : r.kind === 'drops' ? 'spark' : r.kind === 'mega' ? 'bolt' : 'pack');
 
 /** Ruhmesweg: Belohnungsleiste für Trophäen aus Duellen und Karriere – plus Flutlicht-Drops öffnen und kaufen. */
 export default function GloryRoad({ onClose, onStore }: { onClose: () => void; onStore: () => void }) {
@@ -31,7 +31,7 @@ export default function GloryRoad({ onClose, onStore }: { onClose: () => void; o
           <div className="gr-score">
             <Icon name="trophy" size={34} />
             <strong>{fmt(trophies)}</strong>
-            <small>Trophäen{best > trophies ? ` · Bestwert ${fmt(best)}` : ''}</small>
+            <small>von {fmt(ROAD_TOP)} Trophäen{best > trophies ? ` · Bestwert ${fmt(best)}` : ''}</small>
           </div>
           {next ? (
             <div className="gr-next">
@@ -52,7 +52,7 @@ export default function GloryRoad({ onClose, onStore }: { onClose: () => void; o
           {ROAD.map((s) => {
             const st = roadState(club, s);
             return (
-              <li key={s.at} className={`gr-step ${st} ${s.at % 750 === 0 ? 'big' : ''}`}>
+              <li key={s.at} className={`gr-step ${st} ${roadBig(s) ? 'big' : ''} ${s.reward.kind === 'mega' ? 'mega' : ''}`}>
                 <span className="gr-at"><Icon name="trophy" size={14} />{fmt(s.at)}</span>
                 <span className="gr-reward"><Icon name={roadIcon(s.reward)} size={20} />{roadRewardText(s.reward)}</span>
                 {st === 'ready' ? <button className="btn primary small" onClick={() => { const c = claimRoad(getClubState(), s.at); if (c) setClubState(c); }}>Abholen</button>

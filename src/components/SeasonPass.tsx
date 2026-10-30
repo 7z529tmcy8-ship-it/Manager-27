@@ -66,7 +66,7 @@ export default function SeasonPass({ onBack, onCollection }: { onBack: () => voi
       if (res.stored) stored++;
       coins += res.coins ?? 0;
       if (res.pack) packs.push({ id: ++seq.current, ...res.pack });
-      if (res.card) packs.push({ id: ++seq.current, name: isPro ? 'Pro-Pass' : 'Saison-Pass', result: { cards: [{ card: res.card as CollectCard, duplicate: false }], items: [] } });
+      if (res.card) packs.push({ id: ++seq.current, name: isPro ? 'Pro-Pass' : 'Wochenpass', result: { cards: [{ card: res.card as CollectCard, duplicate: false }], items: [] } });
     }
     if (coins || stored) flash([coins ? `+${fmt(coins)} Coins` : '', stored ? `${stored} ${stored === 1 ? 'Pack' : 'Packs'} in der Ablage (Store)` : ''].filter(Boolean).join(' · '));
     if (packs.length) setQueue((q) => [...q, ...packs]);
@@ -80,7 +80,7 @@ export default function SeasonPass({ onBack, onCollection }: { onBack: () => voi
         <span className="hub-coins"><Icon name="coin" size={16} className="coin-ic" />{fmt(club.coins)}</span>
       </header>
       <div className="pass-title">
-        <h1 className="hub-title">Saison-Pass{pro && <span className="pass-pro-badge">PRO</span>}</h1>
+        <h1 className="hub-title">Wochenpass{pro && <span className="pass-pro-badge">PRO</span>}</h1>
         <span className="pass-days"><Icon name="clock" size={14} />{passSeasonName(p.season)} · noch {days} {days === 1 ? 'Tag' : 'Tage'}</span>
       </div>
 
@@ -163,7 +163,7 @@ export default function SeasonPass({ onBack, onCollection }: { onBack: () => voi
         <li><Icon name="pack" size={18} /><span>Pack gekauft</span><b>+{PASS_XP.pack}</b></li>
         <li><Icon name="tactics" size={18} /><span>Remis / Niederlage</span><b>+{PASS_XP.duel(1, 'draw')} / +{PASS_XP.duel(1, 'loss')}</b></li>
       </ul>
-      <p className="hint pass-foot">Nicht abgeholte Belohnungen verfallen am Monatsende – dann startet ein neuer Pass mit neuem Saison-Helden.</p>
+      <p className="hint pass-foot">Jeden Montag startet ein neuer Wochenpass mit neuer Karte – nicht Abgeholtes verfällt Sonntagnacht.</p>
 
       {toast && <div className="coin-toast" role="status"><Icon name="coin" size={16} className="coin-ic" />{toast}</div>}
       {prompt && (

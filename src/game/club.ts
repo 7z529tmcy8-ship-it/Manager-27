@@ -83,7 +83,10 @@ export interface ClubState {
   /** Ruhmesweg: aktuelle und beste Trophäen, abgeholte Stufen (Trophäen-Marke). */
   trophies?: number;
   trophyBest?: number;
+  /** Alter Ruhmesweg (bis 3.000 Trophäen) – nur noch für die Übernahme. */
   roadClaimed?: number[];
+  /** Abgeholte Stufen des Ruhmeswegs 2 (bis 17.500 Trophäen). */
+  road2Claimed?: number[];
   /** Polarlicht-Kalender (Premium-Adventskalender): freigeschaltet und geöffnete Türchen. */
   polar?: { unlocked: boolean; opened: number[] };
   /** Saison-Pass des aktuellen Monats. */
@@ -451,22 +454,36 @@ export function seasonCoins(r: SeasonRecord, specials: number): number {
 }
 
 /**
+ * Drops aus der Karriere: jede gespielte Saison 1 Flutlicht-Drop, jeder Titel und jede große Auszeichnung
+ * ein Mega-Drop (höchstens 2 pro Saison) – die Belohnung kommt im Moment des Erfolgs, nicht erst am Karriereende.
+ */
+export const CAREER_DROPS = { perSeason: 1, megaCap: 2 } as const;
+export function careerDrops(r: SeasonRecord): { drops: number; mega: number } {
+  return { drops: CAREER_DROPS.perSeason, mega: Math.min(CAREER_DROPS.megaCap, r.trophies.length + r.awards.length) };
+}
+
+/**
  * Noch nicht ausgezahlte Saisons (als Spieler und als Trainer) gutschreiben.
  * Eigene Karten gibt es nicht mehr – nach dem Karriereende gibt es Packs je nach Bilanz (claimCareerReward).
  */
 export function creditCareer(
   club: ClubState,
   career: Career,
-): { club: ClubState; gained: number; seasons: number; icon: CollectCard | null } {
+): { club: ClubState; gained: number; seasons: number; icon: CollectCard | null; drops: number; mega: number } {
   const done = club.credited[career.id] ?? 0;
   const fresh = career.history.slice(done);
   let gained = 0;
   // Ruhmesweg: Trophäen für jede Saison (+20) und jeden Titel (+10)
   let trophies = 0;
+  let drops = 0;
+  let mega = 0;
   for (const r of fresh) {
     const mine = (career.specialCards ?? []).filter((s) => s.season === r.season);
     gained += seasonCoins(r, mine.length);
     trophies += 20 + r.trophies.length * 10;
+    const d = careerDrops(r);
+    drops += d.drops;
+    mega += d.mega;
   }
   const coachKey = `${career.id}:coach`;
   const coachSeasons = career.coach?.history ?? [];
@@ -480,18 +497,22 @@ export function creditCareer(
   const hhFresh = hhTotal - (club.credited[hhKey] ?? 0);
   gained += hhFresh;
 
-  if (!fresh.length && !coachFresh.length && !hhFresh) return { club, gained: 0, seasons: 0, icon: null };
+  if (!fresh.length && !coachFresh.length && !hhFresh) return { club, gained: 0, seasons: 0, icon: null, drops: 0, mega: 0 };
   return {
     club: {
       ...club,
       coins: Math.max(0, club.coins + gained),
       trophies: (club.trophies ?? 0) + trophies,
       trophyBest: Math.max(club.trophyBest ?? 0, (club.trophies ?? 0) + trophies),
+      drops: (club.drops ?? 0) + drops,
+      megaDrops: (club.megaDrops ?? 0) + mega,
       credited: { ...club.credited, [career.id]: career.history.length, [coachKey]: coachSeasons.length, [hhKey]: hhTotal },
     },
     gained,
     seasons: fresh.length + coachFresh.length,
     icon: null,
+    drops,
+    mega,
   };
 }
 
