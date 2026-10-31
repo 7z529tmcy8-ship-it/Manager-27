@@ -88,3 +88,18 @@ it('Ruhmesweg 2: 100 Stufen bis 17.500, wachsende Abstände, alter Fortschritt z
   const got = claimRoad(addTrophies(freshClub(), mega.at), mega.at)!;
   expect(got.megaDrops).toBe(1);
 });
+
+it('Alle Drops auf einmal öffnen: jeder Drop einmal, Belohnungen gutgeschrieben', async () => {
+  const { openAllDrops } = await import('../glory');
+  const start = { ...freshClub(), drops: 7, megaDrops: 2 };
+  const all = openAllDrops(start, 'normal');
+  expect(all.opened).toHaveLength(7);
+  expect(all.club.drops).toBe(0);
+  expect(all.club.megaDrops).toBe(2);
+  const coins = all.opened.reduce((a, o) => a + (o.reward.kind === 'coins' ? o.reward.amount : 0), 0);
+  expect(all.club.coins).toBe(start.coins + coins);
+  const mega = openAllDrops(all.club, 'mega');
+  expect(mega.opened).toHaveLength(2);
+  expect(mega.opened.every((o) => ['episch', 'mythisch', 'legendaer'].includes(o.rarity))).toBe(true);
+  expect(openAllDrops(mega.club, 'mega').opened).toHaveLength(0);
+});

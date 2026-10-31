@@ -21,7 +21,17 @@ const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 export default function Store({ onBack, onCollection }: { onBack: () => void; onCollection: () => void }) {
   const club = useClub();
   const [opening, setOpening] = useState<{ result: PackResult; name: string; theme?: string; art?: string; packId: string; free: boolean; n: number } | null>(null);
-  const [dropOpen, setDropOpen] = useState<DropKind | null>(null);
+  const [dropOpen, setDropOpen] = useState<{ kind: DropKind; all?: boolean } | null>(null);
+  const [dept, setDept] = useState<Dept>(() => {
+    try { const d = sessionStorage.getItem('fc-shop-dept') as Dept | null; if (d && DEPTS.some((x) => x.id === d)) return d; } catch { /* kein Speicher */ }
+    return 'offers';
+  });
+  const pickDept = (d: Dept) => {
+    setDept(d);
+    try { sessionStorage.setItem('fc-shop-dept', d); } catch { /* kein Speicher */ }
+    play('tap');
+  };
+  const stash = (club.storedPacks?.length ?? 0) + (club.drops ?? 0) + (club.megaDrops ?? 0);
   const [polar, setPolar] = useState(false);
   const [casino, setCasino] = useState(false);
   const [code, setCode] = useState('');
@@ -62,8 +72,19 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         <span className="hub-coins"><Icon name="coin" size={16} className="coin-ic" />{fmtCoins(club.coins)}</span>
       </header>
       <h1 className="hub-title">Shop</h1>
-      <p className="hub-sub">Coins verdienst du in deinen Karrieren: pro Saison für Spiele, Tore, Vorlagen, Titel, Erfolge und Sonderkarten.</p>
 
+      <nav className="shop-tabs" aria-label="Shop-Abteilungen">
+        {DEPTS.map((d) => (
+          <button key={d.id} className={`shop-tab ${dept === d.id ? 'active' : ''}`} aria-pressed={dept === d.id} onClick={() => pickDept(d.id)}>
+            <Icon name={d.icon} size={20} />
+            <span>{d.label}</span>
+            {d.id === 'stash' && stash > 0 && <b className="shop-badge">{stash > 99 ? '99+' : stash}</b>}
+          </button>
+        ))}
+      </nav>
+
+      {dept === 'offers' && (
+        <div className="shop-dept" key="offers">
       {!club.megaSuperClaimed && (
         <button className="mega-xxl super" onClick={() => {
           const res = openMegaSuper(getClubState());
@@ -119,6 +140,12 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         </button>
       )}
 
+          <TotwSection coins={club.coins} onBuy={() => buy(TOTW_PACK.id)} />
+        </div>
+      )}
+
+      {dept === 'extras' && (
+        <div className="shop-dept" key="extras">
       <button className="casino-call" onClick={() => setCasino(true)}>
         <span className="casino-call-icon" aria-hidden="true"><Icon name="dice" size={26} /></span>
         <span className="casino-call-text">
@@ -134,10 +161,17 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         {codeMsg && <p className="code-msg bad" role="status">{codeMsg}</p>}
       </form>
 
-      <StoredPacks onDrop={setDropOpen} onOpen={(r) => setOpening((o) => ({ result: r.result, name: r.name, packId: '', free: true, n: (o?.n ?? 0) + 1 }))} />
+        </div>
+      )}
 
-      <TotwSection coins={club.coins} onBuy={() => buy(TOTW_PACK.id)} />
+      {dept === 'stash' && (
+        <div className="shop-dept" key="stash">
+      <StoredPacks onDrop={(kind, all) => setDropOpen({ kind, all })} onOpen={(r) => setOpening((o) => ({ result: r.result, name: r.name, packId: '', free: true, n: (o?.n ?? 0) + 1 }))} />
+        </div>
+      )}
 
+      {dept === 'packs' && (
+        <div className="shop-dept" key="packs">
       {STORE_GROUPS.map((g) => {
         const packs = activePacks().filter((p) => storeGroup(p) === g.id);
         if (!packs.length) return null;
@@ -166,9 +200,20 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
           </section>
         );
       })}
+        </div>
+      )}
 
+      {dept === 'drops' && (
+        <div className="shop-dept" key="drops">
+      {(club.drops ?? 0) + (club.megaDrops ?? 0) > 0 && (
+        <button className="drops-ready" onClick={() => pickDept('stash')}>
+          <span className="dc-gem small r-episch" aria-hidden="true"><i /><b /></span>
+          <span><b>{(club.drops ?? 0) + (club.megaDrops ?? 0)} Drops warten</b><small>In der Ablage öffnen</small></span>
+          <Icon name="arrow" size={20} />
+        </button>
+      )}
       <section className="store-group sg-drops" aria-label="Flutlicht-Drops">
-        <h2 className="store-group-head"><Icon name="spark" size={18} />Flutlicht-Drops<small>Gedrückt halten, aufbrechen – von Selten bis Legendär</small></h2>
+        <h2 className="store-group-head"><Icon name="spark" size={18} />Flutlicht-Drops<small>Antippen, aufsteigen lassen – von Selten bis Legendär</small></h2>
         <div className="store-grid">
           {DROP_SHOP.map((o) => {
             const afford = club.coins >= o.price;
@@ -182,7 +227,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
                 <small className="pack-odds">{o.kind === 'mega'
                   ? `Episch ${MEGA_ODDS.episch} % · Mythisch ${MEGA_ODDS.mythisch} % · Legendär ${MEGA_ODDS.legendaer} %`
                   : `${DROP_LABEL.legendaer} ${DROP_ODDS.legendaer.toLocaleString('de-DE')} % · ${DROP_LABEL.mythisch} ${DROP_ODDS.mythisch.toLocaleString('de-DE')} %`}</small>
-                <button className="btn primary" disabled={!afford} onClick={() => { const c = buyDrops(getClubState(), o.id); if (c) { setClubState(c); setDropOpen(o.kind); } }}
+                <button className="btn primary" disabled={!afford} onClick={() => { const c = buyDrops(getClubState(), o.id); if (c) { setClubState(c); setDropOpen({ kind: o.kind }); } }}
                   aria-label={afford ? `${o.name} kaufen für ${fmtCoins(o.price)} Coins` : `Dir fehlen ${fmtCoins(o.price - club.coins)} Coins`}>
                   <Icon name="coin" size={16} className="coin-ic" />{afford ? fmtCoins(o.price) : `−${fmtCoins(o.price - club.coins)}`}
                 </button>
@@ -191,7 +236,8 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
           })}
         </div>
       </section>
-
+        </div>
+      )}
 
       {mega && <MegaCrash onDone={onBack} />}
       {superPack && superCharging && <MegaCharge title={'MEGA<br />SUPER<br />XXL'} onDone={() => setSuperCharging(false)} />}
@@ -209,7 +255,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         </div>
       )}
       {polar && <PolarCalendar onClose={() => setPolar(false)} onCollection={() => { setPolar(false); onCollection(); }} />}
-      {dropOpen && <DropOpener kind={dropOpen} onClose={() => setDropOpen(null)} />}
+      {dropOpen && <DropOpener kind={dropOpen.kind} all={dropOpen.all} onClose={() => setDropOpen(null)} onStore={() => pickDept('stash')} />}
       {opening && (
         <PackOpening
           key={opening.n}
@@ -310,12 +356,12 @@ export function PackPrompt({ packs, onOpen, onStore }: { packs: string[]; onOpen
 }
 
 /** Ablage: gewonnene, noch ungeöffnete Packs. */
-function StoredPacks({ onOpen, onDrop }: { onOpen: (res: { name: string; result: PackResult }) => void; onDrop: (kind: DropKind) => void }) {
+function StoredPacks({ onOpen, onDrop }: { onOpen: (res: { name: string; result: PackResult }) => void; onDrop: (kind: DropKind, all?: boolean) => void }) {
   const club = useClub();
   const list = club.storedPacks ?? [];
   const drops = club.drops ?? 0;
   const mega = club.megaDrops ?? 0;
-  if (!list.length && !drops && !mega) return null;
+  if (!list.length && !drops && !mega) return <p className="shop-empty"><Icon name="folder" size={28} />Deine Ablage ist leer. Packs und Drops aus Belohnungen landen hier.</p>;
   const open = (id: string) => {
     const res = openStoredPack(getClubState(), id);
     if (!res) return;
@@ -340,7 +386,10 @@ function StoredPacks({ onOpen, onDrop }: { onOpen: (res: { name: string; result:
   return (
     <section className="store-group sg-stored" aria-label="Deine Packs">
       <h2 className="store-group-head"><Icon name="folder" size={18} />Deine Packs<small>{list.length + drops + mega} in der Ablage</small></h2>
-      {list.length > 1 && <button className="btn primary stored-all" onClick={openAll}><Icon name="pack" size={18} /> Alle {list.length} Packs öffnen</button>}
+      <div className="stored-alls">
+        {list.length > 1 && <button className="btn primary stored-all" onClick={openAll}><Icon name="pack" size={18} /> Alle {list.length} Packs öffnen</button>}
+        {drops + mega > 1 && <button className="btn primary stored-all drops" onClick={() => onDrop(mega ? 'mega' : 'normal', true)}><Icon name="spark" size={18} /> Alle {drops + mega} Drops öffnen</button>}
+      </div>
       <ul className="stored-list">
         {([['mega', mega, 'Mega-Drop', 'Mindestens Episch'], ['normal', drops, 'Flutlicht-Drop', 'Von Selten bis Legendär']] as const).filter(([, n]) => n > 0).map(([kind, n, name, sub]) => (
           <li key={kind} className={`stored-pack stored-drop ${kind}`}>
@@ -363,6 +412,16 @@ function StoredPacks({ onOpen, onDrop }: { onOpen: (res: { name: string; result:
     </section>
   );
 }
+
+/** Shop-Abteilungen: oben antippen statt lange scrollen. */
+type Dept = 'offers' | 'packs' | 'drops' | 'stash' | 'extras';
+const DEPTS: { id: Dept; label: string; icon: 'gift' | 'pack' | 'spark' | 'folder' | 'dice' }[] = [
+  { id: 'offers', label: 'Angebote', icon: 'gift' },
+  { id: 'packs', label: 'Packs', icon: 'pack' },
+  { id: 'drops', label: 'Drops', icon: 'spark' },
+  { id: 'stash', label: 'Ablage', icon: 'folder' },
+  { id: 'extras', label: 'Extras', icon: 'dice' },
+];
 
 /** Store-Bereiche: zeitlich begrenzte Event-Packs, Spezial-Packs mit garantierten Sonderkarten, normale Packs. */
 const SPECIAL_PACKS = new Set(['wonder', 'cult', 'debut', 'comeback', 'flashback', 'worldstar', 'icon', 'ultimate', 'goat']);

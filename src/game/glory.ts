@@ -93,6 +93,19 @@ export function buyDrops(club: ClubState, offerId: string): ClubState | null {
 
 export interface DropOpen { club: ClubState; rarity: DropRarity; steps: DropRarity[]; reward: DropReward; kind: DropKind; duplicate: boolean }
 
+/** Alle Drops einer Sorte auf einmal öffnen (wie „Alle Packs öffnen“). */
+export function openAllDrops(club: ClubState, kind: DropKind = 'normal', rand: () => number = Math.random, now = Date.now()): { club: ClubState; opened: DropOpen[] } {
+  const opened: DropOpen[] = [];
+  let c = club;
+  for (let i = 0; i < 500; i++) {
+    const r = openDrop(c, rand, now, kind);
+    if (!r) break;
+    opened.push(r);
+    c = r.club;
+  }
+  return { club: c, opened };
+}
+
 /** Einen Drop öffnen: Seltenheit würfeln, Belohnung gutschreiben (Packs in die Ablage, Karten in die Sammlung). */
 export function openDrop(club: ClubState, rand: () => number = Math.random, now = Date.now(), kind: DropKind = 'normal'): DropOpen | null {
   const have = kind === 'mega' ? club.megaDrops ?? 0 : club.drops ?? 0;

@@ -135,6 +135,7 @@ async function home(page) {
 }
 const tile = (page, title) => page.click(`.hub-tile:has(strong:text-is("${title}"))`, { timeout: 4000 });
 const nav = (page, label) => page.click(`.navbar-item:has-text("${label}")`, { timeout: 4000 });
+const dept = (page, label) => page.click(`.shop-tab:has-text("${label}")`, { timeout: 3000 });
 
 /** Die geprüften Abläufe. Neue Spielteile hier ergänzen (siehe SKILL.md). */
 const FLOWS = {
@@ -143,6 +144,7 @@ const FLOWS = {
   },
   store: async (p) => {
     await nav(p, 'Shop'); await p.waitForTimeout(400);
+    for (const d of ['Packs', 'Drops', 'Ablage', 'Extras', 'Angebote', 'Packs']) { await dept(p, d); await p.waitForTimeout(250); }
     await p.mouse.wheel(0, 900); await p.waitForTimeout(300); await p.mouse.wheel(0, -900);
     await p.click('.pack-card.p-gold button', { timeout: 3000 });
     await p.waitForTimeout(1600);
@@ -150,17 +152,18 @@ const FLOWS = {
     await p.waitForTimeout(800);
   },
   drop: async (p) => {
+    // Ablage → einen Drop antippen bis offen → nächster → alle öffnen (Übersicht)
     await nav(p, 'Shop'); await p.waitForTimeout(400);
-    await p.click('.stored-drop button', { timeout: 3000 });
+    await dept(p, 'Ablage'); await p.waitForTimeout(300);
+    await p.click('.stored-drop.normal button', { timeout: 3000 });
     await p.waitForTimeout(500);
     for (let i = 0; i < 8; i++) {
-      const gem = p.locator('.dopen-gem');
+      const gem = p.locator('.dx-drop');
       if (!(await gem.count())) break;
-      const b = await gem.boundingBox();
-      await p.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
-      await p.mouse.down(); await p.waitForTimeout(700); await p.mouse.up();
-      await p.waitForTimeout(450);
+      await gem.click(); await p.waitForTimeout(380);
     }
+    await p.waitForTimeout(700);
+    await p.click('.dx-actions .btn:has-text("Alle öffnen")', { timeout: 1500 }).catch(() => {});
     await p.waitForTimeout(900);
   },
   ruhmesweg: async (p) => {
@@ -169,7 +172,10 @@ const FLOWS = {
   },
   sammlung: async (p) => {
     await tile(p, 'Sammlung'); await p.waitForTimeout(500);
+    await p.click('.cc-tile.ct-all', { timeout: 3000 }); await p.waitForTimeout(400);
     await p.mouse.wheel(0, 1500); await p.waitForTimeout(500); await p.mouse.wheel(0, -1500);
+    await p.click('.cc-back', { timeout: 3000 }); await p.waitForTimeout(300);
+    await p.click('.cc-tile.ct-icon', { timeout: 3000 }); await p.waitForTimeout(400);
   },
   casino: async (p) => {
     // Echter Spieler → Karriere → Vermögen → Casino: einmal Roulette drehen, dann (falls vorhanden) Elfmeter-Serie
@@ -189,6 +195,7 @@ const FLOWS = {
   shopcasino: async (p) => {
     // Shop → Casino: Sololauf (Abschließen nach 1 s)
     await nav(p, 'Shop'); await p.waitForTimeout(400);
+    await dept(p, 'Extras'); await p.waitForTimeout(250);
     await p.click('.casino-call', { timeout: 3000 }); await p.waitForTimeout(400);
     await p.click('.cz-game:has-text("Sololauf")', { timeout: 3000 }); await p.waitForTimeout(300);
     await p.click('.cz-solo .btn.primary', { timeout: 3000 }); await p.waitForTimeout(1000);
@@ -197,6 +204,7 @@ const FLOWS = {
   meteor: async (p) => {
     // Shop → Code METEOR: Einschlag-Animation bis zur Belohnung
     await nav(p, 'Shop'); await p.waitForTimeout(400);
+    await dept(p, 'Extras'); await p.waitForTimeout(250);
     await p.fill('.code-redeem input', 'meteor', { timeout: 3000 });
     await p.click('.code-redeem button'); await p.waitForTimeout(4200);
     await p.click('.mt-actions .btn.primary', { timeout: 2000 }).catch(() => {});

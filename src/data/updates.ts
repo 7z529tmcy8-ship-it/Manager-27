@@ -24,6 +24,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-31-drops-shop-abteilungen',
+    date: '31.10.2026',
+    title: 'Neue Drops, Shop-Abteilungen, Sammlung nach Kategorien',
+    items: [
+      'Drops komplett neu: antippen statt halten. Bei jedem Aufstieg wechselt der ganze Bildschirm die Farbe, beim letzten Tipp springt die Belohnung heraus.',
+      'Alle Drops auf einmal öffnen – mit Übersicht über Seltenheiten, Coins, Packs und Karten.',
+      'Der Shop hat jetzt Abteilungen: Angebote, Packs, Drops, Ablage und Extras. Kein langes Scrollen mehr.',
+      'Die Sammlung startet mit Kategorien – antippen und nur diese Karten sehen.',
+    ],
+  },
+  {
     id: '2026-10-31-hoeher-tiefer-madfut',
     date: '31.10.2026',
     title: 'Höher oder Tiefer – neu wie bei MADFUT',

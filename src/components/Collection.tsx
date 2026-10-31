@@ -6,27 +6,31 @@ import { cardById } from '../game/squad';
 import Icon from './Icon';
 import { EVO_CAP, EVO_FEE, EVO_PATHS, EVO_VARIANTS, cancelEvo, evoBlocker, evoGained, getPath, startEvo, stepText } from '../game/evolutions';
 
-type Filter = 'all' | 'elite' | 'icon' | 'cult' | 'wonder' | 'talent' | 'debut' | 'comeback' | 'flashback' | 'special' | 'dupes';
+type Filter = 'all' | 'elite' | 'base' | 'icon' | 'cult' | 'wonder' | 'talent' | 'debut' | 'comeback' | 'flashback' | 'special' | 'dupes';
 
-/** Filter der Sammlung; bei Kartenarten mit fester Anzahl zeigt der Chip „gesammelt/insgesamt“. */
-const FILTERS: { id: Filter; label: string; test: (c: CollectCard) => boolean; total?: boolean }[] = [
-  { id: 'all', label: 'Alle', test: () => true },
-  { id: 'elite', label: 'Elite 85+', test: (c) => c.ovr >= 85 },
-  { id: 'icon', label: 'Ikonen', test: (c) => c.variant === 'icon', total: true },
-  { id: 'cult', label: 'Kult-Helden', test: (c) => c.variant === 'cult', total: true },
-  { id: 'wonder', label: 'Wunderkinder', test: (c) => c.age !== undefined && c.age <= 21, total: true },
-  { id: 'talent', label: 'Was wäre wenn', test: (c) => c.variant === 'talent', total: true },
-  { id: 'debut', label: 'Debüts', test: (c) => c.variant === 'debut', total: true },
-  { id: 'comeback', label: 'Comebacks', test: (c) => c.variant === 'comeback', total: true },
-  { id: 'flashback', label: 'Rückblenden', test: (c) => c.variant === 'flashback', total: true },
-  { id: 'special', label: 'Sonderkarten', test: (c) => ['tots', 'potm', 'record', 'champion', 'moment', 'present', 'halloween', 'gala', 'totw', 'ballondor', 'poty', 'topscorer', 'goldenboy', 'ucl', 'worldcup', 'pass', 'gig', 'winter', 'silvester'].includes(c.variant) },
-  { id: 'dupes', label: 'Doppelte', test: () => true },
+const BASE = new Set(['silver', 'gold', 'gold-rare']);
+const OWN_GROUP = new Set(['silver', 'gold', 'gold-rare', 'icon', 'cult', 'talent', 'debut', 'comeback', 'flashback']);
+
+/** Kategorien der Sammlung; bei Kartenarten mit fester Anzahl zeigt die Kachel „gesammelt/insgesamt“. */
+const FILTERS: { id: Filter; label: string; icon: string; test: (c: CollectCard) => boolean; total?: boolean }[] = [
+  { id: 'all', label: 'Alle Karten', icon: 'cards', test: () => true },
+  { id: 'elite', label: 'Elite 85+', icon: 'star', test: (c) => c.ovr >= 85 },
+  { id: 'base', label: 'Gold & Silber', icon: 'shirt', test: (c) => BASE.has(c.variant), total: true },
+  { id: 'icon', label: 'Ikonen', icon: 'crown', test: (c) => c.variant === 'icon', total: true },
+  { id: 'cult', label: 'Kult-Helden', icon: 'fire', test: (c) => c.variant === 'cult', total: true },
+  { id: 'wonder', label: 'Wunderkinder', icon: 'rise', test: (c) => c.age !== undefined && c.age <= 21, total: true },
+  { id: 'talent', label: 'Was wäre wenn', icon: 'brain', test: (c) => c.variant === 'talent', total: true },
+  { id: 'debut', label: 'Debüts', icon: 'rocket', test: (c) => c.variant === 'debut', total: true },
+  { id: 'comeback', label: 'Comebacks', icon: 'rewind', test: (c) => c.variant === 'comeback', total: true },
+  { id: 'flashback', label: 'Rückblenden', icon: 'film', test: (c) => c.variant === 'flashback', total: true },
+  { id: 'special', label: 'Sonderkarten', icon: 'spark', test: (c) => !OWN_GROUP.has(c.variant) },
+  { id: 'dupes', label: 'Doppelte', icon: 'swap', test: () => true },
 ];
 
 /** Sammlung: alle gezogenen Karten und die eigenen Sonderkarten. */
 export default function Collection({ onBack, onStore }: { onBack: () => void; onStore: () => void }) {
   const club = useClub();
-  const [filter, setFilter] = useState<Filter>('all');
+  const [filter, setFilter] = useState<Filter | null>(null);
   const [msg, setMsg] = useState('');
   const [detail, setDetail] = useState<string | null>(null);
 
@@ -36,13 +40,10 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
   ].sort((a, b) => rarity(b.card) - rarity(a.card));
 
   const progress = collectionProgress(club);
-  const active = FILTERS.find((f) => f.id === filter)!;
-  const shown = owned.filter(({ card, count }) => (filter === 'dupes' ? count > 1 : active.test(card)));
-  const chipLabel = (f: (typeof FILTERS)[number]) => {
-    if (!f.total) return f.label;
-    const have = owned.filter(({ card }) => f.test(card)).length;
-    return `${f.label} ${have}/${CARD_POOL.filter(f.test).length}`;
-  };
+  const active = FILTERS.find((f) => f.id === filter);
+  const shown = active ? owned.filter(({ card, count }) => (active.id === 'dupes' ? count > 1 : active.test(card))) : [];
+  const haveOf = (f: (typeof FILTERS)[number]) => (f.id === 'dupes' ? owned.filter((o) => o.count > 1).length : owned.filter(({ card }) => f.test(card)).length);
+  const totalOf = (f: (typeof FILTERS)[number]) => (f.total ? CARD_POOL.filter(f.test).length : 0);
   const dupeValue = Object.entries(club.cards).reduce((a, [id, n]) => a + (n > 1 ? (n - 1) * sellValue(getCard(id)!) : 0), 0);
 
   const sell = () => {
@@ -64,28 +65,47 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
       </div>
       <p className="hub-sub">{club.specials.length} eigene Karten · {club.packsOpened} Packs geöffnet</p>
 
-      <div className="hub-row">
-        <div className="chips">
-          {FILTERS.map((f) => (
-            <button key={f.id} className={`chip ${filter === f.id ? 'active' : ''}`} onClick={() => setFilter(f.id)}>{chipLabel(f)}</button>
-          ))}
-        </div>
-        {dupeValue > 0 && <button className="btn secondary small" onClick={sell}>Doppelte verkaufen (+{dupeValue.toLocaleString('de-DE')} Coins)</button>}
-      </div>
       {msg && <p className="hub-msg">{msg}</p>}
 
-
-      {shown.length ? (
-        <div className="collection-grid">
-          {shown.map(({ card, count }) => (
-            <UtCard key={card.id} card={card} size="sm" count={count} shine={rarity(card) >= 200} onClick={() => setDetail(card.id)} />
-          ))}
-        </div>
+      {!active ? (
+        <>
+          {dupeValue > 0 && <button className="btn secondary small cc-sell" onClick={sell}>Doppelte verkaufen (+{dupeValue.toLocaleString('de-DE')} Coins)</button>}
+          <div className="cc-grid">
+            {FILTERS.map((f, i) => {
+              const have = haveOf(f);
+              const total = totalOf(f);
+              const done = total > 0 && have >= total;
+              return (
+                <button key={f.id} className={`cc-tile ct-${f.id} ${done ? 'done' : ''}`} style={{ '--i': i } as React.CSSProperties} onClick={() => { setFilter(f.id); window.scrollTo({ top: 0 }); }}>
+                  <span className="cc-icon" aria-hidden="true"><Icon name={f.icon} size={22} /></span>
+                  <strong>{f.label}</strong>
+                  <small>{total ? `${have} / ${total}` : `${have} ${have === 1 ? 'Karte' : 'Karten'}`}</small>
+                  {total > 0 && <span className="cc-bar"><i style={{ width: `${Math.min(100, (have / total) * 100)}%` }} /></span>}
+                </button>
+              );
+            })}
+          </div>
+        </>
       ) : (
-        <div className="hub-empty">
-          <p>{owned.length ? 'Keine Karten für diesen Filter.' : 'Noch keine Karten. Öffne dein erstes Pack im Shop!'}</p>
-          {!owned.length && <button className="btn primary" onClick={onStore}>Zum Store</button>}
-        </div>
+        <>
+          <div className="cc-head">
+            <button className="cc-back" onClick={() => setFilter(null)}>‹ Kategorien</button>
+            <h2><Icon name={active.icon} size={20} />{active.label}<small>{shown.length}</small></h2>
+            {active.id === 'dupes' && dupeValue > 0 && <button className="btn secondary small" onClick={sell}>Alle verkaufen (+{dupeValue.toLocaleString('de-DE')})</button>}
+          </div>
+          {shown.length ? (
+            <div className="collection-grid" key={active.id}>
+              {shown.map(({ card, count }) => (
+                <UtCard key={card.id} card={card} size="sm" count={count} shine={rarity(card) >= 200} onClick={() => setDetail(card.id)} />
+              ))}
+            </div>
+          ) : (
+            <div className="hub-empty">
+              <p>{owned.length ? 'In dieser Kategorie hast du noch keine Karten.' : 'Noch keine Karten. Öffne dein erstes Pack im Shop!'}</p>
+              {!owned.length && <button className="btn primary" onClick={onStore}>Zum Shop</button>}
+            </div>
+          )}
+        </>
       )}
       {detail && <CardDetail id={detail} onClose={() => setDetail(null)} />}
     </main>
