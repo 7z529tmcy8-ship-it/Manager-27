@@ -24,6 +24,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-31-profil-namen-vitrine',
+    date: '31.10.2026',
+    title: 'Schimmernde Namen und eine größere Vitrine',
+    items: [
+      'Namens-Effekte im Profil unter „Anpassen → Name“: Gold, Neon-Puls, Lava, Eiskristall, Holo, Chromatisch und Galaxie – ab 100 Mio. Coins, einmal kaufen, für immer behalten.',
+      'Dein Name schimmert dann im Profil und oben im Hauptmenü.',
+      'Die Vitrine hat jetzt 3 Plätze: in der Mitte groß deine Lieblingskarte, links und rechts zwei weitere. Antippen zum Tauschen.',
+    ],
+  },
+  {
     id: '2026-10-31-profil-spielerkarte',
     date: '31.10.2026',
     title: 'Neues Profil: deine Spielerkarte',

@@ -74,7 +74,7 @@ export interface ClubState {
   /** Silvester: Neujahrs-Geschenk schon abgeholt? */
   newYearClaimed?: boolean;
   /** Profil (wie in Brawl Stars): Name, Wappen, Farbe, Lieblingskarte. */
-  profile?: { name: string; emblem: string; color: string; showcase?: string; banner?: string; title?: string };
+  profile?: { name: string; emblem: string; color: string; showcase?: string; banner?: string; title?: string; showcase3?: string[]; nameFx?: string; nameFxOwned?: string[] };
   /** Flutlicht-Drops: ungeöffnete Drops, Duell-Drops heute, insgesamt geöffnet. */
   drops?: number;
   /** Mega-Drops (mindestens Episch). */

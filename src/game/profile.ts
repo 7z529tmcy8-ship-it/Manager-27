@@ -123,3 +123,47 @@ export function profileRecords(club: ClubState, careers: Career[]) {
     { label: 'Beste Wertung', value: peak ? String(peak) : '–', icon: 'rise', tone: 'pink' },
   ];
 }
+
+// ---------- Vitrine mit 3 Plätzen ----------
+/** Drei Karten für die Vitrine: gewählte (wenn noch im Besitz), Lücken mit den seltensten Karten aufgefüllt. Mitte = Platz 0. */
+export function showcase3(club: ClubState): (CollectCard | null)[] {
+  const owned = (id?: string) => { const c = id ? getCard(id) : undefined; return c && (club.cards[c.id] ?? 0) > 0 ? c : null; };
+  const saved = club.profile?.showcase3 ?? [club.profile?.showcase ?? ''];
+  const out: (CollectCard | null)[] = [0, 1, 2].map((i) => owned(saved[i]));
+  const rest = bestCards(club, 8).filter((c) => !out.some((o) => o?.id === c.id));
+  return out.map((c) => c ?? rest.shift() ?? null);
+}
+export function setShowcaseSlot(club: ClubState, slot: number, id: string): ClubState {
+  const cur = showcase3(club).map((c) => c?.id ?? '');
+  const other = cur.indexOf(id);
+  if (other >= 0 && other !== slot) cur[other] = cur[slot]; // Tauschen statt doppelt
+  cur[slot] = id;
+  return setProfile(club, { showcase3: cur, showcase: cur[0] });
+}
+
+// ---------- Namens-Effekte (für Coins freischaltbar) ----------
+export interface NameFx { id: string; name: string; price: number; text: string }
+export const NAME_FX: NameFx[] = [
+  { id: 'weiss', name: 'Standard', price: 0, text: 'Klares Weiß' },
+  { id: 'gold', name: 'Gold', price: 100_000_000, text: 'Glänzendes Gold mit Lichtreflex' },
+  { id: 'neon', name: 'Neon-Puls', price: 120_000_000, text: 'Leuchtet und pulsiert in deiner Profilfarbe' },
+  { id: 'lava', name: 'Lava', price: 150_000_000, text: 'Glühend fließendes Rot-Orange' },
+  { id: 'eis', name: 'Eiskristall', price: 150_000_000, text: 'Kühles Blau mit Frost-Glitzer' },
+  { id: 'holo', name: 'Holo', price: 200_000_000, text: 'Schimmert wie eine Hologramm-Karte' },
+  { id: 'chroma', name: 'Chromatisch', price: 250_000_000, text: 'Alle Farben des Regenbogens, laufend' },
+  { id: 'galaxie', name: 'Galaxie', price: 300_000_000, text: 'Tiefes Lila mit funkelnden Sternen' },
+];
+export const nameFxOwned = (club: Pick<ClubState, 'profile'>, id: string) => id === 'weiss' || (club.profile?.nameFxOwned ?? []).includes(id);
+export const nameFxOf = (club: Pick<ClubState, 'profile'>) => {
+  const id = club.profile?.nameFx ?? 'weiss';
+  return nameFxOwned(club, id) ? id : 'weiss';
+};
+/** Effekt kaufen (und gleich anlegen). null = zu wenig Coins oder unbekannt. */
+export function buyNameFx(club: ClubState, id: string): ClubState | null {
+  const fx = NAME_FX.find((f) => f.id === id);
+  if (!fx) return null;
+  if (nameFxOwned(club, id)) return setProfile(club, { nameFx: id });
+  if (club.coins < fx.price) return null;
+  const owned = [...(club.profile?.nameFxOwned ?? []), id];
+  return setProfile({ ...club, coins: club.coins - fx.price }, { nameFx: id, nameFxOwned: owned });
+}

@@ -67,3 +67,26 @@ it('Weitere Meteor-Codes und der Eissturm-Drop', async () => {
     expect(new Set(list.map((c) => c.name)).size).toBe(5);
   }
 });
+
+it('Profil: Namens-Effekte kosten ab 100 Mio., Vitrine mit 3 Plätzen tauscht statt zu doppeln', async () => {
+  const { NAME_FX, buyNameFx, nameFxOf, showcase3, setShowcaseSlot } = await import('../profile');
+  NAME_FX.filter((f) => f.id !== 'weiss').forEach((f) => expect(f.price).toBeGreaterThanOrEqual(100_000_000));
+  const poor = { ...freshClub(), coins: 99_000_000 };
+  expect(buyNameFx(poor, 'gold')).toBeNull();
+  const rich = { ...freshClub(), coins: 300_000_000 };
+  const a = buyNameFx(rich, 'chroma')!;
+  expect(a.coins).toBe(50_000_000);
+  expect(nameFxOf(a)).toBe('chroma');
+  const b = buyNameFx(a, 'weiss')!;
+  expect(nameFxOf(b)).toBe('weiss');
+  expect(buyNameFx(b, 'chroma')!.coins).toBe(50_000_000); // schon gekauft: kostet nichts mehr
+  const { CARD_POOL } = await import('../club');
+  const ids = CARD_POOL.slice(0, 4).map((c) => c.id);
+  let c = { ...freshClub(), cards: Object.fromEntries(ids.map((id) => [id, 1])) };
+  expect(showcase3(c).filter(Boolean)).toHaveLength(3);
+  c = setShowcaseSlot(c, 0, ids[3]);
+  c = setShowcaseSlot(c, 1, ids[3]);
+  const s = showcase3(c).map((x) => x?.id);
+  expect(s[1]).toBe(ids[3]);
+  expect(new Set(s).size).toBe(3);
+});

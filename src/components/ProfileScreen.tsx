@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { divisionOf, divName } from '../game/divisions';
 import {
-  BANNERS, EMBLEMS, NAME_MAX, PROFILE_COLORS, TITLES, bannerOf, bannerOpen, bestCards, managerLevel, managerXp, profileOf, profileRecords, profileStats, setProfile, showcaseCard, titleOf,
+  BANNERS, EMBLEMS, NAME_FX, NAME_MAX, PROFILE_COLORS, TITLES, bannerOf, bannerOpen, bestCards, buyNameFx, managerLevel, managerXp, nameFxOf, nameFxOwned, profileOf, profileRecords, profileStats, setProfile, setShowcaseSlot, showcase3, titleOf,
 } from '../game/profile';
 import type { Career } from '../game/types';
 import { play } from '../sound';
@@ -18,8 +18,9 @@ export function Emblem({ emblem, color, size = 44 }: { emblem: string; color: st
   );
 }
 
-type Tab = 'emblem' | 'color' | 'banner' | 'title';
-const TABS: [Tab, string][] = [['emblem', 'Wappen'], ['color', 'Farbe'], ['banner', 'Banner'], ['title', 'Titel']];
+type Tab = 'emblem' | 'color' | 'name' | 'banner' | 'title';
+const TABS: [Tab, string][] = [['emblem', 'Wappen'], ['color', 'Farbe'], ['name', 'Name'], ['banner', 'Banner'], ['title', 'Titel']];
+const fmtMio = (n: number) => `${(n / 1e6).toLocaleString('de-DE')} Mio.`;
 
 /** Profil wie in Brawl Stars: Spielerkarte mit Banner, Wappen, Level, Titel und Trophäen – darunter Rekorde, Vitrine, Statistiken. */
 export default function ProfileScreen({ careers, onClose }: { careers: Career[]; onClose: () => void }) {
@@ -27,11 +28,12 @@ export default function ProfileScreen({ careers, onClose }: { careers: Career[];
   const p = profileOf(club);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(p.name);
-  const [pickCard, setPickCard] = useState(false);
+  const [pickSlot, setPickSlot] = useState<number | null>(null);
   const [custom, setCustom] = useState(false);
   const [tab, setTab] = useState<Tab>('emblem');
   const lvl = managerLevel(managerXp(club, careers));
-  const card = showcaseCard(club);
+  const shelf = showcase3(club);
+  const fx = nameFxOf(club);
   const banner = bannerOf(club, lvl.level);
   const title = titleOf(club, careers);
   const div = divisionOf(club);
@@ -60,7 +62,7 @@ export default function ProfileScreen({ careers, onClose }: { careers: Career[];
                   <button className="btn primary small" type="submit">OK</button>
                 </form>
               ) : (
-                <button className="pf-name" onClick={() => { setName(p.name); setEditing(true); }} aria-label="Name ändern">{p.name}</button>
+                <button className={`pf-name nfx nfx-${fx}`} data-text={p.name} onClick={() => { setName(p.name); setEditing(true); }} aria-label="Name ändern">{p.name}</button>
               )}
               <span className="pf-title">{title.name}</span>
               <span className="pf-xp"><span className="pf-xp-bar"><i style={{ transform: `scaleX(${lvl.into / lvl.need})` }} /></span><small>{lvl.into}/{lvl.need} XP</small></span>
@@ -80,17 +82,30 @@ export default function ProfileScreen({ careers, onClose }: { careers: Career[];
         </div>
 
         <section className="pf-show">
-          <div className="pf-show-head"><h2 className="hub-section">Vitrine</h2>{card && <button className="btn secondary small" onClick={() => setPickCard(!pickCard)}>{pickCard ? 'Fertig' : 'Ändern'}</button>}</div>
-          {card ? (
-            pickCard ? (
-              <div className="pf-cards">
-                {bestCards(club, 12).map((c) => (
-                  <button key={c.id} className={`pf-cardpick ${card.id === c.id ? 'on' : ''}`} onClick={() => { save({ showcase: c.id }); setPickCard(false); }} aria-label={`${c.name} in die Vitrine`}>
-                    <UtCard card={c} size="sm" />
-                  </button>
-                ))}
+          <div className="pf-show-head"><h2 className="hub-section">Vitrine</h2>{pickSlot !== null && <button className="btn secondary small" onClick={() => setPickSlot(null)}>Fertig</button>}</div>
+          {shelf.some(Boolean) ? (
+            <>
+              <div className="pf-shelf" style={{ '--pc': p.color } as React.CSSProperties}>
+                {[1, 0, 2].map((slot) => {
+                  const c = shelf[slot];
+                  return (
+                    <button key={slot} className={`pf-slot s${slot} ${pickSlot === slot ? 'on' : ''}`} onClick={() => setPickSlot(pickSlot === slot ? null : slot)} aria-label={`Vitrinen-Platz ${slot + 1} ändern`}>
+                      {c ? <UtCard card={c} size={slot === 0 ? 'md' : 'sm'} shine={slot === 0} /> : <span className="pf-slot-empty"><Icon name="plus" size={22} /></span>}
+                      <span className="pf-plinth" aria-hidden="true" />
+                    </button>
+                  );
+                })}
               </div>
-            ) : <div className="pf-pedestal" style={{ '--pc': p.color } as React.CSSProperties}><UtCard card={card} size="md" shine /><span className="pf-plinth" aria-hidden="true" /></div>
+              {pickSlot !== null ? (
+                <div className="pf-cards">
+                  {bestCards(club, 24).map((c) => (
+                    <button key={c.id} className={`pf-cardpick ${shelf[pickSlot]?.id === c.id ? 'on' : ''}`} onClick={() => { setClubState(setShowcaseSlot(getClubState(), pickSlot, c.id)); setPickSlot(null); }} aria-label={`${c.name} in die Vitrine`}>
+                      <UtCard card={c} size="sm" />
+                    </button>
+                  ))}
+                </div>
+              ) : <p className="pf-shelf-hint">Tippe auf einen Platz, um die Karte zu tauschen.</p>}
+            </>
           ) : <p className="hint">Noch keine Karten – öffne dein erstes Pack im Shop.</p>}
         </section>
 
@@ -129,6 +144,35 @@ export default function ProfileScreen({ careers, onClose }: { careers: Career[];
                     <button key={c} className={`pf-color ${p.color === c ? 'on' : ''}`} style={{ '--pc': c } as React.CSSProperties} onClick={() => save({ color: c })} aria-label={`Farbe ${c}`} aria-pressed={p.color === c} />
                   ))}
                 </div>
+              )}
+              {tab === 'name' && (
+                <ul className="pf-fx">
+                  {NAME_FX.map((f) => {
+                    const own = nameFxOwned(club, f.id);
+                    const on = fx === f.id;
+                    const afford = club.coins >= f.price;
+                    return (
+                      <li key={f.id} className={`pf-fx-row ${on ? 'on' : ''}`}>
+                        <span className="pf-fx-text">
+                          <b className={`nfx nfx-${f.id}`} data-text={p.name}>{p.name}</b>
+                          <small>{f.name} · {f.text}</small>
+                        </span>
+                        {on ? <span className="pf-fx-tag">Aktiv</span>
+                          : own ? <button className="btn secondary small" onClick={() => save({ nameFx: f.id })}>Anlegen</button>
+                          : (
+                            <button className="btn primary small pf-fx-buy" disabled={!afford} onClick={() => {
+                              const c = buyNameFx(getClubState(), f.id);
+                              if (!c) return;
+                              setClubState(c);
+                              try { play('fanfare'); } catch { /* kein Ton */ }
+                            }} aria-label={afford ? `${f.name} kaufen für ${fmtMio(f.price)} Coins` : `Dir fehlen ${fmtMio(f.price - club.coins)} Coins`}>
+                              {afford ? <><Icon name="coin" size={14} />{fmtMio(f.price)}</> : <><Icon name="lock" size={14} />{fmtMio(f.price)}</>}
+                            </button>
+                          )}
+                      </li>
+                    );
+                  })}
+                </ul>
               )}
               {tab === 'banner' && (
                 <div className="pf-banners">

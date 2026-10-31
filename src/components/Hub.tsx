@@ -17,7 +17,7 @@ import AdventCalendar from './AdventCalendar';
 import ProfileScreen, { Emblem } from './ProfileScreen';
 import GloryRoad from './GloryRoad';
 import { ROAD, roadReady } from '../game/glory';
-import { profileOf } from '../game/profile';
+import { nameFxOf, profileOf } from '../game/profile';
 import { canFullscreen, enterFullscreen, exitFullscreen, isFullscreen } from '../settings';
 import { adventToday, claimNewYearGift, newYearGiftOpen } from '../game/winter';
 import { PASS_LEVELS, XP_PER_LEVEL, passLevel, passOf, unclaimedLevels, unclaimedProLevels } from '../game/pass';
@@ -77,7 +77,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
       <header className="hub-top">
         <button className="hub-profile" onClick={() => setProfile(true)} aria-label={`Profil von ${me.name}`}>
           <Emblem emblem={me.emblem} color={me.color} size={44} />
-          <span className="hub-profile-text"><strong>{me.name}</strong><small><Icon name="trophy" size={13} />{(club.trophies ?? 0).toLocaleString('de-DE')}</small></span>
+          <span className="hub-profile-text"><strong className={`nfx nfx-${nameFxOf(club)}`} data-text={me.name}>{me.name}</strong><small><Icon name="trophy" size={13} />{(club.trophies ?? 0).toLocaleString('de-DE')}</small></span>
         </button>
         <span className="hub-coins" title="Coins – verdienst du im Karrieremodus"><Icon name="coin" size={18} />{fmtCoins(club.coins)}</span>
         <button className="hub-icon hub-news" onClick={onNews} aria-label="Neuigkeiten" title="Neuigkeiten"><Icon name="news" size={20} /></button>
