@@ -24,6 +24,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-31-ladebildschirm',
+    date: '31.10.2026',
+    title: 'Das Spiel ist wieder offen – mit neuem Ladebildschirm',
+    image: '/loading.webp',
+    imageAlt: 'Manager Simulator',
+    items: [
+      'Das Entwicklungs-Update ist fertig: Kein Code mehr nötig, alle kommen direkt ins Spiel.',
+      'Neuer Startbildschirm mit Titelbild und Ladebalken von 0 bis 100 %.',
+    ],
+  },
+  {
     id: '2026-10-31-codes-eissturm',
     date: '31.10.2026',
     title: 'Neue Codes und der Eissturm-Drop',

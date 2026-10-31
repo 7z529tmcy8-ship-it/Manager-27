@@ -8,7 +8,6 @@ import { readDevTrade, writeDevTrade, type DevTrade } from '../game/trade';
 import { halloweenActive } from '../game/club';
 import { DIFFICULTIES, setCareerSettings, settingsOf } from '../game/difficulty';
 import type { Career, Difficulty } from '../game/types';
-import { UNLOCK_KEY } from './PasswordGate';
 import { canFullscreen, enterFullscreen, exitFullscreen, updateSettings, useSettings, type AppSettings, lockLandscape, unlockOrientation } from '../settings';
 import { play } from '../sound';
 import Icon from './Icon';
@@ -60,16 +59,6 @@ export default function Settings({ career, onChange, onClose }: Props) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
-
-  const lock = () => {
-    if (!confirm('Seite auf diesem Gerät wieder mit Passwort sperren?')) return;
-    try {
-      sessionStorage.removeItem(UNLOCK_KEY);
-    } catch {
-      // egal – dann bleibt sie eben offen
-    }
-    location.reload();
-  };
 
   return (
     <div className="overlay" role="dialog" aria-modal="true" aria-label="Einstellungen">
@@ -128,10 +117,6 @@ export default function Settings({ career, onChange, onClose }: Props) {
             />
           )}
           {!app.dev && <CodeInput onUnlock={() => set({ dev: true })} />}
-          <div className="setting setting-row">
-            <span className="grow"><span className="setting-label">Passwort-Sperre</span></span>
-            <button className="btn secondary small" onClick={lock}>Wieder sperren</button>
-          </div>
         </section>
 
         {app.dev && <DevPanel career={career} onChange={onChange} onLock={() => set({ dev: false })} />}
