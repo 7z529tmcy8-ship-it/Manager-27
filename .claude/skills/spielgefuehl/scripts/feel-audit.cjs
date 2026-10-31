@@ -187,15 +187,18 @@ const FLOWS = {
     }
   },
   shopcasino: async (p) => {
-    // Shop → Casino: Sololauf (Abschließen nach 1 s), dann ein Kartenduell-Tipp
+    // Shop → Casino: Sololauf (Abschließen nach 1 s)
     await nav(p, 'Shop'); await p.waitForTimeout(400);
     await p.click('.casino-call', { timeout: 3000 }); await p.waitForTimeout(400);
     await p.click('.cz-game:has-text("Sololauf")', { timeout: 3000 }); await p.waitForTimeout(300);
     await p.click('.cz-solo .btn.primary', { timeout: 3000 }); await p.waitForTimeout(1000);
     await p.click('.solo-cash', { timeout: 800 }).catch(() => {}); await p.waitForTimeout(800);
-    await p.click('.cz-game:has-text("Duell")', { timeout: 3000 }); await p.waitForTimeout(300);
-    await p.click('.cz-hilo .btn.primary', { timeout: 3000 }); await p.waitForTimeout(400);
-    await p.click('.hilo-btn.higher', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(1300);
+  },
+  hilo: async (p) => {
+    // Duelle → Höher oder Tiefer: drei Tipps
+    await nav(p, 'Duelle'); await p.waitForTimeout(400);
+    await p.click('.hl-call-btn', { timeout: 3000 }); await p.waitForTimeout(400);
+    for (let i = 0; i < 3; i++) { await p.click(i % 2 ? '.hilo-btn.lower' : '.hilo-btn.higher', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(1200); }
   },
   draft: async (p) => {
     // Duelle → Draft: Kapitän, 11 Plätze füllen, eine Turnierrunde

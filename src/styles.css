@@ -4699,7 +4699,7 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .cz-top .cz-session { order: 2; }
 
 /* Spielleiste: eine Zeile, Icon über Name */
-.cz-games { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.cz-games { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .cz-games .cz-game, .cz-games .cz-game:nth-child(4), .cz-games .cz-game:nth-child(5) { grid-column: auto; flex-direction: column; gap: 2px; min-height: 56px; padding: 6px 2px; font-size: .8125rem; }
 .cz-game span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -4839,3 +4839,44 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .sc-text strong { font-size: 1.05rem; }
 .sc-text small { color: var(--text-2); font-size: .8125rem; line-height: 1.4; }
 .sc-text em { display: inline-flex; align-items: center; gap: 6px; font-style: normal; font-size: .8125rem; font-weight: 700; color: var(--gold); }
+
+/* ===================== Höher oder Tiefer + Serien-Karte ===================== */
+.ucard.v-serie { --a: #0e3a3a; --b: #061417; --ink: #e9fffb; --edge: rgba(57, 255, 200, .75); --glow: rgba(57, 255, 200, .35); color: #e9fffb; }
+.ucard.v-serie.special { --pat:
+    repeating-linear-gradient(135deg, rgba(57, 255, 200, .14) 0 2px, transparent 2px 12px),
+    linear-gradient(0deg, rgba(57, 255, 200, .22), transparent 55%); }
+.ucard.v-serie .ucard-badge { color: #39ffc8; letter-spacing: .2em; }
+.ucard.v-serie .ucard-emblem { color: #39ffc8; }
+
+.hl .overlay-inner { display: flex; flex-direction: column; gap: 12px; }
+.hl-stats { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.hl-streak, .hl-points { display: grid; gap: 4px; padding: 12px 16px; border-radius: 16px; border: 1px solid var(--hairline); background: var(--surface); }
+.hl-streak small, .hl-points small { font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.hl-streak strong, .hl-points strong { font-family: var(--display, inherit); font-size: 2.2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.hl-streak strong.pop, .hl-points strong.pop { animation: cz-pop .4s cubic-bezier(.2, 1.6, .4, 1) both; }
+.hl-points { min-width: 104px; text-align: center; border-color: rgba(255, 215, 106, .45); }
+.hl-points strong { color: var(--gold); }
+.hl-streak em, .hl-points em { font-style: normal; font-size: .8125rem; color: var(--text-2); }
+.hl-bar { display: block; height: 8px; border-radius: 999px; background: rgba(255, 255, 255, .1); overflow: hidden; }
+.hl-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #19f0ff, #39ffc8); transition: width .3s ease-out; }
+.hl-table { padding: 16px 12px; }
+.hl-call { position: absolute; z-index: 4; left: 50%; bottom: 10px; transform: translateX(-50%); padding: 6px 18px; border-radius: 999px; font-family: var(--display, inherit); font-size: 1.35rem; letter-spacing: .08em; text-transform: uppercase; background: rgba(5, 6, 15, .85); animation: cz-pop .4s cubic-bezier(.2, 1.6, .4, 1) both; }
+.hl-call.right { color: var(--up); border: 1px solid var(--up); }
+.hl-call.wrong { color: var(--down); border: 1px solid var(--down); }
+.hl-call.tie { color: var(--text-2); border: 1px solid var(--hairline); }
+.hl-plus { position: absolute; z-index: 4; left: 50%; top: 12px; transform: translateX(-50%); padding: 6px 16px; border-radius: 999px; font-family: var(--display, inherit); font-size: 1.2rem; color: #1a1200; background: var(--gold); animation: hl-plus 1.6s ease-out both; pointer-events: none; }
+@keyframes hl-plus { 0% { opacity: 0; transform: translate(-50%, 10px) scale(.8); } 15% { opacity: 1; transform: translate(-50%, 0) scale(1.05); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -10px); } }
+.hilo-slot.back.tie::before { opacity: 1; background: radial-gradient(closest-side, rgba(169, 178, 220, .35), transparent); }
+.hl .hilo-btn { min-height: 60px; font-size: 1.05rem; }
+.hl-talents { margin-top: 8px; }
+.hl-talent-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.hl-talent { display: grid; justify-items: center; gap: 8px; min-width: 0; }
+.hl-talent .ucard.sm { width: 100%; max-width: 112px; }
+.hl-talent .btn { width: 100%; padding-left: 4px; padding-right: 4px; font-size: .8125rem; }
+.hl-level { display: flex; gap: 3px; }
+.hl-level i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, .15); }
+.hl-level i.on { background: #39ffc8; }
+.hl-call-btn { border-color: rgba(57, 255, 200, .45); background: radial-gradient(120% 140% at 0% 0%, rgba(57, 255, 200, .14), transparent 55%), linear-gradient(135deg, #0b2026, #0a1430); }
+.hl-call-btn .draft-call-icon { background: linear-gradient(135deg, #b5ffe9, #39ffc8 55%, #12b98a); }
+.hl-call-btn .draft-call-text b { color: #39ffc8; }
+@media (prefers-reduced-motion: reduce) { .hl-call, .hl-plus, .hl-streak strong.pop, .hl-points strong.pop { animation: none; } }

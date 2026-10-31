@@ -15,6 +15,8 @@ import { SEASON_RANKS, claimSeason, nextRank, seasonId, seasonName, seasonPoints
 import { PackOpening, PackPrompt } from './Store';
 import UtCard from './UtCard';
 import Draft from './Draft';
+import HiLoMode from './HiLoMode';
+import { hiloOf } from '../game/hilo';
 import {
   ELITE, LOWEST, PROMOTE_AT, SAFE_DIVISIONS, STYLE_LABEL, TACTIC_TEXT, divName, divReward, divisionOf, playDivisionDuel, promoBonus, squadFit, withOpponent, type Tactic,
 } from '../game/divisions';
@@ -71,6 +73,7 @@ function ScreenHead({ title, onBack }: { title: string; onBack: () => void }) {
 export function DuelsScreen({ onBack, onTeam }: { onBack: () => void; onTeam: () => void }) {
   const club = useClub();
   const [draft, setDraft] = useState(false);
+  const [hilo, setHilo] = useState(false);
   const cards = club.squad.map((id) => cardById(club, id));
   const full = cards.filter(Boolean).length === 11;
   return (
@@ -86,9 +89,15 @@ export function DuelsScreen({ onBack, onTeam }: { onBack: () => void; onTeam: ()
         <span className="draft-call-text"><b>Draft</b><small>Kapitän wählen, Elf draften, Turnier gewinnen</small></span>
         <Icon name="arrow" size={22} />
       </button>
+      <button className="draft-call hl-call-btn" onClick={() => setHilo(true)}>
+        <span className="draft-call-icon" aria-hidden="true"><Icon name="rise" size={26} /></span>
+        <span className="draft-call-text"><b>Höher oder Tiefer</b><small>Serien spielen, Punkte sammeln, Talente entwickeln{hiloOf(club).points ? ` · ${hiloOf(club).points} Punkte` : ''}</small></span>
+        <Icon name="arrow" size={22} />
+      </button>
       <Duels full={full} onSquad={onTeam} />
       <DuelSeason />
       {draft && <Draft onClose={() => setDraft(false)} />}
+      {hilo && <HiLoMode onClose={() => setHilo(false)} />}
     </main>
   );
 }

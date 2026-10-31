@@ -3,12 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import {
   BETS, BROKE_OPTIONS, CORNERS, HORSES, PEN_CHANCE, PEN_MULT, ROULETTE, WHEEL, afterGamble, brokeOptionUsed, colorOf, doBroke, horseChance, isBroke,
-  SOLO_CAP, drawDuel, drawDuelNext, DUEL_RANGE, duelChance, duelHints, duelMult, playHorses, playRoulette, raceLegs, rouletteInfo, shootPenalty, soloChance, soloCrash, soloMult,
-  type Corner, type DuelCard, type GambleResult, type HiLo, type PenaltyShot, type RouletteBet,
+  SOLO_CAP, playHorses, playRoulette, raceLegs, rouletteInfo, shootPenalty, soloChance, soloCrash, soloMult,
+  type Corner, type GambleResult, type PenaltyShot, type RouletteBet,
 } from '../game/gambling';
-import { getClub } from '../data/leagues';
-import { attributeLabels } from '../game/player';
-import UtCard from './UtCard';
 import type { Career } from '../game/types';
 import { motionReduced } from '../settings';
 import { play } from '../sound';
@@ -18,7 +15,7 @@ const pct = (p: number) => `${(p * 100).toLocaleString('de-DE', { maximumFractio
 const short = (n: number) => (n >= 1e6 ? `${n / 1e6}M` : n >= 1000 ? `${n / 1000}K` : String(n));
 const vibrate = (p: number | number[]) => { try { navigator.vibrate?.(p); } catch { /* nicht unterstützt */ } };
 
-type Game = 'roulette' | 'horses' | 'penalty' | 'solo' | 'hilo';
+type Game = 'roulette' | 'horses' | 'penalty' | 'solo';
 const SPIN_MS = 2600;
 const RACE_MS = 3200;
 const SEG = 360 / WHEEL.length;
@@ -53,7 +50,7 @@ function Outcome({ won, stake, label }: { won: number; stake: number; label?: st
 }
 
 /**
- * Casino: Roulette, Rennen, Elfmeter-Serie, Sololauf und Kartenduell mit Coins.
+ * Casino: Roulette, Rennen, Elfmeter-Serie und Sololauf mit Coins.
  * In der Karriere läuft die Spielsucht verborgen mit; im Shop (ohne Karriere) wird nur gespielt.
  */
 export default function CasinoTab({ career, onChange }: { career?: Career; onChange?: (c: Career) => void }) {
@@ -154,7 +151,7 @@ export default function CasinoTab({ career, onChange }: { career?: Career; onCha
       </header>
 
       <div className="cz-games" role="tablist" aria-label="Spiel">
-        {([['roulette', 'Roulette', 'dice'], ['horses', 'Rennen', 'flag'], ['penalty', 'Elfmeter', 'ball'], ['solo', 'Sololauf', 'bolt'], ['hilo', 'Duell', 'cards']] as const).map(([id, label, icon]) => (
+        {([['roulette', 'Roulette', 'dice'], ['horses', 'Rennen', 'flag'], ['penalty', 'Elfmeter', 'ball'], ['solo', 'Sololauf', 'bolt']] as const).map(([id, label, icon]) => (
           <button key={id} role="tab" aria-selected={game === id} className={`cz-game ${game === id ? 'on' : ''}`} disabled={busy} onClick={() => { setGame(id); play('tap'); }}>
             <Icon name={icon} size={20} /><span>{label}</span>
           </button>
@@ -165,7 +162,6 @@ export default function CasinoTab({ career, onChange }: { career?: Career; onCha
       {game === 'horses' && <Horses {...shared} />}
       {game === 'penalty' && <Penalty {...shared} />}
       {game === 'solo' && <Solo {...shared} />}
-      {game === 'hilo' && <HiLoGame {...shared} />}
 
       {g && g.bets > 0 && (
         <p className="cz-stats">{g.bets} Spiele · +{fmt(g.won)} · −{fmt(g.lost)}</p>
@@ -546,131 +542,6 @@ function Solo({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }: S
         ) : (
           <button className="btn primary big" disabled={stake > coins || stake <= 0} onClick={() => begin(stake)}>
             Loslaufen · <Icon name="coin" size={16} className="coin-ic" />{fmt(stake)}
-          </button>
-        )}
-      </div>
-      </div>
-    </section>
-  );
-}
-
-// ---------- Kartenduell ----------
-/** Karte mit Vereinsnamen für die Anzeige (Werte bleiben an der festen ID). */
-const shownCard = (d: DuelCard) => ({ ...d.card, club: getClub(d.p.clubId).name });
-
-function HiLoGame({ stake, coins, busy, setBusy, commit, payout, allInOk, chips }: Shared) {
-  const [cur, setCur] = useState<DuelCard>(() => drawDuel());
-  const [nxt, setNxt] = useState<{ d: DuelCard; hints: [number, number] }>(() => ({ d: drawDuelNext(cur), hints: duelHints() }));
-  const [reveal, setReveal] = useState<{ ok: boolean } | null>(null);
-  const [series, setSeries] = useState<{ stake: number; mult: number; streak: number; over: boolean; id: number; swaps: number } | null>(null);
-  const [cashed, setCashed] = useState(0);
-  const [k, setK] = useState(0);
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useEffect(() => () => clearTimeout(timer.current), []);
-  const active = !!series && !series.over;
-  const flipping = !!reveal && active;
-  const win = series ? Math.round(series.stake * series.mult) : 0;
-  const labels = attributeLabels(nxt.d.p.position);
-  const deal = (from: DuelCard) => setNxt({ d: drawDuelNext(from), hints: duelHints() });
-
-  const settle = (s: NonNullable<typeof series>, amount: number) => {
-    const res: GambleResult = { win: amount > 0, payout: amount, outcome: s.streak };
-    commit(s.stake, res, true);
-    payout(s.stake, res);
-    setCashed(amount);
-    setSeries({ ...s, over: true });
-    setBusy(false);
-  };
-  const begin = (amount: number) => {
-    if (busy || amount <= 0 || amount > coins || !allInOk(amount)) return;
-    const c = getClubState();
-    if (amount > c.coins) return;
-    setClubState({ ...c, coins: c.coins - amount });
-    setSeries({ stake: amount, mult: 1, streak: 0, over: false, id: Date.now(), swaps: 3 });
-    setReveal(null);
-    setCashed(0);
-    const first = drawDuel();
-    setCur(first);
-    deal(first);
-    setK((x) => x + 1);
-    setBusy(true);
-    play('packShake');
-  };
-  const guess = (dir: HiLo) => {
-    if (!series || series.over || reveal) return;
-    const ok = dir === 'higher' ? nxt.d.p.ovr > cur.p.ovr : nxt.d.p.ovr < cur.p.ovr;
-    const m = duelMult(duelChance(cur, nxt.d, nxt.hints, dir));
-    setReveal({ ok });
-    play('tap');
-    timer.current = setTimeout(() => {
-      if (!ok) { settle(series, 0); return; }
-      play('reveal');
-      vibrate([20, 20, 40]);
-      setSeries({ ...series, mult: Math.round(series.mult * m * 100) / 100, streak: series.streak + 1 });
-      setCur(nxt.d);
-      deal(nxt.d);
-      setReveal(null);
-      setK((x) => x + 1);
-    }, motionReduced() ? 60 : 1100);
-  };
-
-  /** Zu eindeutig? Die verdeckte Karte tauschen – ändert die Chancen nicht, nur das Angebot. */
-  const swap = () => {
-    if (!series || series.over || reveal || series.swaps <= 0) return;
-    setSeries({ ...series, swaps: series.swaps - 1 });
-    deal(cur);
-    play('packShake');
-  };
-  const opt = (dir: HiLo) => {
-    const ch = duelChance(cur, nxt.d, nxt.hints, dir);
-    const m = duelMult(ch);
-    return (
-      <button className={`hilo-btn ${dir}`} disabled={!active || flipping || !m} onClick={() => guess(dir)}>
-        <Icon name="arrow" size={18} />
-        <span>{dir === 'higher' ? 'Höher' : 'Tiefer'}</span>
-        <small>{m ? `×${m.toLocaleString('de-DE')} · ${ch >= 1 ? 'sicher' : pct(ch)}` : 'unmöglich'}</small>
-      </button>
-    );
-  };
-
-  return (
-    <section className="cz-hilo">
-      <div className="cz-stage hilo-table">
-        {active && series.streak > 0 && <span className="cz-tag gold">{series.streak} richtig · ×{series.mult.toLocaleString('de-DE')}</span>}
-        <div className="hilo-slot" key={`c-${k}`}><UtCard card={shownCard(cur)} size="md" /></div>
-        <div className={`hilo-slot back ${reveal ? `show ${reveal.ok ? 'ok' : 'bad'}` : ''}`} key={`n-${k}`}>
-          {reveal || series?.over ? <UtCard card={shownCard(nxt.d)} size="md" /> : (
-            <div className="hilo-hidden" aria-label={`Verdeckte Karte: ${nxt.d.p.position}, ${labels[nxt.hints[0]]} ${nxt.d.attrs[nxt.hints[0]]}, ${labels[nxt.hints[1]]} ${nxt.d.attrs[nxt.hints[1]]}`}>
-              <span className="hh-ovr">?</span>
-              <span className="hh-range">±{DUEL_RANGE}</span>
-              <span className="hh-pos">{nxt.d.p.position}</span>
-              <span className="hh-hints">
-                {nxt.hints.map((i) => <span key={i}><b>{nxt.d.attrs[i]}</b>{labels[i]}</span>)}
-              </span>
-              <span className="hh-rest" aria-hidden="true">{labels.map((l, i) => <i key={l} className={nxt.hints.includes(i) ? 'on' : ''} />)}</span>
-            </div>
-          )}
-        </div>
-        {series?.over && <Outcome won={cashed} stake={series.stake} label={cashed ? `${series.streak} richtig` : `${nxt.d.p.name}: ${nxt.d.p.ovr}`} key={series.id} />}
-      </div>
-
-      <div className="hilo-choices">{opt('higher')}{opt('lower')}</div>
-      {active && (
-        <button className="hilo-swap" disabled={flipping || series.swaps <= 0} onClick={swap}>
-          <Icon name="swap" size={16} />Tauschen · {series.swaps}
-        </button>
-      )}
-
-      <div className="cz-dock">
-      {chips}
-      <div className="cz-actions">
-        {active ? (
-          <button className="btn primary big" disabled={!series.streak || flipping} onClick={() => settle(series, win)}>
-            {series.streak ? <>Kassieren · <Icon name="coin" size={16} className="coin-ic" />{fmt(win)}</> : 'Höher oder tiefer?'}
-          </button>
-        ) : (
-          <button className="btn primary big" disabled={stake > coins || stake <= 0} onClick={() => begin(stake)}>
-            Duell starten · <Icon name="coin" size={16} className="coin-ic" />{fmt(stake)}
           </button>
         )}
       </div>

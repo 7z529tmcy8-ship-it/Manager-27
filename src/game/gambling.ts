@@ -1,6 +1,3 @@
-import { REAL_PLAYERS, type RealPlayerTemplate } from '../data/players';
-import type { CollectCard } from './club';
-import { CARD_PROFILE, cardAttrs } from './squad';
 import { randInt } from './random';
 import type { Career } from './types';
 
@@ -144,59 +141,6 @@ export function soloCrash(rand = Math.random): number {
 }
 /** Ehrliche Chance, mindestens ×m zu erreichen. */
 export const soloChance = (m: number) => Math.min(1, SOLO_EDGE / m);
-
-// ---------- Kartenduell (höher oder tiefer) ----------
-// Gezogen wird ein echter Spieler. Von der verdeckten nächsten Karte sieht man die Position und zwei Werte –
-// daraus lässt sich die Wertung schätzen. Ist sie höher oder tiefer als die offene Karte? Gleichstand verliert.
-// Die angezeigte Chance ist ehrlich: Anteil aller echten Spieler mit derselben Position und ähnlichen Werten.
-// Auszahlung je Tipp = 0,94 / Chance – die Bank behält 6 %.
-export type HiLo = 'higher' | 'lower';
-export interface DuelCard { p: RealPlayerTemplate; card: CollectCard; attrs: number[] }
-
-/** Feste Karten-ID je Spieler – die Werte hängen an der ID und dürfen nicht springen. */
-const duelCard = (p: RealPlayerTemplate): DuelCard => {
-  const card: CollectCard = {
-    id: `duel-${p.name}`, name: p.name, position: p.position, nation: p.nation, club: '', ovr: p.ovr,
-    variant: p.ovr >= 85 ? 'gold-rare' : p.ovr >= 75 ? 'gold' : 'silver',
-  };
-  return { p, card, attrs: cardAttrs(card) };
-};
-let pool: DuelCard[] | null = null;
-export const duelPool = (): DuelCard[] => (pool ??= REAL_PLAYERS.map(duelCard));
-export const drawDuel = (rand = Math.random, list = duelPool()) => list[Math.min(list.length - 1, Math.floor(rand() * list.length))];
-/** Spannung: Die nächste Karte liegt immer nah an der offenen (±4 Wertungspunkte, nie derselbe Spieler). */
-export const DUEL_RANGE = 4;
-export const duelNear = (cur: DuelCard, list = duelPool()) => list.filter((x) => x !== cur && Math.abs(x.p.ovr - cur.p.ovr) <= DUEL_RANGE);
-export const drawDuelNext = (cur: DuelCard, rand = Math.random) => drawDuel(rand, duelNear(cur));
-/** Zwei verschiedene Werte der verdeckten Karte, die aufgedeckt werden. */
-export function duelHints(rand = Math.random): [number, number] {
-  const a = Math.floor(rand() * 6);
-  const b = (a + 1 + Math.floor(rand() * 5)) % 6;
-  return [a, b];
-}
-/**
- * Passt eine Wertung zu einem sichtbaren Wert? Kartenwerte sind Wertung + Positionsprofil ± 4
- * (an den Grenzen 25 und 99 abgeschnitten) – siehe cardAttrs.
- */
-function fits(ovr: number, off: number, v: number): boolean {
-  const lo = ovr + off - 4;
-  const hi = ovr + off + 4;
-  if (v <= 25) return lo <= 25;
-  if (v >= 99) return hi >= 99;
-  return v >= lo && v <= hi;
-}
-/**
- * Ehrliche Chance: Unter allen möglichen Spielern (nah an der offenen Karte, gleiche Position) zählen nur die,
- * deren Wertung zu beiden sichtbaren Werten passt – genau das, was man auf der verdeckten Karte sieht.
- */
-export function duelChance(cur: DuelCard, next: DuelCard, hints: number[], dir: HiLo, list = duelNear(cur)): number {
-  const prof = CARD_PROFILE[next.p.position];
-  const cand = list.filter((x) => x.p.position === next.p.position && hints.every((i) => fits(x.p.ovr, prof[i], next.attrs[i])));
-  if (!cand.length) return dir === 'higher' ? Number(next.p.ovr > cur.p.ovr) : Number(next.p.ovr < cur.p.ovr);
-  return cand.filter((x) => (dir === 'higher' ? x.p.ovr > cur.p.ovr : x.p.ovr < cur.p.ovr)).length / cand.length;
-}
-/** Auszahlung: 94 % des fairen Werts (höchstens ×20). Sichere Tipps zahlen deshalb unter ×1. */
-export const duelMult = (chance: number) => (chance > 0 ? Math.min(20, Math.floor((0.94 / chance) * 100) / 100) : 0);
 
 /**
  * Nach jedem Spiel: Statistik und verborgene Spielsucht. Je mehr gespielt, je höher der Einsatz,

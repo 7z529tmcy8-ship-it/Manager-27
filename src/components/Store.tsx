@@ -109,7 +109,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         <span className="casino-call-icon" aria-hidden="true"><Icon name="dice" size={26} /></span>
         <span className="casino-call-text">
           <b>Casino</b>
-          <small>Roulette · Rennen · Elfmeter · Sololauf · Duell – bis zum All-in</small>
+          <small>Roulette · Rennen · Elfmeter · Sololauf – bis zum All-in</small>
         </span>
         <Icon name="arrow" size={22} />
       </button>

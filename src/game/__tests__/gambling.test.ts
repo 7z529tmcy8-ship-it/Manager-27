@@ -76,34 +76,3 @@ it('Sololauf: Grätsche-Verteilung ehrlich (P(≥×2) ≈ 48 %), Bank gewinnt be
   expect(soloMult(0)).toBe(1);
   expect(soloMult(soloTimeFor(2) + 1)).toBeGreaterThanOrEqual(2);
 });
-
-it('Kartenduell: Werte fest je Spieler, Chance aus den Hinweisen, Bank gewinnt auch bei klügstem Tipp', async () => {
-  const { drawDuel, drawDuelNext, duelChance, duelHints, duelMult, duelPool, DUEL_RANGE } = await import('../gambling');
-  const pool = duelPool();
-  expect(pool[0].attrs).toEqual(duelPool()[0].attrs);
-  // Simulation: immer die bessere Seite tippen – auf Dauer trotzdem Verlust
-  let ev = 0;
-  const N = 6000;
-  for (let i = 0; i < N; i++) {
-    const cur = drawDuel();
-    const next = drawDuelNext(cur);
-    expect(Math.abs(next.p.ovr - cur.p.ovr)).toBeLessThanOrEqual(DUEL_RANGE);
-    const hints = duelHints();
-    const up = duelChance(cur, next, hints, 'higher');
-    const down = duelChance(cur, next, hints, 'lower');
-    const dir = up >= down ? 'higher' : 'lower';
-    const win = dir === 'higher' ? next.p.ovr > cur.p.ovr : next.p.ovr < cur.p.ovr;
-    if (win) ev += duelMult(dir === 'higher' ? up : down);
-  }
-  expect(ev / N).toBeLessThan(1);
-  expect(ev / N).toBeGreaterThan(0.7);
-  // Spannend statt eindeutig: im Schnitt liegt die bessere Seite deutlich unter 90 %
-  let sum = 0;
-  for (let i = 0; i < 2000; i++) {
-    const cur = drawDuel();
-    const next = drawDuelNext(cur);
-    const h = duelHints();
-    sum += Math.max(duelChance(cur, next, h, 'higher'), duelChance(cur, next, h, 'lower'));
-  }
-  expect(sum / 2000).toBeLessThan(0.9);
-});

@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-31-hoeher-tiefer',
+    date: '31.10.2026',
+    title: 'Neu: Höher oder Tiefer',
+    items: [
+      'Das Kartenduell ist aus dem Casino raus und jetzt ein eigener Modus unter Duelle – ohne Coins und ohne angezeigte Chancen. Beide Knöpfe gehen immer.',
+      'Alle 10 Richtigen am Stück gibt es einen Punkt. Ein Fehler setzt die Serie zurück, Gleichstand zählt nicht.',
+      'Mit Punkten entwickelst du drei Talente: Max Dowman, Lennart Karl und Xavi Espart. Jedes Upgrade +3 – das erste kostet 1 Punkt, das zweite 2, dann 3 …',
+    ],
+  },
+  {
     id: '2026-10-31-draft-szenarien',
     date: '31.10.2026',
     title: 'Neu: Draft und Startszenarien',
