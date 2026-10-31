@@ -5146,3 +5146,11 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
   background: linear-gradient(90deg, transparent, rgba(255, 170, 80, .8)); }
 .meteor-gem i { position: relative; width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffd58a, #ff7a2a 45%, #8a2a10 80%);
   box-shadow: 0 0 14px rgba(255, 120, 40, .8), 0 0 30px rgba(255, 80, 20, .35); }
+
+/* Vereinswappen */
+.club-crest { display: inline-block; flex: none; vertical-align: -0.3em; margin-right: 6px; border-radius: 22%; object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .25), 0 2px 8px rgba(0, 0, 0, .35); }
+.club-crest.big { margin: 0 0 8px; border-radius: 24%; box-shadow: 0 0 0 2px rgba(255, 200, 80, .6), 0 8px 24px rgba(255, 120, 40, .35); }
+.cc-crest-pick { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: .875rem; color: var(--text-2); }
+.cc-crest-pick .club-crest { margin: 0; }
+.cs-clubcell .club-crest { margin-right: 0; }

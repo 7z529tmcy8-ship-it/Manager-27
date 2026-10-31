@@ -1,3 +1,4 @@
+import ClubCrest from './ClubCrest';
 import Icon from './Icon';
 import { useEffect, useRef, useState } from 'react';
 import CoachPanel from './CoachPanel';
@@ -185,7 +186,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
             <span className="cs-pos">{p.position}</span>
             <span className="cs-age"><small>Alter</small> {p.age}</span>
           </div>
-          <div className="cs-club">{retired ? (career.coach ? 'Trainer' : 'Karriere beendet') : getClub(clubId).name}</div>
+          <div className="cs-club">{retired ? (career.coach ? 'Trainer' : 'Karriere beendet') : <><ClubCrest id={clubId} size={26} />{getClub(clubId).name}</>}</div>
           <div className="cs-head-row">
             <span className="cs-league">{retired ? `${career.history.length} ${career.history.length === 1 ? 'Saison' : 'Saisons'}` : getLeague(clubLeagueId(career, clubId)).name}{p.loan ? (p.loan.buyOption ? ' · Leihe mit Kaufoption' : ' · Leihe') : ''}</span>
             <span className="cs-value"><small>Wert</small> {money(playerValue(p))}</span>
@@ -346,7 +347,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
               <span className="cs-clubcell muted"><em>offen</em></span>
             ) : (
               <>
-                <span className="cs-clubcell">{getClub(clubId).name}<small>{career.phase === 'winter' ? 'Winterpause' : half ? 'Rückrunde' : 'neue Saison'}</small></span>
+                <span className="cs-clubcell"><span><ClubCrest id={clubId} size={18} />{getClub(clubId).name}</span><small>{career.phase === 'winter' ? 'Winterpause' : half ? 'Rückrunde' : 'neue Saison'}</small></span>
                 <span><b className={`cs-pill ${ovrClass(p.ovr)}`}>{p.ovr}</b></span>
                 <span>{half ? `${half.apps}` : '–'}</span>
                 <span>{half ? `${half.goals}` : '–'}</span>
@@ -457,7 +458,7 @@ function SeasonRow({ r, open, onToggle }: { r: SeasonRecord; open: boolean; onTo
       <button className={`cs-row cs-season ${open ? 'open' : ''}`} role="row" onClick={onToggle} aria-expanded={open}>
         <span className="cs-agebox">{r.age}</span>
         <span className="cs-clubcell">
-          {getClub(r.clubId).name}
+          <ClubCrest id={r.clubId} size={18} />{getClub(r.clubId).name}
           {r.onLoan && <i className="cs-tag">Leihe</i>}
           {titles.length > 0 && <i className="cs-trophy" title={titles.join(', ')}>{Array.from({ length: Math.min(3, r.trophies.length) }, (_, i) => <Icon key={i} name="trophy" size={14} />)}{r.awards.length ? <Icon name="star" size={14} /> : null}</i>}
         </span>

@@ -1,3 +1,4 @@
+import ClubCrest from './ClubCrest';
 import { useState } from 'react';
 import { getClub, getLeague } from '../data/leagues';
 import { MAX_ROUNDS, ROLES, demandFrom, leverage, moodText, negotiate, negotiable, type Demand } from '../game/negotiation';
@@ -53,7 +54,7 @@ export default function Negotiation({ career, offerId, onChange, onSign, onClose
         <header className="nego-head">
           <div>
             <small>Vertragsverhandlung · Runde {Math.min(MAX_ROUNDS, (offer.talks ?? 0) + (open ? 1 : 0))}/{MAX_ROUNDS}</small>
-            <strong>{club.name}</strong>
+            <strong><ClubCrest id={club.id} size={24} />{club.name}</strong>
             <span>{getLeague(clubLeagueId(career, club.id)).name}{offer.fee ? ` · Ablöse ${formatMoney(offer.fee)}` : ''}</span>
           </div>
           <button className="nego-x" onClick={onClose} aria-label="Schließen"><Icon name="close" size={20} /></button>

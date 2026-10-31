@@ -1,3 +1,4 @@
+import ClubCrest from './ClubCrest';
 import Icon, { Glyph } from './Icon';
 import { useState } from 'react';
 import { getClub, getLeague } from '../data/leagues';
@@ -195,7 +196,7 @@ function CoachSeasonView({ career, onChange }: { career: Career; onChange: (c: C
           <ol className="coach-table">
             {around.map(({ r, pos }, i) => (
               <li key={r.clubId} className={`${r.clubId === clubId ? 'own' : ''} ${i > 0 && around[i - 1].pos !== pos - 1 ? 'gap' : ''}`}>
-                <span>{pos}.</span><span>{getClub(r.clubId).name}</span><span>{r.goalsFor}:{r.goalsAgainst}</span><b>{r.points}</b>
+                <span>{pos}.</span><span><ClubCrest id={r.clubId} size={16} />{getClub(r.clubId).name}</span><span>{r.goalsFor}:{r.goalsAgainst}</span><b>{r.points}</b>
               </li>
             ))}
           </ol>

@@ -1,3 +1,4 @@
+import ClubCrest, { hasCrest } from './ClubCrest';
 import { Glyph } from './Icon';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { play } from '../sound';
@@ -253,6 +254,7 @@ function OwnPlayer({ onCreate }: { onCreate: (c: Career) => void }) {
             <option value="">Zufällig (passender Verein)</option>
             {clubs.map((c) => <option key={c.id} value={c.id}>{c.name} ({c.strength})</option>)}
           </select>
+          {hasCrest(clubId) && <span className="cc-crest-pick"><ClubCrest id={clubId} size={44} />{getClub(clubId).name}</span>}
         </label>
       </div>
 

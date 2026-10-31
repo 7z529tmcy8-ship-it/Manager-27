@@ -24,6 +24,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-31-meteor-rush-wappen',
+    date: '31.10.2026',
+    title: 'Meteor Rush hat ein Wappen',
+    image: '/news/meteor-rush.webp',
+    imageAlt: 'Wappen von Meteor Rush',
+    items: [
+      'Als erster und einziger Verein trägt Meteor Rush jetzt ein eigenes Wappen – in der Karriere, bei Vertragsangeboten, in der Saison-Übersicht und beim Erstellen der Karriere.',
+    ],
+  },
+  {
     id: '2026-10-31-meteor-rush-verein',
     date: '31.10.2026',
     title: 'Neuer Verein: Meteor Rush',
