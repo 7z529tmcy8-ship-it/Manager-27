@@ -14,6 +14,7 @@ import { motionReduced } from '../settings';
 import { SEASON_RANKS, claimSeason, nextRank, seasonId, seasonName, seasonPoints, seasonRank, unclaimedSeasons } from '../game/squad';
 import { PackOpening, PackPrompt } from './Store';
 import UtCard from './UtCard';
+import Draft from './Draft';
 import {
   ELITE, LOWEST, PROMOTE_AT, SAFE_DIVISIONS, STYLE_LABEL, TACTIC_TEXT, divName, divReward, divisionOf, playDivisionDuel, promoBonus, squadFit, withOpponent, type Tactic,
 } from '../game/divisions';
@@ -69,6 +70,7 @@ function ScreenHead({ title, onBack }: { title: string; onBack: () => void }) {
 /** Eigener Bereich: Duelle gegen immer stärkere Gegner (mit der Elf aus „Mein Team“). */
 export function DuelsScreen({ onBack, onTeam }: { onBack: () => void; onTeam: () => void }) {
   const club = useClub();
+  const [draft, setDraft] = useState(false);
   const cards = club.squad.map((id) => cardById(club, id));
   const full = cards.filter(Boolean).length === 11;
   return (
@@ -79,8 +81,14 @@ export function DuelsScreen({ onBack, onTeam }: { onBack: () => void; onTeam: ()
         <div><small>Division</small><strong>{divisionOf(club).div === ELITE ? 'Elite' : divisionOf(club).div}</strong></div>
         <div><small>Bilanz</small><strong>{club.duels.w}<em>S</em> {club.duels.d}<em>U</em> {club.duels.l}<em>N</em></strong></div>
       </div>
+      <button className="draft-call" onClick={() => setDraft(true)}>
+        <span className="draft-call-icon" aria-hidden="true"><Icon name="cards" size={26} /></span>
+        <span className="draft-call-text"><b>Draft</b><small>Kapitän wählen, Elf draften, Turnier gewinnen</small></span>
+        <Icon name="arrow" size={22} />
+      </button>
       <Duels full={full} onSquad={onTeam} />
       <DuelSeason />
+      {draft && <Draft onClose={() => setDraft(false)} />}
     </main>
   );
 }
@@ -432,7 +440,7 @@ function Duels({ full, onSquad }: { full: boolean; onSquad: () => void }) {
 }
 
 /** Kurzer Live-Ticker: die Minuten laufen hoch, Tore erscheinen nacheinander. */
-function DuelLive({ name, result, onClose, onShare }: { name: string; result: DuelResult; onClose: () => void; onShare?: () => void }) {
+export function DuelLive({ name, result, onClose, onShare }: { name: string; result: DuelResult; onClose: () => void; onShare?: () => void }) {
   const [minute, setMinute] = useState(motionReduced() ? 90 : 0);
   useEffect(() => {
     if (minute >= 90) return;
