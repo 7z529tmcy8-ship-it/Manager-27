@@ -10,6 +10,8 @@ export interface UpdateNote {
   /** Optionales Titelbild (Pfad in public/). */
   image?: string;
   imageAlt?: string;
+  /** Angepinnt: erscheint bei jedem Spielstart, auch wenn man es schon gesehen hat. */
+  pinned?: boolean;
 }
 
 export const GREETING = 'An Alle Ayris die das spielen!';
@@ -25,6 +27,7 @@ export const UPDATES: UpdateNote[] = [
     id: '2026-10-31-meteor-rush',
     date: '31.10.2026',
     title: 'Bald auf Roblox: Meteor Rush',
+    pinned: true,
     image: '/news/meteor-rush.webp',
     imageAlt: 'Meteor Rush – Titelbild',
     items: [

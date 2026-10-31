@@ -5,7 +5,18 @@ import Confetti from './Confetti';
 
 const KEY = 'fc-seen-update';
 
-/** Welche Updates hat dieser Browser noch nicht gesehen? Beim allerersten Besuch nur das neueste. */
+const PINNED_KEY = 'fc-pinned-shown';
+/** Angepinnte Neuigkeiten, die in diesem Spielstart noch nicht gezeigt wurden. */
+function pinnedNow(): UpdateNote[] {
+  try {
+    if (sessionStorage.getItem(PINNED_KEY)) return [];
+  } catch {
+    // ohne Speicher: trotzdem zeigen
+  }
+  return UPDATES.filter((u) => u.pinned);
+}
+
+/** Welche Updates hat dieser Browser noch nicht gesehen? Beim allerersten Besuch nur das neueste. Angepinnte kommen bei jedem Start dazu. */
 export function unseenUpdates(): UpdateNote[] {
   let seen: string | null = null;
   try {
@@ -13,13 +24,23 @@ export function unseenUpdates(): UpdateNote[] {
   } catch {
     return [];
   }
-  if (!seen) return UPDATES.slice(0, 1);
-  if (RETIRED_IDS.includes(seen)) return [];
-  const idx = UPDATES.findIndex((u) => u.id === seen);
-  return idx === -1 ? UPDATES.slice(0, 1) : UPDATES.slice(0, idx);
+  let list: UpdateNote[];
+  if (!seen) list = UPDATES.slice(0, 1);
+  else if (RETIRED_IDS.includes(seen)) list = [];
+  else {
+    const idx = UPDATES.findIndex((u) => u.id === seen);
+    list = idx === -1 ? UPDATES.slice(0, 1) : UPDATES.slice(0, idx);
+  }
+  const pinned = pinnedNow().filter((p) => !list.includes(p));
+  return [...pinned, ...list];
 }
 
 function markSeen() {
+  try {
+    sessionStorage.setItem(PINNED_KEY, '1');
+  } catch {
+    // egal
+  }
   try {
     localStorage.setItem(KEY, UPDATES[0].id);
   } catch {
