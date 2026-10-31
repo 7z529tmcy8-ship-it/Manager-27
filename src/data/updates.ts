@@ -18,17 +18,9 @@ export const GREETING = 'An Alle Ayris die das spielen!';
  * Ids von Einträgen, die wieder entfernt wurden (stille Updates). Wer so einen Eintrag schon gesehen hat,
  * bekommt kein altes Banner erneut angezeigt.
  */
-export const RETIRED_IDS = ['2026-10-05-sounds'];
+export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
-  {
-    id: '2026-10-31-hoeher-tiefer-5',
-    date: '31.10.2026',
-    title: 'Höher oder Tiefer: schneller zu Punkten',
-    items: [
-      'Jetzt gibt es schon alle 5 Richtigen am Stück einen Punkt statt alle 10.',
-    ],
-  },
   {
     id: '2026-10-31-meteor-rush',
     date: '31.10.2026',
@@ -57,7 +49,7 @@ export const UPDATES: UpdateNote[] = [
     items: [
       'Das Kartenduell ist aus dem Casino raus und jetzt ein eigener Modus unter Duelle – ohne Coins und ohne angezeigte Chancen. Beide Knöpfe gehen immer.',
       'Geraten wird mit Karten aus dem ganzen Spiel: echte Spieler, Ikonen, Sonderkarten, Event- und SBC-Karten.',
-      'Alle 10 Richtigen am Stück gibt es einen Punkt. Ein Fehler setzt die Serie zurück, Gleichstand zählt nicht.',
+      'Alle 5 Richtigen am Stück gibt es einen Punkt. Ein Fehler setzt die Serie zurück, Gleichstand zählt nicht.',
       'Mit Punkten entwickelst du drei Talente: Max Dowman, Lennart Karl und Xavi Espart. Jedes Upgrade +3 – das erste kostet 1 Punkt, das zweite 2, dann 3 …',
     ],
   },
