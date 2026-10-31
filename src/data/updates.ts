@@ -24,6 +24,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-31-profil-spielerkarte',
+    date: '31.10.2026',
+    title: 'Neues Profil: deine Spielerkarte',
+    items: [
+      'Das Profil ist jetzt eine große Spielerkarte: Wappen mit Level-Abzeichen, Name, Titel, XP-Balken, Trophäen und Division.',
+      'Unter „Anpassen“ wählst du Wappen, Farbe, Banner und Titel. 8 Banner und 12 Titel – manche musst du erst freischalten (z. B. durch Level, Duell-Siege oder Codes).',
+      'Dazu drei Rekorde, eine Vitrine für deine Lieblingskarte und übersichtlichere Statistiken.',
+    ],
+  },
+  {
     id: '2026-10-31-ladebildschirm',
     date: '31.10.2026',
     title: 'Das Spiel ist wieder offen – mit neuem Ladebildschirm',

@@ -217,6 +217,16 @@ const FLOWS = {
     await p.click('.code-redeem button'); await p.waitForTimeout(4000);
     await p.click('.mt-actions .btn.primary', { timeout: 2000 }).catch(() => {});
   },
+  profil: async (p) => {
+    // Profil → Anpassen → alle Reiter → Banner wählen → schließen
+    await p.click('.hub-profile', { timeout: 3000 }); await p.waitForTimeout(500);
+    await p.click('.pf-edit', { timeout: 3000 }); await p.waitForTimeout(350);
+    for (const t of ['Farbe', 'Banner', 'Titel', 'Wappen']) { await p.click(`.pf-tab:has-text("${t}")`); await p.waitForTimeout(250); }
+    await p.click('.pf-tab:has-text("Banner")'); await p.waitForTimeout(200);
+    await p.click('.pf-bn.bn-neon'); await p.waitForTimeout(200);
+    await p.click('.pf-x'); await p.waitForTimeout(400);
+    await p.mouse.wheel(0, 900); await p.waitForTimeout(400);
+  },
   hilo: async (p) => {
     // Duelle → Höher oder Tiefer: drei Tipps
     await nav(p, 'Duelle'); await p.waitForTimeout(400);

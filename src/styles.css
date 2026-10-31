@@ -5220,3 +5220,111 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
   animation: boot-shine 1.4s ease-in-out infinite; }
 @keyframes boot-shine { to { transform: translateX(450%) skewX(-20deg); } }
 @media (prefers-reduced-motion: reduce) { .boot-art, .boot-step, .boot-shine { animation: none; } }
+
+/* ---------- Profil 2: Spielerkarte wie in Brawl Stars ---------- */
+.pf-card-hero { position: relative; overflow: hidden; margin: 6px 0 12px; padding: 18px 16px 16px; border-radius: 24px; color: #fff; isolation: isolate;
+  border: 2px solid color-mix(in srgb, var(--pc) 70%, #fff); box-shadow: 0 6px 0 rgba(0, 0, 0, .35), 0 18px 40px color-mix(in srgb, var(--pc) 28%, transparent); }
+.pf-banner { position: absolute; inset: 0; z-index: -2; }
+.pf-banner::after { content: ''; position: absolute; inset: 0; opacity: .18; background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .5) 0 2px, transparent 2px 14px); }
+.pf-shine { position: absolute; top: 0; bottom: 0; left: -40%; width: 30%; z-index: -1; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .22), transparent); transform: skewX(-18deg);
+  animation: pf-shine 4.5s ease-in-out infinite; }
+@keyframes pf-shine { 0%, 55% { transform: translateX(0) skewX(-18deg); } 100% { transform: translateX(520%) skewX(-18deg); } }
+/* Banner */
+.bn-stadion .pf-banner { background: radial-gradient(60% 50% at 15% 0%, rgba(255, 255, 255, .35), transparent 60%), radial-gradient(60% 50% at 85% 0%, rgba(255, 255, 255, .3), transparent 60%), linear-gradient(160deg, #1d3fb8, #0b1a5c 60%, #071038); }
+.bn-neon .pf-banner { background: radial-gradient(80% 70% at 0% 100%, rgba(255, 47, 209, .55), transparent 60%), radial-gradient(70% 70% at 100% 0%, rgba(0, 229, 255, .5), transparent 60%), #120a2e; }
+.bn-galaxie .pf-banner { background: radial-gradient(2px 2px at 20% 30%, #fff, transparent), radial-gradient(2px 2px at 70% 20%, #fff, transparent), radial-gradient(1.5px 1.5px at 45% 70%, #fff, transparent), radial-gradient(1.5px 1.5px at 85% 60%, #fff, transparent),
+  radial-gradient(70% 60% at 70% 40%, rgba(163, 92, 255, .6), transparent 70%), linear-gradient(160deg, #1a0b3d, #05030f); }
+.bn-feuer .pf-banner { background: radial-gradient(90% 70% at 50% 110%, #ffcf3a, #ff6a00 40%, transparent 75%), linear-gradient(180deg, #3a0a12, #8a1a0a); }
+.bn-rasen .pf-banner { background: repeating-linear-gradient(90deg, #2f9a3c 0 34px, #278733 34px 68px); }
+.bn-rasen .pf-banner::after { opacity: .25; background-image: linear-gradient(transparent 48%, rgba(255, 255, 255, .6) 48% 52%, transparent 52%); }
+.bn-gold .pf-banner { background: radial-gradient(70% 60% at 30% 0%, rgba(255, 255, 255, .6), transparent 60%), linear-gradient(150deg, #ffe58a, #e3a91c 50%, #9a6500); }
+.bn-meteor .pf-banner { background: radial-gradient(40% 40% at 80% 20%, #ffd58a, #ff7a2a 35%, transparent 60%), linear-gradient(200deg, transparent 40%, rgba(255, 140, 60, .4) 55%, transparent 70%), linear-gradient(160deg, #2a1150, #0a0418); }
+.bn-eis .pf-banner { background: radial-gradient(70% 70% at 0% 0%, rgba(235, 250, 255, .7), transparent 55%), radial-gradient(60% 60% at 100% 100%, rgba(160, 220, 255, .45), transparent 60%), linear-gradient(160deg, #2b6fb0, #0a1d36); }
+.pf-edit { position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 12px; border: 0; cursor: pointer; font: inherit; font-weight: 800; font-size: .8125rem;
+  color: #1a1200; background: linear-gradient(#ffe97a, #ffc21a); box-shadow: 0 3px 0 #a36a00; transition: transform .1s ease-out; }
+.pf-edit:active { transform: translateY(2px); box-shadow: 0 1px 0 #a36a00; }
+.pf-top { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 14px; margin-top: 20px; }
+.pf-badge { position: relative; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .45)); }
+.pf-lvl { position: absolute; right: -6px; bottom: -4px; min-width: 38px; height: 38px; padding: 0 4px; display: grid; place-items: center; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  background: linear-gradient(#5fd4ff, #1a6fe0); color: #fff; font-family: var(--display, inherit); font-size: 1.05rem; font-weight: 800; text-shadow: 0 2px 0 rgba(0, 0, 0, .4); }
+.pf-id { display: grid; gap: 6px; min-width: 0; }
+.pf-card-hero .pf-name { justify-self: start; max-width: 100%; padding: 0; border: 0; background: none; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: var(--display, inherit); font-size: 2rem; line-height: 1; letter-spacing: .02em; color: #fff;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, .45), 0 0 18px color-mix(in srgb, var(--pc) 60%, transparent); }
+.pf-title { justify-self: start; padding: 3px 10px; border-radius: 8px; font-size: .75rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #1a1200; background: var(--pc); box-shadow: 0 2px 0 rgba(0, 0, 0, .35); }
+.pf-xp { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.pf-xp-bar { height: 10px; border-radius: 6px; overflow: hidden; background: rgba(0, 0, 0, .45); border: 1px solid rgba(255, 255, 255, .25); }
+.pf-xp-bar i { display: block; height: 100%; transform-origin: 0 50%; background: linear-gradient(#7fe0ff, #2b8cff); transition: transform .5s ease-out; }
+.pf-xp small { font-size: .72rem; font-weight: 700; color: rgba(255, 255, 255, .85); font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px rgba(0, 0, 0, .6); }
+.pf-pills { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
+.pf-pill { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'ic v' 'ic s'; column-gap: 8px; align-items: center; padding: 8px 10px; border-radius: 14px;
+  background: rgba(0, 0, 0, .42); border: 1px solid rgba(255, 255, 255, .15); }
+.pf-pill .ic { grid-area: ic; color: #9fd8ff; }
+.pf-pill.gold .ic { color: #ffd24a; }
+.pf-pill b { grid-area: v; font-family: var(--display, inherit); font-size: 1.2rem; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.pf-pill small { grid-area: s; font-size: .7rem; color: rgba(255, 255, 255, .7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Rekorde */
+.pf-records { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 18px; }
+.pf-rec { display: grid; justify-items: center; gap: 2px; padding: 12px 6px; border-radius: 16px; text-align: center; color: #fff; box-shadow: 0 4px 0 rgba(0, 0, 0, .3); }
+.pf-rec strong { font-family: var(--display, inherit); font-size: 1.35rem; line-height: 1.1; font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
+.pf-rec small { font-size: .68rem; font-weight: 700; opacity: .9; }
+.pf-rec.t-gold { background: linear-gradient(160deg, #e3a91c, #8a5a00); }
+.pf-rec.t-blue { background: linear-gradient(160deg, #2b8cff, #123f9a); }
+.pf-rec.t-pink { background: linear-gradient(160deg, #d23cff, #6a1890); }
+/* Vitrine */
+.pf-pedestal { position: relative; display: grid; place-items: center; padding: 10px 0 26px; }
+.pf-pedestal::before { content: ''; position: absolute; inset: 0 15% 10%; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--pc) 45%, transparent), transparent); }
+.pf-pedestal .ucard { position: relative; animation: pf-float 3.2s ease-in-out infinite; }
+@keyframes pf-float { 50% { transform: translateY(-6px); } }
+.pf-plinth { position: absolute; bottom: 8px; width: 150px; height: 22px; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--pc) 55%, #000), rgba(0, 0, 0, .1)); }
+.pf-cardpick { padding: 2px; border-radius: 12px; border: 2px solid transparent; background: none; cursor: pointer; }
+.pf-cardpick.on { border-color: var(--accent, #39ff88); }
+/* Statistiken als Liste */
+.pf-stats li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: 'ic lb val'; column-gap: 10px; align-items: center; }
+.pf-stats li .pf-st-ic { grid-area: ic; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 10px; color: var(--accent, #39ff88); background: color-mix(in srgb, var(--accent, #39ff88) 14%, transparent); }
+.pf-stats li .pf-st-ic .ic { color: inherit; }
+.pf-stats li small { font-size: .8125rem; color: var(--text-2); }
+.pf-stats li strong { font-size: 1.05rem; text-align: right; }
+@media (min-width: 560px) { .pf-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* Anpassen-Menü */
+.pf-sheet-wrap { position: fixed; inset: 0; z-index: 120; display: grid; align-items: end; justify-items: center; background: rgba(2, 4, 14, .6); animation: mt-in .2s ease-out both; }
+.pf-sheet { width: min(560px, 100%); max-height: 78vh; display: grid; grid-template-rows: auto auto minmax(0, 1fr); border-radius: 24px 24px 0 0; background: var(--surface, #11173a); border: 1px solid var(--hairline);
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); animation: pf-up .28s cubic-bezier(.2, .9, .3, 1) both; }
+@keyframes pf-up { from { transform: translateY(100%); } }
+.pf-sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.pf-sheet-head strong { font-family: var(--display, inherit); font-size: 1.4rem; letter-spacing: .04em; text-transform: uppercase; }
+.pf-x { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface-2); color: var(--text); cursor: pointer; }
+.pf-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; margin-bottom: 12px; border-radius: 14px; background: var(--surface-2); }
+.pf-tab { display: grid; justify-items: center; padding: 9px 2px; border-radius: 10px; border: 0; background: none; color: var(--muted); font: inherit; font-weight: 700; font-size: .8125rem; cursor: pointer; transition: background-color .15s, color .15s; }
+.pf-tab small { font-size: .65rem; font-weight: 600; }
+.pf-tab.on { background: var(--accent); color: var(--accent-ink, #03131a); }
+.pf-sheet-body { overflow-y: auto; animation: shopIn .2s ease-out both; }
+.pf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px; }
+.pf-grid .pf-pick { display: grid; place-items: center; padding: 6px; border-radius: 14px; border: 2px solid transparent; background: var(--surface-2); }
+.pf-grid .pf-pick.on { border-color: #fff; }
+.pf-grid.colors { grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); }
+.pf-grid .pf-color { width: 52px; height: 52px; justify-self: center; }
+.pf-banners { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.pf-bn { position: relative; isolation: isolate; overflow: hidden; height: 76px; display: grid; align-content: end; gap: 2px; padding: 8px 10px; border-radius: 14px; border: 2px solid transparent; color: #fff; font: inherit; text-align: left; cursor: pointer; transition: transform .12s; }
+.pf-bn:active:not(:disabled) { transform: scale(.97); }
+.pf-bn.on { border-color: #fff; }
+.pf-bn b { text-shadow: 0 2px 4px rgba(0, 0, 0, .7); }
+.pf-bn small { display: inline-flex; align-items: center; gap: 4px; font-size: .7rem; text-shadow: 0 1px 3px rgba(0, 0, 0, .8); }
+.pf-bn:disabled { cursor: default; }
+.pf-bn:disabled .pf-banner { filter: grayscale(.85) brightness(.55); }
+.pf-titles { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.pf-ttl { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 14px; border: 2px solid transparent; background: var(--surface-2); color: var(--text); font: inherit; cursor: pointer; text-align: left; }
+.pf-ttl b { font-weight: 800; letter-spacing: .03em; text-transform: uppercase; font-size: .875rem; }
+.pf-ttl small { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: .75rem; text-align: right; }
+.pf-ttl.on { border-color: var(--accent); }
+.pf-ttl.on small { color: var(--accent); }
+.pf-ttl:disabled { opacity: .55; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .pf-shine, .pf-pedestal .ucard { animation: none; } }
+.pf-card-hero .pf-id { grid-area: auto; }
+.pf-card-hero .pf-badge { grid-area: auto; }
+.pf-sheet { background: #10142e; box-shadow: 0 -20px 50px rgba(0, 0, 0, .5); }
+:root:not([data-theme="arena"]) .pf-sheet { background: var(--surface); }
+.profile .pf-stats { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+@media (min-width: 560px) { .profile .pf-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.profile .pf-stats li { padding: 10px 12px; }
+.pf-card-hero .pf-top { margin-top: 36px; }
