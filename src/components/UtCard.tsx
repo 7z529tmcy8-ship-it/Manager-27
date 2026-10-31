@@ -67,10 +67,14 @@ interface Props {
   /** Chemie 0–3 als Punkte (in der Aufstellung). */
   chem?: number;
   onClick?: () => void;
+  /** Einen Wert verdecken („?“): die Gesamtwertung oder ein Attribut (Index). */
+  mask?: 'ovr' | number;
+  /** Einen Wert hervorheben: die Gesamtwertung oder ein Attribut (Index). */
+  focus?: 'ovr' | number;
 }
 
 /** Sammelkarte im eigenen Design: Form, Farben und Aufbau frei gestaltet. */
-export default function UtCard({ card, size = 'md', count, shine, chem, onClick }: Props) {
+export default function UtCard({ card, size = 'md', count, shine, chem, onClick, mask, focus }: Props) {
   const tiltRef = useTilt(size === 'lg' || size === 'md');
   const lastName = shortName(card.name);
   const attrs = cardAttrs(card);
@@ -82,7 +86,7 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick 
     <Tag
       ref={tiltRef as never}
       className={`ucard v-${card.variant} ${size} ${size === 'lg' || size === 'md' ? 'tilt' : ''} ${emblem ? 'special' : ''} ${card.boost ? 'evo' : ''} ${shine ? 'shine' : ''} ${onClick ? 'clickable' : ''}`}
-      aria-label={`${card.name}, ${card.ovr} ${card.position}`}
+      aria-label={mask === 'ovr' ? `${card.name}, ${card.position}` : `${card.name}, ${card.ovr} ${card.position}`}
       onClick={onClick}
     >
       {emblem && <span className="ucard-foil" aria-hidden="true" />}
@@ -90,7 +94,7 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick 
       {!!card.boost && size !== 'xs' && <span className="ucard-evo" aria-label={`Evolution +${card.boost}`}>{Array.from({ length: 5 }, (_, i) => <i key={i} className={i < card.boost! ? 'on' : ''} />)}</span>}
       {emblem && size !== 'xs' && <span className="ucard-emblem" aria-hidden="true"><Icon name={emblem} /></span>}
       <div className="ucard-top">
-        <span className="ucard-ovr">{card.ovr}</span>
+        <span className={`ucard-ovr ${mask === 'ovr' ? 'masked' : ''} ${focus === 'ovr' ? 'focused' : ''}`}>{mask === 'ovr' ? '?' : card.ovr}</span>
         <span className="ucard-pos">{card.position}</span>
         <span className="ucard-flag" aria-hidden="true">{flagOf(card.nation)}</span>
       </div>
@@ -104,7 +108,7 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick 
       {big && (
         <div className="ucard-attrs">
           {attrs.map((v, i) => (
-            <span key={labels[i]}><b>{v}</b> {labels[i]}</span>
+            <span key={labels[i]} className={`${mask === i ? 'masked' : ''} ${focus === i ? 'focused' : ''}`}><b>{mask === i ? '?' : v}</b> {labels[i]}</span>
           ))}
         </div>
       )}

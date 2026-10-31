@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import {
-  HILO_MAX_LEVEL, HILO_STEP, STREAK_FOR_POINT, answerHilo, drawDuel, drawDuelNext, duelHints, hiloCards, hiloOf, judge, shownDuelCard, syncHiloCards, upgradeCost, upgradeHilo,
-  type DuelCard, type HiLo, type HiLoOutcome,
+  HILO_MAX_LEVEL, HILO_STEP, STREAK_FOR_POINT, answerHilo, drawDuel, drawDuelNext, hiloCards, hiloOf, judge, pickStat, shownDuelCard, statName, statValue, syncHiloCards, upgradeCost, upgradeHilo,
+  type DuelCard, type HiLo, type HiLoOutcome, type HiloStat,
 } from '../game/hilo';
-import { attributeLabels } from '../game/player';
 import { motionReduced } from '../settings';
 import { play } from '../sound';
 import Icon from './Icon';
 import UtCard from './UtCard';
 
+/** Nachname für die Frage („Hat Haaland mehr Tempo als Mbappé?“). */
+const shortName = (n: string) => n.split(/\s+/).slice(-1)[0];
 const vibrate = (p: number | number[]) => { try { navigator.vibrate?.(p); } catch { /* nicht unterstützt */ } };
 
 /** Höher oder Tiefer: Serien spielen, alle 5 Richtigen ein Punkt, mit Punkten drei Talente entwickeln. */
@@ -17,7 +18,8 @@ export default function HiLoMode({ onClose }: { onClose: () => void }) {
   const club = useClub();
   const h = hiloOf(club);
   const [cur, setCur] = useState<DuelCard>(() => drawDuel());
-  const [nxt, setNxt] = useState<{ d: DuelCard; hints: [number, number] }>(() => ({ d: drawDuelNext(cur), hints: duelHints() }));
+  const deal = (from: DuelCard) => { const d = drawDuelNext(from); return { d, stat: pickStat(from, d) }; };
+  const [nxt, setNxt] = useState<{ d: DuelCard; stat: HiloStat }>(() => deal(cur));
   const [reveal, setReveal] = useState<HiLoOutcome | null>(null);
   const [pointPop, setPointPop] = useState(0);
   const [k, setK] = useState(0);
@@ -25,11 +27,10 @@ export default function HiLoMode({ onClose }: { onClose: () => void }) {
   useEffect(() => () => clearTimeout(timer.current), []);
   // Die drei Talente liegen von Anfang an in der Sammlung
   useEffect(() => { const c = syncHiloCards(getClubState()); if (c !== getClubState()) setClubState(c); }, []);
-  const labels = attributeLabels(nxt.d.card.position);
 
   const guess = (dir: HiLo) => {
     if (reveal) return;
-    const out = judge(cur, nxt.d, dir);
+    const out = judge(cur, nxt.d, dir, nxt.stat);
     setReveal(out);
     play('tap');
     timer.current = setTimeout(() => {
@@ -40,7 +41,7 @@ export default function HiLoMode({ onClose }: { onClose: () => void }) {
       if (res.point) setPointPop((x) => x + 1);
       // Weiter mit der aufgedeckten Karte (bei Fehler und Gleichstand auch – die Serie zählt einfach neu)
       setCur(nxt.d);
-      setNxt({ d: drawDuelNext(nxt.d), hints: duelHints() });
+      setNxt(deal(nxt.d));
       setReveal(null);
       setK((x) => x + 1);
     }, motionReduced() ? 80 : 1000);
@@ -71,25 +72,29 @@ export default function HiLoMode({ onClose }: { onClose: () => void }) {
           <div className="hl-points"><small>Punkte</small><strong key={pointPop} className={pointPop ? 'pop' : ''}>{h.points}</strong><em>Rekord {h.best}</em></div>
         </div>
 
-        <div className="cz-stage hilo-table hl-table">
-          <div className="hilo-slot" key={`c-${k}`}><UtCard card={shownDuelCard(cur)} size="md" /></div>
-          <div className={`hilo-slot back ${reveal ? `show ${reveal === 'right' ? 'ok' : reveal === 'wrong' ? 'bad' : 'tie'}` : ''}`} key={`n-${k}`}>
-            {reveal ? <UtCard card={shownDuelCard(nxt.d)} size="md" /> : (
-              <div className="hilo-hidden" aria-label={`Verdeckte Karte: ${nxt.d.card.position}, ${labels[nxt.hints[0]]} ${nxt.d.attrs[nxt.hints[0]]}, ${labels[nxt.hints[1]]} ${nxt.d.attrs[nxt.hints[1]]}`}>
-                <span className="hh-ovr">?</span>
-                <span className="hh-pos">{nxt.d.card.position}</span>
-                <span className="hh-hints">{nxt.hints.map((i) => <span key={i}><b>{nxt.d.attrs[i]}</b>{labels[i]}</span>)}</span>
-                <span className="hh-rest" aria-hidden="true">{labels.map((l, i) => <i key={l} className={nxt.hints.includes(i) ? 'on' : ''} />)}</span>
-              </div>
-            )}
+        <div className="hl-question" key={`q-${k}`}>
+          <small>Hat {shortName(nxt.d.card.name)} mehr</small>
+          <strong>{statName(nxt.stat)}</strong>
+          <small>als {shortName(cur.card.name)} ({statValue(cur, nxt.stat)})?</small>
+        </div>
+
+        <div className={`cz-stage hl-table ${reveal ?? ''}`}>
+          <div className="hl-slot" key={`c-${k}`}><UtCard card={shownDuelCard(cur)} size="md" focus={nxt.stat} /></div>
+          <span className="hl-vs" aria-hidden="true">VS</span>
+          <div className={`hl-slot next ${reveal ? `show ${reveal}` : ''}`} key={`n-${k}`}>
+            <UtCard card={shownDuelCard(nxt.d)} size="md" mask={reveal ? undefined : nxt.stat} focus={nxt.stat} />
           </div>
-          {reveal && <span className={`hl-call ${reveal}`} role="status">{reveal === 'right' ? 'Richtig' : reveal === 'wrong' ? 'Falsch' : 'Gleich'}</span>}
+          {reveal && (
+            <span className={`hl-call ${reveal}`} role="status">
+              {reveal === 'right' ? 'Richtig' : reveal === 'wrong' ? 'Falsch' : 'Gleich'} · {statValue(nxt.d, nxt.stat)}
+            </span>
+          )}
           {pointPop > 0 && !reveal && <span className="hl-plus" key={pointPop} aria-hidden="true">+1 Punkt</span>}
         </div>
 
-        <div className="hilo-choices">
-          <button className="hilo-btn higher" disabled={!!reveal} onClick={() => guess('higher')}><Icon name="arrow" size={18} /><span>Höher</span></button>
-          <button className="hilo-btn lower" disabled={!!reveal} onClick={() => guess('lower')}><Icon name="arrow" size={18} /><span>Tiefer</span></button>
+        <div className="hilo-choices hl-choices">
+          <button className="hilo-btn higher" disabled={!!reveal} onClick={() => guess('higher')}><Icon name="arrow" size={20} /><span>Höher</span></button>
+          <button className="hilo-btn lower" disabled={!!reveal} onClick={() => guess('lower')}><Icon name="arrow" size={20} /><span>Tiefer</span></button>
         </div>
 
         <section className="hl-talents" aria-label="Talente entwickeln">

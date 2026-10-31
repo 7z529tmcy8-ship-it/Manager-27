@@ -7,7 +7,8 @@ import { cardAttrs } from './squad';
 // ---------- Höher oder Tiefer (nach MADFUT) ----------
 // Eigener Modus ohne Coins: Ist die nächste Karte höher oder tiefer bewertet? Gezogen wird aus allen Karten des Spiels
 // (echte Spieler, Ikonen, Sonderkarten, SBC-Karten) – die Talente zum Entwickeln sind davon getrennt.
-// Von der verdeckten Karte sieht man Position und zwei Werte. Gleichstand zählt nicht – neue Karte, die Serie bleibt.
+// Wie bei MADFUT: Die nächste Karte ist offen (Name, Verein, Nation), nur der gefragte Wert ist verdeckt.
+// Jede Runde geht es um einen anderen Wert. Gleichstand zählt nicht – neue Karte, die Serie bleibt.
 // Alle 5 Richtigen am Stück gibt es einen Punkt. Mit Punkten entwickelt man drei junge Talente (+3 pro Upgrade).
 
 export interface DuelCard { card: CollectCard; attrs: number[] }
@@ -37,19 +38,26 @@ export function drawDuel(rand = Math.random, list = duelPool()): DuelCard {
 export const DUEL_RANGE = 4;
 export const duelNear = (cur: DuelCard, list = duelPool()) => list.filter((x) => x !== cur && Math.abs(x.card.ovr - cur.card.ovr) <= DUEL_RANGE);
 export const drawDuelNext = (cur: DuelCard, rand = Math.random) => drawDuel(rand, duelNear(cur));
-/** Zwei verschiedene Werte der verdeckten Karte, die aufgedeckt werden. */
-export function duelHints(rand = Math.random): [number, number] {
-  const a = Math.floor(rand() * 6);
-  const b = (a + 1 + Math.floor(rand() * 5)) % 6;
-  return [a, b];
-}
 /** Karte für die Anzeige – genau so, wie sie im Spiel aussieht. */
 export const shownDuelCard = (d: DuelCard): CollectCard => d.card;
 
 export type HiLo = 'higher' | 'lower';
 export type HiLoOutcome = 'right' | 'wrong' | 'tie';
-export const judge = (cur: DuelCard, next: DuelCard, dir: HiLo): HiLoOutcome =>
-  next.card.ovr === cur.card.ovr ? 'tie' : (dir === 'higher') === (next.card.ovr > cur.card.ovr) ? 'right' : 'wrong';
+/** Worum es in einer Runde geht: die Gesamtwertung oder ein Feldspieler-Wert (Index wie auf der Karte). */
+export type HiloStat = 'ovr' | number;
+export const STAT_NAMES = ['Tempo', 'Schuss', 'Passen', 'Dribbling', 'Defensive', 'Physis'];
+export const statName = (s: HiloStat) => (s === 'ovr' ? 'Gesamtwertung' : STAT_NAMES[s]);
+export const statValue = (d: DuelCard, s: HiloStat) => (s === 'ovr' ? d.card.ovr : d.attrs[s]);
+/** Wie bei MADFUT: Mal die Gesamtwertung, mal ein einzelner Wert. Ist ein Torhüter dabei, immer die Gesamtwertung (andere Werte). */
+export function pickStat(cur: DuelCard, next: DuelCard, rand = Math.random): HiloStat {
+  if (cur.card.position === 'TW' || next.card.position === 'TW') return 'ovr';
+  return rand() < 0.3 ? 'ovr' : Math.floor(rand() * STAT_NAMES.length);
+}
+export const judge = (cur: DuelCard, next: DuelCard, dir: HiLo, stat: HiloStat = 'ovr'): HiLoOutcome => {
+  const a = statValue(cur, stat);
+  const b = statValue(next, stat);
+  return a === b ? 'tie' : (dir === 'higher') === (b > a) ? 'right' : 'wrong';
+};
 
 // ---------- Serie, Punkte, Talente ----------
 export const STREAK_FOR_POINT = 5;

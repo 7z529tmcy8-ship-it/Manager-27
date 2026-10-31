@@ -56,3 +56,19 @@ it('Höher/Tiefer: viele Kartenarten kommen dran, nicht nur Silber und Gold', ()
   for (let i = 0; i < 60; i++) { cur = drawDuelNext(cur); seen.add(cur.card.variant); }
   expect(seen.size).toBeGreaterThanOrEqual(6);
 });
+
+it('MADFUT-Stil: jede Runde ein Wert, Torhüter nur mit Gesamtwertung, Wertung nach genau diesem Wert', async () => {
+  const { pickStat, statValue, STAT_NAMES } = await import('../hilo');
+  const stats = new Set<string>();
+  for (let i = 0; i < 400; i++) {
+    const cur = drawDuel();
+    const next = drawDuelNext(cur);
+    const s = pickStat(cur, next);
+    stats.add(String(s));
+    if (cur.card.position === 'TW' || next.card.position === 'TW') expect(s).toBe('ovr');
+    const a = statValue(cur, s);
+    const b = statValue(next, s);
+    expect(judge(cur, next, 'higher', s)).toBe(a === b ? 'tie' : b > a ? 'right' : 'wrong');
+  }
+  expect(stats.size).toBe(STAT_NAMES.length + 1);
+});

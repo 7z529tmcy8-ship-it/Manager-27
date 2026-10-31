@@ -24,6 +24,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-31-hoeher-tiefer-madfut',
+    date: '31.10.2026',
+    title: 'Höher oder Tiefer – neu wie bei MADFUT',
+    items: [
+      'Die nächste Karte ist jetzt offen: Name, Verein, Nation – nur der gefragte Wert ist verdeckt.',
+      'Jede Runde geht es um etwas anderes: Gesamtwertung, Tempo, Schuss, Passen, Dribbling, Defensive oder Physis. Fußballwissen zahlt sich aus!',
+      'Neues Design: große Frage oben, der Wert leuchtet auf beiden Karten, VS in der Mitte.',
+    ],
+  },
+  {
     id: '2026-10-31-meteor-rush',
     date: '31.10.2026',
     title: 'Bald auf Roblox: Meteor Rush',
