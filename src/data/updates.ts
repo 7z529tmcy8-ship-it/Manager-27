@@ -24,6 +24,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-31-meteor-rush-verein',
+    date: '31.10.2026',
+    title: 'Neuer Verein: Meteor Rush',
+    items: [
+      'In der 2. Kreisklasse spielt jetzt Meteor Rush – benannt nach dem kommenden Roblox-Spiel der Entwickler.',
+      'Neuer Erfolg „Meteor-Regen“: Schieß 1000 Tore für Meteor Rush und du bekommst einen Meteor-Drop mit 10 Ikonen – mit Einschlag wie beim Code METEOR.',
+    ],
+  },
+  {
     id: '2026-10-31-sammlung-eigene-sbc',
     date: '31.10.2026',
     title: 'Sammlung: Eigene Karten und SBC-Karten',

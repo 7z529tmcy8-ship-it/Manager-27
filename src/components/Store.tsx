@@ -9,7 +9,7 @@ import UtCard from './UtCard';
 import Icon, { Glyph } from './Icon';
 import CasinoTab from './CasinoTab';
 import MeteorReveal from './MeteorReveal';
-import { redeemCode } from '../game/codes';
+import { openMeteorDrop, redeemCode } from '../game/codes';
 import DropOpener from './DropOpener';
 import PolarCalendar from './PolarCalendar';
 import { POLAR_UNLOCK, polarNextBuyable, polarVisible } from '../game/polar';
@@ -31,7 +31,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
     try { sessionStorage.setItem('fc-shop-dept', d); } catch { /* kein Speicher */ }
     play('tap');
   };
-  const stash = (club.storedPacks?.length ?? 0) + (club.drops ?? 0) + (club.megaDrops ?? 0);
+  const stash = (club.storedPacks?.length ?? 0) + (club.drops ?? 0) + (club.megaDrops ?? 0) + (club.meteorDrops ?? 0);
   const [polar, setPolar] = useState(false);
   const [casino, setCasino] = useState(false);
   const [code, setCode] = useState('');
@@ -166,7 +166,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
 
       {dept === 'stash' && (
         <div className="shop-dept" key="stash">
-      <StoredPacks onDrop={(kind, all) => setDropOpen({ kind, all })} onOpen={(r) => setOpening((o) => ({ result: r.result, name: r.name, packId: '', free: true, n: (o?.n ?? 0) + 1 }))} />
+      <StoredPacks onMeteor={() => { const r = openMeteorDrop(getClubState()); if (r) { setClubState(r.club); setMeteor(r.result); } }} onDrop={(kind, all) => setDropOpen({ kind, all })} onOpen={(r) => setOpening((o) => ({ result: r.result, name: r.name, packId: '', free: true, n: (o?.n ?? 0) + 1 }))} />
         </div>
       )}
 
@@ -356,12 +356,13 @@ export function PackPrompt({ packs, onOpen, onStore }: { packs: string[]; onOpen
 }
 
 /** Ablage: gewonnene, noch ungeöffnete Packs. */
-function StoredPacks({ onOpen, onDrop }: { onOpen: (res: { name: string; result: PackResult }) => void; onDrop: (kind: DropKind, all?: boolean) => void }) {
+function StoredPacks({ onOpen, onDrop, onMeteor }: { onOpen: (res: { name: string; result: PackResult }) => void; onDrop: (kind: DropKind, all?: boolean) => void; onMeteor: () => void }) {
   const club = useClub();
   const list = club.storedPacks ?? [];
   const drops = club.drops ?? 0;
   const mega = club.megaDrops ?? 0;
-  if (!list.length && !drops && !mega) return <p className="shop-empty"><Icon name="folder" size={28} />Deine Ablage ist leer. Packs und Drops aus Belohnungen landen hier.</p>;
+  const meteor = club.meteorDrops ?? 0;
+  if (!list.length && !drops && !mega && !meteor) return <p className="shop-empty"><Icon name="folder" size={28} />Deine Ablage ist leer. Packs und Drops aus Belohnungen landen hier.</p>;
   const open = (id: string) => {
     const res = openStoredPack(getClubState(), id);
     if (!res) return;
@@ -385,12 +386,19 @@ function StoredPacks({ onOpen, onDrop }: { onOpen: (res: { name: string; result:
   };
   return (
     <section className="store-group sg-stored" aria-label="Deine Packs">
-      <h2 className="store-group-head"><Icon name="folder" size={18} />Deine Packs<small>{list.length + drops + mega} in der Ablage</small></h2>
+      <h2 className="store-group-head"><Icon name="folder" size={18} />Deine Packs<small>{list.length + drops + mega + meteor} in der Ablage</small></h2>
       <div className="stored-alls">
         {list.length > 1 && <button className="btn primary stored-all" onClick={openAll}><Icon name="pack" size={18} /> Alle {list.length} Packs öffnen</button>}
         {drops + mega > 1 && <button className="btn primary stored-all drops" onClick={() => onDrop(mega ? 'mega' : 'normal', true)}><Icon name="spark" size={18} /> Alle {drops + mega} Drops öffnen</button>}
       </div>
       <ul className="stored-list">
+        {meteor > 0 && (
+          <li className="stored-pack stored-meteor">
+            <span className="meteor-gem" aria-hidden="true"><i /></span>
+            <span className="stored-text"><strong>{meteor}× Meteor-Drop</strong><small>10 Ikonen · Meteor-Regen</small></span>
+            <button className="btn primary small" onClick={onMeteor}>Öffnen</button>
+          </li>
+        )}
         {([['mega', mega, 'Mega-Drop', 'Mindestens Episch'], ['normal', drops, 'Flutlicht-Drop', 'Von Selten bis Legendär']] as const).filter(([, n]) => n > 0).map(([kind, n, name, sub]) => (
           <li key={kind} className={`stored-pack stored-drop ${kind}`}>
             <span className={`dc-gem small ${kind === 'mega' ? 'r-legendaer' : 'r-superselten'}`} aria-hidden="true"><i /><b /></span>

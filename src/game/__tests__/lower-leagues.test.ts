@@ -70,7 +70,7 @@ it('Ganz unten: 1. Kreisklasse (9.) und 2. Kreisklasse (10.), Karriere von der 1
   expect(getLeague('kk2h').up?.leagueId).toBe('kk1h');
   expect(getLeague('kk2h').down).toBeUndefined();
   expect(CLUBS.filter((c) => c.leagueId === 'kk1h')).toHaveLength(14);
-  expect(CLUBS.filter((c) => c.leagueId === 'kk2h')).toHaveLength(14);
+  expect(CLUBS.filter((c) => c.leagueId === 'kk2h')).toHaveLength(15);
   const cl = initialClubLeague();
   expect(canPlayIn(slugify('MTV Ilten II'), 'krh1', cl)).toBe(false);
   const { createCareer } = await import('../career');
@@ -80,7 +80,7 @@ it('Ganz unten: 1. Kreisklasse (9.) und 2. Kreisklasse (10.), Karriere von der 1
   c = simulateToBreak(simulateToBreak(c));
   const r = c.history[0];
   expect(r.leagueId).toBe('kk2h');
-  expect(r.table).toHaveLength(14);
+  expect(r.table).toHaveLength(15);
   expect(c.clubLeague[r.table[0].clubId]).toBe('kk1h');
-  for (const [id, n] of [['krh1', 16], ['kk1h', 14], ['kk2h', 14]] as const) expect(Object.values(c.clubLeague).filter((l) => l === id)).toHaveLength(n);
+  for (const [id, n] of [['krh1', 16], ['kk1h', 14], ['kk2h', 15]] as const) expect(Object.values(c.clubLeague).filter((l) => l === id)).toHaveLength(n);
 });

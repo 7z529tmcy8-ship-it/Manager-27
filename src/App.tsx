@@ -114,7 +114,8 @@ export default function App() {
     // Neue Saisons bringen Coins für den Club.
     const res = creditCareer(getClubState(), career);
     // Still gutschreiben – keine Einblendung nach jeder Saison (der Kontostand zeigt es ohnehin).
-    if (res.gained > 0 || res.drops > 0) setClubState(addPassXp(res.club, res.seasons * PASS_XP.careerSeason));
+    if (res.gained > 0 || res.drops > 0 || res.meteor) setClubState(addPassXp(res.club, res.seasons * PASS_XP.careerSeason));
+    if (res.meteor) setToast('Meteor-Regen! 1000 Tore für Meteor Rush – ein Meteor-Drop liegt in deiner Ablage im Shop.');
     // Karriere vorbei: Belohnungskarte wählen (Ikone oder Auszeichnung).
     if (rewardPending(getClubState(), career)) setReward(career);
     // Verborgene Abhängigkeit: Das ganze Geld ist weg – ohne Erklärung.

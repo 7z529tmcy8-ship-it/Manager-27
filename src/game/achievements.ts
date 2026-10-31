@@ -34,6 +34,12 @@ function longestClubSpell(c: Career): number {
   return best;
 }
 
+/** Vereins-ID von „Meteor Rush“ (2. Kreisklasse). */
+export const METEOR_CLUB = 'meteor-rush';
+export const METEOR_GOALS = 1000;
+/** Tore für Meteor Rush in dieser Karriere (Leihspiele zählen für den Leihverein). */
+export const meteorGoals = (c: Career) => sum(c, (s) => (s.clubId === METEOR_CLUB ? s.goals : 0));
+
 export const ACHIEVEMENTS: Achievement[] = [
   { id: 'first_goal', icon: '⚽', name: 'Das erste Tor', description: 'Erziele dein erstes Pflichtspieltor.', progress: (c) => [Math.min(1, sum(c, (s) => s.goals)), 1] },
   { id: 'goals_100', icon: '💯', name: 'Hundert', description: '100 Pflichtspieltore.', progress: (c) => [sum(c, (s) => s.goals), 100] },
@@ -74,6 +80,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
   { id: 'fee100', icon: '💰', name: 'Rekordtransfer', description: 'Wechsle für mindestens 100 Mio. €.', progress: (c) => [Math.min(100, Math.max(0, ...(c.transfers ?? []).map((t) => t.fee / 1e6))), 100] },
   { id: 'second_chance', icon: '💔', name: 'Zweite Chance', description: 'Bringe ein gescheitertes Talent auf eine Gesamtwertung von 85.', progress: (c) => [c.secondChance ? Math.min(peak(c), 85) : 0, 85] },
+  { id: 'meteor_1000', icon: '☄️', name: 'Meteor-Regen', description: '1000 Tore für Meteor Rush – Belohnung: ein Meteor-Drop mit 10 Ikonen.', progress: (c) => [meteorGoals(c), METEOR_GOALS] },
   { id: 'rival10', icon: '⚔️', name: 'Rivale bezwungen', description: 'Gewinne 10 Saison-Duelle gegen deinen Rivalen.', progress: (c) => [(c.rival?.history ?? []).filter((h) => h.duel === 'player').length, 10] },
 ];
 

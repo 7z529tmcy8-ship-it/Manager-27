@@ -101,7 +101,7 @@ const FROM_EMOJI: Record<string, IconName> = {
   '🥈': 'medal', '🥉': 'medal', '📅': 'calendar', '📈': 'chart', '📊': 'chart', '🌍': 'globe', '🌎': 'globe', '🌏': 'globe', '✪': 'star',
   '🎙': 'mic', '🎤': 'mic', '👟': 'boot', '🏟': 'stadium', '🔗': 'link', '🏁': 'flag', '✅': 'check', '✔': 'check', '❌': 'close',
   '🔒': 'lock', '❤': 'heart', '🧡': 'heart', '💛': 'heart', '💚': 'heart', '💙': 'heart', '💜': 'heart', '💔': 'broken', '🕰': 'clock',
-  '⏰': 'clock', '⏳': 'clock', '⌛': 'clock', '🎽': 'shirt', '👕': 'shirt', '✏': 'pencil', '📝': 'pencil', '🔥': 'fire', '💰': 'money',
+  '⏰': 'clock', '⏳': 'clock', '⌛': 'clock', '🎽': 'shirt', '👕': 'shirt', '✏': 'pencil', '📝': 'pencil', '🔥': 'fire', '☄': 'rocket', '💰': 'money',
   '💶': 'money', '💵': 'money', '💸': 'money', '🎲': 'dice', '🎰': 'dice', '🃏': 'cards', '🏥': 'cross', '🩹': 'cross', '💊': 'cross',
   '💬': 'chat', '📰': 'news', '📢': 'news', '🚀': 'rocket', '🎵': 'music', '🎶': 'music', '📚': 'book', '📖': 'book', '⚠': 'warn',
   'ℹ': 'info', '📈️': 'chart', '🚗': 'car', '🏎': 'car', '✈': 'plane', '📍': 'pin', '🔑': 'key', '🤝': 'handshake', '🧠': 'brain',

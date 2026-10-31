@@ -1,3 +1,4 @@
+import { METEOR_GOALS, meteorGoals } from './achievements';
 import type { Avatar } from './creator';
 import { FAILED_TALENTS, LEGENDS } from '../data/legends';
 import { REAL_PLAYERS } from '../data/players';
@@ -78,6 +79,8 @@ export interface ClubState {
   drops?: number;
   /** Mega-Drops (mindestens Episch). */
   megaDrops?: number;
+  /** Meteor-Drops (10 Ikonen mit Einschlag), z. B. für 1000 Tore bei Meteor Rush. */
+  meteorDrops?: number;
   dropDay?: { day: string; n: number };
   dropsOpened?: number;
   /** Ruhmesweg: aktuelle und beste Trophäen, abgeholte Stufen (Trophäen-Marke). */
@@ -473,7 +476,7 @@ export function careerDrops(r: SeasonRecord): { drops: number; mega: number } {
 export function creditCareer(
   club: ClubState,
   career: Career,
-): { club: ClubState; gained: number; seasons: number; icon: CollectCard | null; drops: number; mega: number } {
+): { club: ClubState; gained: number; seasons: number; icon: CollectCard | null; drops: number; mega: number; meteor?: boolean } {
   const done = club.credited[career.id] ?? 0;
   const fresh = career.history.slice(done);
   let gained = 0;
@@ -506,7 +509,11 @@ export function creditCareer(
   const scenarioWon = career.scenario?.result === 'won' && !club.credited[scKey];
   if (scenarioWon) { gained += 25_000; mega += 1; }
 
-  if (!fresh.length && !coachFresh.length && !hhFresh && !scenarioWon) return { club, gained: 0, seasons: 0, icon: null, drops: 0, mega: 0 };
+  // Erfolg „Meteor-Regen“: 1000 Tore für Meteor Rush → einmal pro Karriere ein Meteor-Drop
+  const mtKey = `${career.id}:meteor`;
+  const meteor = meteorGoals(career) >= METEOR_GOALS && !club.credited[mtKey];
+
+  if (!fresh.length && !coachFresh.length && !hhFresh && !scenarioWon && !meteor) return { club, gained: 0, seasons: 0, icon: null, drops: 0, mega: 0, meteor: false };
   return {
     club: {
       ...club,
@@ -515,13 +522,15 @@ export function creditCareer(
       trophyBest: Math.max(club.trophyBest ?? 0, (club.trophies ?? 0) + trophies),
       drops: (club.drops ?? 0) + drops,
       megaDrops: (club.megaDrops ?? 0) + mega,
-      credited: { ...club.credited, [career.id]: career.history.length, [coachKey]: coachSeasons.length, [hhKey]: hhTotal, ...(scenarioWon ? { [scKey]: 1 } : {}) },
+      meteorDrops: (club.meteorDrops ?? 0) + (meteor ? 1 : 0),
+      credited: { ...club.credited, [career.id]: career.history.length, [coachKey]: coachSeasons.length, [hhKey]: hhTotal, ...(scenarioWon ? { [scKey]: 1 } : {}), ...(meteor ? { [mtKey]: 1 } : {}) },
     },
     gained,
     seasons: fresh.length + coachFresh.length,
     icon: null,
     drops,
     mega,
+    meteor,
   };
 }
 

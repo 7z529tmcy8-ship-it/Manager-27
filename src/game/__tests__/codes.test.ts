@@ -13,3 +13,31 @@ it('Code METEOR: 10 verschiedene Ikonen, nur einmal, Schreibweise egal', () => {
   expect(redeemCode(r.club, 'METEOR')).toEqual({ ok: false, reason: 'used' });
   expect(redeemCode(freshClub(), 'GIBTSNICHT')).toEqual({ ok: false, reason: 'unknown' });
 });
+
+it('Meteor Rush: Verein in der 2. Kreisklasse, 1000 Tore → einmal ein Meteor-Drop mit 10 Ikonen', async () => {
+  const { getClub } = await import('../../data/leagues');
+  const { createCareer } = await import('../career');
+  const { creditCareer } = await import('../club');
+  const { openMeteorDrop } = await import('../codes');
+  const { ACHIEVEMENTS, METEOR_CLUB, isDone } = await import('../achievements');
+  expect(getClub(METEOR_CLUB).name).toBe('Meteor Rush');
+  expect(getClub(METEOR_CLUB).leagueId).toBe('kk2h');
+  const c = createCareer({ name: 'Meteor', nation: 'Deutschland', position: 'ST', age: 18, ovr: 60, potential: 80, clubId: METEOR_CLUB });
+  const ach = ACHIEVEMENTS.find((a) => a.id === 'meteor_1000')!;
+  const season = (goals: number, clubId = METEOR_CLUB) => ({ season: '2026/27', clubId, leagueId: 'kk2h', goals, assists: 0, apps: 30, trophies: [], awards: [], byCompetition: [], ovrStart: 60, ovrEnd: 62 }) as unknown as (typeof c.history)[number];
+  c.history = [season(999), season(500, 'tsv-bordenau')];
+  expect(isDone(ach, c)).toBe(false);
+  expect(creditCareer(freshClub(), c).club.meteorDrops ?? 0).toBe(0);
+  c.history = [season(600), season(400)];
+  expect(isDone(ach, c)).toBe(true);
+  const first = creditCareer(freshClub(), c);
+  expect(first.meteor).toBe(true);
+  expect(first.club.meteorDrops).toBe(1);
+  // Nur einmal pro Karriere
+  expect(creditCareer(first.club, c).club.meteorDrops).toBe(1);
+  const open = openMeteorDrop(first.club)!;
+  expect(open.result.cards).toHaveLength(10);
+  open.result.cards.forEach((x) => expect(x.card.variant).toBe('icon'));
+  expect(open.club.meteorDrops).toBe(0);
+  expect(openMeteorDrop(open.club)).toBeNull();
+});

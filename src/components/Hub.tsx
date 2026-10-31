@@ -194,7 +194,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
         <button className="hub-big hb-shop" onClick={onStore}>
           <Icon name="pack" size={30} />
           <span><strong>Shop</strong><small>{!club.megaSuperClaimed || !club.megaXxlClaimed || !club.welcomeClaimed ? 'Gratis-Pack!' : 'Packs & Drops'}</small></span>
-          {(freePacks + (club.storedPacks?.length ?? 0) + (club.drops ?? 0) + (club.megaDrops ?? 0)) > 0 && <b className="hub-badge">{freePacks + (club.storedPacks?.length ?? 0) + (club.drops ?? 0) + (club.megaDrops ?? 0)}</b>}
+          {(freePacks + (club.storedPacks?.length ?? 0) + (club.drops ?? 0) + (club.megaDrops ?? 0) + (club.meteorDrops ?? 0)) > 0 && <b className="hub-badge">{freePacks + (club.storedPacks?.length ?? 0) + (club.drops ?? 0) + (club.megaDrops ?? 0) + (club.meteorDrops ?? 0)}</b>}
         </button>
         <PassTile onClick={onPass} />
         <GloryTile onClick={() => setGlory(true)} />
@@ -247,7 +247,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
           onChange={(c) => {
             // Entwickler-Änderungen an der letzten Karriere: Coins gutschreiben und speichern.
             const res = creditCareer(getClubState(), c);
-            if (res.gained > 0 || res.icon) setClubState(res.club);
+            if (res.gained > 0 || res.icon || res.meteor) setClubState(res.club);
             saveCareer(c);
             setSaves(listCareers());
           }}

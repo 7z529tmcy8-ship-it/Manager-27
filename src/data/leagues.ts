@@ -173,6 +173,8 @@ const RAW: Record<string, [string, number][]> = {
     ['TSV Bordenau', 9], ['TuS Gümmer', 9], ['TSV Berenbostel II', 8], ['SG Mardorf-Schneeren', 8],
     ['TSV Luthe II', 7], ['TSV Kolenfeld II', 7], ['SV Dedensen', 7], ['SC Langenhagen II', 6],
     ['Sparta Langenhagen II', 6], ['MTV Meyenfeld', 5],
+    // Eigener Verein (fiktiv): benannt nach dem Roblox-Spiel „Meteor Rush“ der Entwickler. 1000 Tore für ihn → Meteor-Drop.
+    ['Meteor Rush', 8],
   ],
   pl: [
     ['Liverpool FC', 85], ['Manchester City', 84], ['Arsenal FC', 84], ['Chelsea FC', 83],
