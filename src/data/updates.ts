@@ -19,6 +19,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-31-draft-schwerer',
+    date: '31.10.2026',
+    title: 'Draft ist schwerer',
+    items: [
+      'Im Draft kommen jetzt oft auch schwache Karten (Silber, einfaches Gold) – Topkarten sind selten, Ikonen ganz selten.',
+      'Der Kapitän liegt zwischen 84 und 89. Ein Turniersieg gelingt nur noch etwa bei jedem 15. bis 25. Versuch – mit guter Chemie öfter.',
+    ],
+  },
+  {
     id: '2026-10-31-hoeher-tiefer',
     date: '31.10.2026',
     title: 'Neu: Höher oder Tiefer',

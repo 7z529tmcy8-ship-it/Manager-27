@@ -10,7 +10,7 @@ import { FORMATION, fit, teamStrength, type DuelResult } from './squad';
 export const DRAFT_FEE = 15_000;
 export const DRAFT_ROUNDS = ['Achtelfinale', 'Viertelfinale', 'Halbfinale', 'Finale'] as const;
 /** Stärke der Gegner je Runde (Wertung + Chemie, wie im Duell). */
-export const DRAFT_OPP = [82, 86, 89, 92];
+export const DRAFT_OPP = [80, 84, 87, 89];
 const OPP_NAMES = ['Kreisauswahl Nord', 'Flutlicht-Allstars', 'Nachtschicht XI', 'Die Unbesiegbaren'];
 const SPREAD = 10;
 // Eigene Zufallshelfer mit austauschbarer Quelle (für Tests)
@@ -23,16 +23,20 @@ function poisson(lambda: number, rand: () => number): number {
 }
 const randInt = (min: number, max: number, rand: () => number) => min + Math.floor(rand() * (max - min + 1));
 
-/** Ziehungs-Stufen: meist Gold, manchmal Selten oder Elite, selten eine Ikone. */
+/**
+ * Ziehungs-Stufen: Oft schwache Karten (Silber, einfaches Gold), Topkarten selten, Ikonen ganz selten.
+ * So muss man zwischen Wertung und Chemie abwägen – ein Turniersieg ist etwas Besonderes.
+ */
 const TIERS: { share: number; test: (c: CollectCard) => boolean }[] = [
-  { share: 50, test: (c) => c.variant !== 'icon' && c.ovr >= 76 && c.ovr <= 83 },
-  { share: 32, test: (c) => c.variant !== 'icon' && c.ovr >= 84 && c.ovr <= 87 },
-  { share: 14, test: (c) => c.variant !== 'icon' && c.ovr >= 88 },
-  { share: 4, test: (c) => c.variant === 'icon' },
+  { share: 32, test: (c) => c.variant !== 'icon' && c.ovr >= 60 && c.ovr <= 71 },
+  { share: 34, test: (c) => c.variant !== 'icon' && c.ovr >= 72 && c.ovr <= 78 },
+  { share: 22, test: (c) => c.variant !== 'icon' && c.ovr >= 79 && c.ovr <= 84 },
+  { share: 10, test: (c) => c.variant !== 'icon' && c.ovr >= 85 && c.ovr <= 88 },
+  { share: 2, test: (c) => c.ovr >= 89 },
 ];
 
 /** Karten, die im Draft vorkommen: keine eigenen Spieler, keine Doppelungen beim Namen. */
-const draftPool = () => CARD_POOL.filter((c) => !c.avatar && c.ovr >= 76);
+const draftPool = () => CARD_POOL.filter((c) => !c.avatar && c.ovr >= 60);
 
 function drawTier(rand: () => number) {
   let r = rand() * 100;
@@ -54,10 +58,10 @@ export function draftOptions(pos: CollectCard['position'], taken: string[], rand
   return out.sort((a, b) => b.ovr - a.ovr);
 }
 
-/** Kapitäns-Wahl: fünf Karten ab 88, je auf einer Position, die es im 4-3-3 gibt. */
+/** Kapitäns-Wahl: fünf Karten von 84 bis 89, je auf einer Position, die es im 4-3-3 gibt. */
 export function captainOptions(rand = Math.random): CollectCard[] {
   const positions = new Set(FORMATION.map((s) => s.pos));
-  const pool = draftPool().filter((c) => c.ovr >= 88 && positions.has(c.position));
+  const pool = draftPool().filter((c) => c.ovr >= 84 && c.ovr <= 89 && c.variant !== 'icon' && positions.has(c.position));
   const out: CollectCard[] = [];
   while (out.length < 5 && out.length < pool.length) {
     const c = pool[Math.floor(rand() * pool.length)];

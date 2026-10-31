@@ -3,10 +3,10 @@ import { freshClub } from '../club';
 import { DRAFT_FEE, captainOptions, claimDraft, draftMatch, draftOptions, draftReward, slotFor, startDraft } from '../draft';
 import { FORMATION, fit } from '../squad';
 
-it('Draft: 5 passende Karten je Position, keine Namen doppelt, Kapitän ab 88', () => {
+it('Draft: 5 passende Karten je Position, keine Namen doppelt, Kapitän 84–89', () => {
   const caps = captainOptions();
   expect(caps).toHaveLength(5);
-  caps.forEach((c) => expect(c.ovr).toBeGreaterThanOrEqual(88));
+  caps.forEach((c) => { expect(c.ovr).toBeGreaterThanOrEqual(84); expect(c.ovr).toBeLessThanOrEqual(89); });
   const slots: (ReturnType<typeof captainOptions>[number] | null)[] = Array(11).fill(null);
   slots[slotFor(caps[0], slots)] = caps[0];
   FORMATION.forEach((s, i) => {
@@ -40,4 +40,12 @@ it('Draft: Startgeld, Belohnung je Siege, Trophäen +10 pro Sieg', () => {
   expect(champ.megaDrops).toBe(1);
   expect(champ.storedPacks?.length).toBe(1);
   expect(champ.trophies).toBe(40);
+});
+
+it('Draft: oft auch schwache Karten im Angebot, Topkarten selten', () => {
+  const all = Array.from({ length: 300 }, () => draftOptions('ZM', [])).flat();
+  const avg = all.reduce((a, c) => a + c.ovr, 0) / all.length;
+  expect(avg).toBeLessThan(79);
+  expect(all.filter((c) => c.ovr <= 71).length / all.length).toBeGreaterThan(0.2);
+  expect(all.filter((c) => c.ovr >= 89).length / all.length).toBeLessThan(0.06);
 });
