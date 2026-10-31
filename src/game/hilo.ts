@@ -1,29 +1,41 @@
 import { getClub } from '../data/leagues';
-import { REAL_PLAYERS, type RealPlayerTemplate } from '../data/players';
-import type { ClubState, CollectCard } from './club';
+import { REAL_PLAYERS } from '../data/players';
+import { CARD_POOL, type ClubState, type CollectCard } from './club';
+import { MOMENTS } from './legendTrades';
 import { cardAttrs } from './squad';
 
 // ---------- Höher oder Tiefer (nach MADFUT) ----------
-// Eigener Modus ohne Coins: Ist der nächste echte Spieler höher oder tiefer bewertet?
+// Eigener Modus ohne Coins: Ist die nächste Karte höher oder tiefer bewertet? Gezogen wird aus allen Karten des Spiels
+// (echte Spieler, Ikonen, Sonderkarten, SBC-Karten) – die Talente zum Entwickeln sind davon getrennt.
 // Von der verdeckten Karte sieht man Position und zwei Werte. Gleichstand zählt nicht – neue Karte, die Serie bleibt.
 // Alle 10 Richtigen am Stück gibt es einen Punkt. Mit Punkten entwickelt man drei junge Talente (+3 pro Upgrade).
 
-export interface DuelCard { p: RealPlayerTemplate; card: CollectCard; attrs: number[] }
+export interface DuelCard { card: CollectCard; attrs: number[] }
 
-/** Feste Karten-ID je Spieler – die Werte hängen an der ID und dürfen nicht springen. */
-const duelCard = (p: RealPlayerTemplate): DuelCard => {
-  const card: CollectCard = {
-    id: `duel-${p.name}`, name: p.name, position: p.position, nation: p.nation, club: '', ovr: p.ovr,
-    variant: p.ovr >= 85 ? 'gold-rare' : p.ovr >= 75 ? 'gold' : 'silver',
-  };
-  return { p, card, attrs: cardAttrs(card) };
-};
+const duelCard = (card: CollectCard): DuelCard => ({ card, attrs: cardAttrs(card) });
+/** Alle Karten des Spiels (ohne eigene Spieler mit Gesicht), jede Karten-ID nur einmal. */
 let pool: DuelCard[] | null = null;
-export const duelPool = (): DuelCard[] => (pool ??= REAL_PLAYERS.map(duelCard));
-export const drawDuel = (rand = Math.random, list = duelPool()) => list[Math.min(list.length - 1, Math.floor(rand() * list.length))];
+export const duelPool = (): DuelCard[] => {
+  if (pool) return pool;
+  const seen = new Set<string>();
+  pool = [...CARD_POOL, ...MOMENTS.map((m) => m.reward)]
+    .filter((c) => !c.avatar && !seen.has(c.id) && seen.add(c.id))
+    .map(duelCard);
+  return pool;
+};
+const any = <T>(list: T[], rand: () => number) => list[Math.min(list.length - 1, Math.floor(rand() * list.length))];
+/**
+ * Erst eine Kartenart ziehen (Silber, Gold, Ikone, Sonderkarten …), dann eine Karte daraus.
+ * Sonst kämen wegen der vielen normalen Spieler fast nur Silber- und Goldkarten.
+ */
+export function drawDuel(rand = Math.random, list = duelPool()): DuelCard {
+  const kinds = [...new Set(list.map((d) => d.card.variant))];
+  const kind = any(kinds, rand);
+  return any(list.filter((d) => d.card.variant === kind), rand);
+}
 /** Spannung: Die nächste Karte liegt immer nah an der offenen (±4 Wertungspunkte, nie derselbe Spieler). */
 export const DUEL_RANGE = 4;
-export const duelNear = (cur: DuelCard, list = duelPool()) => list.filter((x) => x !== cur && Math.abs(x.p.ovr - cur.p.ovr) <= DUEL_RANGE);
+export const duelNear = (cur: DuelCard, list = duelPool()) => list.filter((x) => x !== cur && Math.abs(x.card.ovr - cur.card.ovr) <= DUEL_RANGE);
 export const drawDuelNext = (cur: DuelCard, rand = Math.random) => drawDuel(rand, duelNear(cur));
 /** Zwei verschiedene Werte der verdeckten Karte, die aufgedeckt werden. */
 export function duelHints(rand = Math.random): [number, number] {
@@ -31,13 +43,13 @@ export function duelHints(rand = Math.random): [number, number] {
   const b = (a + 1 + Math.floor(rand() * 5)) % 6;
   return [a, b];
 }
-/** Karte mit Vereinsnamen für die Anzeige. */
-export const shownDuelCard = (d: DuelCard): CollectCard => ({ ...d.card, club: getClub(d.p.clubId).name });
+/** Karte für die Anzeige – genau so, wie sie im Spiel aussieht. */
+export const shownDuelCard = (d: DuelCard): CollectCard => d.card;
 
 export type HiLo = 'higher' | 'lower';
 export type HiLoOutcome = 'right' | 'wrong' | 'tie';
 export const judge = (cur: DuelCard, next: DuelCard, dir: HiLo): HiLoOutcome =>
-  next.p.ovr === cur.p.ovr ? 'tie' : (dir === 'higher') === (next.p.ovr > cur.p.ovr) ? 'right' : 'wrong';
+  next.card.ovr === cur.card.ovr ? 'tie' : (dir === 'higher') === (next.card.ovr > cur.card.ovr) ? 'right' : 'wrong';
 
 // ---------- Serie, Punkte, Talente ----------
 export const STREAK_FOR_POINT = 10;

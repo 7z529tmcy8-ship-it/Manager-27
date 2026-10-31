@@ -4,15 +4,18 @@ import {
   DUEL_RANGE, HILO_MAX_LEVEL, HILO_STEP, HILO_TALENTS, answerHilo, drawDuel, drawDuelNext, duelPool, hiloCard, hiloOf, judge, syncHiloCards, upgradeCost, upgradeHilo,
 } from '../hilo';
 
-it('Höher/Tiefer: Werte fest je Spieler, nächste Karte nah dran, Gleichstand ist eigenes Ergebnis', () => {
+it('Höher/Tiefer: Karten aus dem ganzen Spiel, Werte fest je Karte, nächste Karte nah dran, Gleichstand ist eigenes Ergebnis', () => {
   expect(duelPool()[0].attrs).toEqual(duelPool()[0].attrs);
+  const variants = new Set(duelPool().map((d) => d.card.variant));
+  ['icon', 'silver', 'gold', 'moment'].forEach((v) => expect(variants.has(v as never)).toBe(true));
+  expect(variants.size).toBeGreaterThan(8);
   for (let i = 0; i < 200; i++) {
     const cur = drawDuel();
     const next = drawDuelNext(cur);
-    expect(Math.abs(next.p.ovr - cur.p.ovr)).toBeLessThanOrEqual(DUEL_RANGE);
+    expect(Math.abs(next.card.ovr - cur.card.ovr)).toBeLessThanOrEqual(DUEL_RANGE);
     const up = judge(cur, next, 'higher');
     const down = judge(cur, next, 'lower');
-    if (next.p.ovr === cur.p.ovr) expect([up, down]).toEqual(['tie', 'tie']);
+    if (next.card.ovr === cur.card.ovr) expect([up, down]).toEqual(['tie', 'tie']);
     else expect([up, down].sort()).toEqual(['right', 'wrong']); // immer genau eine Seite richtig
   }
 });
@@ -45,4 +48,11 @@ it('Talente: drei junge Spieler um 70, Upgrades kosten 1, 2, 3 … Punkte und ge
   // Maximalstufe
   const maxed = { ...c, hilo: { ...hiloOf(c), points: 999, levels: { [name]: HILO_MAX_LEVEL } } };
   expect(upgradeHilo(maxed, name)).toBeNull();
+});
+
+it('Höher/Tiefer: viele Kartenarten kommen dran, nicht nur Silber und Gold', () => {
+  let cur = drawDuel();
+  const seen = new Set<string>();
+  for (let i = 0; i < 60; i++) { cur = drawDuelNext(cur); seen.add(cur.card.variant); }
+  expect(seen.size).toBeGreaterThanOrEqual(6);
 });

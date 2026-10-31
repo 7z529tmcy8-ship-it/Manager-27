@@ -33,6 +33,7 @@ export const UPDATES: UpdateNote[] = [
     title: 'Neu: Höher oder Tiefer',
     items: [
       'Das Kartenduell ist aus dem Casino raus und jetzt ein eigener Modus unter Duelle – ohne Coins und ohne angezeigte Chancen. Beide Knöpfe gehen immer.',
+      'Geraten wird mit Karten aus dem ganzen Spiel: echte Spieler, Ikonen, Sonderkarten, Event- und SBC-Karten.',
       'Alle 10 Richtigen am Stück gibt es einen Punkt. Ein Fehler setzt die Serie zurück, Gleichstand zählt nicht.',
       'Mit Punkten entwickelst du drei Talente: Max Dowman, Lennart Karl und Xavi Espart. Jedes Upgrade +3 – das erste kostet 1 Punkt, das zweite 2, dann 3 …',
     ],

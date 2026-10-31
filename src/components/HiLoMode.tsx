@@ -25,7 +25,7 @@ export default function HiLoMode({ onClose }: { onClose: () => void }) {
   useEffect(() => () => clearTimeout(timer.current), []);
   // Die drei Talente liegen von Anfang an in der Sammlung
   useEffect(() => { const c = syncHiloCards(getClubState()); if (c !== getClubState()) setClubState(c); }, []);
-  const labels = attributeLabels(nxt.d.p.position);
+  const labels = attributeLabels(nxt.d.card.position);
 
   const guess = (dir: HiLo) => {
     if (reveal) return;
@@ -75,9 +75,9 @@ export default function HiLoMode({ onClose }: { onClose: () => void }) {
           <div className="hilo-slot" key={`c-${k}`}><UtCard card={shownDuelCard(cur)} size="md" /></div>
           <div className={`hilo-slot back ${reveal ? `show ${reveal === 'right' ? 'ok' : reveal === 'wrong' ? 'bad' : 'tie'}` : ''}`} key={`n-${k}`}>
             {reveal ? <UtCard card={shownDuelCard(nxt.d)} size="md" /> : (
-              <div className="hilo-hidden" aria-label={`Verdeckte Karte: ${nxt.d.p.position}, ${labels[nxt.hints[0]]} ${nxt.d.attrs[nxt.hints[0]]}, ${labels[nxt.hints[1]]} ${nxt.d.attrs[nxt.hints[1]]}`}>
+              <div className="hilo-hidden" aria-label={`Verdeckte Karte: ${nxt.d.card.position}, ${labels[nxt.hints[0]]} ${nxt.d.attrs[nxt.hints[0]]}, ${labels[nxt.hints[1]]} ${nxt.d.attrs[nxt.hints[1]]}`}>
                 <span className="hh-ovr">?</span>
-                <span className="hh-pos">{nxt.d.p.position}</span>
+                <span className="hh-pos">{nxt.d.card.position}</span>
                 <span className="hh-hints">{nxt.hints.map((i) => <span key={i}><b>{nxt.d.attrs[i]}</b>{labels[i]}</span>)}</span>
                 <span className="hh-rest" aria-hidden="true">{labels.map((l, i) => <i key={l} className={nxt.hints.includes(i) ? 'on' : ''} />)}</span>
               </div>
