@@ -482,6 +482,8 @@ export interface Career {
   gifts?: import('./gifts').Gift[];
   /** Erledigte Trash-TV-Auftritte nach der Pleite. */
   brokeDone?: import('./gambling').BrokeId[];
+  /** Startszenario („Live Start“) mit Ziel für die erste Saison. */
+  scenario?: { id: import('./scenario').ScenarioId; result?: 'won' | 'lost' };
   /** Pause, in der schon eine Aktion abseits des Platzes gemacht wurde (eine pro Pause). */
   viceBreak?: string;
   /** Pause, in der zuletzt eine Behandlung in der Klinik war (eine pro Pause). */

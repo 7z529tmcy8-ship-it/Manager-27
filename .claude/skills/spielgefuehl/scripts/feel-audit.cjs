@@ -197,6 +197,19 @@ const FLOWS = {
     await p.click('.cz-hilo .btn.primary', { timeout: 3000 }); await p.waitForTimeout(400);
     await p.click('.hilo-btn.higher', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(1300);
   },
+  draft: async (p) => {
+    // Duelle → Draft: Kapitän, 11 Plätze füllen, eine Turnierrunde
+    await nav(p, 'Duelle'); await p.waitForTimeout(400);
+    await p.click('.draft-call', { timeout: 3000 }); await p.waitForTimeout(300);
+    await p.click('.dr-intro .btn.primary', { timeout: 3000 }); await p.waitForTimeout(500);
+    await p.click('.dr-picks .ucard >> nth=0', { timeout: 3000 }); await p.waitForTimeout(300);
+    for (let i = 0; i < 10; i++) {
+      await p.click('.dr-empty >> nth=0', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(350);
+      await p.click('.dr-sheet .ucard >> nth=0', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(200);
+    }
+    await p.click('.dr-dock .btn.primary', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(300);
+    await p.click('.dr-cup .btn.primary', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(1500);
+  },
   karriere: async (p) => {
     await p.click('.hb-new', { timeout: 4000 }); await p.waitForTimeout(600);
     await p.mouse.wheel(0, 800); await p.waitForTimeout(300);

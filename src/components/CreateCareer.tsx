@@ -6,6 +6,8 @@ import { CLUBS, LEAGUES, getClub, youthClubOf } from '../data/leagues';
 import { NATIONS, POSITIONS, REAL_PLAYERS, type RealPlayerTemplate } from '../data/players';
 import { CULT_LEGENDS, FAILED_TALENTS, HANNOVER_2018, ICON_LEGENDS, LEGENDS, type LegendTemplate } from '../data/legends';
 import { createCareer } from '../game/career';
+import { SCENARIOS, SCENARIO_REWARD, createScenarioCareer, type ScenarioId } from '../game/scenario';
+import Icon, { type IconName } from './Icon';
 import { MAX_TRAITS, TRAITS, getTrait, type TraitId } from '../game/traits';
 import { pick } from '../game/random';
 import {
@@ -26,11 +28,12 @@ interface Props {
 }
 
 
-type Tab = 'own' | 'real' | 'icons' | 'legends' | 'cult' | 'failed' | 'h96';
+type Tab = 'own' | 'real' | 'scenario' | 'icons' | 'legends' | 'cult' | 'failed' | 'h96';
 /** Reiter: [ID, langer Name, kurzer Name fürs Handy]. */
 const TABS: [Tab, string, string][] = [
   ['own', 'Eigener Spieler', 'Eigener'],
   ['real', 'Echter Spieler', 'Echter'],
+  ['scenario', 'Szenario', 'Szenario'],
   ['icons', 'Ikonen', 'Ikonen'],
   ['legends', 'Legenden', 'Legenden'],
   ['cult', 'Kult-Helden', 'Kult'],
@@ -56,12 +59,70 @@ export default function CreateCareer({ onCancel, onCreate }: Props) {
       </div>
       {tab === 'own' && <OwnPlayer onCreate={onCreate} />}
       {tab === 'real' && <RealPlayer onCreate={onCreate} />}
+      {tab === 'scenario' && <ScenarioPicker onCreate={onCreate} />}
       {tab === 'icons' && <LegendPicker onCreate={onCreate} list={ICON_LEGENDS} intro={ICON_INTRO} />}
       {tab === 'legends' && <LegendPicker onCreate={onCreate} list={LEGENDS} intro={LEGEND_INTRO} />}
       {tab === 'cult' && <LegendPicker onCreate={onCreate} list={CULT_LEGENDS} intro={CULT_INTRO} />}
       {tab === 'failed' && <LegendPicker onCreate={onCreate} list={FAILED_TALENTS} intro={FAILED_INTRO} secondChance />}
       {tab === 'h96' && <LegendPicker onCreate={onCreate} list={HANNOVER_2018} intro={H96_INTRO} />}
     </main>
+  );
+}
+
+const SCENARIO_ICON: Record<ScenarioId, IconName> = { comeback: 'heart', loan: 'swap', relegation: 'shield', lastchance: 'clock', superstar: 'star', hype: 'rocket' };
+
+/** Startszenarien: erst die Lage wählen, dann einen passenden echten Spieler. */
+function ScenarioPicker({ onCreate }: { onCreate: (c: Career) => void }) {
+  const [id, setId] = useState<ScenarioId | null>(null);
+  const [q, setQ] = useState('');
+  const sc = SCENARIOS.find((x) => x.id === id);
+  if (!sc) {
+    return (
+      <section className="panel">
+        <ul className="sc-list">
+          {SCENARIOS.map((x) => (
+            <li key={x.id}>
+              <button className="sc-card" onClick={() => { setId(x.id); play('tap'); }}>
+                <span className="sc-icon" aria-hidden="true"><Icon name={SCENARIO_ICON[x.id]} size={22} /></span>
+                <span className="sc-text">
+                  <strong>{x.name}</strong>
+                  <small>{x.start}</small>
+                  <em><Icon name="target" size={14} />{x.goal}</em>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        <p className="hint">Ziel in der ersten Saison geschafft: {SCENARIO_REWARD.coins.toLocaleString('de-DE')} Coins und ein Mega-Drop.</p>
+      </section>
+    );
+  }
+  const norm = (t: string) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const list = REAL_PLAYERS.filter((p) => sc.eligible(p) && (!q || norm(p.name).includes(norm(q)) || norm(getClub(p.clubId).name).includes(norm(q))))
+    .sort((a, b) => b.ovr - a.ovr);
+  return (
+    <section className="panel">
+      <button className="sc-head" onClick={() => setId(null)}>
+        <span className="sc-icon" aria-hidden="true"><Icon name={SCENARIO_ICON[sc.id]} size={22} /></span>
+        <span className="sc-text"><strong>{sc.name}</strong><em><Icon name="target" size={14} />{sc.goal}</em></span>
+        <small>Ändern</small>
+      </button>
+      <input className="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Name oder Verein…" aria-label="Spieler suchen" />
+      <ul className="real-list">
+        {list.map((p) => (
+          <li key={p.name}>
+            <button onClick={() => onCreate(createScenarioCareer({ ...p }, sc.id))}>
+              <span className="save-ovr">{p.ovr}</span>
+              <span className="grow">
+                <strong>{p.name}</strong>
+                <small>{p.position} · {p.age} Jahre · {getClub(p.clubId).name}</small>
+              </span>
+              <span className="pill">Starten →</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

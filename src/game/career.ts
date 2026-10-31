@@ -31,6 +31,7 @@ import { checkAchievements } from './achievements';
 import { createSeasonGoals, evaluateGoals } from './goals';
 import { applyTraining } from './training';
 import { progressRetrain } from './position';
+import { scenarioSeasonEnd } from './scenario';
 import { hasTrait, type TraitId } from './traits';
 import { advanceFinal, autoFinal, finalRating, startFinal } from './final';
 import { addNews, summerNews, winterNews } from './news';
@@ -283,6 +284,13 @@ export function comeback(prev: Career): Career {
 }
 
 /** Neue Saison vorbereiten (Rivale/Ziele für ältere Spielstände, Tagesform, leere Tabellen). */
+/** Nach einer Änderung am Start (z. B. Szenario mit anderem Verein): Saisonziele und Spielplan neu aufsetzen. */
+export function restartFirstSeason(career: Career): void {
+  career.progress = undefined;
+  career.seasonGoals = createSeasonGoals(career);
+  ensureProgress(career);
+}
+
 function ensureProgress(career: Career) {
   if (career.progress) {
     career.progress.stage ??= career.phase === 'winter' ? STAGES_PER_HALF : 0;
@@ -623,6 +631,7 @@ function completeSeason(career: Career): Career {
   record.marketValue = playerValue(p);
 
   career.history.push(record);
+  scenarioSeasonEnd(career, record);
   const extraNews = [...captainAndLegend(career, record), ...simulateRivalSeason(career, record)];
   record.achievements = checkAchievements(career, record.season);
   extraNews.push(...record.achievements.map((a) => `Erfolg freigeschaltet: ${a}`));

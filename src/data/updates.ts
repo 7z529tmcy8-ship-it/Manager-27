@@ -19,6 +19,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-31-draft-szenarien',
+    date: '31.10.2026',
+    title: 'Neu: Draft und Startszenarien',
+    items: [
+      'Draft (unter Duelle): Kapitän aus 5 Topkarten wählen, für jede Position 1 von 5 Karten draften, dann ein K.-o.-Turnier über 4 Runden. Turniersieg: Ultimate-Pack + Mega-Drop.',
+      'Startszenarien (Neue Karriere › Szenario): Comeback nach Kreuzbandriss, Leihspieler, Abstiegskampf, Letzte Chance, neuer Superstar oder Wunderkind-Hype – mit Ziel für die erste Saison.',
+      'Szenario-Ziel geschafft: 25.000 Coins und ein Mega-Drop.',
+    ],
+  },
+  {
     id: '2026-10-30-karriere-ruhe',
     date: '30.10.2026',
     title: 'Karriere ohne Nerv',

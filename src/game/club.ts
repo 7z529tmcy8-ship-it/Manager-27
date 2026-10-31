@@ -497,7 +497,12 @@ export function creditCareer(
   const hhFresh = hhTotal - (club.credited[hhKey] ?? 0);
   gained += hhFresh;
 
-  if (!fresh.length && !coachFresh.length && !hhFresh) return { club, gained: 0, seasons: 0, icon: null, drops: 0, mega: 0 };
+  // Startszenario geschafft: einmalig 25.000 Coins und ein Mega-Drop (siehe SCENARIO_REWARD in scenario.ts)
+  const scKey = `${career.id}:scenario`;
+  const scenarioWon = career.scenario?.result === 'won' && !club.credited[scKey];
+  if (scenarioWon) { gained += 25_000; mega += 1; }
+
+  if (!fresh.length && !coachFresh.length && !hhFresh && !scenarioWon) return { club, gained: 0, seasons: 0, icon: null, drops: 0, mega: 0 };
   return {
     club: {
       ...club,
@@ -506,7 +511,7 @@ export function creditCareer(
       trophyBest: Math.max(club.trophyBest ?? 0, (club.trophies ?? 0) + trophies),
       drops: (club.drops ?? 0) + drops,
       megaDrops: (club.megaDrops ?? 0) + mega,
-      credited: { ...club.credited, [career.id]: career.history.length, [coachKey]: coachSeasons.length, [hhKey]: hhTotal },
+      credited: { ...club.credited, [career.id]: career.history.length, [coachKey]: coachSeasons.length, [hhKey]: hhTotal, ...(scenarioWon ? { [scKey]: 1 } : {}) },
     },
     gained,
     seasons: fresh.length + coachFresh.length,

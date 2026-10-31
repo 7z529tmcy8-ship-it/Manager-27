@@ -4826,3 +4826,16 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .dr-sheet { z-index: 120; }
 @media (prefers-reduced-motion: reduce) { .dr-picks .ucard, .dr-empty, .dr-result.champ strong { animation: none; } }
 .lite .dr-empty { animation: none; }
+
+/* ===================== Startszenarien ===================== */
+.sc-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+.sc-card, .sc-head { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 14px; width: 100%; padding: 14px 16px; border-radius: 18px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); font: inherit; text-align: left; cursor: pointer; transition: border-color .15s ease-out, transform .1s ease-out; }
+.sc-card:active, .sc-head:active { transform: scale(.98); }
+.sc-card:hover { border-color: var(--accent); }
+.sc-head { grid-template-columns: auto minmax(0, 1fr) auto; margin-bottom: 12px; border-color: var(--accent); }
+.sc-head > small { color: var(--accent); font-weight: 700; font-size: .8125rem; }
+.sc-icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.sc-text { display: grid; gap: 2px; min-width: 0; }
+.sc-text strong { font-size: 1.05rem; }
+.sc-text small { color: var(--text-2); font-size: .8125rem; line-height: 1.4; }
+.sc-text em { display: inline-flex; align-items: center; gap: 6px; font-style: normal; font-size: .8125rem; font-weight: 700; color: var(--gold); }
