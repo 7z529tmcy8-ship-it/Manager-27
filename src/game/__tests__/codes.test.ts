@@ -41,3 +41,29 @@ it('Meteor Rush: Verein in der 2. Kreisklasse, 1000 Tore → einmal ein Meteor-D
   expect(open.club.meteorDrops).toBe(0);
   expect(openMeteorDrop(open.club)).toBeNull();
 });
+
+it('Weitere Meteor-Codes und der Eissturm-Drop', async () => {
+  const { frostCards } = await import('../codes');
+  let club = freshClub();
+  for (const code of ['meteorrush', 'Krater', 'STERNSCHNUPPE']) {
+    const r = redeemCode(club, code);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.theme).toBe('meteor');
+    expect(r.result.cards).toHaveLength(10);
+    club = r.club;
+  }
+  const f = redeemCode(club, ' eissturm ');
+  expect(f.ok).toBe(true);
+  if (!f.ok) return;
+  expect(f.theme).toBe('frost');
+  expect(f.result.cards).toHaveLength(5);
+  expect(f.result.cards.filter((c) => c.card.variant === 'winter')).toHaveLength(2);
+  f.result.cards.forEach((c) => expect(c.card.ovr).toBeGreaterThanOrEqual(86));
+  f.result.cards.forEach((c) => expect(c.card.variant).not.toBe('icon'));
+  expect(redeemCode(f.club, 'EISSTURM')).toEqual({ ok: false, reason: 'used' });
+  for (let i = 0; i < 50; i++) {
+    const list = frostCards();
+    expect(new Set(list.map((c) => c.name)).size).toBe(5);
+  }
+});

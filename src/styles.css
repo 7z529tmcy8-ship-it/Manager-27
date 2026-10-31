@@ -5154,3 +5154,45 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .cc-crest-pick { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: .875rem; color: var(--text-2); }
 .cc-crest-pick .club-crest { margin: 0; }
 .cs-clubcell .club-crest { margin-right: 0; }
+
+/* ---------- Eissturm-Drop (Code EISSTURM) ---------- */
+.mt.ft { background: radial-gradient(120% 80% at 50% 0%, #1d4e7a 0%, #0a1d36 48%, #030812 100%); }
+.ft-snow { position: absolute; inset: 0; pointer-events: none; }
+.ft-snow i { position: absolute; top: -4%; width: 6px; height: 6px; border-radius: 50%; background: #fff; opacity: .85; box-shadow: 0 0 6px rgba(200, 235, 255, .9);
+  animation: ft-flake 1s linear infinite; will-change: transform; }
+@keyframes ft-flake { from { transform: translate(0, 0) scale(var(--s)); } to { transform: translate(-28vw, 110vh) scale(var(--s)); } }
+.mt.ft.form .ft-snow i { animation-duration: .45s !important; }
+.mt.ft.reveal .ft-snow i { animation-duration: 3.2s !important; opacity: .45; }
+.ft-frost { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; pointer-events: none; opacity: 0;
+  background: radial-gradient(closest-side, rgba(235, 250, 255, .85), rgba(160, 220, 255, .35) 55%, transparent); animation: ft-creep 2.3s ease-out both; }
+.ft-frost.tl { left: -42vmax; top: -42vmax; } .ft-frost.tr { right: -42vmax; top: -42vmax; animation-delay: .15s; }
+.ft-frost.bl { left: -42vmax; bottom: -42vmax; animation-delay: .3s; } .ft-frost.br { right: -42vmax; bottom: -42vmax; animation-delay: .45s; }
+@keyframes ft-creep { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: scale(1); } }
+.mt.ft.reveal .ft-frost { opacity: .5; animation: none; }
+.ft-crystal { position: absolute; left: -80px; top: -92px; width: 160px; height: 184px; transform: scale(.12); opacity: 0; will-change: transform; }
+.mt.ft.storm .ft-crystal { animation: ft-seed 1.2s ease-out both; }
+@keyframes ft-seed { to { transform: scale(.32) rotate(30deg); opacity: .9; } }
+.mt.ft.form .ft-crystal { animation: ft-grow 1.1s cubic-bezier(.3, 0, .2, 1) both; }
+@keyframes ft-grow { from { transform: scale(.32) rotate(30deg); opacity: .9; } 85% { transform: scale(1.05) rotate(0); opacity: 1; } to { transform: scale(1) rotate(0); opacity: 1; } }
+.ft-core { position: absolute; inset: 0; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  background: linear-gradient(160deg, #ffffff 0%, #bfeaff 28%, #5fc4ff 55%, #1b6fd1 100%); filter: drop-shadow(0 0 24px rgba(140, 220, 255, .9)); }
+.ft-core::after { content: ''; position: absolute; inset: 14%; clip-path: inherit; background: linear-gradient(200deg, rgba(255, 255, 255, .75), rgba(255, 255, 255, 0) 60%); }
+.ft-crack { position: absolute; left: 50%; top: 50%; width: 46%; height: 2px; transform-origin: 0 50%; transform: rotate(var(--r)) scaleX(0); background: linear-gradient(90deg, #fff, rgba(255, 255, 255, .2)); box-shadow: 0 0 6px #fff; }
+.mt.ft.form .ft-crack { animation: ft-crack .3s ease-out both; animation-delay: calc(.35s + var(--d)); }
+@keyframes ft-crack { to { transform: rotate(var(--r)) scaleX(1); } }
+.mt.ft.form .ft-crystal .ft-core { animation: ft-shiver .09s linear infinite alternate; animation-delay: .7s; }
+@keyframes ft-shiver { to { transform: translate(1.5px, -1px); } }
+.ft-flash { background: #dff4ff; }
+.ft-wave { position: absolute; left: -60px; top: -60px; width: 120px; height: 120px; border-radius: 50%; border: 5px solid rgba(190, 235, 255, .95); animation: mt-wave .7s ease-out both; pointer-events: none; }
+.ft-wave.w2 { border-color: rgba(95, 196, 255, .7); animation-delay: .12s; }
+.ft-shards i { position: absolute; left: -12px; top: -16px; width: 24px; height: 32px; clip-path: polygon(50% 0, 100% 60%, 40% 100%, 0 45%);
+  background: linear-gradient(160deg, #fff, #8fd8ff 60%, #2f8fe0); animation: mt-debris .8s cubic-bezier(.2, .7, .3, 1) both; will-change: transform, opacity; }
+.mt.ft.reveal .ft-shards { opacity: 0; transition: opacity .4s ease-out; }
+.ft-title { background: linear-gradient(90deg, #ffffff, #9fe0ff, #4fb4ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.ft-sub { color: #cfeaff; }
+.ft-card { animation-name: ft-out; }
+@keyframes ft-out { from { transform: translateY(-45vh) rotate(18deg) scale(.4); opacity: 0; } 60% { opacity: 1; } }
+.ft-card.best::before { background: radial-gradient(closest-side, rgba(160, 225, 255, .6), transparent); }
+.ft-new { background: #bfeaff; color: #04223d; }
+.lite .ft-snow, .lite .ft-shards { display: none; }
+@media (prefers-reduced-motion: reduce) { .ft-snow { display: none; } }

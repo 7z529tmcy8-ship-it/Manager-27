@@ -24,6 +24,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-31-codes-eissturm',
+    date: '31.10.2026',
+    title: 'Neue Codes und der Eissturm-Drop',
+    items: [
+      'Neue geheime Codes sind im Umlauf – einige davon bringen einen Meteor-Drop mit 10 Ikonen.',
+      'Neu und nur per Code: der Eissturm-Drop. Schneesturm, ein Eiskristall wächst, bekommt Risse und zerspringt – heraus schneien 2 Winter-Wunder-Karten und 3 Topkarten ab 86.',
+      'Codes gibst du im Shop unter „Extras“ ein. Jeder Code geht einmal.',
+    ],
+  },
+  {
     id: '2026-10-31-meteor-rush-wappen',
     date: '31.10.2026',
     title: 'Meteor Rush hat ein Wappen',

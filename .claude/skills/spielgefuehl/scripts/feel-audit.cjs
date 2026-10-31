@@ -209,6 +209,14 @@ const FLOWS = {
     await p.click('.code-redeem button'); await p.waitForTimeout(4200);
     await p.click('.mt-actions .btn.primary', { timeout: 2000 }).catch(() => {});
   },
+  frost: async (p) => {
+    // Shop → Extras → Code EISSTURM: Frost-Animation bis zu den Karten
+    await nav(p, 'Shop'); await p.waitForTimeout(400);
+    await dept(p, 'Extras'); await p.waitForTimeout(250);
+    await p.fill('.code-redeem input', 'eissturm', { timeout: 3000 });
+    await p.click('.code-redeem button'); await p.waitForTimeout(4000);
+    await p.click('.mt-actions .btn.primary', { timeout: 2000 }).catch(() => {});
+  },
   hilo: async (p) => {
     // Duelle → Höher oder Tiefer: drei Tipps
     await nav(p, 'Duelle'); await p.waitForTimeout(400);
