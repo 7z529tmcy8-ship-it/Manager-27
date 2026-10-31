@@ -8,6 +8,8 @@ import Confetti from './Confetti';
 import UtCard from './UtCard';
 import Icon, { Glyph } from './Icon';
 import CasinoTab from './CasinoTab';
+import MeteorReveal from './MeteorReveal';
+import { redeemCode } from '../game/codes';
 import DropOpener from './DropOpener';
 import PolarCalendar from './PolarCalendar';
 import { POLAR_UNLOCK, polarNextBuyable, polarVisible } from '../game/polar';
@@ -22,6 +24,18 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
   const [dropOpen, setDropOpen] = useState<DropKind | null>(null);
   const [polar, setPolar] = useState(false);
   const [casino, setCasino] = useState(false);
+  const [code, setCode] = useState('');
+  const [codeMsg, setCodeMsg] = useState('');
+  const [meteor, setMeteor] = useState<PackResult | null>(null);
+  const redeem = () => {
+    if (!code.trim()) return;
+    const r = redeemCode(getClubState(), code);
+    if (!r.ok) { setCodeMsg(r.reason === 'used' ? 'Diesen Code hast du schon eingelöst.' : 'Diesen Code gibt es nicht.'); play('error'); return; }
+    setClubState(r.club);
+    setCode('');
+    setCodeMsg('');
+    setMeteor(r.result);
+  };
   const [mega, setMega] = useState(false);
   const [superPack, setSuperPack] = useState<PackResult | null>(null);
   const [superCharging, setSuperCharging] = useState(false);
@@ -114,6 +128,12 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         <Icon name="arrow" size={22} />
       </button>
 
+      <form className="code-redeem" onSubmit={(e) => { e.preventDefault(); redeem(); }}>
+        <input value={code} onChange={(e) => { setCode(e.target.value); setCodeMsg(''); }} placeholder="Code eingeben" aria-label="Code eingeben" autoCapitalize="characters" autoComplete="off" spellCheck={false} maxLength={24} />
+        <button className="btn secondary" type="submit" disabled={!code.trim()}>Einlösen</button>
+        {codeMsg && <p className="code-msg bad" role="status">{codeMsg}</p>}
+      </form>
+
       <StoredPacks onDrop={setDropOpen} onOpen={(r) => setOpening((o) => ({ result: r.result, name: r.name, packId: '', free: true, n: (o?.n ?? 0) + 1 }))} />
 
       <TotwSection coins={club.coins} onBuy={() => buy(TOTW_PACK.id)} />
@@ -179,6 +199,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         <PackOpening name="MEGA SUPER XXL PACK" result={superPack} onClose={() => setSuperPack(null)} onCollection={() => { setSuperPack(null); onCollection(); }} />
       )}
 
+      {meteor && <MeteorReveal result={meteor} onClose={() => setMeteor(null)} onCollection={() => { setMeteor(null); onCollection(); }} />}
       {casino && (
         <div className="overlay casino-overlay" role="dialog" aria-modal="true" aria-label="Casino">
           <div className="overlay-inner">

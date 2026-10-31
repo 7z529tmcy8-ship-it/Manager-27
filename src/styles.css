@@ -4880,3 +4880,85 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .hl-call-btn .draft-call-icon { background: linear-gradient(135deg, #b5ffe9, #39ffc8 55%, #12b98a); }
 .hl-call-btn .draft-call-text b { color: #39ffc8; }
 @media (prefers-reduced-motion: reduce) { .hl-call, .hl-plus, .hl-streak strong.pop, .hl-points strong.pop { animation: none; } }
+/* Update-Banner mit Titelbild: Bild randlos oben in der Karte */
+.upd-card:has(.upd-image) { padding-top: 0; overflow: hidden; }
+.upd-image { display: block; width: calc(100% + 44px); max-width: none; height: auto; aspect-ratio: 16 / 9; object-fit: cover; margin: 0 -22px 4px; }
+
+/* ===================== Meteor-Einschlag (Code METEOR) ===================== */
+.mt { position: fixed; inset: 0; z-index: 200; overflow: hidden; display: grid; place-items: center; color: #fff;
+  background: radial-gradient(120% 80% at 70% 0%, #3a1a5a 0%, #12081f 45%, #05030b 100%); animation: mt-in .25s ease-out both; }
+@keyframes mt-in { from { opacity: 0; } }
+.mt-sky { position: absolute; inset: 0; pointer-events: none; }
+.mt-streak { position: absolute; right: -30%; width: 38%; height: 3px; border-radius: 3px; background: linear-gradient(90deg, rgba(255, 200, 80, 0), #ffd76a 70%, #fff); transform: rotate(-28deg);
+  animation: mt-streak 1s linear infinite; opacity: .85; will-change: transform; }
+@keyframes mt-streak { from { transform: translateX(0) rotate(-28deg); } to { transform: translateX(-280vw) rotate(-28deg); } }
+.mt.reveal .mt-streak { animation-play-state: paused; opacity: .25; }
+.mt-stage { position: relative; width: 1px; height: 1px; }
+.mt.impact .mt-stage { animation: mt-shake .5s ease-out both; }
+@keyframes mt-shake { 10% { transform: translate(-14px, 8px); } 25% { transform: translate(12px, -10px); } 40% { transform: translate(-9px, -6px); } 60% { transform: translate(6px, 5px); } 80% { transform: translate(-3px, 2px); } }
+
+/* Der Meteor: Kern mit Glut, Kristalle, Feuerschweif – nur transform/opacity animiert */
+.mt-rock { position: absolute; left: -90px; top: -90px; width: 180px; height: 180px; will-change: transform; }
+.mt-core { position: absolute; inset: 0; border-radius: 46% 54% 50% 50%; background:
+  radial-gradient(circle at 35% 30%, #ffcf6b 0 8%, transparent 9%), radial-gradient(circle at 62% 64%, #ff8a3d 0 7%, transparent 8%),
+  radial-gradient(circle at 40% 40%, #7a4a26, #3a210f 60%, #1a0e06); box-shadow: inset -18px -14px 30px rgba(0, 0, 0, .6), inset 10px 10px 24px rgba(255, 170, 60, .35), 0 0 0 4px rgba(255, 140, 40, .35), 0 0 60px 20px rgba(255, 120, 30, .45); }
+.mt-trail { position: absolute; left: 50%; top: 50%; width: 360px; height: 110px; margin-top: -55px; transform-origin: 0 50%; transform: rotate(-35deg);
+  border-radius: 0 60px 60px 0; background: linear-gradient(90deg, rgba(255, 220, 120, .95), rgba(255, 110, 40, .7) 35%, rgba(255, 60, 120, .3) 70%, transparent); }
+.mt-rock b { position: absolute; width: 22px; height: 30px; clip-path: polygon(50% 0, 100% 40%, 70% 100%, 30% 100%, 0 40%); }
+.mt-rock b.c1 { left: 30%; top: 22%; background: linear-gradient(#9ff, #19c8ff); }
+.mt-rock b.c2 { left: 58%; top: 30%; background: linear-gradient(#ffb3f2, #d23cff); transform: rotate(20deg); }
+.mt-rock b.c3 { left: 40%; top: 58%; background: linear-gradient(#ffb3f2, #ff2fd1); transform: rotate(-15deg); }
+.mt-rock b.c4 { left: 66%; top: 60%; background: linear-gradient(#bfffef, #19f0b0); transform: rotate(35deg); }
+.mt.charge .mt-rock { animation: mt-hover 1.3s ease-in both; }
+@keyframes mt-hover { 0% { transform: translate(55vw, -55vh) scale(.25); } 100% { transform: translate(34vw, -34vh) scale(.45) rotate(-6deg); } }
+.mt.charge .mt-core { animation: mt-pulse .26s ease-in-out infinite alternate; }
+@keyframes mt-pulse { to { transform: scale(1.04); } }
+.mt.fall .mt-rock { animation: mt-fall .9s cubic-bezier(.6, 0, .9, .6) both; }
+@keyframes mt-fall { from { transform: translate(34vw, -34vh) scale(.45) rotate(-6deg); } to { transform: translate(0, 0) scale(1.15) rotate(-20deg); } }
+
+/* Einschlag */
+.mt-flash { position: fixed; inset: 0; background: #fff; pointer-events: none; animation: mt-flash .55s ease-out both; }
+@keyframes mt-flash { 0% { opacity: 0; } 12% { opacity: 1; } 100% { opacity: 0; } }
+.mt-crater { position: absolute; left: -150px; top: -60px; width: 300px; height: 120px; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 210, 120, .95), rgba(255, 110, 40, .55) 45%, rgba(120, 30, 160, .25) 75%, transparent); animation: mt-crater .6s ease-out both; }
+@keyframes mt-crater { from { transform: scale(.2); opacity: 0; } }
+.mt.reveal .mt-crater { opacity: .55; transform: translateY(34vh) scale(1.4); transition: transform .6s ease-out, opacity .6s ease-out; }
+.mt-wave { position: absolute; left: -60px; top: -60px; width: 120px; height: 120px; border-radius: 50%; border: 6px solid rgba(255, 215, 106, .9); animation: mt-wave .7s ease-out both; pointer-events: none; }
+.mt-wave.w2 { border-color: rgba(255, 47, 209, .7); animation-delay: .12s; }
+@keyframes mt-wave { from { transform: scale(.2); opacity: 1; } to { transform: scale(6); opacity: 0; } }
+.mt-debris i { position: absolute; left: -9px; top: -9px; width: 18px; height: 18px; border-radius: 3px; background: linear-gradient(135deg, #8a5a2b, #3d2410); box-shadow: inset 0 3px 0 #6fbf3a;
+  animation: mt-debris .8s cubic-bezier(.15, .7, .3, 1) both; }
+@keyframes mt-debris { from { transform: translate(0, 0) rotate(0) scale(var(--s)); opacity: 1; } to { transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(var(--s)); opacity: 0; } }
+
+/* Belohnung: Ikonen fliegen aus dem Krater */
+.mt-reward { position: absolute; inset: 0; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: calc(24px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom)); }
+.mt-title { margin: 0; font-family: var(--display, inherit); font-size: 2rem; letter-spacing: .08em; text-transform: uppercase;
+  background: linear-gradient(90deg, #ffd76a, #ff8a3d, #ff2fd1); -webkit-background-clip: text; background-clip: text; color: transparent; animation: cz-pop .5s cubic-bezier(.2, 1.6, .4, 1) both; }
+.mt-sub { margin: 0 0 8px; color: #e8d9ff; font-weight: 700; }
+.mt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; width: min(560px, 100%); }
+.mt-card { position: relative; display: grid; justify-items: center; animation: mt-out .6s cubic-bezier(.2, 1.4, .4, 1) both; animation-delay: calc(var(--i) * .11s); }
+@keyframes mt-out { from { transform: translateY(40vh) scale(.15) rotate(-25deg); opacity: 0; } 60% { opacity: 1; } }
+.mt-card .ucard { width: 100%; max-width: 104px; }
+.mt-card.best { grid-column: 1 / -1; order: -1; }
+.mt-card.best .ucard { max-width: 150px; }
+.mt-card.best::before { content: ''; position: absolute; inset: -18px 20%; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 215, 106, .55), transparent); pointer-events: none; }
+.mt-new { position: absolute; top: -6px; right: 8%; padding: 2px 8px; border-radius: 999px; font-style: normal; font-size: .6875rem; font-weight: 800; color: #1a1200; background: #ffd76a; }
+.mt-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; width: min(560px, 100%); margin-top: 12px; }
+.mt-skip { position: absolute; z-index: 3; }
+
+/* Code einlösen im Shop */
+.code-redeem { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin: 0 0 24px; }
+.code-redeem input { min-width: 0; height: 48px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); font: inherit; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.code-redeem input::placeholder { letter-spacing: 0; text-transform: none; font-weight: 500; }
+.code-msg { grid-column: 1 / -1; margin: 0; font-size: .875rem; font-weight: 700; }
+.code-msg.bad { color: var(--down); }
+
+@media (prefers-reduced-motion: reduce) {
+  .mt, .mt *, .mt *::before { animation: none !important; transition: none !important; }
+}
+.lite .mt-streak, .lite .mt-debris { display: none; }
+.mt-card.best .mt-new { right: calc(50% - 75px - 6px); }
+/* Karten fliegen als eigene Ebene – kein Neuzeichnen der Karten-Details pro Bild */
+.mt-card { will-change: transform, opacity; contain: layout paint; }
+.mt-reward .mt-grid { contain: layout; }

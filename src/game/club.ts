@@ -85,6 +85,8 @@ export interface ClubState {
   trophyBest?: number;
   /** Alter Ruhmesweg (bis 3.000 Trophäen) – nur noch für die Übernahme. */
   roadClaimed?: number[];
+  /** Im Shop eingelöste Codes. */
+  redeemedCodes?: string[];
   /** Höher oder Tiefer: Punkte, laufende und beste Serie, Stufen der drei Talente. */
   hilo?: import('./hilo').HiloState;
   /** Abgeholte Stufen des Ruhmeswegs 2 (bis 17.500 Trophäen). */

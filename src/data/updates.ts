@@ -7,6 +7,9 @@ export interface UpdateNote {
   date: string;
   title: string;
   items: string[];
+  /** Optionales Titelbild (Pfad in public/). */
+  image?: string;
+  imageAlt?: string;
 }
 
 export const GREETING = 'An Alle Ayris die das spielen!';
@@ -18,6 +21,18 @@ export const GREETING = 'An Alle Ayris die das spielen!';
 export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
+  {
+    id: '2026-10-31-meteor-rush',
+    date: '31.10.2026',
+    title: 'Bald auf Roblox: Meteor Rush',
+    image: '/news/meteor-rush.webp',
+    imageAlt: 'Meteor Rush – Titelbild',
+    items: [
+      'Die Entwickler von Manager Sim arbeiten an einem neuen Spiel: „Meteor Rush“.',
+      'Meteoriten stürzen vom Himmel – bohr sie auf, sammle Kristalle und Coins und werde zum besten Meteor-Jäger.',
+      'Bald auf Roblox verfügbar. Haltet die Augen offen!',
+    ],
+  },
   {
     id: '2026-10-31-draft-schwerer',
     date: '31.10.2026',

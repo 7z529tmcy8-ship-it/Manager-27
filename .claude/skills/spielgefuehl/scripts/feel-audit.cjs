@@ -194,6 +194,13 @@ const FLOWS = {
     await p.click('.cz-solo .btn.primary', { timeout: 3000 }); await p.waitForTimeout(1000);
     await p.click('.solo-cash', { timeout: 800 }).catch(() => {}); await p.waitForTimeout(800);
   },
+  meteor: async (p) => {
+    // Shop → Code METEOR: Einschlag-Animation bis zur Belohnung
+    await nav(p, 'Shop'); await p.waitForTimeout(400);
+    await p.fill('.code-redeem input', 'meteor', { timeout: 3000 });
+    await p.click('.code-redeem button'); await p.waitForTimeout(4200);
+    await p.click('.mt-actions .btn.primary', { timeout: 2000 }).catch(() => {});
+  },
   hilo: async (p) => {
     // Duelle → Höher oder Tiefer: drei Tipps
     await nav(p, 'Duelle'); await p.waitForTimeout(400);

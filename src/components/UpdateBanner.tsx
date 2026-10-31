@@ -40,6 +40,7 @@ export default function UpdateBanner({ notes, onClose }: { notes: UpdateNote[]; 
     <div className="upd" role="dialog" aria-modal="true" aria-labelledby="upd-greeting">
       <Confetti pieces={60} />
       <div className="upd-card">
+        {note.image && <img className="upd-image" src={note.image} alt={note.imageAlt ?? ''} width={960} height={540} decoding="async" />}
         <span className="upd-badge">Update · {note.date}</span>
         <h2 id="upd-greeting">{GREETING}</h2>
         <h3>{noEmoji(note.title)}</h3>
