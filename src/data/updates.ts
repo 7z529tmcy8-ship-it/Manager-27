@@ -24,6 +24,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-31-sammlung-eigene-sbc',
+    date: '31.10.2026',
+    title: 'Sammlung: Eigene Karten und SBC-Karten',
+    items: [
+      'Neue Kategorie „Eigene Karten“: alle Karten aus deinen Karrieren auf einen Blick.',
+      'Neue Kategorie „SBC-Karten“: deine Legendären Momente mit Fortschritt, wie viele du schon getauscht hast.',
+    ],
+  },
+  {
     id: '2026-10-31-drops-shop-abteilungen',
     date: '31.10.2026',
     title: 'Neue Drops, Shop-Abteilungen, Sammlung nach Kategorien',

@@ -4,16 +4,24 @@ import { getClubState, setClubState, useClub } from '../clubStore';
 import UtCard from './UtCard';
 import { cardById } from '../game/squad';
 import Icon from './Icon';
+import { MOMENTS } from '../game/legendTrades';
 import { EVO_CAP, EVO_FEE, EVO_PATHS, EVO_VARIANTS, cancelEvo, evoBlocker, evoGained, getPath, startEvo, stepText } from '../game/evolutions';
 
-type Filter = 'all' | 'elite' | 'base' | 'icon' | 'cult' | 'wonder' | 'talent' | 'debut' | 'comeback' | 'flashback' | 'special' | 'dupes';
+type Filter = 'all' | 'own' | 'sbc' | 'elite' | 'base' | 'icon' | 'cult' | 'wonder' | 'talent' | 'debut' | 'comeback' | 'flashback' | 'special' | 'dupes';
 
 const BASE = new Set(['silver', 'gold', 'gold-rare']);
+/** Eigene Karten: aus deinen Karrieren (Ikone, Auszeichnungen, Sonderkarten, aktueller Spieler). */
+const isOwn = (c: CollectCard) => c.id.startsWith('own-') || c.id.startsWith('cur-');
+/** SBC-Karten: Belohnungen der Legendären-Momente-Tausche. */
+const SBC_IDS = new Set(MOMENTS.map((m) => m.reward.id));
+const isSbc = (c: CollectCard) => SBC_IDS.has(c.id);
 const OWN_GROUP = new Set(['silver', 'gold', 'gold-rare', 'icon', 'cult', 'talent', 'debut', 'comeback', 'flashback']);
 
 /** Kategorien der Sammlung; bei Kartenarten mit fester Anzahl zeigt die Kachel „gesammelt/insgesamt“. */
 const FILTERS: { id: Filter; label: string; icon: string; test: (c: CollectCard) => boolean; total?: boolean }[] = [
   { id: 'all', label: 'Alle Karten', icon: 'cards', test: () => true },
+  { id: 'own', label: 'Eigene Karten', icon: 'pencil', test: isOwn },
+  { id: 'sbc', label: 'SBC-Karten', icon: 'puzzle', test: isSbc, total: true },
   { id: 'elite', label: 'Elite 85+', icon: 'star', test: (c) => c.ovr >= 85 },
   { id: 'base', label: 'Gold & Silber', icon: 'shirt', test: (c) => BASE.has(c.variant), total: true },
   { id: 'icon', label: 'Ikonen', icon: 'crown', test: (c) => c.variant === 'icon', total: true },
@@ -23,7 +31,7 @@ const FILTERS: { id: Filter; label: string; icon: string; test: (c: CollectCard)
   { id: 'debut', label: 'Debüts', icon: 'rocket', test: (c) => c.variant === 'debut', total: true },
   { id: 'comeback', label: 'Comebacks', icon: 'rewind', test: (c) => c.variant === 'comeback', total: true },
   { id: 'flashback', label: 'Rückblenden', icon: 'film', test: (c) => c.variant === 'flashback', total: true },
-  { id: 'special', label: 'Sonderkarten', icon: 'spark', test: (c) => !OWN_GROUP.has(c.variant) },
+  { id: 'special', label: 'Sonderkarten', icon: 'spark', test: (c) => !OWN_GROUP.has(c.variant) && !isOwn(c) && !isSbc(c) },
   { id: 'dupes', label: 'Doppelte', icon: 'swap', test: () => true },
 ];
 
@@ -43,7 +51,7 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
   const active = FILTERS.find((f) => f.id === filter);
   const shown = active ? owned.filter(({ card, count }) => (active.id === 'dupes' ? count > 1 : active.test(card))) : [];
   const haveOf = (f: (typeof FILTERS)[number]) => (f.id === 'dupes' ? owned.filter((o) => o.count > 1).length : owned.filter(({ card }) => f.test(card)).length);
-  const totalOf = (f: (typeof FILTERS)[number]) => (f.total ? CARD_POOL.filter(f.test).length : 0);
+  const totalOf = (f: (typeof FILTERS)[number]) => (f.id === 'sbc' ? SBC_IDS.size : f.total ? CARD_POOL.filter(f.test).length : 0);
   const dupeValue = Object.entries(club.cards).reduce((a, [id, n]) => a + (n > 1 ? (n - 1) * sellValue(getCard(id)!) : 0), 0);
 
   const sell = () => {
