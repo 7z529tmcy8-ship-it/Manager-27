@@ -22,6 +22,14 @@ export const RETIRED_IDS = ['2026-10-05-sounds'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-10-31-hoeher-tiefer-5',
+    date: '31.10.2026',
+    title: 'Höher oder Tiefer: schneller zu Punkten',
+    items: [
+      'Jetzt gibt es schon alle 5 Richtigen am Stück einen Punkt statt alle 10.',
+    ],
+  },
+  {
     id: '2026-10-31-meteor-rush',
     date: '31.10.2026',
     title: 'Bald auf Roblox: Meteor Rush',

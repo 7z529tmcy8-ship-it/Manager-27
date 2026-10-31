@@ -20,16 +20,16 @@ it('Höher/Tiefer: Karten aus dem ganzen Spiel, Werte fest je Karte, nächste Ka
   }
 });
 
-it('Serie: alle 10 Richtigen ein Punkt, Fehler setzt zurück, Gleichstand ändert nichts', () => {
+it('Serie: alle 5 Richtigen ein Punkt, Fehler setzt zurück, Gleichstand ändert nichts', () => {
   let c = freshClub();
   let points = 0;
   for (let i = 0; i < 25; i++) { const r = answerHilo(c, 'right'); c = r.club; if (r.point) points++; }
-  expect(points).toBe(2);
-  expect(hiloOf(c)).toMatchObject({ streak: 25, best: 25, points: 2 });
+  expect(points).toBe(5);
+  expect(hiloOf(c)).toMatchObject({ streak: 25, best: 25, points: 5 });
   c = answerHilo(c, 'tie').club;
   expect(hiloOf(c).streak).toBe(25);
   c = answerHilo(c, 'wrong').club;
-  expect(hiloOf(c)).toMatchObject({ streak: 0, best: 25, points: 2 });
+  expect(hiloOf(c)).toMatchObject({ streak: 0, best: 25, points: 5 });
 });
 
 it('Talente: drei junge Spieler um 70, Upgrades kosten 1, 2, 3 … Punkte und geben +3', () => {

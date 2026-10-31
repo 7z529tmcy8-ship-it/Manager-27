@@ -12,7 +12,7 @@ import UtCard from './UtCard';
 
 const vibrate = (p: number | number[]) => { try { navigator.vibrate?.(p); } catch { /* nicht unterstützt */ } };
 
-/** Höher oder Tiefer: Serien spielen, alle 10 Richtigen ein Punkt, mit Punkten drei Talente entwickeln. */
+/** Höher oder Tiefer: Serien spielen, alle 5 Richtigen ein Punkt, mit Punkten drei Talente entwickeln. */
 export default function HiLoMode({ onClose }: { onClose: () => void }) {
   const club = useClub();
   const h = hiloOf(club);

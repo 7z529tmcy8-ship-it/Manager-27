@@ -8,7 +8,7 @@ import { cardAttrs } from './squad';
 // Eigener Modus ohne Coins: Ist die nächste Karte höher oder tiefer bewertet? Gezogen wird aus allen Karten des Spiels
 // (echte Spieler, Ikonen, Sonderkarten, SBC-Karten) – die Talente zum Entwickeln sind davon getrennt.
 // Von der verdeckten Karte sieht man Position und zwei Werte. Gleichstand zählt nicht – neue Karte, die Serie bleibt.
-// Alle 10 Richtigen am Stück gibt es einen Punkt. Mit Punkten entwickelt man drei junge Talente (+3 pro Upgrade).
+// Alle 5 Richtigen am Stück gibt es einen Punkt. Mit Punkten entwickelt man drei junge Talente (+3 pro Upgrade).
 
 export interface DuelCard { card: CollectCard; attrs: number[] }
 
@@ -52,7 +52,7 @@ export const judge = (cur: DuelCard, next: DuelCard, dir: HiLo): HiLoOutcome =>
   next.card.ovr === cur.card.ovr ? 'tie' : (dir === 'higher') === (next.card.ovr > cur.card.ovr) ? 'right' : 'wrong';
 
 // ---------- Serie, Punkte, Talente ----------
-export const STREAK_FOR_POINT = 10;
+export const STREAK_FOR_POINT = 5;
 export const HILO_STEP = 3;
 export const HILO_MAX_LEVEL = 8;
 /** Die drei Talente, die man mit Punkten entwickelt. */
@@ -63,7 +63,7 @@ export const upgradeCost = (level: number) => level + 1;
 export interface HiloState { points: number; streak: number; best: number; levels: Record<string, number> }
 export const hiloOf = (club: Pick<ClubState, 'hilo'>): HiloState => club.hilo ?? { points: 0, streak: 0, best: 0, levels: {} };
 
-/** Antwort werten: richtig → Serie +1 (alle 10 ein Punkt), falsch → Serie weg, Gleichstand → nichts passiert. */
+/** Antwort werten: richtig → Serie +1 (alle 5 ein Punkt), falsch → Serie weg, Gleichstand → nichts passiert. */
 export function answerHilo(club: ClubState, outcome: HiLoOutcome): { club: ClubState; point: boolean } {
   const h = hiloOf(club);
   if (outcome === 'tie') return { club, point: false };
