@@ -1,7 +1,8 @@
-import { CARD_POOL, type ClubState, type CollectCard, type PackResult } from './club';
+import { CARD_POOL, cardReleased, type ClubState, type CollectCard, type PackResult } from './club';
 
 // ---------- Codes im Shop ----------
-// Jeder Code ist pro Spieler nur einmal einlösbar. Groß-/Kleinschreibung und Leerzeichen sind egal.
+// Codes lassen sich beliebig oft einlösen. Groß-/Kleinschreibung und Leerzeichen sind egal.
+// redeemedCodes merkt sich nur, welche Codes man schon einmal benutzt hat (für Banner und Titel im Profil).
 
 export type CodeTheme = 'meteor' | 'frost' | 'vault';
 export type CodeReward = { kind: 'icons'; n: number; theme: 'meteor' } | { kind: 'frost'; theme: 'frost' } | { kind: 'vault'; theme: 'vault' };
@@ -22,7 +23,7 @@ export const normCode = (input: string) => input.trim().toUpperCase().replace(/\
 
 export type RedeemResult =
   | { ok: true; club: ClubState; result: PackResult; theme: CodeTheme }
-  | { ok: false; reason: 'unknown' | 'used' };
+  | { ok: false; reason: 'unknown' };
 
 /** n verschiedene Ikonen per Zufall. */
 export function randomIcons(n: number, rand = Math.random): CollectCard[] {
@@ -55,7 +56,7 @@ export function frostCards(rand = Math.random): CollectCard[] {
 /** Tresor-Drop: 5 Karten, die noch nicht in der Sammlung sind – eine ab 88, vier ab 78. Ist zu wenig übrig, wird mit allem Fehlenden aufgefüllt. */
 export const VAULT_CARDS = 5;
 export function vaultCards(club: ClubState, rand = Math.random): CollectCard[] {
-  const missing = CARD_POOL.filter((c) => !c.avatar && !((club.cards[c.id] ?? 0) > 0));
+  const missing = CARD_POOL.filter((c) => !c.avatar && cardReleased(c) && !((club.cards[c.id] ?? 0) > 0));
   const out: CollectCard[] = [];
   const take = (pool: CollectCard[], n: number) => {
     const list = pool.filter((c) => !out.some((o) => o.id === c.id));
@@ -83,9 +84,9 @@ export function redeemCode(club: ClubState, input: string, rand = Math.random): 
   const code = normCode(input);
   const reward = CODES[code];
   if (!reward) return { ok: false, reason: 'unknown' };
-  if ((club.redeemedCodes ?? []).includes(code)) return { ok: false, reason: 'used' };
   const g = reward.kind === 'frost' ? grantCards(club, frostCards(rand)) : reward.kind === 'vault' ? grantCards(club, vaultCards(club, rand)) : grantIcons(club, reward.n, rand);
-  return { ok: true, club: { ...g.club, redeemedCodes: [...(club.redeemedCodes ?? []), code] }, result: g.result, theme: reward.theme };
+  const used = club.redeemedCodes ?? [];
+  return { ok: true, club: { ...g.club, redeemedCodes: used.includes(code) ? used : [...used, code] }, result: g.result, theme: reward.theme };
 }
 
 /** Meteor-Drop: genau wie der Code METEOR – 10 zufällige Ikonen. */

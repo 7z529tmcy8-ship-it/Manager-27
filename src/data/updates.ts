@@ -30,7 +30,7 @@ export const UPDATES: UpdateNote[] = [
     items: [
       'Ein neuer geheimer Code öffnet den Tresor-Drop: Das Rad dreht sich, drei Lampen springen auf Grün, die schwere Tür schwingt auf.',
       'Drin: 5 Karten, die du garantiert noch nicht hast – eine davon mindestens 88.',
-      'Codes gibst du im Shop unter „Extras“ ein. Jeder Code geht einmal.',
+      'Codes gibst du im Shop unter „Extras“ ein – so oft du willst.',
     ],
   },
   {
@@ -71,7 +71,7 @@ export const UPDATES: UpdateNote[] = [
     items: [
       'Neue geheime Codes sind im Umlauf – einige davon bringen einen Meteor-Drop mit 10 Ikonen.',
       'Neu und nur per Code: der Eissturm-Drop. Schneesturm, ein Eiskristall wächst, bekommt Risse und zerspringt – heraus schneien 2 Winter-Wunder-Karten und 3 Topkarten ab 86.',
-      'Codes gibst du im Shop unter „Extras“ ein. Jeder Code geht einmal.',
+      'Codes gibst du im Shop unter „Extras“ ein – so oft du willst.',
     ],
   },
   {

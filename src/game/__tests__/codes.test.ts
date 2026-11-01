@@ -1,8 +1,8 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { freshClub } from '../club';
 import { redeemCode } from '../codes';
 
-it('Code METEOR: 10 verschiedene Ikonen, nur einmal, Schreibweise egal', () => {
+it('Code METEOR: 10 verschiedene Ikonen, beliebig oft einlösbar, Schreibweise egal', () => {
   const r = redeemCode(freshClub(), '  meteor ');
   expect(r.ok).toBe(true);
   if (!r.ok) return;
@@ -10,7 +10,9 @@ it('Code METEOR: 10 verschiedene Ikonen, nur einmal, Schreibweise egal', () => {
   expect(new Set(r.result.cards.map((c) => c.card.id)).size).toBe(10);
   r.result.cards.forEach((c) => expect(c.card.variant).toBe('icon'));
   expect(Object.values(r.club.cards).reduce((a, b) => a + b, 0)).toBe(10);
-  expect(redeemCode(r.club, 'METEOR')).toEqual({ ok: false, reason: 'used' });
+  const again = redeemCode(r.club, 'METEOR');
+  expect(again.ok).toBe(true);
+  if (again.ok) { expect(again.result.cards).toHaveLength(10); expect(again.club.redeemedCodes).toEqual(['METEOR']); }
   expect(redeemCode(freshClub(), 'GIBTSNICHT')).toEqual({ ok: false, reason: 'unknown' });
 });
 
@@ -61,7 +63,7 @@ it('Weitere Meteor-Codes und der Eissturm-Drop', async () => {
   expect(f.result.cards.filter((c) => c.card.variant === 'winter')).toHaveLength(2);
   f.result.cards.forEach((c) => expect(c.card.ovr).toBeGreaterThanOrEqual(86));
   f.result.cards.forEach((c) => expect(c.card.variant).not.toBe('icon'));
-  expect(redeemCode(f.club, 'EISSTURM')).toEqual({ ok: false, reason: 'used' });
+  expect(redeemCode(f.club, 'EISSTURM').ok).toBe(true);
   for (let i = 0; i < 50; i++) {
     const list = frostCards();
     expect(new Set(list.map((c) => c.name)).size).toBe(5);
@@ -103,5 +105,26 @@ it('Code TRESOR: 5 Karten, die man noch nicht hat, eine davon ab 88', async () =
   r.result.cards.forEach((c) => { expect(c.duplicate).toBe(false); expect(owned).not.toContain(c.card.id); });
   expect(new Set(r.result.cards.map((c) => c.card.id)).size).toBe(5);
   expect(Math.max(...r.result.cards.map((c) => c.card.ovr))).toBeGreaterThanOrEqual(88);
-  expect(redeemCode(r.club, 'TRESOR')).toEqual({ ok: false, reason: 'used' });
+  // Nochmal einlösen: wieder 5 neue Karten (keine aus dem ersten Tresor)
+  const r2 = redeemCode(r.club, 'TRESOR');
+  expect(r2.ok).toBe(true);
+  if (r2.ok) r2.result.cards.forEach((c) => expect(c.duplicate).toBe(false));
+});
+
+it('Noch nicht erschienene Event-Karten (Silvester, Winter) kommen weder im Tresor noch im Mega Super XXL noch im Draft', async () => {
+  const { cardReleased, openMegaSuper, CARD_POOL } = await import('../club');
+  const { vaultCards } = await import('../codes');
+  const { draftOptions } = await import('../draft');
+  const before = new Date(2026, 10, 1);
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(before);
+  expect(CARD_POOL.filter((c) => c.variant === 'silvester').every((c) => !cardReleased(c, before))).toBe(true);
+  expect(CARD_POOL.filter((c) => c.variant === 'silvester').every((c) => cardReleased(c, new Date(2026, 11, 31, 12)))).toBe(true);
+  // Alle erschienenen Karten ab 78 besitzen → der Tresor muss trotzdem nur erschienene Karten geben
+  const owned = CARD_POOL.filter((c) => c.ovr >= 78 && cardReleased(c, before)).map((c) => c.id);
+  const club = { ...freshClub(), cards: Object.fromEntries(owned.map((id) => [id, 1])) };
+  for (let i = 0; i < 30; i++) vaultCards(club).forEach((c) => expect(['silvester', 'winter']).not.toContain(c.variant));
+  for (let i = 0; i < 20; i++) openMegaSuper(freshClub())!.result.cards.forEach((c) => expect(['silvester', 'winter']).not.toContain(c.card.variant));
+  for (let i = 0; i < 20; i++) draftOptions('ST', []).forEach((c) => expect(['silvester', 'winter']).not.toContain(c.variant));
+  vi.useRealTimers();
 });

@@ -44,7 +44,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
   const redeem = () => {
     if (!code.trim()) return;
     const r = redeemCode(getClubState(), code);
-    if (!r.ok) { setCodeMsg(r.reason === 'used' ? 'Diesen Code hast du schon eingelöst.' : 'Diesen Code gibt es nicht.'); play('error'); return; }
+    if (!r.ok) { setCodeMsg('Diesen Code gibt es nicht.'); play('error'); return; }
     setClubState(r.club);
     setCode('');
     setCodeMsg('');

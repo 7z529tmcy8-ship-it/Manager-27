@@ -815,7 +815,7 @@ export const MEGA_SUPER_SIZE = 8;
 /** Das echte Mega Super XXL Pack: Gervinho (89) plus 8 verschiedene Karten ab 85. Nur einmal. */
 export function openMegaSuper(club: ClubState, rand = Math.random): { club: ClubState; result: PackResult } | null {
   if (club.megaSuperClaimed) return null;
-  const pool = CARD_POOL.filter((c) => c.ovr >= 85 && c.variant !== 'talent');
+  const pool = CARD_POOL.filter((c) => c.ovr >= 85 && c.variant !== 'talent' && cardReleased(c));
   const picked: CollectCard[] = [];
   while (picked.length < MEGA_SUPER_SIZE && pool.length) picked.push(pool.splice(Math.floor(rand() * pool.length), 1)[0]);
   picked.sort((a, b) => rarity(b) - rarity(a));
@@ -861,6 +861,8 @@ export function eventOfCard(c: CollectCard): EventId | null {
   if (c.variant === 'halloween') return c.club === 'Geisternacht' ? 'geisternacht' : 'halloween';
   return null;
 }
+/** Ist die Karte schon erschienen? Event-Karten gibt es erst ab Event-Start (Silvester-Karten z. B. erst ab 31.12.). */
+export const cardReleased = (c: CollectCard, now = new Date()) => { const e = eventOfCard(c); return !e || now >= EVENTS[e].start; };
 /** Packs, die gerade im Store stehen (Event-Packs nur im Event-Zeitraum). */
 export const activePacks = (now = new Date()) => PACKS.filter((p) => !p.event || eventActive(p.event, now));
 

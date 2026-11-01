@@ -1,6 +1,6 @@
 import { getClub } from '../data/leagues';
 import { REAL_PLAYERS } from '../data/players';
-import { CARD_POOL, type ClubState, type CollectCard } from './club';
+import { CARD_POOL, cardReleased, type ClubState, type CollectCard } from './club';
 import { MOMENTS } from './legendTrades';
 import { cardAttrs } from './squad';
 
@@ -20,7 +20,7 @@ export const duelPool = (): DuelCard[] => {
   if (pool) return pool;
   const seen = new Set<string>();
   pool = [...CARD_POOL, ...MOMENTS.map((m) => m.reward)]
-    .filter((c) => !c.avatar && !seen.has(c.id) && seen.add(c.id))
+    .filter((c) => !c.avatar && cardReleased(c) && !seen.has(c.id) && seen.add(c.id))
     .map(duelCard);
   return pool;
 };

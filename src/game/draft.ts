@@ -1,4 +1,4 @@
-import { CARD_POOL, storePacks, type ClubState, type CollectCard } from './club';
+import { CARD_POOL, cardReleased, storePacks, type ClubState, type CollectCard } from './club';
 import { addTrophies } from './glory';
 import { clamp } from './random';
 import { FORMATION, fit, teamStrength, type DuelResult } from './squad';
@@ -36,7 +36,7 @@ const TIERS: { share: number; test: (c: CollectCard) => boolean }[] = [
 ];
 
 /** Karten, die im Draft vorkommen: keine eigenen Spieler, keine Doppelungen beim Namen. */
-const draftPool = () => CARD_POOL.filter((c) => !c.avatar && c.ovr >= 60);
+const draftPool = () => CARD_POOL.filter((c) => !c.avatar && c.ovr >= 60 && cardReleased(c));
 
 function drawTier(rand: () => number) {
   let r = rand() * 100;
