@@ -24,6 +24,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-01-tresor-drop',
+    date: '01.11.2026',
+    title: 'Neuer Code-Drop: der Tresor',
+    items: [
+      'Ein neuer geheimer Code öffnet den Tresor-Drop: Das Rad dreht sich, drei Lampen springen auf Grün, die schwere Tür schwingt auf.',
+      'Drin: 5 Karten, die du garantiert noch nicht hast – eine davon mindestens 88.',
+      'Codes gibst du im Shop unter „Extras“ ein. Jeder Code geht einmal.',
+    ],
+  },
+  {
     id: '2026-10-31-profil-namen-vitrine',
     date: '31.10.2026',
     title: 'Schimmernde Namen und eine größere Vitrine',

@@ -3,8 +3,8 @@ import { CARD_POOL, type ClubState, type CollectCard, type PackResult } from './
 // ---------- Codes im Shop ----------
 // Jeder Code ist pro Spieler nur einmal einlösbar. Groß-/Kleinschreibung und Leerzeichen sind egal.
 
-export type CodeTheme = 'meteor' | 'frost';
-export type CodeReward = { kind: 'icons'; n: number; theme: 'meteor' } | { kind: 'frost'; theme: 'frost' };
+export type CodeTheme = 'meteor' | 'frost' | 'vault';
+export type CodeReward = { kind: 'icons'; n: number; theme: 'meteor' } | { kind: 'frost'; theme: 'frost' } | { kind: 'vault'; theme: 'vault' };
 const METEOR_CODE: CodeReward = { kind: 'icons', n: 10, theme: 'meteor' };
 export const CODES: Record<string, CodeReward> = {
   // Meteor-Drop: 10 zufällige Ikonen mit Einschlag
@@ -14,6 +14,8 @@ export const CODES: Record<string, CodeReward> = {
   STERNSCHNUPPE: METEOR_CODE,
   // Eissturm-Drop: 2 Winter-Wunder-Karten + 3 Topkarten ab 86, mit Frost-Animation
   EISSTURM: { kind: 'frost', theme: 'frost' },
+  // Tresor-Drop: 5 Karten, die man garantiert noch nicht hat (eine davon ab 88)
+  TRESOR: { kind: 'vault', theme: 'vault' },
 };
 
 export const normCode = (input: string) => input.trim().toUpperCase().replace(/\s+/g, '');
@@ -50,6 +52,21 @@ export function frostCards(rand = Math.random): CollectCard[] {
   return out.sort((a, b) => a.ovr - b.ovr);
 }
 
+/** Tresor-Drop: 5 Karten, die noch nicht in der Sammlung sind – eine ab 88, vier ab 78. Ist zu wenig übrig, wird mit allem Fehlenden aufgefüllt. */
+export const VAULT_CARDS = 5;
+export function vaultCards(club: ClubState, rand = Math.random): CollectCard[] {
+  const missing = CARD_POOL.filter((c) => !c.avatar && !((club.cards[c.id] ?? 0) > 0));
+  const out: CollectCard[] = [];
+  const take = (pool: CollectCard[], n: number) => {
+    const list = pool.filter((c) => !out.some((o) => o.id === c.id));
+    for (let i = 0; i < n && list.length; i++) out.push(list.splice(Math.floor(rand() * list.length), 1)[0]);
+  };
+  take(missing.filter((c) => c.ovr >= 88), 1);
+  take(missing.filter((c) => c.ovr >= 78), VAULT_CARDS - out.length);
+  take(missing, VAULT_CARDS - out.length);
+  return out.sort((a, b) => a.ovr - b.ovr);
+}
+
 /** Karten in die Sammlung legen. */
 function grantCards(club: ClubState, list: CollectCard[]): { club: ClubState; result: PackResult } {
   const cards = { ...club.cards };
@@ -67,7 +84,7 @@ export function redeemCode(club: ClubState, input: string, rand = Math.random): 
   const reward = CODES[code];
   if (!reward) return { ok: false, reason: 'unknown' };
   if ((club.redeemedCodes ?? []).includes(code)) return { ok: false, reason: 'used' };
-  const g = reward.kind === 'frost' ? grantCards(club, frostCards(rand)) : grantIcons(club, reward.n, rand);
+  const g = reward.kind === 'frost' ? grantCards(club, frostCards(rand)) : reward.kind === 'vault' ? grantCards(club, vaultCards(club, rand)) : grantIcons(club, reward.n, rand);
   return { ok: true, club: { ...g.club, redeemedCodes: [...(club.redeemedCodes ?? []), code] }, result: g.result, theme: reward.theme };
 }
 

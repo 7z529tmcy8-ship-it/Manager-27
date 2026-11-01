@@ -90,3 +90,18 @@ it('Profil: Namens-Effekte kosten ab 100 Mio., Vitrine mit 3 Plätzen tauscht st
   expect(s[1]).toBe(ids[3]);
   expect(new Set(s).size).toBe(3);
 });
+
+it('Code TRESOR: 5 Karten, die man noch nicht hat, eine davon ab 88', async () => {
+  const { CARD_POOL } = await import('../club');
+  const owned = CARD_POOL.filter((c) => c.ovr >= 78).slice(0, 200).map((c) => c.id);
+  const club = { ...freshClub(), cards: Object.fromEntries(owned.map((id) => [id, 1])) };
+  const r = redeemCode(club, 'tresor');
+  expect(r.ok).toBe(true);
+  if (!r.ok) return;
+  expect(r.theme).toBe('vault');
+  expect(r.result.cards).toHaveLength(5);
+  r.result.cards.forEach((c) => { expect(c.duplicate).toBe(false); expect(owned).not.toContain(c.card.id); });
+  expect(new Set(r.result.cards.map((c) => c.card.id)).size).toBe(5);
+  expect(Math.max(...r.result.cards.map((c) => c.card.ovr))).toBeGreaterThanOrEqual(88);
+  expect(redeemCode(r.club, 'TRESOR')).toEqual({ ok: false, reason: 'used' });
+});
