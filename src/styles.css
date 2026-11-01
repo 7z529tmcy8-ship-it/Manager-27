@@ -5534,3 +5534,23 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .bn-zeit .pf-banner { background: repeating-conic-gradient(from 0deg at 80% 30%, rgba(255, 215, 106, .25) 0 3deg, transparent 3deg 30deg), linear-gradient(110deg, #2fbf71 0%, #1a1408 38%, #1a1408 62%, #d9b67a 100%); }
 .ct-aera .cc-icon { color: #ffd76a; background: rgba(255, 215, 106, .14); }
 .era-call .shop-badge { top: 8px; right: 8px; }
+
+/* Update-Banner mit Video: Video groß, Text klein, Code-Werbung */
+.upd-card.has-video { max-width: 760px; padding-top: 0; gap: 8px; overflow: hidden; }
+.upd-video-wrap { position: relative; margin: 0 -22px 4px; background: #000; }
+.upd-video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.upd-sound { position: absolute; right: 10px; bottom: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .35);
+  background: rgba(0, 0, 0, .55); color: #fff; font: inherit; font-size: .8125rem; font-weight: 700; cursor: pointer; transition: transform .12s ease-out; }
+.upd-sound:active { transform: scale(.95); }
+.upd-card.has-video h2 { font-size: 1.15rem; }
+.upd-card.has-video h3 { font-size: .95rem; }
+.upd-card.has-video li { padding: 8px 10px; font-size: .8125rem; }
+.upd-card.has-video .upd-badge { margin-top: 4px; font-size: .7rem; }
+.upd-promo { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 12px; border-radius: 16px;
+  background: linear-gradient(120deg, rgba(255, 140, 40, .25), rgba(255, 210, 74, .12)); border: 1px solid rgba(255, 180, 70, .55); }
+.upd-promo-code { display: grid; justify-items: center; padding: 6px 12px; border-radius: 12px; background: #1a0f02; border: 2px dashed #ffb347; }
+.upd-promo-code small { font-size: .6rem; font-weight: 700; color: #ffcf8a; letter-spacing: .1em; text-transform: uppercase; }
+.upd-promo-code b { font-family: var(--display, inherit); font-size: 1.35rem; letter-spacing: .08em; color: #ffd24a; }
+.upd-promo-text { font-size: .8125rem; line-height: 1.35; color: #ffe9c7; }
+.upd-promo-btn { white-space: nowrap; }
+@media (max-width: 420px) { .upd-promo { grid-template-columns: auto minmax(0, 1fr); } .upd-promo-btn { grid-column: 1 / -1; } }

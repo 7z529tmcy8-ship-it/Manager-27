@@ -39,7 +39,8 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
   const show = (d: Dept) => (SHOP_SALES ? dept === d : d === 'extras' || (d === 'stash' && stash > 0));
   const [polar, setPolar] = useState(false);
   const [casino, setCasino] = useState(false);
-  const [code, setCode] = useState('');
+  // Vom Update-Banner („Zum Shop“): Code schon eingetragen
+  const [code, setCode] = useState(() => { try { const c = sessionStorage.getItem('fc-code-prefill') ?? ''; sessionStorage.removeItem('fc-code-prefill'); return c; } catch { return ''; } });
   const [codeMsg, setCodeMsg] = useState('');
   const [meteor, setMeteor] = useState<PackResult | null>(null);
   const [frost, setFrost] = useState<PackResult | null>(null);

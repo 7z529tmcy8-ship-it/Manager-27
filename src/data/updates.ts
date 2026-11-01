@@ -12,6 +12,11 @@ export interface UpdateNote {
   imageAlt?: string;
   /** Angepinnt: erscheint bei jedem Spielstart, auch wenn man es schon gesehen hat. */
   pinned?: boolean;
+  /** Video statt Bild (groß oben, stumm in Schleife, Ton per Knopf). */
+  video?: string;
+  poster?: string;
+  /** Werbung für einen Code im Shop. */
+  promo?: { code: string; text: string };
 }
 
 export const GREETING = 'An Alle Ayris die das spielen!';
@@ -23,6 +28,17 @@ export const GREETING = 'An Alle Ayris die das spielen!';
 export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
+  {
+    id: '2026-11-01-meteor-rush-trailer',
+    date: '01.11.2026',
+    title: 'Meteor Rush – bald auf Roblox',
+    pinned: true,
+    video: '/news/meteor-rush-trailer.mp4',
+    poster: '/news/meteor-rush-trailer.jpg',
+    imageAlt: 'Trailer von Meteor Rush',
+    items: ['Das neue Spiel der Entwickler kommt bald raus. Meteoriten aufbohren, Kristalle sammeln, Meteor-Jäger werden.'],
+    promo: { code: 'METEOR', text: 'Im Shop einlösen: 10 zufällige Ikonen mit Meteor-Einschlag.' },
+  },
   {
     id: '2026-11-01-zeitreise',
     date: '01.11.2026',
@@ -138,7 +154,6 @@ export const UPDATES: UpdateNote[] = [
     id: '2026-10-31-meteor-rush',
     date: '31.10.2026',
     title: 'Bald auf Roblox: Meteor Rush',
-    pinned: true,
     image: '/news/meteor-rush.webp',
     imageAlt: 'Meteor Rush – Titelbild',
     items: [

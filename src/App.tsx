@@ -155,7 +155,7 @@ export default function App() {
           <button className="rotate-hint-x" onClick={() => setHintClosed(true)} aria-label="Hinweis schließen"><Icon name="close" size={18} /></button>
         </div>
       )}
-      {news.length > 0 && <UpdateBanner notes={news} onClose={() => setNews([])} />}
+      {news.length > 0 && <UpdateBanner notes={news} onClose={() => setNews([])} onStore={(code) => { setNews([]); try { if (code) sessionStorage.setItem('fc-code-prefill', code); } catch { /* egal */ } setScreen({ name: 'store' }); }} />}
       {saveFailed && <SaveWarning onRetry={() => { if (screen.name === 'game') saveCareer(screen.career); }} />}
       {toast && <div className="coin-toast" role="status"><Icon name="coin" size={16} className="coin-ic" />{noEmoji(toast)}</div>}
       {reward && <CareerReward career={reward} onDone={(msg) => { setToast(msg ?? 'Deine Karriere-Belohnung liegt in der Sammlung!'); setReward(null); }} />}
