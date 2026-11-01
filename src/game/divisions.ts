@@ -1,3 +1,4 @@
+import { SHARDS, addShards } from './eraTime';
 import type { ClubState, CollectCard } from './club';
 import { clamp, poisson, randInt } from './random';
 import { DUEL_TROPHIES, addTrophies, grantDrop } from './glory';
@@ -151,6 +152,7 @@ export function playDivisionDuel(club: ClubState, tactic: Tactic, now = new Date
   let after = addTrophies({ ...club, coins: club.coins + coins, duels: { ...club.duels, [key]: club.duels[key] + 1 }, duelSeasons, division, duelLevel: Math.min(10, Math.max(club.duelLevel, divLevel(state.best))) }, trophyDelta);
   let drop = false;
   if (outcome === 'win') ({ club: after, granted: drop } = grantDrop(after, now));
+  if (outcome === 'win') after = addShards(after, SHARDS.duelWin, now);
   return {
     club: after,
     result: { own, opp: against, outcome, coins, goals, points, trophies: trophyDelta, drop },

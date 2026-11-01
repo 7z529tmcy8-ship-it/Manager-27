@@ -1,3 +1,4 @@
+import { SHARDS, addShards } from './eraTime';
 import { CARD_POOL, PACKS, eventOfCard, storePacks, type ClubState, type CollectCard } from './club';
 
 // ---------- Flutlicht-Drops und Ruhmesweg ----------
@@ -112,7 +113,7 @@ export function openDrop(club: ClubState, rand: () => number = Math.random, now 
   if (!have) return null;
   const rarity = rollRarity(rand, kind);
   const reward = dropReward(rarity, rand);
-  let next: ClubState = { ...club, [kind === 'mega' ? 'megaDrops' : 'drops']: have - 1, dropsOpened: (club.dropsOpened ?? 0) + 1 };
+  let next: ClubState = addShards({ ...club, [kind === 'mega' ? 'megaDrops' : 'drops']: have - 1, dropsOpened: (club.dropsOpened ?? 0) + 1 }, SHARDS.drop, new Date(now));
   let duplicate = false;
   if (reward.kind === 'coins') next = { ...next, coins: next.coins + reward.amount };
   else if (reward.kind === 'pack') next = storePacks(next, [reward.pack], `Drop (${DROP_LABEL[rarity]})`, now);

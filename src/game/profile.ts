@@ -83,6 +83,7 @@ export const BANNERS: ProfileBanner[] = [
   { id: 'gold', name: 'Gold', need: 'Level 20', ok: (_c, lvl) => lvl >= 20 },
   { id: 'meteor', name: 'Meteor', need: 'Einen Meteor-Code einlösen', ok: (c) => usedCode(c, ['METEOR', 'METEORRUSH', 'KRATER', 'STERNSCHNUPPE']) },
   { id: 'eis', name: 'Eissturm', need: 'Code EISSTURM einlösen', ok: (c) => usedCode(c, ['EISSTURM']) },
+  { id: 'zeit', name: 'Zeitreise', need: 'Zeitreise-Pfad komplett', ok: (c) => (c.aera?.claimed ?? 0) >= 40 },
 ];
 const usedCode = (club: ClubState, codes: string[]) => (club.redeemedCodes ?? []).some((c) => codes.includes(c));
 export const bannerOpen = (b: ProfileBanner, club: ClubState, level: number) => !b.ok || b.ok(club, level);
@@ -108,6 +109,7 @@ export const TITLES: ProfileTitle[] = [
   { id: 'goat', name: 'GOAT', need: 'Wertung 95 in einer Karriere', ok: (_c, cs) => careerPeak(cs) >= 95 },
   { id: 'meteor', name: 'Meteor-Rusher', need: 'Einen Meteor-Code einlösen', ok: (c) => usedCode(c, ['METEOR', 'METEORRUSH', 'KRATER', 'STERNSCHNUPPE']) },
   { id: 'eis', name: 'Eisherz', need: 'Code EISSTURM einlösen', ok: (c) => usedCode(c, ['EISSTURM']) },
+  { id: 'zeit', name: 'Zeitreisender', need: 'Zeitreise-Pfad komplett (Event)', ok: (c) => (c.aera?.claimed ?? 0) >= 40 },
 ];
 export const titleOf = (club: ClubState, careers: Career[]) => {
   const t = TITLES.find((x) => x.id === club.profile?.title);

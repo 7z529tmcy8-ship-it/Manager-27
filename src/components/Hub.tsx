@@ -1,3 +1,7 @@
+import EraEvent from './EraEvent';
+import { ERA_NAME, ERA_PLAYERS, eraCardId, eraToday } from '../data/eraCards';
+import { eraReady } from '../game/era';
+import { eraLive } from '../game/eraTime';
 import { Children, useRef, useState, type ReactNode } from 'react';
 import { getClub } from '../data/leagues';
 import { ballonTipCorrect, collectionProgress, ballonTipOpen, careerCard, claimBallonTip, creditCareer, eventActive, halloweenActive, rewardPending, type PackResult } from '../game/club';
@@ -56,6 +60,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   const [profile, setProfile] = useState(false);
   const [full, setFull] = useState(isFullscreen());
   const [glory, setGlory] = useState(false);
+  const [era, setEra] = useState(false);
   const tipWon = ballonTipCorrect(club) === true && !club.ballonTipClaimed;
   const gigLastDay = new Date().getDate() === 18;
   const me = profileOf(club);
@@ -86,6 +91,14 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
       </header>
 
       <EventStrip>
+        {(eraLive() || eraReady(club) > 0) && (
+          <button className="era-call" onClick={() => setEra(true)}>
+            <span className="ep-clock" aria-hidden="true"><i className="h" /><i className="m" /></span>
+            <span className="era-call-text"><b>Zeitreise</b><small>{eraLive() ? 'Ära-Event · ' : ''}{ERA_PLAYERS.filter((p) => (club.cards[eraCardId(p.name)] ?? 0) > 0).length}/10 Ära-Karten · Heute: {ERA_NAME[eraToday()]}</small></span>
+            <Icon name="arrow" size={22} />
+            {eraReady(club) > 0 && <b className="shop-badge">{eraReady(club)}</b>}
+          </button>
+        )}
         {pendingReward && (
           <button className="reward-call" onClick={() => onReward(pendingReward)}>
             <Icon name="flag" size={20} />
@@ -256,6 +269,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
       )}
       {backup && <Backup onClose={() => setBackup(false)} />}
       {tipOpen && <BallonTip onClose={() => setTipOpen(false)} />}
+      {era && <EraEvent onClose={() => setEra(false)} onCollection={() => { setEra(false); onCollection(); }} />}
       {glory && <GloryRoad onClose={() => setGlory(false)} onStore={() => { setGlory(false); onStore(); }} />}
       {profile && <ProfileScreen careers={saves} onClose={() => setProfile(false)} />}
       {advent && <AdventCalendar onClose={() => setAdvent(false)} onCollection={() => { setAdvent(false); onCollection(); }} />}

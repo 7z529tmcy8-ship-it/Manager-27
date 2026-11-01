@@ -1,4 +1,4 @@
-import { CARD_POOL, cardReleased, type ClubState, type CollectCard, type PackResult } from './club';
+import { CARD_POOL, cardForGifts, type ClubState, type CollectCard, type PackResult } from './club';
 
 // ---------- Codes im Shop ----------
 // Codes lassen sich beliebig oft einlösen. Groß-/Kleinschreibung und Leerzeichen sind egal.
@@ -56,7 +56,7 @@ export function frostCards(rand = Math.random): CollectCard[] {
 /** Tresor-Drop: 5 Karten, die noch nicht in der Sammlung sind – eine ab 88, vier ab 78. Ist zu wenig übrig, wird mit allem Fehlenden aufgefüllt. */
 export const VAULT_CARDS = 5;
 export function vaultCards(club: ClubState, rand = Math.random): CollectCard[] {
-  const missing = CARD_POOL.filter((c) => !c.avatar && cardReleased(c) && !((club.cards[c.id] ?? 0) > 0));
+  const missing = CARD_POOL.filter((c) => !c.avatar && cardForGifts(c) && !((club.cards[c.id] ?? 0) > 0));
   const out: CollectCard[] = [];
   const take = (pool: CollectCard[], n: number) => {
     const list = pool.filter((c) => !out.some((o) => o.id === c.id));

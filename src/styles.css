@@ -5428,3 +5428,109 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .mt.vt.burst .vt-glow, .mt.vt.burst .vt-rays { opacity: 1; }
 .mt.vt.burst .vt-vault { animation: vt-pop .45s ease-out both; }
 @keyframes vt-pop { to { transform: scale(1.25); opacity: 0; } }
+
+/* ---------- Ära-Karten (Event „Zeitreise“): drei Zeiten, drei Looks ---------- */
+.ucard.v-aera { --a: #1a1408; --b: #000; --ink: #ffd76a; --edge: #ffd76a; --glow: rgba(255, 210, 90, .55); }
+.ucard.v-aera.special { --pat:
+  repeating-radial-gradient(circle at 50% 38%, rgba(255, 215, 106, .22) 0 1px, transparent 1px 9px),
+  conic-gradient(from 0deg at 50% 38%, rgba(255, 215, 106, .0), rgba(255, 215, 106, .25), rgba(255, 215, 106, 0) 30%),
+  radial-gradient(60% 40% at 50% 30%, rgba(255, 230, 150, .35), transparent 70%); }
+.ucard.v-aera .ucard-club { color: #ffd76a; letter-spacing: .06em; text-transform: uppercase; opacity: 1; }
+.ucard.v-aera .ucard-badge { color: #ffd76a; }
+/* Talent: frisches Grün, Wachstumslinien */
+.ucard.v-aera.era-talent { --a: #e6fff1; --b: #2fbf71; --ink: #06301a; --edge: #9dffc9; --glow: rgba(80, 230, 150, .55); }
+.ucard.v-aera.era-talent.special { --pat:
+  repeating-linear-gradient(75deg, rgba(255, 255, 255, .22) 0 2px, transparent 2px 14px),
+  radial-gradient(70% 45% at 50% 100%, rgba(255, 255, 255, .45), transparent 70%); }
+.ucard.v-aera.era-talent .ucard-club, .ucard.v-aera.era-talent .ucard-badge { color: #0b5a30; }
+/* Legende: Sepia wie ein altes Foto, mit Körnung */
+.ucard.v-aera.era-legend { --a: #f1dfb8; --b: #8a6a3a; --ink: #2a1a08; --edge: #d9b67a; --glow: rgba(220, 180, 110, .5); }
+.ucard.v-aera.era-legend.special { --pat:
+  radial-gradient(circle at 30% 30%, rgba(60, 35, 10, .18) 0 .6px, transparent 1px) 0 0 / 5px 5px,
+  radial-gradient(circle at 70% 60%, rgba(255, 245, 220, .25) 0 .6px, transparent 1px) 0 0 / 7px 7px,
+  radial-gradient(80% 60% at 50% 40%, transparent 55%, rgba(60, 35, 10, .35)); }
+.ucard.v-aera.era-legend .ucard-club, .ucard.v-aera.era-legend .ucard-badge { color: #5a3a12; }
+
+/* ---------- Ära-Event „Zeitreise“ ---------- */
+.overlay.era { background: radial-gradient(120% 60% at 50% 0%, #3a2a0a 0%, #120d05 45%, #050403 100%); }
+.ep-hero { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 14px; margin: 4px 0 8px; }
+.ep-clock { position: relative; width: 72px; height: 72px; border-radius: 50%; flex: none;
+  background: radial-gradient(circle, #2a1f08 55%, #ffd76a 56% 60%, #8a5a00 61% 66%, transparent 67%), repeating-conic-gradient(rgba(255, 215, 106, .8) 0 2deg, transparent 2deg 30deg);
+  box-shadow: 0 0 30px rgba(255, 200, 80, .35); }
+.ep-clock i { position: absolute; left: 50%; bottom: 50%; width: 4px; margin-left: -2px; border-radius: 2px; background: #ffe9a6; transform-origin: 50% 100%; }
+.ep-clock i.h { height: 18px; animation: ep-back 12s linear infinite; }
+.ep-clock i.m { height: 26px; width: 3px; margin-left: -1.5px; animation: ep-back 1.6s linear infinite; }
+@keyframes ep-back { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+.ep-clock.big { width: 160px; height: 160px; }
+.ep-clock.big i.h { height: 40px; width: 7px; margin-left: -3.5px; animation-duration: 1.4s; }
+.ep-clock.big i.m { height: 58px; width: 5px; margin-left: -2.5px; animation-duration: .35s; }
+.ep-hero-text { display: grid; gap: 2px; min-width: 0; }
+.ep-hero-text small { color: #f3e2a8; font-weight: 700; font-size: .8125rem; }
+.ep-hero-text h1 { margin: 0; font-family: var(--display, inherit); font-size: 2.4rem; line-height: 1; letter-spacing: .06em; text-transform: uppercase;
+  background: linear-gradient(90deg, #9dffc9, #ffd76a 50%, #d9b67a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.ep-today { justify-self: start; margin-top: 4px; padding: 3px 10px; border-radius: 8px; font-size: .75rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.t-talent { background: #2fbf71; color: #04220f; } .t-prime { background: #ffd76a; color: #1a1200; } .t-legend { background: #d9b67a; color: #2a1a08; }
+.ep-sub { margin: 0 0 12px; color: #d8c79a; font-size: .875rem; }
+.ep-progress { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px; border-radius: 18px; margin-bottom: 10px;
+  background: rgba(255, 215, 106, .08); border: 1px solid rgba(255, 215, 106, .3); }
+.ep-shards, .ep-cards { display: grid; justify-items: center; gap: 0; color: #ffd76a; }
+.ep-shards b, .ep-cards b { font-family: var(--display, inherit); font-size: 1.5rem; line-height: 1.1; color: #fff; font-variant-numeric: tabular-nums; }
+.ep-shards small, .ep-cards small { font-size: .65rem; color: #d8c79a; }
+.ep-bar-wrap { display: grid; gap: 4px; min-width: 0; }
+.ep-step-no { font-weight: 800; font-size: .875rem; color: #fff; }
+.ep-bar { height: 12px; border-radius: 7px; overflow: hidden; background: rgba(0, 0, 0, .5); border: 1px solid rgba(255, 215, 106, .35); }
+.ep-bar i { display: block; height: 100%; transform-origin: 0 50%; background: linear-gradient(90deg, #2fbf71, #ffd76a 60%, #d9b67a); transition: transform .4s ease-out; }
+.ep-bar-wrap small { color: #d8c79a; font-size: .72rem; }
+.ep-claim { grid-column: 1 / -1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; animation: ep-pulse 1.4s ease-in-out infinite; }
+@keyframes ep-pulse { 50% { transform: scale(1.03); } }
+.ep-how { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.ep-how li { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); font-size: .75rem; color: #e9dcb6; }
+.ep-how li b { color: #ffd76a; }
+.ep-path { position: relative; list-style: none; margin: 0; padding: 0 0 0 4px; display: grid; gap: 8px; }
+.ep-path::before { content: ''; position: absolute; left: 21px; top: 10px; bottom: 10px; width: 4px; border-radius: 2px; background: linear-gradient(#2fbf71, #ffd76a 50%, #d9b67a); opacity: .35; }
+.ep-step { position: relative; display: grid; grid-template-columns: 38px minmax(0, 1fr); align-items: center; gap: 12px; content-visibility: auto; contain-intrinsic-size: auto 52px; }
+.ep-step.is-card { contain-intrinsic-size: auto 150px; }
+.ep-node { position: relative; z-index: 1; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; font-weight: 800; font-size: .8125rem; font-variant-numeric: tabular-nums;
+  background: #241b09; color: #8a7a50; border: 2px solid #4a3a14; }
+.ep-step.done .ep-node { background: #2fbf71; color: #04220f; border-color: #9dffc9; }
+.ep-step.ready .ep-node { background: #ffd76a; color: #1a1200; border-color: #fff4c2; box-shadow: 0 0 14px rgba(255, 215, 106, .7); }
+.ep-step.next .ep-node { border-color: #ffd76a; color: #ffd76a; }
+.ep-reward { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08); color: #e9dcb6; font-weight: 700; font-size: .875rem; }
+.ep-reward .ic { color: #ffd76a; }
+.ep-step.locked .ep-reward { opacity: .55; }
+.ep-step.done .ep-reward { opacity: .6; text-decoration: line-through; text-decoration-color: rgba(255, 255, 255, .35); }
+.ep-card { justify-self: start; padding: 6px 0; }
+.ep-step.locked .ep-card .ucard { filter: grayscale(.6) brightness(.6); }
+.ep-step.done .ep-card .ucard { opacity: .75; }
+.ep-end { margin: 16px 0 8px; text-align: center; color: #d8c79a; font-size: .8125rem; }
+.ep-got { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 130; width: min(420px, calc(100% - 32px)); transform: translateX(-50%); padding: 14px 16px; border-radius: 18px;
+  background: #1a1408; border: 1px solid rgba(255, 215, 106, .5); box-shadow: 0 16px 40px rgba(0, 0, 0, .6); animation: pf-up .28s cubic-bezier(.2, .9, .3, 1) both; cursor: pointer; }
+.ep-got strong { color: #ffd76a; font-family: var(--display, inherit); letter-spacing: .06em; text-transform: uppercase; }
+.ep-got ul { list-style: none; margin: 6px 0; padding: 0; display: grid; gap: 4px; font-size: .875rem; color: #fff; }
+.ep-got li { display: flex; align-items: center; gap: 8px; } .ep-got li .ic { color: #ffd76a; }
+.ep-got small { color: #d8c79a; font-size: .75rem; }
+/* Enthüllung */
+.mt.er { background: radial-gradient(90% 70% at 50% 45%, #3a2a0a 0%, #120d05 55%, #050403 100%); }
+.er-rewind { display: grid; justify-items: center; gap: 18px; }
+.er-year { font-family: var(--display, inherit); font-size: 3.4rem; letter-spacing: .08em; color: #ffd76a; font-variant-numeric: tabular-nums; text-shadow: 0 0 24px rgba(255, 215, 106, .6); }
+.er-flip { display: grid; justify-items: center; gap: 14px; }
+.er-flip-card { animation: er-flip .23s ease-out both; }
+@keyframes er-flip { from { transform: rotateY(80deg) scale(.92); opacity: .4; } }
+.er-era { padding: 4px 14px; border-radius: 10px; font-family: var(--display, inherit); font-size: 1.3rem; letter-spacing: .08em; text-transform: uppercase; }
+.er-title { background: linear-gradient(90deg, #9dffc9, #ffd76a 50%, #d9b67a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.er-sub { color: #f3e2a8; text-align: center; }
+/* Hauptmenü-Kachel */
+.era-call { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border-radius: 18px; cursor: pointer; text-align: left; font: inherit; color: #fff;
+  border: 1px solid rgba(255, 215, 106, .55); background: radial-gradient(120% 140% at 0% 0%, rgba(47, 191, 113, .25), transparent 55%), radial-gradient(120% 140% at 100% 100%, rgba(217, 182, 122, .3), transparent 55%), linear-gradient(135deg, #2a1f08, #0d0904);
+  transition: transform .12s ease-out; position: relative; }
+.era-call:active { transform: scale(.98); }
+.era-call .ep-clock { width: 48px; height: 48px; }
+.era-call .ep-clock i.h { height: 12px; } .era-call .ep-clock i.m { height: 17px; }
+.era-call-text { display: grid; gap: 2px; min-width: 0; }
+.era-call-text b { font-family: var(--display, inherit); font-size: 1.3rem; letter-spacing: .06em; text-transform: uppercase; color: #ffd76a; }
+.era-call-text small { color: #e9dcb6; font-size: .8125rem; }
+.era-call .shop-badge { top: -6px; right: -4px; }
+@media (prefers-reduced-motion: reduce) { .ep-clock i, .ep-claim, .er-flip-card { animation: none !important; } }
+.bn-zeit .pf-banner { background: repeating-conic-gradient(from 0deg at 80% 30%, rgba(255, 215, 106, .25) 0 3deg, transparent 3deg 30deg), linear-gradient(110deg, #2fbf71 0%, #1a1408 38%, #1a1408 62%, #d9b67a 100%); }
+.ct-aera .cc-icon { color: #ffd76a; background: rgba(255, 215, 106, .14); }
+.era-call .shop-badge { top: 8px; right: 8px; }

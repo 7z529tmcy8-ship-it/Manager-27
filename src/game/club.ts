@@ -1,3 +1,5 @@
+import { ERA_NAME, ERA_PLAYERS, eraCardId, eraToday, type Era } from '../data/eraCards';
+import { ERA_END, ERA_START, SHARDS, addShards, type EraState } from './eraTime';
 import { METEOR_GOALS, meteorGoals } from './achievements';
 import type { Avatar } from './creator';
 import { FAILED_TALENTS, LEGENDS } from '../data/legends';
@@ -14,7 +16,7 @@ import type { Career, CoachSeason, Position, SeasonRecord, SpecialCard, SpecialT
 
 /** Auszeichnungs-Karten, die man am Karriereende statt der Ikone wählen kann. */
 export type AwardVariant = 'ballondor' | 'poty' | 'topscorer' | 'goldenboy' | 'ucl' | 'worldcup';
-export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | 'gala' | 'totw' | 'comeback' | 'flashback' | 'pass' | 'gig' | 'winter' | 'silvester' | 'unvergessen' | 'ewig' | 'serie' | AwardVariant | SpecialType;
+export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | 'gala' | 'totw' | 'comeback' | 'flashback' | 'pass' | 'gig' | 'winter' | 'silvester' | 'unvergessen' | 'ewig' | 'serie' | 'aera' | AwardVariant | SpecialType;
 
 export interface CollectCard {
   id: string;
@@ -33,6 +35,8 @@ export interface CollectCard {
   boost?: number;
   /** Gezeichnetes Gesicht (eigene Spieler) statt Initialen. */
   avatar?: Avatar;
+  /** Ära-Karten: welche Zeit die Karte gerade zeigt. */
+  era?: Era;
 }
 
 export type ItemKind = 'fitness' | 'training';
@@ -81,6 +85,8 @@ export interface ClubState {
   megaDrops?: number;
   /** Meteor-Drops (10 Ikonen mit Einschlag), z. B. für 1000 Tore bei Meteor Rush. */
   meteorDrops?: number;
+  /** Ära-Event: Zeit-Splitter und abgeholte Pfad-Stufen. */
+  aera?: EraState;
   dropDay?: { day: string; n: number };
   dropsOpened?: number;
   /** Ruhmesweg: aktuelle und beste Trophäen, abgeholte Stufen (Trophäen-Marke). */
@@ -195,6 +201,18 @@ for (const [list, variant, tag, label] of [[WINTER_CARDS, 'winter', 'Winter 2026
     CARD_POOL.push({ id: cardId(`${name} ${tag}`), name, position: base.position, nation: base.nation, club: base.club, league: base.league, ovr, variant, label });
   }
 }
+// Ära-Karten (Event „Zeitreise“): im Pool mit ihrer Bestzeit, angezeigt in der Zeit des Tages (eraView)
+for (const p of ERA_PLAYERS) {
+  const [club, league, ovr, when] = p.eras.prime;
+  CARD_POOL.push({ id: eraCardId(p.name), name: p.name, position: p.position, nation: p.nation, club, league, ovr, variant: 'aera', era: 'prime', label: `${ERA_NAME.prime} · ${when}` });
+}
+/** Ära-Karte in der Zeit von heute (oder einer bestimmten Zeit). */
+export function eraView(card: CollectCard, era: Era = eraToday()): CollectCard {
+  const p = ERA_PLAYERS.find((x) => eraCardId(x.name) === card.id);
+  if (!p) return card;
+  const [club, league, ovr, when] = p.eras[era];
+  return { ...card, club, league, ovr, era, label: `${ERA_NAME[era]} · ${when}` };
+}
 export const getCard = (id: string) => CARD_POOL.find((c) => c.id === id);
 
 /** Sammel-Fortschritt: wie viele verschiedene Karten aus dem Kartenpool man hat (eigene Sonderkarten zählen nicht). */
@@ -220,7 +238,7 @@ export function sellValue(c: CollectCard): number {
 
 /** Seltenheit für Sortierung und „bester Zug“. */
 export function rarity(c: CollectCard): number {
-  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, gala: 3.9, totw: 3.1, comeback: 3.3, flashback: 3.5, pass: 3.95, gig: 4.1, winter: 3.85, silvester: 4.05, unvergessen: 4.1, ewig: 4.6, serie: 2.4, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
+  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, gala: 3.9, totw: 3.1, comeback: 3.3, flashback: 3.5, pass: 3.95, gig: 4.1, winter: 3.85, silvester: 4.05, aera: 4.0, unvergessen: 4.1, ewig: 4.6, serie: 2.4, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
   return base * 100 + c.ovr;
 }
 
@@ -235,7 +253,7 @@ const TIERS: PackTier[] = ['silver', 'gold', 'rare', 'elite', 'special', 'icon']
 /** Stufe einer Karte für Packs: Silber < 75, Gold 75–82, Selten 83–86, Elite 87+, Spezial (Kult/Was wäre wenn), Ikone. */
 export function packTier(c: CollectCard): PackTier {
   if (c.variant === 'icon') return 'icon';
-  if (c.variant === 'talent' || c.variant === 'cult' || c.variant === 'halloween' || c.variant === 'debut' || c.variant === 'gala' || c.variant === 'comeback' || c.variant === 'flashback' || c.variant === 'pass' || c.variant === 'gig' || c.variant === 'winter' || c.variant === 'silvester') return 'special';
+  if (c.variant === 'talent' || c.variant === 'cult' || c.variant === 'halloween' || c.variant === 'debut' || c.variant === 'gala' || c.variant === 'comeback' || c.variant === 'flashback' || c.variant === 'pass' || c.variant === 'gig' || c.variant === 'winter' || c.variant === 'silvester' || c.variant === 'aera') return 'special';
   return c.ovr >= 87 ? 'elite' : c.ovr >= 83 ? 'rare' : c.ovr >= 75 ? 'gold' : 'silver';
 }
 
@@ -515,7 +533,7 @@ export function creditCareer(
 
   if (!fresh.length && !coachFresh.length && !hhFresh && !scenarioWon && !meteor) return { club, gained: 0, seasons: 0, icon: null, drops: 0, mega: 0, meteor: false };
   return {
-    club: {
+    club: addShards({
       ...club,
       coins: Math.max(0, club.coins + gained),
       trophies: (club.trophies ?? 0) + trophies,
@@ -524,7 +542,7 @@ export function creditCareer(
       megaDrops: (club.megaDrops ?? 0) + mega,
       meteorDrops: (club.meteorDrops ?? 0) + (meteor ? 1 : 0),
       credited: { ...club.credited, [career.id]: career.history.length, [coachKey]: coachSeasons.length, [hhKey]: hhTotal, ...(scenarioWon ? { [scKey]: 1 } : {}), ...(meteor ? { [mtKey]: 1 } : {}) },
-    },
+    }, fresh.length * SHARDS.careerSeason),
     gained,
     seasons: fresh.length + coachFresh.length,
     icon: null,
@@ -731,7 +749,8 @@ export function careerCard(career: Career, club?: ClubState): CollectCard {
 export const MAX_CARD_OVR = 99;
 
 /** Karte mit eingerechneten Evolution-Punkten. Silberkarten, die 75 erreichen, tragen den Gold-Look. */
-export function withUpgrade(club: Pick<ClubState, 'upgrades'>, card: CollectCard): CollectCard {
+export function withUpgrade(club: Pick<ClubState, 'upgrades'>, base: CollectCard): CollectCard {
+  const card = base.variant === 'aera' ? eraView(base) : base;
   const boost = club.upgrades?.[card.id] ?? 0;
   if (!boost) return card;
   const ovr = Math.min(MAX_CARD_OVR, card.ovr + boost);
@@ -815,7 +834,7 @@ export const MEGA_SUPER_SIZE = 8;
 /** Das echte Mega Super XXL Pack: Gervinho (89) plus 8 verschiedene Karten ab 85. Nur einmal. */
 export function openMegaSuper(club: ClubState, rand = Math.random): { club: ClubState; result: PackResult } | null {
   if (club.megaSuperClaimed) return null;
-  const pool = CARD_POOL.filter((c) => c.ovr >= 85 && c.variant !== 'talent' && cardReleased(c));
+  const pool = CARD_POOL.filter((c) => c.ovr >= 85 && c.variant !== 'talent' && cardForGifts(c));
   const picked: CollectCard[] = [];
   while (picked.length < MEGA_SUPER_SIZE && pool.length) picked.push(pool.splice(Math.floor(rand() * pool.length), 1)[0]);
   picked.sort((a, b) => rarity(b) - rarity(a));
@@ -836,7 +855,7 @@ export const halloweenActive = (now = new Date()) => now <= HALLOWEEN_END;
 /** Ballon-d’Or-Verleihung 2026: 26.10., 21 Uhr (Tipps bis dahin). */
 export const BALLON_CEREMONY = new Date(2026, 9, 26, 21, 0, 0);
 
-export type EventId = 'halloween' | 'geisternacht' | 'gala' | 'gig' | 'winter' | 'silvester';
+export type EventId = 'halloween' | 'geisternacht' | 'gala' | 'gig' | 'winter' | 'silvester' | 'aera';
 /** Zeitfenster der Events (Ortszeit des Geräts). */
 export const EVENTS: Record<EventId, { start: Date; end: Date }> = {
   halloween: { start: new Date(2026, 9, 1), end: HALLOWEEN_END },
@@ -850,6 +869,8 @@ export const EVENTS: Record<EventId, { start: Date; end: Date }> = {
   winter: { start: new Date(2026, 11, 1, 0, 0, 0), end: new Date(2026, 11, 27, 23, 59, 59) },
   // Silvester: nur zwei Tage
   silvester: { start: new Date(2026, 11, 31, 0, 0, 0), end: new Date(2027, 0, 1, 23, 59, 59) },
+  // Ära-Event „Zeitreise“: eine Woche
+  aera: { start: ERA_START, end: ERA_END },
 };
 export const eventActive = (e: EventId, now = new Date()) => now >= EVENTS[e].start && now <= EVENTS[e].end;
 /** Zu welchem Event eine Karte gehört (nur in dessen Packs ziehbar). */
@@ -858,11 +879,14 @@ export function eventOfCard(c: CollectCard): EventId | null {
   if (c.variant === 'gig') return 'gig';
   if (c.variant === 'winter') return 'winter';
   if (c.variant === 'silvester') return 'silvester';
+  if (c.variant === 'aera') return 'aera';
   if (c.variant === 'halloween') return c.club === 'Geisternacht' ? 'geisternacht' : 'halloween';
   return null;
 }
 /** Ist die Karte schon erschienen? Event-Karten gibt es erst ab Event-Start (Silvester-Karten z. B. erst ab 31.12.). */
 export const cardReleased = (c: CollectCard, now = new Date()) => { const e = eventOfCard(c); return !e || now >= EVENTS[e].start; };
+/** Für Gratis-Belohnungen (Tresor, Mega-Pack): erschienen und nicht aus einem gerade laufenden Event. */
+export const cardForGifts = (c: CollectCard, now = new Date()) => { const e = eventOfCard(c); return !e || (now >= EVENTS[e].start && !eventActive(e, now)); };
 /** Packs, die gerade im Store stehen (Event-Packs nur im Event-Zeitraum). */
 export const activePacks = (now = new Date()) => PACKS.filter((p) => !p.event || eventActive(p.event, now));
 

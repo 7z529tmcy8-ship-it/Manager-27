@@ -7,7 +7,7 @@ import Icon from './Icon';
 import { MOMENTS } from '../game/legendTrades';
 import { EVO_CAP, EVO_FEE, EVO_PATHS, EVO_VARIANTS, cancelEvo, evoBlocker, evoGained, getPath, startEvo, stepText } from '../game/evolutions';
 
-type Filter = 'all' | 'own' | 'sbc' | 'elite' | 'base' | 'icon' | 'cult' | 'wonder' | 'talent' | 'debut' | 'comeback' | 'flashback' | 'special' | 'dupes';
+type Filter = 'all' | 'own' | 'sbc' | 'aera' | 'elite' | 'base' | 'icon' | 'cult' | 'wonder' | 'talent' | 'debut' | 'comeback' | 'flashback' | 'special' | 'dupes';
 
 const BASE = new Set(['silver', 'gold', 'gold-rare']);
 /** Eigene Karten: aus deinen Karrieren (Ikone, Auszeichnungen, Sonderkarten, aktueller Spieler). */
@@ -15,13 +15,14 @@ const isOwn = (c: CollectCard) => c.id.startsWith('own-') || c.id.startsWith('cu
 /** SBC-Karten: Belohnungen der Legendären-Momente-Tausche. */
 const SBC_IDS = new Set(MOMENTS.map((m) => m.reward.id));
 const isSbc = (c: CollectCard) => SBC_IDS.has(c.id);
-const OWN_GROUP = new Set(['silver', 'gold', 'gold-rare', 'icon', 'cult', 'talent', 'debut', 'comeback', 'flashback']);
+const OWN_GROUP = new Set(['silver', 'gold', 'gold-rare', 'icon', 'cult', 'talent', 'debut', 'comeback', 'flashback', 'aera']);
 
 /** Kategorien der Sammlung; bei Kartenarten mit fester Anzahl zeigt die Kachel „gesammelt/insgesamt“. */
 const FILTERS: { id: Filter; label: string; icon: string; test: (c: CollectCard) => boolean; total?: boolean }[] = [
   { id: 'all', label: 'Alle Karten', icon: 'cards', test: () => true },
   { id: 'own', label: 'Eigene Karten', icon: 'pencil', test: isOwn },
   { id: 'sbc', label: 'SBC-Karten', icon: 'puzzle', test: isSbc, total: true },
+  { id: 'aera', label: 'Ära-Karten', icon: 'clock', test: (c) => c.variant === 'aera', total: true },
   { id: 'elite', label: 'Elite 85+', icon: 'star', test: (c) => c.ovr >= 85 },
   { id: 'base', label: 'Gold & Silber', icon: 'shirt', test: (c) => BASE.has(c.variant), total: true },
   { id: 'icon', label: 'Ikonen', icon: 'crown', test: (c) => c.variant === 'icon', total: true },

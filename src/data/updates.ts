@@ -24,6 +24,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-01-zeitreise',
+    date: '01.11.2026',
+    title: 'Event: Zeitreise – 10 Ära-Karten',
+    items: [
+      'Eine Woche lang (bis 8. November): Sammle Zeit-Splitter mit Duell-Siegen, Drops, Höher oder Tiefer, Draft und Karriere-Saisons.',
+      'Der Zeitreise-Pfad hat 40 Stufen – jede 4. ist eine Ära-Karte: Ronaldo, Messi, Neymar, Modrić, Lewandowski, Neuer, Müller, De Bruyne, Salah und Kane.',
+      'Ära-Karten wechseln jeden Tag ihre Zeit: Talent, Bestzeit oder Legende – mit anderem Verein, anderer Wertung und eigenem Design.',
+      'Wer alle 40 Stufen schafft, bekommt den Titel „Zeitreisender“ und das Banner „Zeitreise“.',
+    ],
+  },
+  {
     id: '2026-11-01-tresor-drop',
     date: '01.11.2026',
     title: 'Neuer Code-Drop: der Tresor',

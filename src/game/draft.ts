@@ -1,3 +1,4 @@
+import { SHARDS, addShards } from './eraTime';
 import { CARD_POOL, cardReleased, storePacks, type ClubState, type CollectCard } from './club';
 import { addTrophies } from './glory';
 import { clamp } from './random';
@@ -109,5 +110,6 @@ export function claimDraft(club: ClubState, wins: number, now = Date.now()): Clu
   const r = draftReward(wins);
   let c: ClubState = { ...club, coins: club.coins + r.coins, drops: (club.drops ?? 0) + r.drops, megaDrops: (club.megaDrops ?? 0) + r.mega };
   if (r.packs.length) c = storePacks(c, r.packs, `Draft (${wins} ${wins === 1 ? 'Sieg' : 'Siege'})`, now);
+  c = addShards(c, wins * SHARDS.draftWin, new Date(now));
   return r.trophies ? addTrophies(c, r.trophies) : c;
 }

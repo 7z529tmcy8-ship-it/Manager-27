@@ -24,6 +24,7 @@ const VARIANT_LABEL: Partial<Record<CollectCard['variant'], string>> = {
   gig: 'GIG',
   winter: 'Winter-Wunder',
   silvester: 'Silvester',
+  aera: 'Ära',
   gala: 'Gala',
   totw: 'Team der Woche',
   ballondor: 'Ballon d’Or',
@@ -39,7 +40,7 @@ const VARIANT_LABEL: Partial<Record<CollectCard['variant'], string>> = {
 };
 /** Sonderkarten bekommen ein Emblem, Holo-Schimmer und ein eigenes Muster (siehe styles.css). */
 const EMBLEM: Partial<Record<CollectCard['variant'], IconName>> = {
-  icon: 'crown', cult: 'bolt', talent: 'spark', debut: 'ticket', comeback: 'rise', flashback: 'rewind', unvergessen: 'clock', ewig: 'infinity', serie: 'rise', pass: 'star', gig: 'dice', winter: 'snow', silvester: 'spark', moment: 'film', present: 'gift', halloween: 'pumpkin', gala: 'medal',
+  icon: 'crown', cult: 'bolt', talent: 'spark', debut: 'ticket', comeback: 'rise', flashback: 'rewind', unvergessen: 'clock', ewig: 'infinity', serie: 'rise', pass: 'star', gig: 'dice', winter: 'snow', silvester: 'spark', aera: 'clock', moment: 'film', present: 'gift', halloween: 'pumpkin', gala: 'medal',
   tots: 'star', potm: 'calendar', record: 'chart', champion: 'trophy',
   ballondor: 'medal', worldcup: 'globe', ucl: 'star', poty: 'mic', topscorer: 'boot', goldenboy: 'spark', totw: 'stadium',
 };
@@ -85,7 +86,7 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick,
   return (
     <Tag
       ref={tiltRef as never}
-      className={`ucard v-${card.variant} ${size} ${size === 'lg' || size === 'md' ? 'tilt' : ''} ${emblem ? 'special' : ''} ${card.boost ? 'evo' : ''} ${shine ? 'shine' : ''} ${onClick ? 'clickable' : ''}`}
+      className={`ucard v-${card.variant} ${card.era ? `era-${card.era}` : ''} ${size} ${size === 'lg' || size === 'md' ? 'tilt' : ''} ${emblem ? 'special' : ''} ${card.boost ? 'evo' : ''} ${shine ? 'shine' : ''} ${onClick ? 'clickable' : ''}`}
       aria-label={mask === 'ovr' ? `${card.name}, ${card.position}` : `${card.name}, ${card.ovr} ${card.position}`}
       onClick={onClick}
     >

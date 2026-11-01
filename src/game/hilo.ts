@@ -1,3 +1,4 @@
+import { SHARDS, addShards } from './eraTime';
 import { getClub } from '../data/leagues';
 import { REAL_PLAYERS } from '../data/players';
 import { CARD_POOL, cardReleased, type ClubState, type CollectCard } from './club';
@@ -78,7 +79,8 @@ export function answerHilo(club: ClubState, outcome: HiLoOutcome): { club: ClubS
   if (outcome === 'wrong') return { club: { ...club, hilo: { ...h, streak: 0 } }, point: false };
   const streak = h.streak + 1;
   const point = streak % STREAK_FOR_POINT === 0;
-  return { club: { ...club, hilo: { ...h, streak, best: Math.max(h.best, streak), points: h.points + (point ? 1 : 0) } }, point };
+  const next = { ...club, hilo: { ...h, streak, best: Math.max(h.best, streak), points: h.points + (point ? 1 : 0) } };
+  return { club: point ? addShards(next, SHARDS.hiloPoint) : next, point };
 }
 
 /** Karte eines Talents auf seiner aktuellen Stufe. */

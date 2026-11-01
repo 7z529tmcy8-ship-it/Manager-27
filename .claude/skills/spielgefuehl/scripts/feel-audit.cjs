@@ -235,6 +235,13 @@ const FLOWS = {
     await p.click('.code-redeem button'); await p.waitForTimeout(4200);
     await p.click('.mt-actions .btn.primary', { timeout: 2000 }).catch(() => {});
   },
+  zeitreise: async (p) => {
+    // Hauptmenü → Zeitreise: Pfad scrollen (nur während des Events sichtbar)
+    const call = p.locator('.era-call');
+    if (!(await call.count())) return;
+    await call.click(); await p.waitForTimeout(500);
+    await p.mouse.wheel(0, 1600); await p.waitForTimeout(500); await p.mouse.wheel(0, -1600); await p.waitForTimeout(300);
+  },
   hilo: async (p) => {
     // Duelle → Höher oder Tiefer: drei Tipps
     await nav(p, 'Duelle'); await p.waitForTimeout(400);
