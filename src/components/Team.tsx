@@ -19,7 +19,7 @@ import Draft from './Draft';
 import HiLoMode from './HiLoMode';
 import { hiloOf } from '../game/hilo';
 import {
-  ELITE, LOWEST, PROMOTE_AT, SAFE_DIVISIONS, STYLE_LABEL, TACTIC_TEXT, divName, divReward, divisionOf, playDivisionDuel, promoBonus, squadFit, withOpponent, type Tactic,
+  ELITE, LOWEST, PROMOTE_AT, SAFE_DIVISIONS, STYLE_LABEL, TACTIC_TEXT, divLevel, divName, divReward, divStrength, divisionOf, playDivisionDuel, promoBonus, resolveTactic, squadFit, withOpponent, type Tactic, type TacticChoice,
 } from '../game/divisions';
 import LegendTrades from './LegendTrades';
 
@@ -71,35 +71,86 @@ function ScreenHead({ title, onBack }: { title: string; onBack: () => void }) {
 }
 
 /** Eigener Bereich: Duelle gegen immer stärkere Gegner (mit der Elf aus „Mein Team“). */
+type DuelTab = 'play' | 'leagues' | 'season' | 'modes';
+const DUEL_TABS: [DuelTab, string, 'duel' | 'medal' | 'calendar' | 'cards'][] = [['play', 'Spielen', 'duel'], ['leagues', 'Ligen', 'medal'], ['season', 'Saison', 'calendar'], ['modes', 'Modi', 'cards']];
+
 export function DuelsScreen({ onBack, onTeam }: { onBack: () => void; onTeam: () => void }) {
   const club = useClub();
   const [draft, setDraft] = useState(false);
   const [hilo, setHilo] = useState(false);
+  const [tab, setTab] = useState<DuelTab>(() => { try { return (sessionStorage.getItem('fc-duel-tab') as DuelTab) || 'play'; } catch { return 'play'; } });
+  const pick = (t: DuelTab) => { setTab(t); try { sessionStorage.setItem('fc-duel-tab', t); } catch { /* egal */ } };
   const cards = club.squad.map((id) => cardById(club, id));
   const full = cards.filter(Boolean).length === 11;
+  const seasonOpen = unclaimedSeasons(club).length;
   return (
-    <main className="hub">
+    <main className="hub duels-screen">
       <ScreenHead title="Duelle" onBack={onBack} />
       <div className="team-stats">
         <div><small>Wertung</small><strong>{teamRating(cards) || '–'}</strong></div>
         <div><small>Division</small><strong>{divisionOf(club).div === ELITE ? 'Elite' : divisionOf(club).div}</strong></div>
         <div><small>Bilanz</small><strong>{club.duels.w}<em>S</em> {club.duels.d}<em>U</em> {club.duels.l}<em>N</em></strong></div>
       </div>
-      <button className="draft-call" onClick={() => setDraft(true)}>
-        <span className="draft-call-icon" aria-hidden="true"><Icon name="cards" size={26} /></span>
-        <span className="draft-call-text"><b>Draft</b><small>Kapitän wählen, Elf draften, Turnier gewinnen</small></span>
-        <Icon name="arrow" size={22} />
-      </button>
-      <button className="draft-call hl-call-btn" onClick={() => setHilo(true)}>
-        <span className="draft-call-icon" aria-hidden="true"><Icon name="rise" size={26} /></span>
-        <span className="draft-call-text"><b>Höher oder Tiefer</b><small>Serien spielen, Punkte sammeln, Talente entwickeln{hiloOf(club).points ? ` · ${hiloOf(club).points} Punkte` : ''}</small></span>
-        <Icon name="arrow" size={22} />
-      </button>
-      <Duels full={full} onSquad={onTeam} />
-      <DuelSeason />
+      <nav className="dl-tabs" aria-label="Duelle-Bereiche">
+        {DUEL_TABS.map(([id, label, icon]) => (
+          <button key={id} className={`dl-tab ${tab === id ? 'on' : ''}`} aria-pressed={tab === id} onClick={() => pick(id)}>
+            <Icon name={icon} size={18} /><span>{label}</span>
+            {id === 'season' && seasonOpen > 0 && <b className="shop-badge">{seasonOpen}</b>}
+          </button>
+        ))}
+      </nav>
+      <div className="dl-body" key={tab}>
+        {tab === 'play' && <Duels full={full} onSquad={onTeam} onLeagues={() => pick('leagues')} />}
+        {tab === 'leagues' && <Leagues />}
+        {tab === 'season' && <DuelSeason />}
+        {tab === 'modes' && (
+          <div className="dl-modes">
+            <button className="draft-call" onClick={() => setDraft(true)}>
+              <span className="draft-call-icon" aria-hidden="true"><Icon name="cards" size={26} /></span>
+              <span className="draft-call-text"><b>Draft</b><small>Kapitän wählen, Elf draften, Turnier gewinnen</small></span>
+              <Icon name="arrow" size={22} />
+            </button>
+            <button className="draft-call hl-call-btn" onClick={() => setHilo(true)}>
+              <span className="draft-call-icon" aria-hidden="true"><Icon name="rise" size={26} /></span>
+              <span className="draft-call-text"><b>Höher oder Tiefer</b><small>Serien spielen, Punkte sammeln, Talente entwickeln{hiloOf(club).points ? ` · ${hiloOf(club).points} Punkte` : ''}</small></span>
+              <Icon name="arrow" size={22} />
+            </button>
+          </div>
+        )}
+      </div>
       {draft && <Draft onClose={() => setDraft(false)} />}
       {hilo && <HiLoMode onClose={() => setHilo(false)} />}
     </main>
+  );
+}
+
+/** Alle Divisionen auf einen Blick: Gegnerstärke, Siegprämie, Aufstiegsbonus, Saison-Faktor. */
+function Leagues() {
+  const club = useClub();
+  const d = divisionOf(club);
+  const list = Array.from({ length: LOWEST + 1 }, (_, i) => i); // Elite (0) … Division 10
+  return (
+    <section className="lg-list" aria-label="Alle Divisionen">
+      <p className="lg-legend"><span><Icon name="shield" size={14} />= Sicherheitsstufe, kein Abstieg</span><span>Sieg +2 · Remis +1 · Niederlage −1 · Aufstieg bei {PROMOTE_AT}</span></p>
+      <ol>
+        {list.map((x) => {
+          const here = x === d.div;
+          return (
+            <li key={x} className={`lg-row ${here ? 'here' : ''} ${x >= d.best ? 'reached' : 'locked'}`}>
+              <span className={`div-badge small ${x === ELITE ? 'elite' : ''}`}>{x === ELITE ? <Icon name="crown" size={18} /> : x}</span>
+              <span className="lg-name">
+                <b>{divName(x)}{SAFE_DIVISIONS.includes(x) && <Icon name="shield" size={14} />}</b>
+                <small>Gegner ~{divStrength(x)} · Saison-Punkte ×{divLevel(x)}</small>
+              </span>
+              <span className="lg-pay">
+                <b><Icon name="coin" size={14} className="coin-ic" />{divReward(x).toLocaleString('de-DE')}</b>
+                <small>{here ? 'Du bist hier' : x < d.best ? `Aufstieg +${promoBonus(x).toLocaleString('de-DE')}` : 'pro Sieg'}</small>
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
   );
 }
 
@@ -346,17 +397,21 @@ function Picker({ slot, onClose }: { slot: number; onClose: () => void }) {
 }
 
 // ---------- Duelle: Divisionen mit Taktik ----------
-const TACTICS: Tactic[] = ['pressing', 'konter', 'ballbesitz', 'ausgewogen'];
+const CHOICES: TacticChoice[] = ['auto', 'pressing', 'konter', 'ballbesitz', 'ausgewogen'];
+const TAC_SHORT: Record<TacticChoice, string> = { auto: 'Auto', pressing: 'Pressing', konter: 'Konter', ballbesitz: 'Besitz', ausgewogen: 'Neutral' };
 const TACTIC_ICON: Record<Tactic, 'fire' | 'bolt' | 'link' | 'shield'> = { pressing: 'fire', konter: 'bolt', ballbesitz: 'link', ausgewogen: 'shield' };
 
-function Duels({ full, onSquad }: { full: boolean; onSquad: () => void }) {
+/** Divisions-Duell: kompakt – Division, Gegner, Taktik (bleibt gespeichert), Anpfiff. */
+function Duels({ full, onSquad, onLeagues }: { full: boolean; onSquad: () => void; onLeagues: () => void }) {
   const club = useClub();
-  const [tactic, setTactic] = useState<Tactic>('ausgewogen');
+  const choice: TacticChoice = club.duelTactic ?? 'ausgewogen';
   const [live, setLive] = useState<{ name: string; result: DuelResult } | null>(null);
   const cards = club.squad.map((id) => cardById(club, id));
   const strength = teamStrength(cards, slotsOf(club));
   const d = divisionOf(club);
   const opp = d.next;
+  const tactic = resolveTactic(choice, opp?.hint);
+  const setChoice = (c: TacticChoice) => setClubState({ ...getClubState(), duelTactic: c });
 
   // Gegner einmal auslosen und speichern – Neuladen bringt keinen anderen.
   useEffect(() => {
@@ -393,57 +448,48 @@ function Duels({ full, onSquad }: { full: boolean; onSquad: () => void }) {
   return (
     <>
       <EvoStatus />
-      <div className="div-grid">
-      <section className="div-card" aria-label="Deine Division">
-        <div className="div-head">
-          <span className={`div-badge ${d.div === ELITE ? 'elite' : ''}`}>{d.div === ELITE ? <Icon name="crown" size={26} /> : d.div}</span>
-          <div className="div-title">
-            <small>{safe ? 'Sicherheitsstufe – kein Abstieg' : d.div === ELITE ? 'Höchste Division' : 'Abstieg möglich'}</small>
-            <strong>{divName(d.div)}</strong>
-          </div>
-          <span className="div-reward"><Icon name="coin" size={16} className="coin-ic" />{divReward(d.div).toLocaleString('de-DE')}<small>pro Sieg</small></span>
-        </div>
-        <div className="div-pips" aria-label={`Fortschritt ${d.pts} von ${PROMOTE_AT}`}>
-          {Array.from({ length: PROMOTE_AT }, (_, i) => <i key={i} className={i < d.pts ? 'on' : ''} />)}
-        </div>
-        <p className="hint">
-          {d.div === ELITE ? 'Du spielst in der Elite – jeder Sieg zählt für die Duell-Saison.' : `Noch ${PROMOTE_AT - d.pts} Punkte bis zum Aufstieg in ${divName(d.div - 1)}${d.div - 1 < d.best ? ` (erstmals: +${promoBonus(d.div - 1).toLocaleString('de-DE')} Coins)` : ''}.`}
-          {' '}Sieg +2 · Unentschieden +1 · Niederlage −1.
-        </p>
-        <ol className="div-ladder" aria-hidden="true">
-          {Array.from({ length: LOWEST + 1 }, (_, i) => LOWEST - i).map((x) => (
-            <li key={x} className={`${x === d.div ? 'on' : ''} ${x >= d.div ? 'done' : ''} ${SAFE_DIVISIONS.includes(x) ? 'safe' : ''}`}>{x === ELITE ? 'E' : x}</li>
-          ))}
-        </ol>
-      </section>
+      <button className="dv-strip" onClick={onLeagues} aria-label="Alle Divisionen ansehen">
+        <span className={`div-badge small ${d.div === ELITE ? 'elite' : ''}`}>{d.div === ELITE ? <Icon name="crown" size={18} /> : d.div}</span>
+        <span className="dv-mid">
+          <b>{divName(d.div)}</b>
+          <span className="div-pips" aria-label={`Fortschritt ${d.pts} von ${PROMOTE_AT}`}>{Array.from({ length: PROMOTE_AT }, (_, i) => <i key={i} className={i < d.pts ? 'on' : ''} />)}</span>
+          <small>{d.div === ELITE ? 'Höchste Division' : `Noch ${PROMOTE_AT - d.pts} bis ${divName(d.div - 1)}`}{safe ? ' · kein Abstieg' : ''}</small>
+        </span>
+        <span className="dv-pay"><Icon name="coin" size={14} className="coin-ic" />{divReward(d.div).toLocaleString('de-DE')}<small>pro Sieg</small></span>
+        <Icon name="arrow" size={18} />
+      </button>
 
       {opp && (
-        <section className="div-match" aria-label="Nächster Gegner">
+        <section className="dv-match" aria-label="Nächster Gegner">
           <div className="div-vs">
             <div className="div-side"><small>Dein Team</small><strong>{strength.toFixed(1)}</strong></div>
             <span className="div-vs-mark">VS</span>
             <div className="div-side opp"><small>{opp.name}</small><strong>{opp.strength}</strong></div>
           </div>
-          <p className="div-odds">{odds >= 3 ? 'Du bist Favorit' : odds <= -3 ? 'Du bist Außenseiter – die Taktik kann es drehen' : 'Ausgeglichenes Duell'}</p>
-          <p className="div-scout"><Icon name="eye" size={18} />Scouting-Bericht: spielt meist <b>{STYLE_LABEL[opp.hint]}</b> <small>(stimmt in etwa 3 von 4 Fällen)</small></p>
-          <div className="tactics" role="radiogroup" aria-label="Taktik wählen">
-            {TACTICS.map((t) => {
-              const fit = squadFit(t, cards);
+          <p className="dv-info">
+            <span className={odds >= 3 ? 'up' : odds <= -3 ? 'down' : ''}>{odds >= 3 ? 'Favorit' : odds <= -3 ? 'Außenseiter' : 'Ausgeglichen'}</span>
+            <span><Icon name="eye" size={14} />Scouting: meist <b>{STYLE_LABEL[opp.hint]}</b></span>
+          </p>
+          <div className="dv-tactics" role="radiogroup" aria-label="Taktik (bleibt gespeichert)">
+            {CHOICES.map((t) => {
+              const fit = t === 'auto' || t === 'ausgewogen' ? 0 : squadFit(t, cards);
               return (
-                <button key={t} role="radio" aria-checked={tactic === t} className={`tactic ${tactic === t ? 'on' : ''}`} onClick={() => setTactic(t)}>
-                  <Icon name={TACTIC_ICON[t]} size={22} />
-                  <strong>{STYLE_LABEL[t]}</strong>
-                  <small>{TACTIC_TEXT[t]}</small>
-                  {t !== 'ausgewogen' && <em className={fit > 0 ? 'up' : fit < 0 ? 'down' : ''}>Elf: {fit > 0 ? '+' : ''}{fit.toFixed(1)}</em>}
+                <button key={t} role="radio" aria-checked={choice === t} className={`dv-tac ${choice === t ? 'on' : ''}`} onClick={() => setChoice(t)}>
+                  <Icon name={t === 'auto' ? 'target' : TACTIC_ICON[t]} size={20} />
+                  <span>{TAC_SHORT[t]}</span>
+                  {fit !== 0 && <em className={fit > 0 ? 'up' : 'down'}>{fit > 0 ? '+' : ''}{fit.toFixed(1)}</em>}
                 </button>
               );
             })}
           </div>
+          <p className="dv-tac-text">
+            {choice === 'auto' ? <>Auto-Konter: spielt immer gegen den Scouting-Bericht – jetzt <b>{STYLE_LABEL[tactic]}</b>.</> : TACTIC_TEXT[tactic]}
+            <small> Bleibt für alle Duelle gespeichert.</small>
+          </p>
           <button className="btn primary big div-play" onClick={play}>Anpfiff · {STYLE_LABEL[tactic]}</button>
           <p className="hint div-xp">Pass-XP aus Duellen heute: noch {duelXpLeft(club)} von {DUEL_XP_PER_DAY}</p>
         </section>
       )}
-      </div>
       {live && <DuelLive name={live.name} result={live.result} onClose={() => setLive(null)} />}
     </>
   );

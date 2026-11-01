@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-01-duelle-reiter',
+    date: '01.11.2026',
+    title: 'Duelle aufgeräumt',
+    items: [
+      'Duelle haben jetzt Reiter: Spielen, Ligen, Saison und Modi (Draft, Höher oder Tiefer). Kaum noch Scrollen.',
+      'Deine Taktik bleibt gespeichert – oder wähle „Auto“: Dann spielt dein Team immer die Taktik, die den Scouting-Bericht kontert.',
+      'Unter „Ligen“ siehst du alle Divisionen: Gegnerstärke, Siegprämie, Aufstiegsbonus und Saison-Faktor.',
+    ],
+  },
+  {
     id: '2026-11-01-meteor-rush-trailer',
     date: '01.11.2026',
     title: 'Meteor Rush – bald auf Roblox',

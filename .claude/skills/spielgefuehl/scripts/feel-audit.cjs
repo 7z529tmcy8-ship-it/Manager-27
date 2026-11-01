@@ -244,15 +244,22 @@ const FLOWS = {
     await call.click(); await p.waitForTimeout(500);
     await p.mouse.wheel(0, 1600); await p.waitForTimeout(500); await p.mouse.wheel(0, -1600); await p.waitForTimeout(300);
   },
+  duelle: async (p) => {
+    // Duelle: alle Reiter durchgehen (ohne volle Elf zeigt „Spielen“ den Hinweis)
+    await nav(p, 'Duelle'); await p.waitForTimeout(400);
+    for (const t of ['Ligen', 'Saison', 'Modi', 'Spielen']) { await p.click(`.dl-tab:has-text("${t}")`, { timeout: 3000 }); await p.waitForTimeout(300); }
+  },
   hilo: async (p) => {
     // Duelle → Höher oder Tiefer: drei Tipps
     await nav(p, 'Duelle'); await p.waitForTimeout(400);
+    await p.click('.dl-tab:has-text("Modi")', { timeout: 3000 }); await p.waitForTimeout(250);
     await p.click('.hl-call-btn', { timeout: 3000 }); await p.waitForTimeout(400);
     for (let i = 0; i < 3; i++) { await p.click(i % 2 ? '.hilo-btn.lower' : '.hilo-btn.higher', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(1200); }
   },
   draft: async (p) => {
     // Duelle → Draft: Kapitän, 11 Plätze füllen, eine Turnierrunde
     await nav(p, 'Duelle'); await p.waitForTimeout(400);
+    await p.click('.dl-tab:has-text("Modi")', { timeout: 3000 }); await p.waitForTimeout(250);
     await p.click('.draft-call', { timeout: 3000 }); await p.waitForTimeout(300);
     await p.click('.dr-intro .btn.primary', { timeout: 3000 }); await p.waitForTimeout(500);
     await p.click('.dr-picks .ucard >> nth=0', { timeout: 3000 }); await p.waitForTimeout(300);

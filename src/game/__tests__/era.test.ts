@@ -48,3 +48,11 @@ it('Ära-Karte wechselt täglich die Zeit (Verein, Wertung), Tresor gibt keine �
   for (let i = 0; i < 20; i++) vaultCards(missing).forEach((c) => expect(c.variant === 'aera' && eraLive()).toBe(false));
   expect(CARD_POOL.filter((c) => c.variant === 'aera')).toHaveLength(10);
 });
+
+it('Duell-Taktik: Auto-Konter wählt die Taktik, die den Scouting-Stil schlägt', async () => {
+  const { counterTo, resolveTactic, tacticEdge } = await import('../divisions');
+  for (const s of ['pressing', 'konter', 'ballbesitz'] as const) expect(tacticEdge(counterTo(s), s)).toBeGreaterThan(0);
+  expect(resolveTactic('auto', 'pressing')).toBe('konter');
+  expect(resolveTactic('auto')).toBe('ausgewogen');
+  expect(resolveTactic('ballbesitz', 'pressing')).toBe('ballbesitz');
+});

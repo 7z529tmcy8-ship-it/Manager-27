@@ -111,6 +111,8 @@ export interface ClubState {
   /** Duell-Divisionen (ersetzen die Stufen-Leiter). */
   division?: import('./divisions').DivisionState;
   duels: { w: number; d: number; l: number };
+  /** Fest eingestellte Duell-Taktik (gilt für alle Duelle, bis man sie ändert). */
+  duelTactic?: import('./divisions').TacticChoice;
   /** Erledigte Tauschaufgaben (ID → wie oft). */
   tasksDone: Record<string, number>;
   /** Freundes-Teams, gegen die schon einmal gewonnen wurde (Kennungen). */

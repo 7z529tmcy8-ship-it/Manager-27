@@ -64,6 +64,11 @@ export const TACTIC_TEXT: Record<Tactic, string> = {
 /** Wer schlägt wen: Pressing > Ballbesitz > Konter > Pressing. */
 const BEATS: Record<Style, Style> = { pressing: 'ballbesitz', ballbesitz: 'konter', konter: 'pressing' };
 export const TACTIC_EDGE = 4;
+/** Die Taktik, die einen Spielstil schlägt. */
+export const counterTo = (style: Style): Style => (Object.keys(BEATS) as Style[]).find((t) => BEATS[t] === style)!;
+/** Gespeicherte Duell-Taktik: eine feste – oder „auto“ = immer das, was den Scouting-Bericht kontert. */
+export type TacticChoice = Tactic | 'auto';
+export const resolveTactic = (choice: TacticChoice, hint?: Style): Tactic => (choice === 'auto' ? (hint ? counterTo(hint) : 'ausgewogen') : choice);
 
 /** Taktik gegen Spielstil: +4 wenn sie passt, −4 wenn sie ausgekontert wird, sonst 0. */
 export function tacticEdge(t: Tactic, style: Style): number {
