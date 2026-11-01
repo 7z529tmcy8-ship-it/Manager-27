@@ -1,3 +1,4 @@
+import { SHOP_SALES } from '../game/shopConfig';
 import { PASS_XP, addPassXp } from '../game/pass';
 import { useEffect, useState, type CSSProperties } from 'react';
 import { play } from '../sound';
@@ -34,6 +35,8 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
     play('tap');
   };
   const stash = (club.storedPacks?.length ?? 0) + (club.drops ?? 0) + (club.megaDrops ?? 0) + (club.meteorDrops ?? 0);
+  // Ohne Verkauf: nur Casino und Codes – plus die Ablage, solange dort noch Belohnungen liegen.
+  const show = (d: Dept) => (SHOP_SALES ? dept === d : d === 'extras' || (d === 'stash' && stash > 0));
   const [polar, setPolar] = useState(false);
   const [casino, setCasino] = useState(false);
   const [code, setCode] = useState('');
@@ -77,7 +80,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
       </header>
       <h1 className="hub-title">Shop</h1>
 
-      <nav className="shop-tabs" aria-label="Shop-Abteilungen">
+      {SHOP_SALES && <nav className="shop-tabs" aria-label="Shop-Abteilungen">
         {DEPTS.map((d) => (
           <button key={d.id} className={`shop-tab ${dept === d.id ? 'active' : ''}`} aria-pressed={dept === d.id} onClick={() => pickDept(d.id)}>
             <Icon name={d.icon} size={20} />
@@ -85,9 +88,9 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
             {d.id === 'stash' && stash > 0 && <b className="shop-badge">{stash > 99 ? '99+' : stash}</b>}
           </button>
         ))}
-      </nav>
+      </nav>}
 
-      {dept === 'offers' && (
+      {show('offers') && (
         <div className="shop-dept" key="offers">
       {!club.megaSuperClaimed && (
         <button className="mega-xxl super" onClick={() => {
@@ -148,7 +151,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         </div>
       )}
 
-      {dept === 'extras' && (
+      {show('extras') && (
         <div className="shop-dept" key="extras">
       <button className="casino-call" onClick={() => setCasino(true)}>
         <span className="casino-call-icon" aria-hidden="true"><Icon name="dice" size={26} /></span>
@@ -168,13 +171,13 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         </div>
       )}
 
-      {dept === 'stash' && (
+      {show('stash') && (
         <div className="shop-dept" key="stash">
       <StoredPacks onMeteor={() => { const r = openMeteorDrop(getClubState()); if (r) { setClubState(r.club); setMeteor(r.result); } }} onDrop={(kind, all) => setDropOpen({ kind, all })} onOpen={(r) => setOpening((o) => ({ result: r.result, name: r.name, packId: '', free: true, n: (o?.n ?? 0) + 1 }))} />
         </div>
       )}
 
-      {dept === 'packs' && (
+      {show('packs') && (
         <div className="shop-dept" key="packs">
       {STORE_GROUPS.map((g) => {
         const packs = activePacks().filter((p) => storeGroup(p) === g.id);
@@ -207,7 +210,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         </div>
       )}
 
-      {dept === 'drops' && (
+      {show('drops') && (
         <div className="shop-dept" key="drops">
       {(club.drops ?? 0) + (club.megaDrops ?? 0) > 0 && (
         <button className="drops-ready" onClick={() => pickDept('stash')}>

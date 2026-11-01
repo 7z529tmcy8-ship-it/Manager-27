@@ -1,3 +1,4 @@
+import { SHOP_SALES } from '../game/shopConfig';
 import { useState } from 'react';
 import { CARD_POOL, collectionProgress, getCard, rarity, sellDuplicates, sellValue, withUpgrade, type CollectCard } from '../game/club';
 import { getClubState, setClubState, useClub } from '../clubStore';
@@ -110,7 +111,7 @@ export default function Collection({ onBack, onStore }: { onBack: () => void; on
             </div>
           ) : (
             <div className="hub-empty">
-              <p>{owned.length ? 'In dieser Kategorie hast du noch keine Karten.' : 'Noch keine Karten. Öffne dein erstes Pack im Shop!'}</p>
+              <p>{owned.length ? 'In dieser Kategorie hast du noch keine Karten.' : (SHOP_SALES ? 'Noch keine Karten. Öffne dein erstes Pack im Shop!' : 'Noch keine Karten. Hol dir welche über Codes im Shop, den Ruhmesweg, Events und Karriere-Belohnungen.')}</p>
               {!owned.length && <button className="btn primary" onClick={onStore}>Zum Shop</button>}
             </div>
           )}

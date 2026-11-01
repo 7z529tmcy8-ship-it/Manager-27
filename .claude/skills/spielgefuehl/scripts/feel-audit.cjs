@@ -135,7 +135,8 @@ async function home(page) {
 }
 const tile = (page, title) => page.click(`.hub-tile:has(strong:text-is("${title}"))`, { timeout: 4000 });
 const nav = (page, label) => page.click(`.navbar-item:has-text("${label}")`, { timeout: 4000 });
-const dept = (page, label) => page.click(`.shop-tab:has-text("${label}")`, { timeout: 3000 });
+// Shop-Abteilungen: Gibt es die Leiste nicht (Verkauf aus, SHOP_SALES), ist alles auf einer Seite.
+const dept = async (page, label) => { const t = page.locator(`.shop-tab:has-text("${label}")`); if (await t.count()) await t.click({ timeout: 3000 }); };
 
 /** Die geprüften Abläufe. Neue Spielteile hier ergänzen (siehe SKILL.md). */
 const FLOWS = {
@@ -146,6 +147,7 @@ const FLOWS = {
     await nav(p, 'Shop'); await p.waitForTimeout(400);
     for (const d of ['Packs', 'Drops', 'Ablage', 'Extras', 'Angebote', 'Packs']) { await dept(p, d); await p.waitForTimeout(250); }
     await p.mouse.wheel(0, 900); await p.waitForTimeout(300); await p.mouse.wheel(0, -900);
+    if (!(await p.locator('.pack-card.p-gold').count())) return; // Verkauf aus
     await p.click('.pack-card.p-gold button', { timeout: 3000 });
     await p.waitForTimeout(1600);
     await p.locator('.pack-skip').click({ timeout: 3000 }).catch(() => {});

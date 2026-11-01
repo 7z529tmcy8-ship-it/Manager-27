@@ -1,3 +1,4 @@
+import { SHOP_SALES } from '../game/shopConfig';
 import { DUEL_XP_PER_DAY, PASS_XP, addDuelPassXp, addPassXp, duelXpLeft } from '../game/pass';
 import Icon, { Glyph } from './Icon';
 import { evoAfterDuel, getPath, stepText, type EvoProgress } from '../game/evolutions';
@@ -245,7 +246,7 @@ function Squad({ onStore }: { onStore: () => void }) {
   if (!owned.length) {
     return (
       <div className="hub-empty">
-        <p>Du hast noch keine Karten. Öffne zuerst ein Pack im Shop.</p>
+        <p>{SHOP_SALES ? 'Du hast noch keine Karten. Öffne zuerst ein Pack im Shop.' : 'Noch keine Karten. Hol dir welche über Codes im Shop, den Ruhmesweg, Events und Karriere-Belohnungen.'}</p>
         <button className="btn primary" onClick={onStore}>Zum Store</button>
       </div>
     );

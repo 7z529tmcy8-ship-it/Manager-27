@@ -1,3 +1,4 @@
+import { SHOP_SALES } from '../game/shopConfig';
 import { useClub } from '../clubStore';
 import { unclaimedLevels, unclaimedProLevels } from '../game/pass';
 import Icon, { type IconName } from './Icon';
@@ -17,7 +18,7 @@ const ITEMS: { id: NavTarget; icon: IconName; label: string }[] = [
 /** Feste Navigation: am Handy unten, im Querformat und auf großen Bildschirmen links. */
 export default function NavBar({ active, onGo }: { active: NavTarget | null; onGo: (t: NavTarget) => void }) {
   const club = useClub();
-  const freePacks = (club.welcomeClaimed ? 0 : 1) + (club.megaXxlClaimed ? 0 : 1) + (club.megaSuperClaimed ? 0 : 1);
+  const freePacks = !SHOP_SALES ? 0 : (club.welcomeClaimed ? 0 : 1) + (club.megaXxlClaimed ? 0 : 1) + (club.megaSuperClaimed ? 0 : 1);
   const passOpen = unclaimedLevels(club).length + unclaimedProLevels(club).length;
   const badge: Partial<Record<NavTarget, number>> = { store: freePacks + (club.storedPacks?.length ?? 0) + (club.drops ?? 0) + (club.megaDrops ?? 0) + (club.meteorDrops ?? 0), pass: passOpen };
   return (

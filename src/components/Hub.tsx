@@ -1,3 +1,4 @@
+import { SHOP_SALES } from '../game/shopConfig';
 import EraEvent from './EraEvent';
 import { ERA_NAME, ERA_PLAYERS, eraCardId, eraToday } from '../data/eraCards';
 import { eraReady } from '../game/era';
@@ -69,7 +70,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   const progress = collectionProgress(club);
   const hasHistory = saves.some((c) => c.history.length > 0);
   const pendingReward = saves.find((c) => rewardPending(club, c));
-  const freePacks = (club.welcomeClaimed ? 0 : 1) + (club.megaXxlClaimed ? 0 : 1) + (club.megaSuperClaimed ? 0 : 1);
+  const freePacks = !SHOP_SALES ? 0 : (club.welcomeClaimed ? 0 : 1) + (club.megaXxlClaimed ? 0 : 1) + (club.megaSuperClaimed ? 0 : 1);
 
   const remove = (c: Career) => {
     if (!confirm(`Karriere von ${c.player.name} wirklich löschen?`)) return;
@@ -128,14 +129,14 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
             <Icon name="arrow" size={22} />
           </button>
         )}
-        {eventActive('silvester') && (
+        {SHOP_SALES && eventActive('silvester') && (
           <button className="ny-call alt" onClick={onStore}>
             <span className="ny-call-year">31.12.</span>
             <span className="ny-call-text"><b>Silvester-Event</b><small>Feuerwerks-Pack im Shop · Dembélé, Mbappé, Yamal bis 96 · nur 2 Tage</small></span>
             <Icon name="arrow" size={22} />
           </button>
         )}
-        {halloweenActive() && (
+        {SHOP_SALES && halloweenActive() && (
           <button className="ev-call ev-halloween" onClick={onStore}>
             <span className="ev-call-icon"><Icon name="pumpkin" size={24} /></span>
             <span className="ev-call-text"><b>{eventActive('geisternacht') ? 'Geisternacht' : 'Halloween'}</b><small>{eventActive('geisternacht') ? 'Nur bis 31.10. · Geisternacht-Pack im Shop' : 'Bis 2.11. · Kürbis- und Geisterstunde-Pack im Shop'}</small></span>
@@ -145,14 +146,14 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
         {eventActive('gala') && (
           <button className="ev-call ev-gala" onClick={onSbc}>
             <span className="ev-call-icon"><Icon name="medal" size={24} /></span>
-            <span className="ev-call-text"><b>Gala-Woche</b><small>Bis 9.11. · Gala-Pack im Shop · SBC „Ballon d’Or 2026“</small></span>
+            <span className="ev-call-text"><b>Gala-Woche</b><small>{SHOP_SALES ? 'Bis 9.11. · Gala-Pack im Shop · SBC „Ballon d’Or 2026“' : 'Bis 9.11. · SBC „Ballon d’Or 2026“'}</small></span>
             <Icon name="arrow" size={22} />
           </button>
         )}
         {adventToday() > 0 && (
           <button className="winter-call" onClick={() => setAdvent(true)}>
             <span className="winter-call-num">{adventToday()}</span>
-            <span className="winter-call-text"><b>Adventskalender</b><small>{(club.advent ?? []).includes(adventToday()) ? 'Heute schon geöffnet – morgen geht’s weiter' : `Türchen ${adventToday()} wartet auf dich`} · Winter-Wunder-Pack im Shop</small></span>
+            <span className="winter-call-text"><b>Adventskalender</b><small>{(club.advent ?? []).includes(adventToday()) ? 'Heute schon geöffnet – morgen geht’s weiter' : `Türchen ${adventToday()} wartet auf dich`}{SHOP_SALES ? ' · Winter-Wunder-Pack im Shop' : ''}</small></span>
             <Icon name="arrow" size={22} />
           </button>
         )}
@@ -206,7 +207,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
         </button>
         <button className="hub-big hb-shop" onClick={onStore}>
           <Icon name="pack" size={30} />
-          <span><strong>Shop</strong><small>{!club.megaSuperClaimed || !club.megaXxlClaimed || !club.welcomeClaimed ? 'Gratis-Pack!' : 'Packs & Drops'}</small></span>
+          <span><strong>Shop</strong><small>{!SHOP_SALES ? 'Casino & Codes' : !club.megaSuperClaimed || !club.megaXxlClaimed || !club.welcomeClaimed ? 'Gratis-Pack!' : 'Packs & Drops'}</small></span>
           {(freePacks + (club.storedPacks?.length ?? 0) + (club.drops ?? 0) + (club.megaDrops ?? 0) + (club.meteorDrops ?? 0)) > 0 && <b className="hub-badge">{freePacks + (club.storedPacks?.length ?? 0) + (club.drops ?? 0) + (club.megaDrops ?? 0) + (club.meteorDrops ?? 0)}</b>}
         </button>
         <PassTile onClick={onPass} />

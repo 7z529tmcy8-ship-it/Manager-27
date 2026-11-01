@@ -1,3 +1,4 @@
+import { SHOP_SALES } from '../game/shopConfig';
 import { useEffect, useMemo, useState } from 'react';
 import { rarity, withUpgrade, type CollectCard } from '../game/club';
 import { CHEF, CHEF_LINES, TRADER_LINES, TRADE_SIZE, doTrade, isSecretTrader, randomTrader, readDevTrade, tradeable, type Trader } from '../game/trade';
@@ -267,7 +268,7 @@ export default function Trade({ onBack, onCollection }: { onBack: () => void; on
             </button>
           </div>
           {mine.length < TRADE_SIZE ? (
-            <p className="hub-sub">Du brauchst mindestens {TRADE_SIZE} Karten. Öffne erst ein paar Packs im Shop.</p>
+            <p className="hub-sub">Du brauchst mindestens {TRADE_SIZE} Karten. {SHOP_SALES ? 'Öffne erst ein paar Packs im Shop.' : 'Sammle erst ein paar Karten.'}</p>
           ) : (
             <>
               <input className="search" placeholder="Karte suchen …" value={query} onChange={(e) => setQuery(e.target.value)} />

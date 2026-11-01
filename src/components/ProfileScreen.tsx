@@ -1,3 +1,4 @@
+import { SHOP_SALES } from '../game/shopConfig';
 import { useState } from 'react';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { divisionOf, divName } from '../game/divisions';
@@ -106,7 +107,7 @@ export default function ProfileScreen({ careers, onClose }: { careers: Career[];
                 </div>
               ) : <p className="pf-shelf-hint">Tippe auf einen Platz, um die Karte zu tauschen.</p>}
             </>
-          ) : <p className="hint">Noch keine Karten – öffne dein erstes Pack im Shop.</p>}
+          ) : <p className="hint">{SHOP_SALES ? 'Noch keine Karten – öffne dein erstes Pack im Shop.' : 'Noch keine Karten. Hol dir welche über Codes im Shop, den Ruhmesweg, Events und Karriere-Belohnungen.'}</p>}
         </section>
 
         <h2 className="hub-section">Statistiken</h2>
