@@ -442,7 +442,7 @@ const ICON_INTRO =
 const LEGEND_INTRO =
   '„Was wäre wenn?“ – Kultfiguren starten als junge Spieler im heutigen Fußball, mit ihrem ganz eigenen Charakter. Werte und Startvereine sind frei erfunden, die Ereignisse augenzwinkernd.';
 const CULT_INTRO =
-  'Kult-Helden: Publikumslieblinge und „Forgotten Names“ wie Ailton, Okocha, Quaresma, Podolski, Hulk oder Paulinho starten jung bei einem Verein ihrer Anfänge bzw. großen Zeit – im heutigen Fußball. Startvereine teils vereinfacht, Wertungen eigene Schätzungen.';
+  'Kult-Helden: Publikumslieblinge und „Forgotten Names“ wie Ailton, Okocha, Quaresma, Podolski, Hulk, Paulinho oder Memphis Depay starten jung bei einem Verein ihrer Anfänge bzw. großen Zeit – im heutigen Fußball. Startvereine teils vereinfacht, Wertungen eigene Schätzungen.';
 const H96_INTRO =
   'Zeitreise: der Bundesliga-Kader von Hannover 96 aus der Saison 2018/19. Jeder Spieler startet mit seinem damaligen Alter bei Hannover 96 – im heutigen Fußball. Wertungen sind eigene Schätzungen.';
 const FAILED_INTRO =

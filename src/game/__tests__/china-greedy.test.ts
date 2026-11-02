@@ -59,3 +59,15 @@ it('Akademie-Talente: mindestens 10 Spieler mit 15/16 und Wertung unter 60 – a
     expect(c.player.age).toBe(k.age);
   }
 });
+
+it('Neue Kult-Helden (Memphis & Co.): Karte und Karriere', async () => {
+  const { CULT_LEGENDS } = await import('../../data/legends');
+  const { getClub } = await import('../../data/leagues');
+  const names = ['Memphis Depay', 'Paul Pogba', 'Jesse Lingard', 'Hakim Ziyech', 'Samir Nasri', 'Philippe Coutinho', 'Willian', 'Douglas Costa', 'Emmanuel Adebayor', 'Anthony Martial', 'Jadon Sancho', 'James Rodríguez', 'Lorenzo Insigne'];
+  for (const n of names) {
+    expect(CARD_POOL.some((c) => c.name === n && c.variant === 'cult'), n).toBe(true);
+    const l = CULT_LEGENDS.find((x) => x.name === n)!;
+    expect(l, n).toBeTruthy();
+    expect(getClub(l.clubId).name, n).toBeTruthy();
+  }
+});

@@ -147,6 +147,35 @@ export const HANNOVER_2018: LegendTemplate[] = H96_2018_RAW.map(([name, nation, 
 // Kult-Helden: Publikumslieblinge und „Forgotten Names“ starten jung bei einem Verein ihrer Anfänge bzw. großen Zeit.
 // Startvereine teils vereinfacht (nur Vereine, die es im Spiel gibt). Werte sind eigene Schätzungen.
 const CULT_RAW: typeof RAW = [
+  // Showmen mit Wanderkarriere
+  ['Memphis Depay', 'Niederlande', 'ST', 18, 72, 89, 'PSV Eindhoven', ['showman', 'wildcard'],
+    'Löwen-Tattoo, eigene Musik, Freistöße aus jeder Lage – und eine Karriere mit mehr Wendungen als ein Hollywood-Film.'],
+  ['Paul Pogba', 'Frankreich', 'ZM', 19, 74, 91, 'Juventus Turin', ['showman', 'diva'],
+    'Neue Frisur jede Woche, Pässe wie aus einer anderen Welt. Genie an guten Tagen, Gesprächsthema an allen.'],
+  ['Jesse Lingard', 'England', 'ZOM', 19, 70, 84, 'Manchester United', ['showman', 'party'],
+    'Erfinder des Jubeltanzes – trifft am liebsten dann, wenn keiner damit rechnet.'],
+  ['Hakim Ziyech', 'Marokko', 'FL', 20, 73, 87, 'Ajax Amsterdam', ['showman', 'hothead'],
+    'Ein linker Fuß wie ein Zauberstab, ein Dickkopf wie aus Granit.'],
+  ['Samir Nasri', 'Frankreich', 'ZOM', 18, 73, 88, 'Olympique Marseille', ['diva', 'party'],
+    'Technik zum Niederknien. Ob er Lust hat, entscheidet er allerdings selbst.'],
+  // Talente, die nach Übersee gingen
+  ['Philippe Coutinho', 'Brasilien', 'ZOM', 18, 72, 89, 'Inter Mailand', ['greedy', 'fragile'],
+    'Schlenzer ins lange Eck sind sein Markenzeichen – große Ablösen auch.'],
+  ['Willian', 'Brasilien', 'FL', 20, 72, 85, 'Chelsea FC', ['professional', 'greedy'],
+    'Läuft, dribbelt, arbeitet nach hinten – und weiß genau, was ein guter Vertrag wert ist.'],
+  ['Douglas Costa', 'Brasilien', 'FL', 20, 73, 87, 'FC Bayern München', ['fragile', 'showman'],
+    'Tempo, dass Verteidiger schwindelig werden. Wenn die Oberschenkel mitspielen.'],
+  ['Emmanuel Adebayor', 'Togo', 'ST', 19, 72, 86, 'AS Monaco', ['hothead', 'greedy'],
+    'Lange Beine, große Tore, noch größere Wechsel-Schlagzeilen.'],
+  // „Was wäre wenn“-Talente
+  ['Anthony Martial', 'Frankreich', 'ST', 18, 73, 89, 'Olympique Lyon', ['wildcard'],
+    'Mit 19 ein Rekordtransfer, mit einem Tor gegen Liverpool eine Legende – und dann? Du entscheidest.'],
+  ['Jadon Sancho', 'England', 'FL', 18, 74, 90, 'Borussia Dortmund', ['showman', 'diva'],
+    'Straßenfußball pur aus London. Der Weg zur Weltklasse ist offen – wenn er ihn geht.'],
+  ['James Rodríguez', 'Kolumbien', 'ZOM', 20, 75, 89, 'FC Porto', ['showman', 'diva'],
+    'Ein WM-Volley für die Ewigkeit. Danach hängt alles davon ab, wer ihm vertraut.'],
+  ['Lorenzo Insigne', 'Italien', 'FL', 20, 73, 87, 'SSC Neapel', ['professional', 'greedy'],
+    'Il Magnifico: der Tiraggiro ins lange Eck – und am Ende vielleicht doch das große Abenteuer in Übersee.'],
   // China-Ära: Hulk wechselte 2016 zu Shanghai SIPG (heute Shanghai Port), Paulinho 2015 zu Guangzhou Evergrande.
   // Guangzhou gibt es im Spiel nicht mehr – Paulinho startet bei Tottenham, seiner Station vor China.
   ['Hulk', 'Brasilien', 'FL', 20, 73, 88, 'Shanghai Port', ['showman', 'greedy'],

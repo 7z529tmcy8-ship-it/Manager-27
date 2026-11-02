@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-02-kult-memphis',
+    date: '02.11.2026',
+    title: '13 neue Kult-Helden',
+    items: [
+      'Showmen: Memphis Depay, Paul Pogba, Jesse Lingard, Hakim Ziyech, Samir Nasri.',
+      'Ab nach Übersee: Philippe Coutinho, Willian, Douglas Costa, Emmanuel Adebayor.',
+      '„Was wäre wenn“: Anthony Martial, Jadon Sancho, James Rodríguez, Lorenzo Insigne.',
+      'Alle als Kult-Karte und jung in der Karriere unter „Kult“ – mit passenden Eigenschaften wie Showman, Diva oder Geldgier.',
+    ],
+  },
+  {
     id: '2026-11-02-faehigkeiten-2',
     date: '02.11.2026',
     title: 'Fähigkeitenbaum: länger, verästelt, mit Meisterung',
