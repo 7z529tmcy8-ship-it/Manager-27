@@ -502,6 +502,7 @@ function ChoiceCard({ career, c, selected, onPick }: { career: Career; c: Choice
           {o.talkState ? <><br /><b className="cs-option">{o.talkState === 'agreed' ? 'Ausgehandelt' : 'Letztes Angebot'}</b></> : null}
         </span>
       )}
+      {c.greedy && <span className="cs-choice-meta cs-greedy">Geldgier: Das meiste Geld gewinnt – andere Angebote zählen nicht.</span>}
       {c.kind === 'home' && <span className="cs-choice-meta">Zurück, wo alles begann</span>}
       {c.kind === 'exotic' && <span className="cs-choice-meta">Abenteuer mit Top-Gehalt</span>}
       {c.kind === 'nlz' && <span className="cs-choice-meta">Im NLZ hocharbeiten</span>}

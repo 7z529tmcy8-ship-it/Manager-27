@@ -1,3 +1,4 @@
+import { hasTrait } from './traits';
 import { bonusOvr } from './development';
 import { getClub, youthClubOf } from '../data/leagues';
 import { acceptOffer, acceptWinterOffer, autoPlayFinal, canStay, finishFinal, playFirstHalf, playSeasonUntilFinal, requestOffers, retire, stayAtClub } from './career';
@@ -91,6 +92,8 @@ export interface Choice {
   /** Überschrift der Karte, z. B. „Wechsel“. */
   title: string;
   offer?: Offer;
+  /** Geldgier: einzige Möglichkeit, weil sie das meiste Geld bringt. */
+  greedy?: boolean;
 }
 
 const TITLES: Record<ChoiceKind, string> = {
@@ -107,8 +110,18 @@ const TITLES: Record<ChoiceKind, string> = {
 };
 
 /** Die drei Möglichkeiten im Sommer: bester Wechsel, beste Leihe, Bleiben – mit sinnvollen Ersatzoptionen. */
+/** Geldgier: das Angebot mit dem höchsten Gehalt. */
+export function greediestOffer(offers: Offer[]): Offer | undefined {
+  return [...offers].sort((a, b) => b.wage - a.wage)[0];
+}
+const kindOf = (o: Offer): ChoiceKind =>
+  o.type === 'Verlängerung' ? 'extend' : o.type === 'Leihe' ? 'loan' : o.tag === 'home' ? 'home' : o.tag === 'exotic' ? 'exotic' : o.tag === 'nlz' || o.tag === 'u23' ? o.tag : 'transfer';
+
 export function seasonChoices(career: Career): Choice[] {
   if (career.phase !== 'window') return [];
+  // Geldgier: keine Wahl – es gibt nur das Angebot mit dem meisten Geld.
+  const greedy = hasTrait(career.player, 'greedy') ? greediestOffer(career.offers) : undefined;
+  if (greedy) return [{ kind: kindOf(greedy), title: 'Geldgier', offer: greedy, greedy: true }];
   const strength = (o: Offer) => clubStrength(career, o.clubId);
   const byStrength = (a: Offer, b: Offer) => strength(b) - strength(a);
   const transfers = career.offers.filter((o) => (o.type === 'Transfer' || o.type === 'Ablösefrei') && !o.tag).sort(byStrength);
@@ -174,6 +187,9 @@ export function winterChoices(career: Career): Choice[] {
   const strength = (o: Offer) => clubStrength(career, o.clubId);
   const transfers = career.offers.filter((o) => o.type === 'Transfer' || o.type === 'Ablösefrei').sort((a, b) => strength(b) - strength(a));
   const loans = career.offers.filter((o) => o.type === 'Leihe').sort((a, b) => strength(b) - strength(a));
+  // Geldgier: Lockt im Winter mehr Gehalt als jetzt, gibt es nur dieses Angebot.
+  const greedy = hasTrait(career.player, 'greedy') ? greediestOffer([...transfers, ...loans]) : undefined;
+  if (greedy && greedy.wage > career.player.contract.wage) return [{ kind: kindOf(greedy), title: 'Geldgier', offer: greedy, greedy: true }];
   const out: Choice[] = [];
   if (transfers[0]) out.push({ kind: 'transfer', title: 'Wintertransfer', offer: transfers[0] });
   if (loans[0]) out.push({ kind: 'loan', title: 'Winter-Leihe', offer: loans[0] });

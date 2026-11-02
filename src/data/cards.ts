@@ -105,6 +105,9 @@ export const EXTRA_ICONS: [string, string, Position, number][] = [
  */
 export const CULT_HEROES: [string, string, Position, number, string][] = [
   ['Ricardo Quaresma', 'Portugal', 'FL', 86, 'FC Porto'],
+  // China-Ära: Hulk bei Shanghai SIPG (2016–2020), Paulinho bei Guangzhou Evergrande (2015–17, 2019–21)
+  ['Hulk', 'Brasilien', 'FL', 86, 'Shanghai SIPG'],
+  ['Paulinho', 'Brasilien', 'ZM', 85, 'Guangzhou Evergrande'],
   ['Juan Román Riquelme', 'Argentinien', 'ZOM', 89, 'Boca Juniors'],
   ['Pablo Aimar', 'Argentinien', 'ZOM', 86, 'FC Valencia'],
   ['Wesley Sneijder', 'Niederlande', 'ZOM', 88, 'Inter Mailand'],

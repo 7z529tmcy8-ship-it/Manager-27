@@ -90,6 +90,11 @@ export const LEAGUES: League[] = [
     europe: { cl: 0, el: 0, conf: 0 }, topScorerGoals: 28, exotic: true,
   },
   {
+    // Chinese Super League 2026: 16 Vereine (Liste laut PredictZ/Wikipedia, recherchiert 11/2026). Stärken geschätzt.
+    id: 'csl', name: 'Chinese Super League', country: 'China', cup: 'CFA Cup', tier: 1, goalsPerGame: 2.8,
+    europe: { cl: 0, el: 0, conf: 0 }, topScorerGoals: 22, exotic: true,
+  },
+  {
     id: 'j1', name: 'J1 League', country: 'Japan', cup: 'Emperor’s Cup', tier: 1, goalsPerGame: 2.6,
     europe: { cl: 0, el: 0, conf: 0 }, topScorerGoals: 20, exotic: true,
   },
@@ -237,6 +242,12 @@ const RAW: Record<string, [string, number][]> = {
     ['Al-Ettifaq', 70], ['Al-Shabab', 69], ['Al-Taawoun', 68], ['NEOM SC', 68], ['Al-Fateh', 66],
     ['Al-Khaleej', 66], ['Al-Kholood', 65], ['Al-Fayha', 65], ['Al-Riyadh', 64], ['Damac FC', 64],
     ['Al-Okhdood', 63], ['Al-Hazem', 62], ['Al-Najma', 62],
+  ],
+  csl: [
+    ['Shanghai Port', 67], ['Shanghai Shenhua', 67], ['Chengdu Rongcheng', 66], ['Beijing Guoan', 66],
+    ['Shandong Taishan', 65], ['Tianjin Jinmen Tiger', 63], ['Zhejiang Professional', 63], ['Henan FC', 62],
+    ['Yunnan Yukun', 62], ['Qingdao Hainiu', 61], ['Wuhan Three Towns', 61], ['Dalian Yingbo', 61],
+    ['Qingdao West Coast', 60], ['Liaoning Shenyang', 60], ['Chongqing Tonglianglong', 59], ['Sichuan Jiuniu', 59],
   ],
   j1: [
     ['Vissel Kobe', 69], ['Kashima Antlers', 69], ['Sanfrecce Hiroshima', 69], ['Kashiwa Reysol', 68],

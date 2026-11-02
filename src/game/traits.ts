@@ -1,6 +1,6 @@
 import type { PlayerState } from './types';
 
-export type TraitId = 'wildcard' | 'hothead' | 'showman' | 'party' | 'diva' | 'leader' | 'professional' | 'clutch' | 'fragile';
+export type TraitId = 'greedy' | 'wildcard' | 'hothead' | 'showman' | 'party' | 'diva' | 'leader' | 'professional' | 'clutch' | 'fragile';
 
 export interface Trait {
   id: TraitId;
@@ -18,6 +18,7 @@ export const TRAITS: Trait[] = [
   { id: 'leader', icon: '🦁', name: 'Anführer', description: 'Wird schneller Kapitän, das Trainervertrauen fällt nie ganz ab.' },
   { id: 'professional', icon: '🎯', name: 'Vollprofi', description: 'Lebt für den Fußball: weniger Ausrutscher, langsamerer Abbau im Alter.' },
   { id: 'fragile', icon: '🩹', name: 'Verletzungsanfällig', description: 'Der Körper spielt nicht immer mit: deutlich höheres Verletzungsrisiko.' },
+  { id: 'greedy', icon: '💰', name: 'Geldgier', description: 'Das Geld entscheidet: Er wechselt automatisch zum Angebot mit dem höchsten Gehalt – im Sommer immer, im Winter, wenn es mehr als jetzt gibt.' },
   { id: 'clutch', icon: '🧊', name: 'Eiskalt', description: 'Wenn es zählt, ist er da: bessere Chancen in Finals und im Elfmeterschießen.' },
 ];
 
