@@ -5613,3 +5613,192 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .lg-pay b { display: inline-flex; align-items: center; gap: 4px; font-size: .875rem; }
 .lg-pay small { font-size: .65rem; color: var(--muted); white-space: nowrap; }
 .lg-row.here .lg-pay small { color: var(--accent); font-weight: 800; }
+
+/* =====================================================================
+   BRAWL-LOOK (eigene Umsetzung im Stil bunter Mobile-Brawler, keine fremden Assets)
+   Aktiv über <html class="brawl">. Kräftiges Himmelblau, Marine-Flächen mit dicker
+   dunkler Kontur, „3D“-Knöpfe mit Unterkante, fette runde Schrift mit schwarzem Rand.
+   ===================================================================== */
+@font-face { font-family: 'Lilita One'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/lilita-one-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Lilita One'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/lilita-one-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+20A0-20AB, U+20AD-20C4, U+2C60-2C7F, U+A720-A7FF; }
+
+:root.brawl[data-theme="arena"] {
+  --ink: #0b1033;             /* Kontur & Unterkante */
+  --bb-sky: #3d9bff; --bb-blue: #1f5fe8; --bb-deep: #12319c;
+  --bb-panel: #1c2c78; --bb-panel-2: #24398f; --bb-panel-3: #2f4bb0;
+  --bb-yellow: #ffd21f; --bb-yellow-2: #ffae00; --bb-yellow-edge: #a86a00;
+  --bb-green: #6be63d; --bb-green-2: #2fb51d; --bb-blue-btn: #4ab0ff; --bb-blue-btn-2: #1f6fff; --bb-red: #ff4757; --bb-purple: #b45cff;
+  --bg: #1a47c9;
+  --surface: #1c2c78; --surface-2: #24398f; --surface-3: #2f4bb0;
+  --hairline: rgba(11, 16, 51, .55);
+  --text: #ffffff; --text-2: #dbe7ff; --muted: #a9bdf0;
+  --accent: #ffd21f; --accent-hover: #ffe04f; --accent-ink: #1a1200; --link: #ffe04f;
+  --up: #6be63d; --down: #ff5c66; --gold: #ffd21f;
+  --display: 'Lilita One', 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bb-out: 0 4px 0 var(--ink);
+  --bb-hi: inset 0 2px 0 rgba(255, 255, 255, .22);
+}
+
+/* Hintergrund: Licht von oben, Himmelblau → Tiefblau, feine schräge Streifen */
+:root.brawl[data-theme="arena"], :root.brawl[data-theme="arena"] body {
+  background: radial-gradient(120% 70% at 50% -12%, #8fd0ff 0%, #3d9bff 28%, #1f5fe8 58%, #12319c 100%) fixed #12319c;
+}
+:root.brawl[data-theme="arena"] body::before { opacity: 1; background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .045) 0 22px, transparent 22px 44px); -webkit-mask: none; mask: none; }
+:root.brawl[data-theme="arena"] body::after { display: none; }
+
+/* Schrift: Titel, Zahlen, Knöpfe in der fetten runden Schrift mit schwarzem Rand */
+:root.brawl[data-theme="arena"] :is(.hub-title, .dr-title, .ep-hero-text h1, .mt-title, .pf-sheet-head strong, .overlay-title, .topbar-title h1, .upd-card h2) {
+  font-family: var(--display); font-weight: 400; color: #fff; letter-spacing: .02em; text-transform: uppercase;
+  -webkit-text-stroke: 6px var(--ink); paint-order: stroke fill; text-shadow: 0 4px 0 var(--ink);
+  background: none; -webkit-background-clip: border-box; background-clip: border-box; -webkit-text-fill-color: #fff;
+}
+:root.brawl[data-theme="arena"] .hub-title { font-size: clamp(2.2rem, 8vw, 3rem); }
+:root.brawl[data-theme="arena"] :is(.hub-section, .store-group-head, .hub-events-head, .cc-head h2, .dr-step, .ep-step-no, .lg-name b, .dv-mid b, .hub-big strong, .hub-tile strong, .hub-link-text strong, .casino-call-text b, .era-call-text b, .draft-call-text b, .pf-name, .pf-rec strong, .pf-pill b, .dv-pay, .lg-pay b, .div-side strong, .team-stats strong, .hub-coins, .hub-profile-text strong, .cc-tile strong) {
+  font-family: var(--display); font-weight: 400; letter-spacing: .02em;
+}
+:root.brawl[data-theme="arena"] :is(.hub-section, .store-group-head, .hub-events-head, .hub-big strong, .hub-tile strong, .casino-call-text b, .era-call-text b, .draft-call-text b, .div-side strong, .team-stats strong, .pf-rec strong, .cc-tile strong, .hub-coins) {
+  color: #fff; -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 0 2px 0 var(--ink);
+}
+:root.brawl[data-theme="arena"] .hub-section, :root.brawl[data-theme="arena"] .store-group-head { font-size: 1.15rem; text-transform: uppercase; }
+
+/* Flächen: Marine mit dicker Kontur, Lichtkante oben, harte Unterkante */
+:root.brawl[data-theme="arena"] :is(.hub-tile, .team-stats > div, .cc-tile, .dv-strip, .dv-match, .lg-row, .casino-call, .stored-pack, .pack-card, .season, .collect-progress, .draft-call, .ep-progress, .ep-reward, .ep-how li, .reward-call, .hub-link, .save-list > *, .pf-stats li, .pf-fx-row, .pf-ttl, .pf-pill, .div-card, .div-match, .tactic, .upgrade-box, .evo-path, .shop-empty, .drops-ready, .hub-empty, .dl-modes .draft-call, .cz-game, .lb-row, .hl-talent, .stored-meteor) {
+  background: linear-gradient(180deg, var(--bb-panel-2), var(--bb-panel)); border: 3px solid var(--ink); border-radius: 18px; box-shadow: var(--bb-hi), var(--bb-out); color: #fff;
+}
+:root.brawl[data-theme="arena"] :is(.lg-row.here, .pf-ttl.on, .pf-fx-row.on, .dv-tac.on, .cc-tile:hover, .hub-tile:hover) { border-color: var(--ink); }
+:root.brawl[data-theme="arena"] .lg-row.here { background: linear-gradient(180deg, #3f6ff0, #2a4fcf); box-shadow: var(--bb-hi), var(--bb-out), 0 0 0 3px var(--bb-yellow); }
+:root.brawl[data-theme="arena"] :is(.cc-icon, .hub-tile-icon, .pf-st-ic, .draft-call-icon, .casino-call-icon) { border: 2px solid var(--ink); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .25); }
+:root.brawl[data-theme="arena"] :is(.cc-tile small, .hub-tile small, .lg-name small, .dv-mid small, .ep-sub, .hint, .hub-sub, .muted, .pf-fx-text small, .dv-tac-text small) { color: var(--muted); }
+:root.brawl[data-theme="arena"] .cc-bar, :root.brawl[data-theme="arena"] .pf-xp-bar, :root.brawl[data-theme="arena"] .ep-bar, :root.brawl[data-theme="arena"] .collect-bar { background: #0b1033; border: 2px solid var(--ink); height: 10px; }
+:root.brawl[data-theme="arena"] .cc-bar i, :root.brawl[data-theme="arena"] .collect-bar i { background: linear-gradient(180deg, #9cf26c, #3ec21f); }
+
+/* Knöpfe: 3D mit Unterkante, Text weiß mit schwarzem Rand */
+:root.brawl[data-theme="arena"] .btn {
+  font-family: var(--display); font-weight: 400; letter-spacing: .03em; color: #fff; border: 3px solid var(--ink); border-radius: 14px;
+  -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 0 2px 0 var(--ink);
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, .45), inset 0 -4px 0 rgba(0, 0, 0, .18), 0 4px 0 var(--ink); transition: transform .08s ease-out, box-shadow .08s ease-out, filter .12s;
+}
+:root.brawl[data-theme="arena"] .btn:active:not(:disabled) { transform: translateY(3px); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .45), inset 0 -2px 0 rgba(0, 0, 0, .18), 0 1px 0 var(--ink); }
+:root.brawl[data-theme="arena"] .btn.primary, :root.brawl[data-theme="arena"] .btn.primary:hover:not(:disabled) { background: linear-gradient(180deg, #ffe45a 0%, var(--bb-yellow) 45%, var(--bb-yellow-2) 100%); color: #fff; }
+:root.brawl[data-theme="arena"] .btn.secondary, :root.brawl[data-theme="arena"] .btn.secondary:hover:not(:disabled) { background: linear-gradient(180deg, #7cc8ff 0%, var(--bb-blue-btn) 45%, var(--bb-blue-btn-2) 100%); color: #fff; }
+:root.brawl[data-theme="arena"] .btn.ghost { background: linear-gradient(180deg, #3a4ea8, #26368a); color: #fff; }
+:root.brawl[data-theme="arena"] .btn:disabled { background: linear-gradient(180deg, #8a93b8, #626b94); color: #dfe3f5; filter: none; opacity: 1; }
+:root.brawl[data-theme="arena"] .btn.small { border-width: 2px; -webkit-text-stroke-width: 2px; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .45), 0 3px 0 var(--ink); }
+
+/* Große Startmenü-Knöpfe */
+:root.brawl[data-theme="arena"] .hub-big { border: 3px solid var(--ink); border-radius: 18px; box-shadow: inset 0 3px 0 rgba(255, 255, 255, .45), inset 0 -5px 0 rgba(0, 0, 0, .2), 0 5px 0 var(--ink); }
+:root.brawl[data-theme="arena"] .hub-big:active { transform: translateY(4px); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .45), 0 1px 0 var(--ink); }
+:root.brawl[data-theme="arena"] .hub-big.hb-new { background: linear-gradient(180deg, #a4f56f 0%, var(--bb-green) 45%, var(--bb-green-2) 100%); color: #fff; }
+:root.brawl[data-theme="arena"] .hub-big.hb-shop { background: linear-gradient(180deg, #ffe45a 0%, var(--bb-yellow) 45%, var(--bb-yellow-2) 100%); color: #fff; }
+:root.brawl[data-theme="arena"] .hub-big small { color: #fff; opacity: 1; -webkit-text-stroke: 2px rgba(11, 16, 51, .7); paint-order: stroke fill; font-weight: 800; }
+:root.brawl[data-theme="arena"] .hub-big .ic { filter: drop-shadow(0 2px 0 var(--ink)); }
+
+/* Reiter, Chips: aktiv = gelber Klotz */
+:root.brawl[data-theme="arena"] :is(.dl-tabs, .shop-tabs, .pf-tabs) { background: #0f1a52; border: 3px solid var(--ink); box-shadow: var(--bb-out); }
+:root.brawl[data-theme="arena"] :is(.dl-tab, .shop-tab, .pf-tab) { font-family: var(--display); font-weight: 400; color: #b9c8f5; letter-spacing: .03em; }
+:root.brawl[data-theme="arena"] :is(.dl-tab.on, .shop-tab.on, .pf-tab.on, .chip.active, .tabs button.active, .tabs button[aria-selected="true"]) {
+  background: linear-gradient(180deg, #ffe45a, var(--bb-yellow) 50%, var(--bb-yellow-2)); color: #fff; border: 2px solid var(--ink);
+  -webkit-text-stroke: 2.5px var(--ink); paint-order: stroke fill; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .5), 0 3px 0 var(--ink);
+}
+:root.brawl[data-theme="arena"] :is(.dl-tab.on, .shop-tab.on, .pf-tab.on) .ic { color: #fff; filter: drop-shadow(0 1.5px 0 var(--ink)); }
+:root.brawl[data-theme="arena"] :is(.chip, .tabs button) { font-weight: 800; border: 2px solid var(--ink); background: #22348a; color: #dbe7ff; }
+:root.brawl[data-theme="arena"] :is(.dv-tac) { background: linear-gradient(180deg, #2f4bb0, #22368c); border: 3px solid var(--ink); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .2), 0 3px 0 var(--ink); color: #fff; font-family: var(--display); font-weight: 400; font-size: .7rem; }
+:root.brawl[data-theme="arena"] .dv-tac.on { background: linear-gradient(180deg, #ffe45a, var(--bb-yellow) 50%, var(--bb-yellow-2)); -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; }
+:root.brawl[data-theme="arena"] .dv-tac.on .ic { color: #fff; filter: drop-shadow(0 1.5px 0 var(--ink)); }
+
+/* Kopfleiste im Startmenü: Profil-Chip, Coins, runde Icon-Knöpfe */
+:root.brawl[data-theme="arena"] :is(.hub-profile, .hub-coins, .hub-icon, .hub-back, .nav-back) {
+  background: linear-gradient(180deg, #2a3f9c, #1a2a78); border: 3px solid var(--ink); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .22), 0 3px 0 var(--ink); color: #fff;
+}
+:root.brawl[data-theme="arena"] :is(.hub-back, .nav-back) { font-family: var(--display); font-weight: 400; letter-spacing: .03em; padding: 6px 12px; border-radius: 12px; -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; }
+:root.brawl[data-theme="arena"] .hub-coins .ic, :root.brawl[data-theme="arena"] .coin-ic { color: var(--bb-yellow); }
+:root.brawl[data-theme="arena"] :is(.hub-badge, .shop-badge, .navbar-badge) { background: var(--bb-red); color: #fff; border: 2px solid var(--ink); font-family: var(--display); font-weight: 400; box-shadow: 0 2px 0 var(--ink); }
+
+/* Untere Leiste: Marine, dicke Oberkante, aktiver Reiter als gelber Klotz */
+:root.brawl[data-theme="arena"] .navbar { background: linear-gradient(180deg, #1d2f86, #101c5a); border-top: 3px solid var(--ink); box-shadow: 0 -4px 0 rgba(255, 255, 255, .08) inset; backdrop-filter: none; -webkit-backdrop-filter: none; }
+:root.brawl[data-theme="arena"] .navbar-item { color: #c8d6ff; }
+:root.brawl[data-theme="arena"] .navbar-label { font-family: var(--display); font-weight: 400; letter-spacing: .03em; font-size: .7rem; color: #fff; -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; }
+:root.brawl[data-theme="arena"] .navbar-ic { width: 46px; height: 34px; border-radius: 12px; }
+:root.brawl[data-theme="arena"] .navbar-item.on .navbar-ic { background: linear-gradient(180deg, #ffe45a, var(--bb-yellow) 50%, var(--bb-yellow-2)); color: #fff; border: 2px solid var(--ink);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .5), 0 3px 0 var(--ink); transform: translateY(-4px); }
+:root.brawl[data-theme="arena"] .navbar-item.on .navbar-ic .ic { filter: drop-shadow(0 1.5px 0 var(--ink)); }
+:root.brawl[data-theme="arena"] .navbar-item.on::before { display: none; }
+
+/* Eingaben */
+:root.brawl[data-theme="arena"] :is(input[type="text"], input[type="search"], input:not([type]), input[type="password"], select, .code-redeem input) {
+  background: #0f1a52; border: 3px solid var(--ink); border-radius: 12px; color: #fff; box-shadow: inset 0 3px 0 rgba(0, 0, 0, .3);
+}
+
+/* Overlays (Profil, Event, Draft …) im selben Himmel */
+:root.brawl[data-theme="arena"] .overlay:not(.era):not(.casino-overlay) { background: radial-gradient(120% 70% at 50% -12%, #8fd0ff 0%, #3d9bff 28%, #1f5fe8 58%, #12319c 100%); }
+:root.brawl[data-theme="arena"] .pf-sheet, :root.brawl[data-theme="arena"] .upd-card { background: linear-gradient(180deg, #24398f, #16246a); border: 3px solid var(--ink); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .2), 0 6px 0 var(--ink), 0 20px 50px rgba(0, 0, 0, .45); }
+
+/* Rekord-Kacheln, Spielerkarte, Division */
+:root.brawl[data-theme="arena"] .pf-card-hero { border: 3px solid var(--ink); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .25), 0 5px 0 var(--ink); }
+:root.brawl[data-theme="arena"] .pf-rec { border: 3px solid var(--ink); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .3), 0 4px 0 var(--ink); }
+:root.brawl[data-theme="arena"] .div-badge { border: 3px solid var(--ink); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .35), 0 3px 0 var(--ink); font-family: var(--display); font-weight: 400; -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; }
+:root.brawl[data-theme="arena"] .div-pips i { background: #0b1033; border: 2px solid var(--ink); height: 12px; }
+:root.brawl[data-theme="arena"] .div-pips i.on { background: linear-gradient(180deg, #9cf26c, #3ec21f); box-shadow: none; }
+:root.brawl[data-theme="arena"] .div-vs-mark { font-family: var(--display); background: var(--bb-red); color: #fff; border: 3px solid var(--ink); box-shadow: 0 3px 0 var(--ink); -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; }
+/* Runde 2: Hintergrund gegen Event-Overrides, Held-Karte, Umschalter, Event-Kacheln */
+:root.brawl[data-theme="arena"] body { background: radial-gradient(120% 70% at 50% -12%, #8fd0ff 0%, #3d9bff 28%, #1f5fe8 58%, #12319c 100%) fixed #12319c !important; }
+:root.brawl[data-theme="arena"] .hub-tile.hero {
+  background: radial-gradient(90% 120% at 85% 0%, rgba(255, 255, 255, .28), transparent 55%), linear-gradient(160deg, #b45cff 0%, #7b3cff 45%, #4c22c9 100%);
+  border: 3px solid var(--ink); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .35), 0 5px 0 var(--ink);
+}
+:root.brawl[data-theme="arena"] .hub-tile.hero::after { display: none; }
+:root.brawl[data-theme="arena"] .hub-tile.hero .hub-kicker { color: #ffe45a; font-family: var(--display); font-weight: 400; letter-spacing: .08em; -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; }
+:root.brawl[data-theme="arena"] .hub-tile.hero :is(h2, .hero-text strong, strong) { font-family: var(--display); font-weight: 400; color: #fff; -webkit-text-stroke: 4px var(--ink); paint-order: stroke fill; text-shadow: 0 3px 0 var(--ink); }
+:root.brawl[data-theme="arena"] .hub-tile.hero p { color: #f1e6ff; }
+:root.brawl[data-theme="arena"] .hub-cta { background: linear-gradient(180deg, #ffe45a 0%, var(--bb-yellow) 45%, var(--bb-yellow-2) 100%); color: #fff; border: 3px solid var(--ink);
+  font-family: var(--display); font-weight: 400; -webkit-text-stroke: 2.5px var(--ink); paint-order: stroke fill; box-shadow: inset 0 3px 0 rgba(255, 255, 255, .45), 0 4px 0 var(--ink); }
+:root.brawl[data-theme="arena"] .segmented { background: #0f1a52; border: 3px solid var(--ink); box-shadow: var(--bb-out); border-radius: 16px; padding: 4px; }
+:root.brawl[data-theme="arena"] .segmented button { font-family: var(--display); font-weight: 400; letter-spacing: .03em; color: #b9c8f5; background: transparent; border: 2px solid transparent; border-radius: 12px; }
+:root.brawl[data-theme="arena"] .segmented button.active, :root.brawl[data-theme="arena"] .segmented button[aria-checked="true"] {
+  background: linear-gradient(180deg, #ffe45a, var(--bb-yellow) 50%, var(--bb-yellow-2)); color: #fff; border-color: var(--ink); -webkit-text-stroke: 2.5px var(--ink); paint-order: stroke fill; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .5), 0 3px 0 var(--ink); }
+:root.brawl[data-theme="arena"] :is(.era-call, .ev-call, .ny-call, .winter-call, .gig-call, .polar-call) { border: 3px solid var(--ink); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .22), 0 4px 0 var(--ink); }
+:root.brawl[data-theme="arena"] .hub-events-head { color: #fff; font-size: .9rem; }
+:root.brawl[data-theme="arena"] .hub-events-head i { background: var(--bb-red); box-shadow: 0 0 0 2px var(--ink); }
+:root.brawl[data-theme="arena"] .hub-pass .evo-bar, :root.brawl[data-theme="arena"] .evo-bar { background: #0b1033; border: 2px solid var(--ink); height: 10px; }
+:root.brawl[data-theme="arena"] .evo-bar i { background: linear-gradient(180deg, #ffe45a, #ffae00); }
+:root.brawl[data-theme="arena"] .hub-pass-level { font-family: var(--display); font-weight: 400; color: #fff; -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; }
+:root.brawl[data-theme="arena"] .hub-tile-icon { background: linear-gradient(180deg, #4ab0ff, #1f6fff); color: #fff; border-radius: 12px; }
+:root.brawl[data-theme="arena"] .hub-tile.hub-glory .hub-tile-icon { background: linear-gradient(180deg, #ffe45a, #ffae00); }
+:root.brawl[data-theme="arena"] .hub-tile.hub-pass:not(.hub-glory) .hub-tile-icon { background: linear-gradient(180deg, #c98bff, #8a3cff); }
+:root.brawl[data-theme="arena"] .hub-tile-icon .ic { filter: drop-shadow(0 1.5px 0 var(--ink)); }
+:root.brawl[data-theme="arena"] .team-stats small { color: #a9bdf0; font-weight: 800; }
+:root.brawl[data-theme="arena"] .casino-call { background: linear-gradient(180deg, #2b3f9e, #1c2c78); }
+:root.brawl[data-theme="arena"] .casino-call-text b { color: #ffe45a; }
+:root.brawl[data-theme="arena"] .pitch, :root.brawl[data-theme="arena"] .squad-pitch { border: 3px solid var(--ink); box-shadow: 0 4px 0 var(--ink); }
+:root.brawl[data-theme="arena"] .hub-tile.hero p, :root.brawl[data-theme="arena"] .hub-tile.hero .hero-text small { color: #fff; opacity: .95; font-weight: 700; }
+:root.brawl[data-theme="arena"] .hub-link-icon { background: linear-gradient(180deg, #4ab0ff, #1f6fff); color: #fff; border: 2px solid var(--ink); border-radius: 12px; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .3); }
+:root.brawl[data-theme="arena"] .hub-link-icon .ic { filter: drop-shadow(0 1.5px 0 var(--ink)); }
+:root.brawl[data-theme="arena"] .hub-link-text strong { color: #fff; -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 0 2px 0 var(--ink); text-transform: uppercase; }
+:root.brawl[data-theme="arena"] .hub-link-text small { color: var(--muted); }
+:root.brawl[data-theme="arena"] .hub-link-go { color: #fff; }
+:root.brawl[data-theme="arena"] .hub-profile-text strong { color: #fff; -webkit-text-stroke: 2.5px var(--ink); paint-order: stroke fill; }
+/* Karriere und allgemeine Panels im neuen Look */
+:root.brawl[data-theme="arena"] :is(.panel, .cs-head, .cs-attrs, .cs-table, .cs-pulse, .cs-window, .cs-note, .sk-branch, .live-ask, .cs-nlz-prog) {
+  background: linear-gradient(180deg, var(--bb-panel-2), var(--bb-panel)); border: 3px solid var(--ink); box-shadow: var(--bb-hi), var(--bb-out);
+}
+:root.brawl[data-theme="arena"] :is(.cs-life-btn, .cs-choice, .cs-nlz-toggle) {
+  background: linear-gradient(180deg, #2f4bb0, #22368c); border: 3px solid var(--ink); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .2), 0 3px 0 var(--ink); color: #fff;
+  font-family: var(--display); font-weight: 400; letter-spacing: .02em; transition: transform .08s ease-out, box-shadow .08s ease-out;
+}
+:root.brawl[data-theme="arena"] :is(.cs-life-btn, .cs-choice):active { transform: translateY(2px); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .2), 0 1px 0 var(--ink); }
+:root.brawl[data-theme="arena"] :is(.cs-choice.on, .cs-nlz-toggle.on, .cs-nlz-prog.on) { background: linear-gradient(180deg, #ffe45a, var(--bb-yellow) 50%, var(--bb-yellow-2)); -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; }
+:root.brawl[data-theme="arena"] .cs-club { font-family: var(--display); font-weight: 400; color: #fff; -webkit-text-stroke: 4px var(--ink); paint-order: stroke fill; text-shadow: 0 3px 0 var(--ink); }
+:root.brawl[data-theme="arena"] .panel h2, :root.brawl[data-theme="arena"] .panel h3 { font-family: var(--display); font-weight: 400; color: #fff; -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 0 2px 0 var(--ink); letter-spacing: .02em; }
+:root.brawl[data-theme="arena"] .cs-ovr { border: 3px solid var(--ink); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .4), 0 4px 0 var(--ink); }
+:root.brawl[data-theme="arena"] .cs-ovr strong { font-family: var(--display); font-weight: 400; }
+:root.brawl[data-theme="arena"] .cs-pos { background: var(--bb-purple); color: #fff; border: 2px solid var(--ink); font-family: var(--display); font-weight: 400; }
+:root.brawl[data-theme="arena"] .sk-branch { color: #fff; }
+:root.brawl[data-theme="arena"] .cs-choice { font-family: inherit; font-weight: 600; }
+:root.brawl[data-theme="arena"] .cs-choice :is(strong, b) { font-family: var(--display); font-weight: 400; letter-spacing: .02em; }
+:root.brawl[data-theme="arena"] .hub-top { gap: 8px; }
+:root.brawl[data-theme="arena"] .hub-profile { gap: 8px; padding-right: 10px; flex: 1 1 auto; }
+:root.brawl[data-theme="arena"] .hub-profile .emblem { width: 38px !important; height: 38px !important; }
+:root.brawl[data-theme="arena"] .hub-profile-text strong { font-size: .95rem; max-width: none; }
+:root.brawl[data-theme="arena"] .hub-coins { padding: 6px 10px; }

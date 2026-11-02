@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-02-neuer-look',
+    date: '02.11.2026',
+    title: 'Neuer Look: bunt und knallig',
+    items: [
+      'Das ganze Spiel hat einen neuen Look: Himmelblau, dicke Konturen, 3D-Knöpfe zum Draufdrücken und eine fette Comic-Schrift.',
+      'Gelb = Hauptaktion, Grün = Neue Karriere, Blau = Nebenaktion – überall gleich.',
+      'Lieber den alten Neon-Look? Einstellungen → Look → „Neon“.',
+    ],
+  },
+  {
     id: '2026-11-01-duelle-reiter',
     date: '01.11.2026',
     title: 'Duelle aufgeräumt',

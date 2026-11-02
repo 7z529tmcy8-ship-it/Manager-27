@@ -28,7 +28,8 @@ it('Spezial-Tausche: jeder ist mit dem Kartenpool lösbar, aber nicht mit schwac
 
 it('Spezial-Tausch: Karten weg, Momentkarte da, nur einmal, Džeko erst nach Grafite', () => {
   const m = MOMENTS.find((x) => x.id === 'moment-lewandowski')!;
-  const team = solve(m, CARD_POOL)!;
+  // Ära-Karten wechseln täglich Verein und Liga – für feste Testdaten weglassen
+  const team = solve(m, CARD_POOL.filter((c) => c.variant !== 'aera'))!;
   let club = { ...freshClub(), cards: Object.fromEntries(team.map((c) => [c.id, 1])) };
   const ids = team.map((c) => c.id);
   expect(completeMoment(club, m.id, ids.slice(0, 10))).toBeNull();

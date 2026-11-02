@@ -21,6 +21,8 @@ export interface AppSettings {
   fullscreen?: boolean;
   /** Einmalige Umstellung: Querformat-Sperre nicht mehr standardmäßig (Startmenü fürs Hochformat). */
   orientationV2?: boolean;
+  /** Look: „brawl“ (bunt, dicke Konturen, Standard) oder „neon“ (dunkles Neon-Stadion). */
+  look?: 'brawl' | 'neon';
 }
 
 const KEY = 'fc-manager-settings';
@@ -48,6 +50,7 @@ export function applySettings(s: AppSettings = current): void {
   if (s.theme === 'auto') delete root.dataset.theme;
   else root.dataset.theme = s.theme;
   root.classList.toggle('reduce-motion', !s.animations);
+  root.classList.toggle('brawl', s.look !== 'neon');
   root.classList.toggle('want-landscape', !!s.landscape);
   // Halloween-Event (bis 2. November 2026): eigenes Design, abschaltbar.
   const now = new Date();

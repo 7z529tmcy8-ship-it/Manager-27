@@ -92,6 +92,14 @@ export default function Settings({ career, onChange, onClose }: Props) {
             options={[['arena', 'Arena'], ['auto', 'Auto'], ['light', 'Hell'], ['dark', 'Dunkel']]}
             onPick={(theme) => set({ theme })}
           />
+          {app.theme === 'arena' && (
+            <Choice<'brawl' | 'neon'>
+              label="Look"
+              value={app.look ?? 'brawl'}
+              options={[['brawl', 'Bunt'], ['neon', 'Neon']]}
+              onPick={(look) => set({ look })}
+            />
+          )}
           <Toggle label="Animationen" checked={app.animations} onToggle={() => set({ animations: !app.animations })} hint="Pack-Öffnung, Konfetti und Hochzählen." />
           <Toggle label="Im Querformat spielen" checked={!!app.landscape} onToggle={async () => {
             if (!app.landscape) { set({ landscape: true }); await lockLandscape(); } else { set({ landscape: false }); unlockOrientation(); }
