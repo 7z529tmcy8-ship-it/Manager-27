@@ -34,7 +34,7 @@ export const UPDATES: UpdateNote[] = [
     title: 'China-Liga, Hulk & Paulinho, Geldgier',
     items: [
       'Neue Liga: Chinese Super League mit 16 Vereinen – Angebote von dort gibt es gegen Karriereende, Starten geht auch.',
-      'Neue Kult-Helden: Hulk (Shanghai SIPG) und Paulinho (Guangzhou Evergrande).',
+      'Neue Kult-Helden: Hulk (Shanghai SIPG) und Paulinho (Guangzhou Evergrande) – als Karte und in der Karriere unter „Kult“.',
       'Neue Eigenschaft „Geldgier“: Dein Spieler wechselt automatisch zum Angebot mit dem höchsten Gehalt.',
       'Design-Fehler im Spiel behoben: Topspiel-Fenster im Querformat, Überschriften, Klinik-Karten, doppelte Rahmen.',
     ],

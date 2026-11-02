@@ -147,6 +147,12 @@ export const HANNOVER_2018: LegendTemplate[] = H96_2018_RAW.map(([name, nation, 
 // Kult-Helden: Publikumslieblinge und „Forgotten Names“ starten jung bei einem Verein ihrer Anfänge bzw. großen Zeit.
 // Startvereine teils vereinfacht (nur Vereine, die es im Spiel gibt). Werte sind eigene Schätzungen.
 const CULT_RAW: typeof RAW = [
+  // China-Ära: Hulk wechselte 2016 zu Shanghai SIPG (heute Shanghai Port), Paulinho 2015 zu Guangzhou Evergrande.
+  // Guangzhou gibt es im Spiel nicht mehr – Paulinho startet bei Tottenham, seiner Station vor China.
+  ['Hulk', 'Brasilien', 'FL', 20, 73, 88, 'Shanghai Port', ['showman', 'greedy'],
+    'Oberschenkel wie Baumstämme, Schuss wie eine Kanone – und ein Ohr für die ganz großen Angebote.'],
+  ['Paulinho', 'Brasilien', 'ZM', 21, 72, 87, 'Tottenham Hotspur', ['professional', 'greedy'],
+    'Box-to-Box-Motor mit Torriecher. Wenn China ruft, ist er schneller weg als jeder Konter.'],
   ['Ricardo Quaresma', 'Portugal', 'FL', 18, 72, 88, 'Sporting Lissabon', ['showman', 'diva'],
     'Trivela statt Innenrist: Flanken mit dem Außenrist, die physikalisch eigentlich nicht gehen.'],
   ['Juan Román Riquelme', 'Argentinien', 'ZOM', 19, 73, 90, 'Villarreal CF', ['showman', 'clutch'],

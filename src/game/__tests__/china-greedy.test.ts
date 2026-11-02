@@ -33,3 +33,16 @@ it('Geldgier: am Saisonende nur das Angebot mit dem höchsten Gehalt', () => {
   const normal = seasonChoices({ ...c, player: { ...c.player, traits: [] }, phase: 'window', offers });
   expect(normal.length).toBeGreaterThan(1);
 });
+
+it('Hulk und Paulinho sind im Karriere-Reiter „Kult“ spielbar', async () => {
+  const { CULT_LEGENDS } = await import('../../data/legends');
+  const { getClub } = await import('../../data/leagues');
+  for (const name of ['Hulk', 'Paulinho']) {
+    const l = CULT_LEGENDS.find((x) => x.name === name);
+    expect(l, name).toBeTruthy();
+    expect(getClub(l!.clubId).name).toBeTruthy();
+    expect(l!.traits).toContain('greedy');
+    const c = createCareer({ name: l!.name, nation: l!.nation, position: l!.position, age: l!.age, ovr: l!.ovr, potential: l!.potential, clubId: l!.clubId, traits: l!.traits });
+    expect(c.player.name).toBe(name);
+  }
+});
