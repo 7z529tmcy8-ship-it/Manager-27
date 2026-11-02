@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-02-bestenliste',
+    date: '02.11.2026',
+    title: 'Neu: Bestenliste',
+    items: [
+      'Wer hat die meisten Trophäen? Die Top 100 – tippe im Profil auf deine Trophäen.',
+      'Dein Platz ist hervorgehoben; bist du noch nicht in den Top 100, siehst du, wie viele Trophäen dir fehlen.',
+      'Die Konkurrenz schläft nicht: Jeden Tag kommen bei den anderen Trophäen dazu.',
+    ],
+  },
+  {
     id: '2026-11-02-kult-memphis',
     date: '02.11.2026',
     title: '13 neue Kult-Helden',

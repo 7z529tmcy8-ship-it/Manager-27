@@ -8,6 +8,8 @@ import {
 import type { Career } from '../game/types';
 import { play } from '../sound';
 import Icon from './Icon';
+import Leaderboard from './Leaderboard';
+import { leaderboard } from '../game/leaderboard';
 import UtCard from './UtCard';
 
 /** Wappen-Abzeichen: Sechseck in der Profilfarbe mit Linien-Icon (keine Gesichter). */
@@ -32,6 +34,8 @@ export default function ProfileScreen({ careers, onClose }: { careers: Career[];
   const [pickSlot, setPickSlot] = useState<number | null>(null);
   const [custom, setCustom] = useState(false);
   const [tab, setTab] = useState<Tab>('emblem');
+  const [board, setBoard] = useState(false);
+  const rank = leaderboard({ name: p.name, trophies: club.trophies ?? 0, emblem: p.emblem, color: p.color, fx: 'weiss' }).rank;
   const lvl = managerLevel(managerXp(club, careers));
   const shelf = showcase3(club);
   const fx = nameFxOf(club);
@@ -71,7 +75,9 @@ export default function ProfileScreen({ careers, onClose }: { careers: Career[];
           </div>
 
           <div className="pf-pills">
-            <span className="pf-pill gold"><Icon name="trophy" size={20} /><b>{(club.trophies ?? 0).toLocaleString('de-DE')}</b><small>Rekord {(club.trophyBest ?? 0).toLocaleString('de-DE')}</small></span>
+            <button className="pf-pill gold pf-lb" onClick={() => setBoard(true)} aria-label="Bestenliste öffnen">
+              <Icon name="trophy" size={20} /><b>{(club.trophies ?? 0).toLocaleString('de-DE')}</b><small>Platz {rank.toLocaleString('de-DE')} ›</small>
+            </button>
             <span className="pf-pill"><Icon name="medal" size={20} /><b>{divName(div.div)}</b><small>Beste: {divName(div.best)}</small></span>
           </div>
         </section>
@@ -118,6 +124,7 @@ export default function ProfileScreen({ careers, onClose }: { careers: Career[];
         </ul>
       </div>
 
+      {board && <Leaderboard onClose={() => setBoard(false)} />}
       {custom && (
         <div className="pf-sheet-wrap" role="dialog" aria-modal="true" aria-label="Profil anpassen" onClick={() => setCustom(false)}>
           <div className="pf-sheet" onClick={(e) => e.stopPropagation()}>

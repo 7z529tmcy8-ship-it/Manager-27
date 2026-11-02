@@ -6080,3 +6080,25 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .sk-mast.m3 { color: #a65cff; } .sk-mast.m3 b { background: linear-gradient(90deg, #ff6ad5, #ffd84a, #6bffb8, #4fb4ff, #a65cff); background-size: 300% 100%; animation: nfx-flow 3s linear infinite; color: #1d1d1f; }
 .sk-skill.owned:has(.sk-mast.m3) { box-shadow: 0 0 0 2px #a65cff55, 0 6px 20px rgba(166, 92, 255, .25); }
 @media (prefers-reduced-motion: reduce) { .sk-mast.m3 b { animation: none; } }
+
+/* ---------- Bestenliste ---------- */
+.lb-sub { display: flex; align-items: center; gap: 6px; margin: -6px 0 14px; color: var(--muted); font-size: .875rem; }
+.lb-list { list-style: none; margin: 0; padding: 0 0 90px; display: grid; gap: 6px; }
+.lb-row, .lb-me { display: grid; grid-template-columns: 34px auto minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 16px;
+  background: var(--surface); border: 1px solid var(--hairline); content-visibility: auto; contain-intrinsic-size: auto 52px; }
+.lb-rank { text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--muted); font-size: .9rem; }
+.lb-name { min-width: 0; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-name small { color: var(--accent); font-weight: 800; }
+.lb-tro { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text); }
+.lb-tro .ic { color: #d4a017; }
+.lb-row.podium.p1 { background: linear-gradient(90deg, rgba(255, 215, 106, .28), transparent 70%), var(--surface); border-color: rgba(212, 160, 23, .5); }
+.lb-row.podium.p2 { background: linear-gradient(90deg, rgba(190, 198, 210, .35), transparent 70%), var(--surface); }
+.lb-row.podium.p3 { background: linear-gradient(90deg, rgba(205, 127, 50, .28), transparent 70%), var(--surface); }
+.lb-row.p1 .lb-rank { color: #d4a017; } .lb-row.p2 .lb-rank { color: #8d96a0; } .lb-row.p3 .lb-rank { color: #b87333; }
+.lb-row.me { border: 2px solid var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+.lb-me { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(540px, calc(100% - 24px)); z-index: 5;
+  grid-template-columns: auto auto minmax(0, 1fr) auto; border: 2px solid var(--accent); box-shadow: 0 12px 30px rgba(0, 0, 0, .25); }
+.lb-me .lb-rank { color: var(--accent); min-width: 34px; }
+.lb-gap { grid-column: 1 / -1; color: var(--muted); font-size: .75rem; text-align: center; }
+.pf-lb { cursor: pointer; font: inherit; color: inherit; text-align: left; transition: transform .12s ease-out; }
+.pf-lb:active { transform: scale(.97); }

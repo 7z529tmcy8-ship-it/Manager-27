@@ -12,7 +12,7 @@ export interface Trader {
   trades: number;
 }
 
-const NAMES = ['Alex der Yogi', 'Hamudi California', 'Rene Dost', 'Dore65', 'Karsten Boss', 'Alpha67', 'Yo Olli', 'Barello', 'Arafat', 'Paulm67', 'Leontin-296', 'Masi'];
+export const NAMES = ['Alex der Yogi', 'Hamudi California', 'Rene Dost', 'Dore65', 'Karsten Boss', 'Alpha67', 'Yo Olli', 'Barello', 'Arafat', 'Paulm67', 'Leontin-296', 'Masi'];
 let lastName = '';
 const AVATARS = ['🕶️', '🌵', '🧢', '🐸', '🦊', '💸', '🎭', '🛸', '🐒', '🪨'];
 
