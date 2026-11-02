@@ -86,18 +86,18 @@ export default function Settings({ career, onChange, onClose }: Props) {
 
         <section className="panel">
           <h2>Dieses Gerät</h2>
-          <Choice<AppSettings['theme']>
-            label="Design"
-            value={app.theme}
-            options={[['arena', 'Arena'], ['auto', 'Auto'], ['light', 'Hell'], ['dark', 'Dunkel']]}
-            onPick={(theme) => set({ theme })}
+          <Choice<'aqua' | 'brawl' | 'neon'>
+            label="Look"
+            value={app.look ?? 'aqua'}
+            options={[['aqua', 'Aqua'], ['brawl', 'Bunt'], ['neon', 'Neon']]}
+            onPick={(look) => set({ look })}
           />
-          {app.theme === 'arena' && (
-            <Choice<'brawl' | 'neon'>
-              label="Look"
-              value={app.look ?? 'brawl'}
-              options={[['brawl', 'Bunt'], ['neon', 'Neon']]}
-              onPick={(look) => set({ look })}
+          {app.look === 'neon' && (
+            <Choice<AppSettings['theme']>
+              label="Design"
+              value={app.theme}
+              options={[['arena', 'Arena'], ['auto', 'Auto'], ['light', 'Hell'], ['dark', 'Dunkel']]}
+              onPick={(theme) => set({ theme })}
             />
           )}
           <Toggle label="Animationen" checked={app.animations} onToggle={() => set({ animations: !app.animations })} hint="Pack-Öffnung, Konfetti und Hochzählen." />

@@ -5828,3 +5828,226 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 :root.brawl[data-theme="arena"] .vice-card:disabled { opacity: .78; filter: saturate(.7); }
 :root.brawl[data-theme="arena"] .vice-card em { color: #ffe45a; font-style: normal; font-weight: 800; }
 :root.brawl[data-theme="arena"] .cs-note { color: #fff; }
+
+/* =====================================================================
+   AQUA-LOOK – Standard (html.aqua, data-theme="light")
+   80 % moderne Minimalistik (Weiß, Silber, Grau, Schwarz, große leichte Überschriften),
+   20 % Retro-Futurismus: glänzende Aqua-Knöpfe, gebürstetes Aluminium, Fensterleisten,
+   transluzente Kunststoff-Akzente in Bondi-Blau, Limette und Tangerine.
+   Eigene Gestaltung – keine fremden Logos, Namen oder Grafiken.
+   ===================================================================== */
+:root.aqua {
+  --bg: #ffffff; --surface: #ffffff; --surface-2: #f5f5f7; --surface-3: #e8e8ed;
+  --hairline: rgba(0, 0, 0, .08); --text: #1d1d1f; --text-2: #424245; --muted: #6e6e73;
+  --accent: #0a84ff; --accent-hover: #3a9bff; --accent-ink: #ffffff; --link: #0066cc;
+  --up: #2fa84f; --down: #e5484d; --gold: #b8860b;
+  --aq-blue: #0a84ff; --aq-ice: #d9ecff; --aq-bondi: #0095b6; --aq-lime: #8ccf2a; --aq-tangerine: #ff8a1f;
+  --aq-chrome: linear-gradient(180deg, #fbfbfd 0%, #e9e9ee 48%, #dcdce2 52%, #f1f1f5 100%);
+  --aq-alu: repeating-linear-gradient(90deg, rgba(255, 255, 255, .0) 0 2px, rgba(0, 0, 0, .018) 2px 3px), linear-gradient(180deg, #f4f4f6, #dfdfe4);
+  --aq-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 8px 28px rgba(0, 0, 0, .07);
+  --display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color-scheme: light;
+}
+:root.aqua, :root.aqua body { background: #ffffff !important; color: var(--text); }
+:root.aqua body::before, :root.aqua body::after, :root.aqua .hw-decor { display: none !important; }
+
+/* Typografie: große, leichte, eng gesetzte Überschriften */
+:root.aqua :is(.hub-title, .dr-title, .mt-title, .topbar-title h1, .overlay-title, .pf-sheet-head strong) {
+  font-family: var(--display); font-weight: 700; letter-spacing: -.035em; text-transform: none; color: #1d1d1f;
+  -webkit-text-stroke: 0; text-shadow: none; background: none; -webkit-text-fill-color: currentColor;
+}
+:root.aqua .hub-title { font-size: clamp(2.4rem, 9vw, 3.4rem); line-height: 1.02; margin: 8px 0 14px; }
+:root.aqua :is(.hub-section, .store-group-head, .cc-head h2, .dr-step, .cs-timeline-head h2) {
+  font-family: var(--display); font-weight: 700; letter-spacing: -.02em; text-transform: none; color: #1d1d1f; -webkit-text-stroke: 0; text-shadow: none; font-size: 1.35rem;
+}
+:root.aqua .hub-events-head { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: .7rem; letter-spacing: .14em; color: #6e6e73; }
+:root.aqua .hub-events-head i { background: var(--aq-tangerine); box-shadow: none; }
+:root.aqua :is(.hub-tile strong, .hub-big strong, .hub-link-text strong, .cc-tile strong, .casino-call-text b, .draft-call-text b, .era-call-text b, .lg-name b, .dv-mid b, .team-stats strong, .div-side strong, .pf-name, .pf-rec strong, .pf-pill b, .hub-coins, .hub-profile-text strong) {
+  font-family: var(--display); font-weight: 650; letter-spacing: -.015em; text-transform: none; -webkit-text-stroke: 0; text-shadow: none;
+}
+
+/* Flächen: Weiß, feine Kante, weicher Schatten – ruhig und hochwertig */
+:root.aqua :is(.hub-tile, .team-stats > div, .cc-tile, .dv-strip, .dv-match, .lg-row, .casino-call, .stored-pack, .pack-card, .season, .collect-progress, .draft-call, .reward-call, .hub-link, .pf-stats li, .pf-fx-row, .pf-ttl, .div-card, .div-match, .upgrade-box, .evo-path, .shop-empty, .drops-ready, .hub-empty, .cz-game, .hl-talent, .panel, .cs-head, .cs-attrs, .cs-table, .cs-pulse, .cs-window, .vice-card, .clinic-glam, .store-group) {
+  background: #ffffff; color: #1d1d1f; border: 1px solid rgba(0, 0, 0, .07); border-radius: 22px; box-shadow: var(--aq-shadow);
+}
+:root.aqua :is(.panel, .cs-window, .cs-head) :is(.panel, .live-ask, .cs-note) { background: none; border: 0; box-shadow: none; }
+:root.aqua :is(.hub-tile, .cc-tile, .dv-strip, .lg-row, .hub-link, .draft-call, .casino-call) { transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s ease; }
+:root.aqua :is(.hub-tile, .cc-tile, .hub-link, .draft-call, .casino-call):hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(0, 0, 0, .04), 0 14px 36px rgba(0, 0, 0, .1); }
+:root.aqua :is(.hub-tile, .cc-tile, .hub-link, .draft-call, .casino-call, .dv-strip):active { transform: scale(.985); }
+:root.aqua :is(.hub-tile small, .cc-tile small, .lg-name small, .dv-mid small, .hint, .hub-sub, .muted, .hub-link-text small, .casino-call-text small, .draft-call-text small) { color: #6e6e73; }
+:root.aqua .lg-row.here { background: linear-gradient(180deg, #f2f8ff, #e3f0ff); border-color: rgba(10, 132, 255, .35); box-shadow: 0 0 0 1px rgba(10, 132, 255, .25), var(--aq-shadow); }
+
+/* Plastische Icons: kleine glänzende Kunststoff-Kacheln */
+:root.aqua :is(.hub-tile-icon, .cc-icon, .hub-link-icon, .pf-st-ic, .draft-call-icon, .casino-call-icon) {
+  position: relative; overflow: hidden; color: #fff; border: 1px solid rgba(0, 40, 90, .25); border-radius: 12px;
+  background: linear-gradient(180deg, #6cc0ff 0%, #1f8cff 50%, #0a6fe0 51%, #3d9dff 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), 0 2px 6px rgba(10, 100, 220, .25);
+}
+:root.aqua :is(.hub-tile-icon, .cc-icon, .hub-link-icon, .pf-st-ic, .draft-call-icon, .casino-call-icon)::after {
+  content: ''; position: absolute; left: 8%; right: 8%; top: 3%; height: 46%; border-radius: 10px 10px 50% 50% / 10px 10px 30% 30%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .85), rgba(255, 255, 255, .1)); pointer-events: none;
+}
+:root.aqua :is(.hub-tile-icon, .cc-icon, .hub-link-icon, .pf-st-ic, .draft-call-icon, .casino-call-icon) .ic { position: relative; z-index: 1; color: #fff; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .25)); }
+:root.aqua .hub-glory .hub-tile-icon, :root.aqua .casino-call-icon, :root.aqua .ct-icon .cc-icon { background: linear-gradient(180deg, #ffc27a 0%, #ff9a2e 50%, #f07800 51%, #ffa64a 100%); border-color: rgba(120, 50, 0, .3); }
+:root.aqua .hub-pass:not(.hub-glory) .hub-tile-icon, :root.aqua .ct-special .cc-icon, :root.aqua .ct-sbc .cc-icon { background: linear-gradient(180deg, #d6a8ff 0%, #a659ff 50%, #8a35f0 51%, #b77bff 100%); border-color: rgba(60, 0, 120, .3); }
+:root.aqua :is(.ct-own, .ct-aera) .cc-icon, :root.aqua .hl-call-btn .draft-call-icon { background: linear-gradient(180deg, #c6f07a 0%, #93d13a 50%, #74b81e 51%, #a6dc50 100%); border-color: rgba(40, 80, 0, .3); }
+
+/* Aqua-Knöpfe: Glas-Kapsel mit Glanzkante oben */
+:root.aqua .btn {
+  position: relative; overflow: hidden; border-radius: 999px; font-family: var(--display); font-weight: 600; letter-spacing: -.005em; -webkit-text-stroke: 0; text-shadow: none;
+  transition: transform .15s ease, box-shadow .2s ease, filter .2s ease;
+}
+:root.aqua .btn.primary, :root.aqua .btn.primary:hover:not(:disabled) {
+  color: #fff; border: 1px solid #0a4fb0; text-shadow: 0 -1px 0 rgba(0, 40, 110, .45);
+  background: linear-gradient(180deg, #8fcbff 0%, #3d9dff 48%, #0b72e7 52%, #2f93ff 82%, #6bbcff 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), inset 0 -2px 6px rgba(120, 200, 255, .6), 0 3px 10px rgba(10, 110, 230, .35);
+}
+:root.aqua .btn.primary::before, :root.aqua .btn.secondary::before {
+  content: ''; position: absolute; left: 10px; right: 10px; top: 2px; height: 45%; border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .9), rgba(255, 255, 255, .15)); pointer-events: none;
+}
+:root.aqua .btn.secondary, :root.aqua .btn.secondary:hover:not(:disabled) {
+  color: #1d1d1f; border: 1px solid #a9a9b0; background: linear-gradient(180deg, #ffffff 0%, #ededf0 48%, #dedee3 52%, #f4f4f6 100%);
+  box-shadow: inset 0 1px 0 #fff, 0 2px 6px rgba(0, 0, 0, .1);
+}
+:root.aqua .btn.ghost { color: #0066cc; background: transparent; border: 1px solid rgba(0, 102, 204, .3); box-shadow: none; }
+:root.aqua .btn:active:not(:disabled) { transform: scale(.97); filter: brightness(.96); }
+:root.aqua .btn:disabled { color: #a1a1a6; border: 1px solid #d2d2d7; background: #f5f5f7; box-shadow: none; text-shadow: none; opacity: 1; }
+:root.aqua .btn:disabled::before { display: none; }
+
+/* Startmenü: zwei große Kunststoff-Knöpfe im Stil der bunten Rechner von 1998 */
+:root.aqua .hub-big { position: relative; overflow: hidden; border-radius: 24px; color: #fff; border: 1px solid rgba(0, 0, 0, .12); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), 0 10px 30px rgba(0, 0, 0, .12); }
+:root.aqua .hub-big::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .09) 0 2px, transparent 2px 7px), linear-gradient(180deg, rgba(255, 255, 255, .45), rgba(255, 255, 255, 0) 45%); }
+:root.aqua .hub-big.hb-new { background: linear-gradient(160deg, #3cc7e0 0%, var(--aq-bondi) 55%, #00708a 100%); }
+:root.aqua .hub-big.hb-shop { background: linear-gradient(160deg, #ffb35c 0%, var(--aq-tangerine) 55%, #e06a00 100%); }
+:root.aqua .hub-big > * { position: relative; }
+:root.aqua .hub-big strong { color: #fff; font-weight: 700; letter-spacing: -.02em; text-transform: none; text-shadow: 0 1px 2px rgba(0, 0, 0, .2); }
+:root.aqua .hub-big small { color: rgba(255, 255, 255, .92); -webkit-text-stroke: 0; font-weight: 600; }
+:root.aqua .hub-big:active { transform: scale(.98); }
+
+/* Held-Karte: dunkle Bühne mit Studiolicht (Kontrastfläche) */
+:root.aqua .hub-tile.hero { color: #f5f5f7; border: 0; border-radius: 26px; overflow: hidden;
+  background: radial-gradient(60% 80% at 50% -10%, rgba(120, 190, 255, .35), transparent 60%), radial-gradient(40% 40% at 85% 110%, rgba(0, 149, 182, .35), transparent 70%), linear-gradient(180deg, #1c1c1e, #000);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .25); }
+:root.aqua .hub-tile.hero::after { display: none; }
+:root.aqua .hub-tile.hero :is(h2, strong) { color: #fff; font-weight: 700; letter-spacing: -.03em; text-transform: none; -webkit-text-stroke: 0; text-shadow: none; }
+:root.aqua .hub-tile.hero .hub-kicker { color: #7cc4ff; font-family: ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: .14em; -webkit-text-stroke: 0; font-size: .7rem; }
+:root.aqua .hub-tile.hero p { color: #a1a1a6; }
+:root.aqua .hub-cta { border-radius: 999px; color: #fff; border: 1px solid #0a4fb0; background: linear-gradient(180deg, #8fcbff 0%, #3d9dff 48%, #0b72e7 52%, #2f93ff 82%, #6bbcff 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), 0 3px 10px rgba(10, 110, 230, .45); -webkit-text-stroke: 0; font-family: var(--display); font-weight: 600; text-transform: none; }
+
+/* Kopfleiste: Profil, Coins, Icons als gebürstetes Aluminium */
+:root.aqua :is(.hub-profile, .hub-coins, .hub-icon) { background: var(--aq-alu); border: 1px solid #c7c7cc; color: #1d1d1f; box-shadow: inset 0 1px 0 #fff, 0 1px 3px rgba(0, 0, 0, .08); }
+:root.aqua :is(.hub-back, .nav-back) { color: #0066cc; background: none; border: 0; box-shadow: none; font-family: var(--display); font-weight: 500; -webkit-text-stroke: 0; padding: 4px 0; }
+:root.aqua .hub-coins .ic, :root.aqua .coin-ic { color: #c99400; }
+:root.aqua :is(.hub-badge, .shop-badge, .navbar-badge) { background: linear-gradient(180deg, #ff6b6b, #e5302f); color: #fff; border: 1px solid #b31f1f; font-family: var(--display); font-weight: 700; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5); }
+
+/* Untere Leiste: Aluminium mit glänzender Aqua-Kapsel für den aktiven Bereich */
+:root.aqua .navbar { background: var(--aq-alu); border-top: 1px solid #c7c7cc; box-shadow: inset 0 1px 0 #fff; backdrop-filter: none; -webkit-backdrop-filter: none; }
+:root.aqua .navbar-item { color: #6e6e73; }
+:root.aqua .navbar-label { font-family: var(--display); font-weight: 600; font-size: .66rem; color: #6e6e73; -webkit-text-stroke: 0; letter-spacing: 0; }
+:root.aqua .navbar-item.on .navbar-label { color: #0a6fe0; }
+:root.aqua .navbar-item.on .navbar-ic { position: relative; overflow: hidden; color: #fff; border: 1px solid #0a4fb0; border-radius: 999px; transform: none;
+  background: linear-gradient(180deg, #8fcbff 0%, #3d9dff 48%, #0b72e7 52%, #2f93ff 82%, #6bbcff 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), 0 2px 8px rgba(10, 110, 230, .35); }
+:root.aqua .navbar-item.on .navbar-ic::after { content: ''; position: absolute; left: 6px; right: 6px; top: 1px; height: 45%; border-radius: 999px; background: linear-gradient(180deg, rgba(255, 255, 255, .85), rgba(255, 255, 255, .1)); }
+:root.aqua .navbar-item.on .navbar-ic .ic { position: relative; z-index: 1; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .25)); }
+:root.aqua .navbar-item.on::before { display: none; }
+:root.aqua .navbar-logo { filter: none; }
+
+/* Reiter: Aqua-Segmentschalter (Silber, aktiv = blaue Glaskapsel) */
+:root.aqua :is(.dl-tabs, .shop-tabs, .pf-tabs, .segmented) { background: var(--aq-chrome); border: 1px solid #c7c7cc; border-radius: 999px; box-shadow: inset 0 1px 0 #fff, 0 1px 3px rgba(0, 0, 0, .06); padding: 3px; }
+:root.aqua :is(.dl-tab, .shop-tab, .pf-tab, .segmented button) { color: #424245; font-family: var(--display); font-weight: 600; border: 1px solid transparent; border-radius: 999px; background: transparent; -webkit-text-stroke: 0; box-shadow: none; }
+:root.aqua :is(.dl-tab.on, .shop-tab.on, .pf-tab.on, .segmented button.active, .segmented button[aria-checked="true"], .chip.active, .tabs button.active, .dv-tac.on) {
+  color: #fff; border: 1px solid #0a4fb0; background: linear-gradient(180deg, #8fcbff 0%, #3d9dff 48%, #0b72e7 52%, #2f93ff 82%, #6bbcff 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), 0 2px 6px rgba(10, 110, 230, .3); -webkit-text-stroke: 0; text-shadow: 0 -1px 0 rgba(0, 40, 110, .4);
+}
+:root.aqua :is(.dl-tab.on, .shop-tab.on, .pf-tab.on, .dv-tac.on) .ic { color: #fff; filter: none; }
+:root.aqua :is(.chip, .tabs button) { border: 1px solid #d2d2d7; background: #fff; color: #1d1d1f; font-weight: 600; }
+:root.aqua .dv-tac { background: #fff; border: 1px solid #d2d2d7; color: #1d1d1f; box-shadow: 0 1px 2px rgba(0, 0, 0, .05); font-family: var(--display); font-weight: 600; }
+
+/* Fortschrittsbalken: Aqua-Balken mit Glanz */
+:root.aqua :is(.cc-bar, .pf-xp-bar, .ep-bar, .collect-bar, .evo-bar, .hl-bar, .season-bar) { background: #e8e8ed; border: 1px solid #d2d2d7; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .08); border-radius: 999px; }
+:root.aqua :is(.cc-bar i, .collect-bar i, .evo-bar i, .pf-xp-bar i, .season-bar i, .hl-bar i) {
+  background: linear-gradient(180deg, #a6d6ff 0%, #4aa6ff 45%, #1478f0 55%, #59b0ff 100%); border-radius: 999px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6);
+}
+:root.aqua .div-pips i { background: #e8e8ed; border: 1px solid #d2d2d7; }
+:root.aqua .div-pips i.on { background: linear-gradient(180deg, #a6d6ff, #1478f0); box-shadow: none; border-color: #0a4fb0; }
+:root.aqua .div-badge { color: #fff; border: 1px solid rgba(0, 0, 0, .15); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), 0 2px 6px rgba(0, 0, 0, .15); -webkit-text-stroke: 0; font-family: var(--display); font-weight: 700; }
+:root.aqua .div-vs-mark { background: #1d1d1f; color: #fff; border: 0; -webkit-text-stroke: 0; font-family: ui-monospace, Menlo, monospace; font-weight: 700; }
+
+/* Eingaben */
+:root.aqua :is(input[type="text"], input[type="search"], input:not([type]), input[type="password"], select, .code-redeem input) {
+  background: #fff; color: #1d1d1f; border: 1px solid #c7c7cc; border-radius: 12px; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .08);
+}
+:root.aqua :is(input, select):focus { outline: none; border-color: #0a84ff; box-shadow: 0 0 0 3px rgba(10, 132, 255, .25); }
+
+/* Overlays und Fenster: heller Grund; Banner und Menüs mit klassischer Fensterleiste */
+:root.aqua .overlay:not(.era):not(.casino-overlay):not(.hl) { background: #f5f5f7; }
+:root.aqua :is(.upd-card, .pf-sheet) { background: #fff; color: #1d1d1f; border: 1px solid #c7c7cc; box-shadow: 0 30px 80px rgba(0, 0, 0, .3); }
+:root.aqua .upd-card { padding-top: 40px; }
+:root.aqua .upd-card.has-video { padding-top: 0; }
+:root.aqua .upd-card::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 28px; z-index: 2; border-bottom: 1px solid #c7c7cc;
+  background: radial-gradient(circle at 16px 14px, #ff5f57 0 5.5px, transparent 6px), radial-gradient(circle at 34px 14px, #febc2e 0 5.5px, transparent 6px), radial-gradient(circle at 52px 14px, #28c840 0 5.5px, transparent 6px), var(--aq-alu); }
+:root.aqua .upd-card.has-video .upd-video-wrap { margin-top: 28px; }
+:root.aqua .upd-card h2 { color: #1d1d1f; font-weight: 700; letter-spacing: -.03em; background: none; -webkit-text-fill-color: currentColor; }
+:root.aqua .upd-card li { background: #f5f5f7; color: #1d1d1f; }
+:root.aqua .upd-badge { background: #f5f5f7; color: #6e6e73; border: 1px solid #e5e5ea; }
+:root.aqua .upd { background: rgba(240, 240, 245, .7); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); }
+:root.aqua .upd-promo { background: linear-gradient(120deg, #fff4e8, #ffe7cc); border: 1px solid #ffc58a; }
+:root.aqua .upd-promo-code { background: #fff; border-color: #ff8a1f; }
+:root.aqua .upd-promo-code b { color: #e06a00; } :root.aqua .upd-promo-code small, :root.aqua .upd-promo-text { color: #7a3d00; }
+:root.aqua .pf-sheet-wrap { background: rgba(0, 0, 0, .25); }
+:root.aqua .pf-tab small { color: inherit; opacity: .8; }
+
+/* Spielerkarte im Profil bleibt farbig – mit hellem Fensterrahmen */
+:root.aqua .pf-card-hero { border: 1px solid rgba(0, 0, 0, .1); box-shadow: 0 20px 50px rgba(0, 0, 0, .18); }
+:root.aqua .pf-rec { border: 0; box-shadow: 0 8px 24px rgba(0, 0, 0, .12); }
+:root.aqua .pf-rec.t-gold { background: linear-gradient(160deg, #ffb35c, #ff8a1f); }
+:root.aqua .pf-rec.t-blue { background: linear-gradient(160deg, #3cc7e0, #0095b6); }
+:root.aqua .pf-rec.t-pink { background: linear-gradient(160deg, #b6e65a, #74b81e); }
+
+/* Karriere */
+:root.aqua .cs-club { color: #1d1d1f; font-family: var(--display); font-weight: 700; letter-spacing: -.02em; -webkit-text-stroke: 0; text-shadow: none; }
+:root.aqua :is(.cs-life-btn, .cs-choice, .cs-nlz-toggle) { background: #fff; color: #1d1d1f; border: 1px solid #d2d2d7; border-radius: 16px; box-shadow: 0 1px 3px rgba(0, 0, 0, .06); font-family: inherit; font-weight: 600; -webkit-text-stroke: 0; }
+:root.aqua :is(.cs-choice.on, .cs-nlz-toggle.on) { border-color: #0a84ff; box-shadow: 0 0 0 3px rgba(10, 132, 255, .2); }
+:root.aqua .cs-pos { background: #1d1d1f; color: #fff; border: 0; }
+:root.aqua .live-card { background: #fff; color: #1d1d1f; border: 1px solid #c7c7cc; box-shadow: 0 30px 80px rgba(0, 0, 0, .3); }
+:root.aqua .live { background: rgba(240, 240, 245, .75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+:root.aqua .vice-card .vice-reward { color: #2f8a3e; } :root.aqua .vice-card .vice-risk { color: #c2343a; } :root.aqua .vice-card em { color: #b26200; }
+
+/* Bewegung: ruhiges Einblenden beim Bildschirmwechsel */
+@keyframes aq-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+:root.aqua .screen-in > main > * { animation: aq-rise .55s cubic-bezier(.2, .8, .2, 1) both; }
+:root.aqua .screen-in > main > *:nth-child(2) { animation-delay: .04s; } :root.aqua .screen-in > main > *:nth-child(3) { animation-delay: .08s; }
+:root.aqua .screen-in > main > *:nth-child(4) { animation-delay: .12s; } :root.aqua .screen-in > main > *:nth-child(n+5) { animation-delay: .16s; }
+@media (prefers-reduced-motion: reduce) { :root.aqua .screen-in > main > * { animation: none; } }
+/* Aqua: Feinschliff Runde 2 */
+:root.aqua .hub-cta { display: inline-flex; align-items: center; justify-self: start; align-self: start; width: auto; padding: 9px 22px; margin-top: 12px; }
+:root.aqua :is(.pass-hero, .pass-pro-card) { color: #f5f5f7; }
+:root.aqua :is(.pass-hero, .pass-pro-card) :is(strong, b, h2, h3, .pass-title) { color: #fff; }
+:root.aqua :is(.pass-hero, .pass-pro-card) :is(small, p, span:not(.pass-ring):not(.pass-node-dot), .pass-xp) { color: rgba(245, 245, 247, .82); }
+:root.aqua .pass-ring-bg { stroke: rgba(255, 255, 255, .18); }
+:root.aqua .pass-days { background: #fff; color: #6e6e73; border: 1px solid #e5e5ea; }
+:root.aqua .hub-profile-text small { color: #b26200; }
+:root.aqua .cs-attrs :is(.high, .key, b, strong) { color: #1d1d1f; }
+:root.aqua .cs-attrs li.key :is(.cs-attr-name, b) { color: #1d1d1f; font-weight: 700; }
+:root.aqua .cs-attrs li:not(.key) :is(.cs-attr-name, b) { color: #6e6e73; }
+/* Aqua: Ruhmesweg, Drop-Fächer, Duell-Ergebnis */
+:root.aqua .overlay.glory { background: #f5f5f7; }
+:root.aqua .gr-step { background: #fff; color: #1d1d1f; border: 1px solid #e5e5ea; box-shadow: 0 1px 3px rgba(0, 0, 0, .05); }
+:root.aqua .gr-step :is(.gr-at, .gr-reward, span, b) { color: #1d1d1f; }
+:root.aqua .gr-step.locked, :root.aqua .gr-step:not(.ready):not(.done) { opacity: .75; }
+:root.aqua .gr-step.ready { border-color: #0a84ff; box-shadow: 0 0 0 2px rgba(10, 132, 255, .2); }
+:root.aqua .gr-step.done { background: #f2fbf3; border-color: #b7e4bd; }
+:root.aqua .dc-slot { background: #fff; color: #1d1d1f; border: 1px solid #e5e5ea; box-shadow: var(--aq-shadow); }
+:root.aqua .dc-slot :is(strong, b) { color: #1d1d1f; } :root.aqua .dc-slot small { color: #6e6e73; }
+:root.aqua .duel-live { background: #fff; color: #1d1d1f; border: 1px solid #c7c7cc; box-shadow: 0 30px 80px rgba(0, 0, 0, .3); }
+:root.aqua .duel-live :is(p, span, strong, b) { text-shadow: none; }
+:root.aqua .duel-score { color: #1d1d1f; }
+:root.aqua .pack-open:has(> .duel-live) { background: rgba(240, 240, 245, .8); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+:root.aqua .duel-live { padding: 22px 18px; border-radius: 22px; }
+:root.aqua .duel-live > small { color: #0a6fe0; font-family: ui-monospace, Menlo, monospace; }
+:root.aqua .duel-goals li.own, :root.aqua .duel-result.win { color: #2f8a3e; }
+:root.aqua .duel-goals li.opp { color: #c2343a; }
+:root.aqua :is(.duel-live, .duel-live p, .duel-live li) { color: #1d1d1f; }

@@ -37,7 +37,14 @@ export function drawDuel(rand = Math.random, list = duelPool()): DuelCard {
 }
 /** Spannung: Die nächste Karte liegt immer nah an der offenen (±4 Wertungspunkte, nie derselbe Spieler). */
 export const DUEL_RANGE = 4;
-export const duelNear = (cur: DuelCard, list = duelPool()) => list.filter((x) => x !== cur && Math.abs(x.card.ovr - cur.card.ovr) <= DUEL_RANGE);
+/** Gibt es in der Nähe zu wenige Kartenarten (z. B. nur schwache Silberkarten), wird der Abstand schrittweise größer – sonst bleibt man dort hängen. */
+export function duelNear(cur: DuelCard, list = duelPool()): DuelCard[] {
+  for (const range of [DUEL_RANGE, DUEL_RANGE * 2, DUEL_RANGE * 4]) {
+    const near = list.filter((x) => x !== cur && Math.abs(x.card.ovr - cur.card.ovr) <= range);
+    if (new Set(near.map((d) => d.card.variant)).size >= 3) return near;
+  }
+  return list.filter((x) => x !== cur && Math.abs(x.card.ovr - cur.card.ovr) <= DUEL_RANGE * 4);
+}
 export const drawDuelNext = (cur: DuelCard, rand = Math.random) => drawDuel(rand, duelNear(cur));
 /** Karte für die Anzeige – genau so, wie sie im Spiel aussieht. */
 export const shownDuelCard = (d: DuelCard): CollectCard => d.card;

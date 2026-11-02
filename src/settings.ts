@@ -22,11 +22,13 @@ export interface AppSettings {
   /** Einmalige Umstellung: Querformat-Sperre nicht mehr standardmäßig (Startmenü fürs Hochformat). */
   orientationV2?: boolean;
   /** Look: „brawl“ (bunt, dicke Konturen, Standard) oder „neon“ (dunkles Neon-Stadion). */
-  look?: 'brawl' | 'neon';
+  look?: 'aqua' | 'brawl' | 'neon';
+  /** Einmalige Umstellung auf den Aqua-Look (November 2026). */
+  lookV2?: boolean;
 }
 
 const KEY = 'fc-manager-settings';
-const DEFAULTS: AppSettings = { theme: 'arena', animations: true, casino: true, sound: true, volume: 0.6, landscape: false, fullscreen: true, orientationV2: true };
+const DEFAULTS: AppSettings = { theme: 'arena', look: 'aqua', lookV2: true, animations: true, casino: true, sound: true, volume: 0.6, landscape: false, fullscreen: true, orientationV2: true };
 
 function load(): AppSettings {
   try {
@@ -35,6 +37,8 @@ function load(): AppSettings {
     const saved = JSON.parse(raw) as AppSettings;
     // Früher war Querformat Standard – jetzt ist das Startmenü fürs Hochformat gebaut: einmalig zurücksetzen.
     if (!saved.orientationV2) { saved.landscape = false; saved.orientationV2 = true; }
+    // Neuer Standard-Look: alle einmal auf Aqua umstellen (danach frei wählbar).
+    if (!saved.lookV2) { saved.look = 'aqua'; saved.lookV2 = true; }
     return { ...DEFAULTS, ...saved };
   } catch {
     return DEFAULTS;
@@ -47,10 +51,15 @@ const listeners = new Set<() => void>();
 /** Design und Animationen auf die Seite anwenden. */
 export function applySettings(s: AppSettings = current): void {
   const root = document.documentElement;
-  if (s.theme === 'auto') delete root.dataset.theme;
+  const look = s.look ?? 'aqua';
+  // Aqua ist ein heller Look, Bunt baut auf der Arena auf; nur bei Neon gilt die Design-Wahl.
+  if (look === 'aqua') root.dataset.theme = 'light';
+  else if (look === 'brawl') root.dataset.theme = 'arena';
+  else if (s.theme === 'auto') delete root.dataset.theme;
   else root.dataset.theme = s.theme;
+  root.classList.toggle('aqua', look === 'aqua');
   root.classList.toggle('reduce-motion', !s.animations);
-  root.classList.toggle('brawl', s.look !== 'neon');
+  root.classList.toggle('brawl', look === 'brawl');
   root.classList.toggle('want-landscape', !!s.landscape);
   // Halloween-Event (bis 2. November 2026): eigenes Design, abschaltbar.
   const now = new Date();

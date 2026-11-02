@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-02-aqua',
+    date: '02.11.2026',
+    title: 'Neuer Look: Aqua',
+    items: [
+      'Hell, ruhig, hochwertig: viel Weiß, große klare Überschriften – dazu glänzende Glas-Knöpfe, gebürstetes Aluminium und Akzente in Bondi-Blau, Limette und Tangerine.',
+      'Fenster mit den drei farbigen Punkten, Glas-Schalter für Reiter und eine Aluminium-Leiste unten.',
+      'Lieber bunt oder dunkel? Einstellungen → Look: Aqua, Bunt oder Neon.',
+    ],
+  },
+  {
     id: '2026-11-02-china-geldgier',
     date: '02.11.2026',
     title: 'China-Liga, Hulk & Paulinho, Geldgier',

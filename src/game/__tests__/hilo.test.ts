@@ -9,15 +9,19 @@ it('Höher/Tiefer: Karten aus dem ganzen Spiel, Werte fest je Karte, nächste Ka
   const variants = new Set(duelPool().map((d) => d.card.variant));
   ['icon', 'silver', 'gold', 'moment'].forEach((v) => expect(variants.has(v as never)).toBe(true));
   expect(variants.size).toBeGreaterThan(8);
+  let close = 0;
   for (let i = 0; i < 200; i++) {
     const cur = drawDuel();
     const next = drawDuelNext(cur);
-    expect(Math.abs(next.card.ovr - cur.card.ovr)).toBeLessThanOrEqual(DUEL_RANGE);
+    // Normalerweise ±4, nur wenn dort zu wenige Kartenarten liegen weiter (höchstens ±16)
+    expect(Math.abs(next.card.ovr - cur.card.ovr)).toBeLessThanOrEqual(DUEL_RANGE * 4);
+    if (Math.abs(next.card.ovr - cur.card.ovr) <= DUEL_RANGE) close++;
     const up = judge(cur, next, 'higher');
     const down = judge(cur, next, 'lower');
     if (next.card.ovr === cur.card.ovr) expect([up, down]).toEqual(['tie', 'tie']);
     else expect([up, down].sort()).toEqual(['right', 'wrong']); // immer genau eine Seite richtig
   }
+  expect(close).toBeGreaterThan(140);
 });
 
 it('Serie: alle 5 Richtigen ein Punkt, Fehler setzt zurück, Gleichstand ändert nichts', () => {
