@@ -46,3 +46,16 @@ it('Hulk und Paulinho sind im Karriere-Reiter „Kult“ spielbar', async () => 
     expect(c.player.name).toBe(name);
   }
 });
+
+it('Akademie-Talente: mindestens 10 Spieler mit 15/16 und Wertung unter 60 – als Karte und in der Karriere', async () => {
+  const { REAL_PLAYERS } = await import('../../data/players');
+  const { getClub } = await import('../../data/leagues');
+  const kids = REAL_PLAYERS.filter((p) => p.age <= 16 && p.ovr < 60);
+  expect(kids.length).toBeGreaterThanOrEqual(10);
+  for (const k of kids) {
+    expect(getClub(k.clubId).name, k.name).toBeTruthy();
+    expect(CARD_POOL.some((c) => c.name === k.name && c.ovr === k.ovr), k.name).toBe(true);
+    const c = createCareer({ name: k.name, nation: k.nation, position: k.position, age: k.age, ovr: k.ovr, potential: k.potential, clubId: k.clubId });
+    expect(c.player.age).toBe(k.age);
+  }
+});

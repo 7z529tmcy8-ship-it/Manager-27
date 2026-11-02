@@ -154,6 +154,18 @@ const WONDERKIDS_2026: typeof RAW = [
   ['Francesco Pio Esposito', 'Italien', 'ST', 20, 77, 86, 'Inter Mailand'],
   ['Victor Froholdt', 'Dänemark', 'ZM', 19, 77, 86, 'FC Porto'],
   ['Gianluca Prestianni', 'Argentinien', 'FL', 19, 75, 86, 'Benfica Lissabon'],
+  // Akademie-Talente (Jahrgang 2009/2010), per Websuche geprüft (November 2026): Verein, Jahrgang, Position.
+  // Alter 15/16 wie heute; Wertungen (alle unter 60) und Potenziale sind eigene Schätzungen.
+  ['Jeremy Monga', 'England', 'FL', 16, 58, 85, 'Leicester City'],
+  ['Cavan Sullivan', 'USA', 'ZOM', 16, 58, 85, 'Philadelphia Union'],
+  ['Eirik Granaas', 'Norwegen', 'ZM', 15, 52, 83, 'FC Porto'],
+  ['Shuai Weihao', 'China', 'ZM', 16, 54, 80, 'Chengdu Rongcheng'],
+  ['Josh Abe', 'England', 'FL', 16, 57, 86, 'Liverpool FC'],
+  ['Hamzath Mohamadou', 'Deutschland', 'ST', 15, 53, 85, 'Borussia Dortmund'],
+  ['Ashiah Haughton-Sinclair', 'England', 'ST', 15, 54, 85, 'Tottenham Hotspur'],
+  ['Ilai Grootfaam', 'Niederlande', 'ZM', 16, 58, 84, 'Feyenoord Rotterdam'],
+  ['Mohamed Abdalla', 'Niederlande', 'ST', 16, 59, 83, 'Ajax Amsterdam'],
+  ['Sami Bouhoudane', 'Niederlande', 'ST', 16, 56, 82, 'PSV Eindhoven'],
 ];
 
 // Ergänzung Oktober 2026: Stars und junge Spieler, Vereine nach dem Sommer-Transferfenster 2026 per Websuche geprüft.

@@ -29,6 +29,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-02-akademie-talente',
+    date: '02.11.2026',
+    title: '10 neue Akademie-Talente (15/16 Jahre)',
+    items: [
+      'Ganz unten anfangen: 10 neue Talente aus Jugendakademien mit Wertung unter 60 – in der Karriere unter „Echter Spieler“ und als Karte.',
+      'Mit dabei: Josh Abe (Liverpool), Hamzath Mohamadou (Dortmund), Ashiah Haughton-Sinclair (Tottenham), Jeremy Monga (Leicester), Cavan Sullivan (Philadelphia), Ilai Grootfaam (Feyenoord), Mohamed Abdalla (Ajax), Sami Bouhoudane (PSV), Eirik Granaas (Porto) und Shuai Weihao (Chengdu).',
+    ],
+  },
+  {
     id: '2026-11-02-aqua',
     date: '02.11.2026',
     title: 'Neuer Look: Aqua',
