@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { CARD_POOL, freshClub, type ClubState } from '../club';
 import { autoSquad } from '../squad';
 import {
-  ELITE, LOWEST, PROMOTE_AT, applyDivisionResult, divisionOf, makeOpponent, playDivisionDuel, promoBonus, squadFit, tacticEdge, withOpponent,
+  CHAMPIONS, ELITE, LOWEST, PROMOTE_AT, applyDivisionResult, divisionOf, makeOpponent, playDivisionDuel, promoBonus, squadFit, tacticEdge, withOpponent,
 } from '../divisions';
 
 function club(): ClubState {
@@ -34,9 +34,14 @@ it('Aufstieg bei 6 Punkten, Abstieg unter 0 – aber nicht aus Sicherheitsstufen
     expect(r.state.div).toBe(safe);
     expect(r.state.pts).toBe(0);
   }
+  // Aus der Elite geht es jetzt noch hoch in die Champions – dort ist Schluss.
   const elite = applyDivisionResult({ div: ELITE, pts: PROMOTE_AT - 1, best: ELITE }, 'win');
-  expect(elite.state.div).toBe(ELITE);
-  expect(elite.state.pts).toBe(PROMOTE_AT);
+  expect(elite.state.div).toBe(CHAMPIONS);
+  expect(elite.move).toBe('up');
+  const champ = applyDivisionResult({ div: CHAMPIONS, pts: PROMOTE_AT - 1, best: CHAMPIONS }, 'win');
+  expect(champ.state.div).toBe(CHAMPIONS);
+  expect(champ.state.pts).toBe(PROMOTE_AT);
+  expect(applyDivisionResult({ div: CHAMPIONS, pts: 0, best: CHAMPIONS }, 'loss').state.div).toBe(ELITE);
 });
 
 it('Taktik: Pressing > Ballbesitz > Konter > Pressing, Ausgewogen neutral', () => {

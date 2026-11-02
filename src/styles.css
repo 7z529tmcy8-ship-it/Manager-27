@@ -6102,3 +6102,16 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .lb-gap { grid-column: 1 / -1; color: var(--muted); font-size: .75rem; text-align: center; }
 .pf-lb { cursor: pointer; font: inherit; color: inherit; text-align: left; transition: transform .12s ease-out; }
 .pf-lb:active { transform: scale(.97); }
+
+/* ---------- Rivals-Karte (Wochen-Saison) und Champions-Division ---------- */
+.ucard.v-rivals { --a: #2a0a14; --b: #070208; --ink: #fff; --edge: #ff3b5c; --glow: rgba(255, 59, 92, .55); }
+.ucard.v-rivals.special { --pat:
+  repeating-linear-gradient(115deg, rgba(255, 59, 92, .32) 0 3px, transparent 3px 16px),
+  linear-gradient(115deg, transparent 40%, rgba(255, 200, 80, .35) 50%, transparent 60%),
+  radial-gradient(70% 45% at 50% 30%, rgba(255, 59, 92, .35), transparent 70%); }
+.ucard.v-rivals .ucard-club, .ucard.v-rivals .ucard-badge { color: #ff8aa0; letter-spacing: .08em; text-transform: uppercase; opacity: 1; }
+.div-badge.champ { background: linear-gradient(135deg, #ff9ad5, #a65cff 45%, #3d6dff); color: #fff; box-shadow: 0 0 22px rgba(166, 92, 255, .5); }
+.season-rivals { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 10px 0 0; font-size: .8125rem; color: var(--muted); }
+.season-rivals b { color: var(--text); }
+:root.aqua .season-claim { color: #7a4a00; background: linear-gradient(180deg, #fff6dc, #ffe9b0); border: 1px solid #f2c45a; font-weight: 700; }
+:root.aqua .season-claim .ic { color: #b26200; }

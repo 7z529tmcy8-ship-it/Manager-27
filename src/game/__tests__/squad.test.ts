@@ -76,18 +76,40 @@ it('Kartenwerte sind stabil und plausibel', () => {
   for (const v of cardAttrs(c)) expect(v).toBeGreaterThanOrEqual(25);
 });
 
-it('Duell-Saison: Punkte pro Monat, Rang, Belohnung erst im nächsten Monat und nur einmal', async () => {
-  const { claimSeason, duelPoints, seasonId, seasonRank, unclaimedSeasons } = await import('../squad');
+it('Duell-Saison: Punkte pro Woche, Rang, Belohnung ab Montag und nur einmal; alte Monats-Saison bleibt abholbar', async () => {
+  const { claimSeason, duelPoints, seasonId, seasonName, seasonRank, unclaimedSeasons } = await import('../squad');
   expect(duelPoints(5, 'win')).toBe(50);
   expect(duelPoints(5, 'draw')).toBe(15);
   expect(duelPoints(5, 'loss')).toBe(0);
-  expect(seasonId(new Date(2026, 9, 11))).toBe('2026-10');
+  expect(seasonId(new Date(2026, 10, 4))).toBe('2026-W45');
+  expect(seasonName('2026-W45')).toBe('Woche 45');
   expect(seasonRank(320).name).toBe('Gold');
-  const club = { ...freshClub(), duelSeasons: { '2026-10': 320 } };
-  expect(unclaimedSeasons(club, new Date(2026, 9, 20))).toHaveLength(0);
-  const nov = new Date(2026, 10, 2);
-  expect(unclaimedSeasons(club, nov)).toHaveLength(1);
-  const paid = claimSeason(club, '2026-10', nov);
-  expect(paid.coins).toBe(club.coins + 6000);
-  expect(claimSeason(paid, '2026-10', nov).coins).toBe(paid.coins);
+  const club = { ...freshClub(), duelSeasons: { '2026-W45': 320, '2026-10': 120 } };
+  expect(unclaimedSeasons(club, new Date(2026, 10, 6)).map((s) => s.id)).toEqual(['2026-10']);
+  const mon = new Date(2026, 10, 9);
+  expect(unclaimedSeasons(club, mon)).toHaveLength(2);
+  const paid = claimSeason(club, '2026-W45', mon);
+  expect(paid.coins).toBe(club.coins + 5000);
+  expect(claimSeason(paid, '2026-W45', mon).coins).toBe(paid.coins);
+});
+
+it('Rivals-Pack: Teamkarte kommt verbessert zurück, dazu Extrakarten und Packs in die Ablage', async () => {
+  const { claimDuelSeason } = await import('../rivals');
+  const { autoSquad } = await import('../squad');
+  const { CARD_POOL } = await import('../club');
+  const ids = CARD_POOL.filter((c) => c.variant === 'gold').slice(0, 40).map((c) => c.id);
+  let club = { ...freshClub(), cards: Object.fromEntries(ids.map((id) => [id, 1])), duelSeasons: { '2026-W45': 1500 } };
+  club = { ...club, squad: autoSquad(club) };
+  const res = claimDuelSeason(club, '2026-W45', new Date(2026, 10, 9));
+  expect(res.club.coins).toBe(club.coins + 40_000);
+  expect(res.club.storedPacks?.length).toBe(1);
+  expect(res.rivals?.cards).toHaveLength(2 * 3); // Legende: 2 Rivals-Packs à 1 Teamkarte + 2 Extrakarten
+  const rv = res.club.specials.filter((c) => c.variant === 'rivals');
+  expect(rv).toHaveLength(2);
+  for (const c of rv) {
+    const base = CARD_POOL.find((x) => c.id.includes(x.id))!;
+    expect(club.squad).toContain(base.id);
+    expect(c.ovr).toBe(Math.min(99, base.ovr + 5));
+  }
+  expect(claimDuelSeason(res.club, '2026-W45', new Date(2026, 10, 9)).rivals).toBeNull();
 });

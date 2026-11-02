@@ -16,7 +16,7 @@ import type { Career, CoachSeason, Position, SeasonRecord, SpecialCard, SpecialT
 
 /** Auszeichnungs-Karten, die man am Karriereende statt der Ikone wählen kann. */
 export type AwardVariant = 'ballondor' | 'poty' | 'topscorer' | 'goldenboy' | 'ucl' | 'worldcup';
-export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | 'gala' | 'totw' | 'comeback' | 'flashback' | 'pass' | 'gig' | 'winter' | 'silvester' | 'unvergessen' | 'ewig' | 'serie' | 'aera' | AwardVariant | SpecialType;
+export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | 'gala' | 'totw' | 'comeback' | 'flashback' | 'pass' | 'gig' | 'winter' | 'silvester' | 'unvergessen' | 'ewig' | 'serie' | 'aera' | 'rivals' | AwardVariant | SpecialType;
 
 export interface CollectCard {
   id: string;
@@ -240,7 +240,7 @@ export function sellValue(c: CollectCard): number {
 
 /** Seltenheit für Sortierung und „bester Zug“. */
 export function rarity(c: CollectCard): number {
-  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, gala: 3.9, totw: 3.1, comeback: 3.3, flashback: 3.5, pass: 3.95, gig: 4.1, winter: 3.85, silvester: 4.05, aera: 4.0, unvergessen: 4.1, ewig: 4.6, serie: 2.4, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
+  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, gala: 3.9, totw: 3.1, comeback: 3.3, flashback: 3.5, pass: 3.95, gig: 4.1, winter: 3.85, silvester: 4.05, aera: 4.0, rivals: 3.7, unvergessen: 4.1, ewig: 4.6, serie: 2.4, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
   return base * 100 + c.ovr;
 }
 
@@ -255,7 +255,7 @@ const TIERS: PackTier[] = ['silver', 'gold', 'rare', 'elite', 'special', 'icon']
 /** Stufe einer Karte für Packs: Silber < 75, Gold 75–82, Selten 83–86, Elite 87+, Spezial (Kult/Was wäre wenn), Ikone. */
 export function packTier(c: CollectCard): PackTier {
   if (c.variant === 'icon') return 'icon';
-  if (c.variant === 'talent' || c.variant === 'cult' || c.variant === 'halloween' || c.variant === 'debut' || c.variant === 'gala' || c.variant === 'comeback' || c.variant === 'flashback' || c.variant === 'pass' || c.variant === 'gig' || c.variant === 'winter' || c.variant === 'silvester' || c.variant === 'aera') return 'special';
+  if (c.variant === 'talent' || c.variant === 'cult' || c.variant === 'halloween' || c.variant === 'debut' || c.variant === 'gala' || c.variant === 'comeback' || c.variant === 'flashback' || c.variant === 'pass' || c.variant === 'gig' || c.variant === 'winter' || c.variant === 'silvester' || c.variant === 'aera' || c.variant === 'rivals') return 'special';
   return c.ovr >= 87 ? 'elite' : c.ovr >= 83 ? 'rare' : c.ovr >= 75 ? 'gold' : 'silver';
 }
 

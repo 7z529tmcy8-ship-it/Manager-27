@@ -10,8 +10,11 @@ import { DUEL_STRENGTH, cardAttrs, cardById, duelPoints, seasonId, slotsOf, team
 // außer in den Sicherheitsstufen (10, 7, 4). Den Gegner gibt es immer nur einzeln, er wird gespeichert
 // (Neuladen würfelt keinen leichteren aus). Vor jedem Spiel wählt man eine Taktik gegen den Spielstil des Gegners.
 
-/** Division 10 … 1, 0 = Elite. */
+/** Division 10 … 1, 0 = Elite, −1 = Champions (ganz oben). */
 export const ELITE = 0;
+export const CHAMPIONS = -1;
+/** Höchste Stufe. */
+export const TOP = CHAMPIONS;
 export const LOWEST = 10;
 export const PROMOTE_AT = 6;
 export const SAFE_DIVISIONS = [10, 7, 4];
@@ -38,10 +41,10 @@ export interface DivisionState {
   next?: DivOpponent;
 }
 
-export const divName = (div: number) => (div === ELITE ? 'Elite' : `Division ${div}`);
-/** Schwierigkeit 1 (Division 10) bis 11 (Elite) – für Punkte, Pass-XP und Evolutions. */
+export const divName = (div: number) => (div === CHAMPIONS ? 'Champions' : div === ELITE ? 'Elite' : `Division ${div}`);
+/** Schwierigkeit 1 (Division 10) bis 11 (Elite) und 12 (Champions) – für Punkte, Pass-XP und Evolutions. */
 export const divLevel = (div: number) => LOWEST + 1 - div;
-const DIV_STRENGTH = [...DUEL_STRENGTH, 113];
+const DIV_STRENGTH = [...DUEL_STRENGTH, 113, 117];
 export const divStrength = (div: number) => DIV_STRENGTH[divLevel(div) - 1];
 export const divReward = (div: number) => 600 + divLevel(div) * 450;
 /** Einmaliger Bonus beim ersten Aufstieg in eine Division. */
@@ -108,13 +111,13 @@ export function withOpponent(club: ClubState, rand: () => number = Math.random):
 
 export type DivMove = 'up' | 'down' | null;
 
-/** Fortschritt nach einem Spiel: Auf- und Abstieg, Sicherheitsstufen, Elite als Obergrenze. */
+/** Fortschritt nach einem Spiel: Auf- und Abstieg, Sicherheitsstufen, Champions als Obergrenze. */
 export function applyDivisionResult(d: DivisionState, outcome: DuelResult['outcome']): { state: DivisionState; move: DivMove } {
   let { div, pts } = d;
   pts += outcome === 'win' ? 2 : outcome === 'draw' ? 1 : -1;
   let move: DivMove = null;
   if (pts >= PROMOTE_AT) {
-    if (div > ELITE) { div -= 1; pts = 2; move = 'up'; } else pts = PROMOTE_AT;
+    if (div > TOP) { div -= 1; pts = 2; move = 'up'; } else pts = PROMOTE_AT;
   } else if (pts < 0) {
     if (div < LOWEST && !SAFE_DIVISIONS.includes(div)) { div += 1; pts = 3; move = 'down'; } else pts = 0;
   }

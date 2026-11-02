@@ -1,5 +1,5 @@
 import { CARD_POOL, collectionProgress, getCard, rarity, type ClubState, type CollectCard } from './club';
-import { ELITE, divisionOf, divName } from './divisions';
+import { CHAMPIONS, ELITE, divisionOf, divName } from './divisions';
 import type { Career } from './types';
 
 // ---------- Profil (wie in Brawl Stars) ----------
@@ -103,7 +103,8 @@ export const TITLES: ProfileTitle[] = [
   { id: 'drops', name: 'Drop-Jäger', need: '50 Drops geöffnet', ok: (c) => (c.dropsOpened ?? 0) >= 50 },
   { id: 'ikonen', name: 'Ikonen-Jäger', need: '10 verschiedene Ikonen', ok: (c) => iconCount(c) >= 10 },
   { id: 'duell', name: 'Duell-König', need: '50 Duell-Siege', ok: (c) => c.duels.w >= 50 },
-  { id: 'elite', name: 'Elite-Manager', need: 'Elite-Division erreichen', ok: (c) => divisionOf(c).best === ELITE },
+  { id: 'elite', name: 'Elite-Manager', need: 'Elite-Division erreichen', ok: (c) => divisionOf(c).best <= ELITE },
+  { id: 'champ', name: 'Champion', need: 'Champions-Division erreichen', ok: (c) => divisionOf(c).best <= CHAMPIONS },
   { id: 'ruhm', name: 'Ruhmesweg-Legende', need: '3.000 Trophäen', ok: (c) => (c.trophyBest ?? 0) >= 3000 },
   { id: 'titel', name: 'Titelsammler', need: '10 Titel in Karrieren', ok: (_c, cs) => careerTitles(cs) >= 10 },
   { id: 'goat', name: 'GOAT', need: 'Wertung 95 in einer Karriere', ok: (_c, cs) => careerPeak(cs) >= 95 },

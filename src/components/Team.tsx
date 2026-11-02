@@ -4,6 +4,7 @@ import Icon, { Glyph } from './Icon';
 import { evoAfterDuel, getPath, stepText, type EvoProgress } from '../game/evolutions';
 import { getCard as poolCard } from '../game/club';
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { PACKS, openPack, rarity, storePacks, type CollectCard, type PackResult } from '../game/club';
 import {
   FORMATIONS, FORMATION_ORDER, TASKS, changeFormation, slotsOf, autoSquad, cardById, chemistry, completeTask, fit, ownedCards,
@@ -12,14 +13,15 @@ import {
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { FRIEND_REWARD, SLOT_LABELS, exportTeam, importTeam, playFriendDuel, record, removeFriend, resultText, saveFriend, withOwnerId, type FriendTeam } from '../game/friends';
 import { motionReduced } from '../settings';
-import { SEASON_RANKS, claimSeason, nextRank, seasonId, seasonName, seasonPoints, seasonRank, unclaimedSeasons } from '../game/squad';
+import { SEASON_RANKS, nextRank, seasonDaysLeft, seasonId, seasonName, seasonPoints, seasonRank, unclaimedSeasons, type SeasonRank } from '../game/squad';
+import { claimDuelSeason } from '../game/rivals';
 import { PackOpening, PackPrompt } from './Store';
 import UtCard from './UtCard';
 import Draft from './Draft';
 import HiLoMode from './HiLoMode';
 import { hiloOf } from '../game/hilo';
 import {
-  ELITE, LOWEST, PROMOTE_AT, SAFE_DIVISIONS, STYLE_LABEL, TACTIC_TEXT, divLevel, divName, divReward, divStrength, divisionOf, playDivisionDuel, promoBonus, resolveTactic, squadFit, withOpponent, type Tactic, type TacticChoice,
+  CHAMPIONS, ELITE, LOWEST, PROMOTE_AT, TOP, SAFE_DIVISIONS, STYLE_LABEL, TACTIC_TEXT, divLevel, divName, divReward, divStrength, divisionOf, playDivisionDuel, promoBonus, resolveTactic, squadFit, withOpponent, type Tactic, type TacticChoice,
 } from '../game/divisions';
 import LegendTrades from './LegendTrades';
 
@@ -88,7 +90,7 @@ export function DuelsScreen({ onBack, onTeam }: { onBack: () => void; onTeam: ()
       <ScreenHead title="Duelle" onBack={onBack} />
       <div className="team-stats">
         <div><small>Wertung</small><strong>{teamRating(cards) || '–'}</strong></div>
-        <div><small>Division</small><strong>{divisionOf(club).div === ELITE ? 'Elite' : divisionOf(club).div}</strong></div>
+        <div><small>Division</small><strong>{divisionOf(club).div <= ELITE ? divName(divisionOf(club).div) : divisionOf(club).div}</strong></div>
         <div><small>Bilanz</small><strong>{club.duels.w}<em>S</em> {club.duels.d}<em>U</em> {club.duels.l}<em>N</em></strong></div>
       </div>
       <nav className="dl-tabs" aria-label="Duelle-Bereiche">
@@ -128,7 +130,7 @@ export function DuelsScreen({ onBack, onTeam }: { onBack: () => void; onTeam: ()
 function Leagues() {
   const club = useClub();
   const d = divisionOf(club);
-  const list = Array.from({ length: LOWEST + 1 }, (_, i) => i); // Elite (0) … Division 10
+  const list = Array.from({ length: LOWEST + 1 - TOP }, (_, i) => i + TOP); // Champions (−1), Elite (0) … Division 10
   return (
     <section className="lg-list" aria-label="Alle Divisionen">
       <p className="lg-legend"><span><Icon name="shield" size={14} />= Sicherheitsstufe, kein Abstieg</span><span>Sieg +2 · Remis +1 · Niederlage −1 · Aufstieg bei {PROMOTE_AT}</span></p>
@@ -137,7 +139,7 @@ function Leagues() {
           const here = x === d.div;
           return (
             <li key={x} className={`lg-row ${here ? 'here' : ''} ${x >= d.best ? 'reached' : 'locked'}`}>
-              <span className={`div-badge small ${x === ELITE ? 'elite' : ''}`}>{x === ELITE ? <Icon name="crown" size={18} /> : x}</span>
+              <span className={`div-badge small ${x === ELITE ? 'elite' : x === CHAMPIONS ? 'champ' : ''}`}>{x === CHAMPIONS ? <Icon name="trophy" size={18} /> : x === ELITE ? <Icon name="crown" size={18} /> : x}</span>
               <span className="lg-name">
                 <b>{divName(x)}{SAFE_DIVISIONS.includes(x) && <Icon name="shield" size={14} />}</b>
                 <small>Gegner ~{divStrength(x)} · Saison-Punkte ×{divLevel(x)}</small>
@@ -167,36 +169,39 @@ function DuelSeason() {
     { name: club.teamName || 'Du', points: pts, me: true },
     ...(club.friends ?? []).filter((f) => f.team.season?.id === sid).map((f) => ({ name: f.team.name, points: f.team.season!.points, me: false })),
   ].sort((a, b) => b.points - a.points);
-  const daysLeft = (() => {
-    const now = new Date();
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    return Math.ceil((end.getTime() - now.getTime()) / 86_400_000);
-  })();
+  const daysLeft = seasonDaysLeft();
+  const [rivals, setRivals] = useState<PackResult | null>(null);
+  const claim = (id: string) => {
+    const res = claimDuelSeason(getClubState(), id);
+    setClubState(res.club);
+    if (res.rivals?.cards.length) setRivals(res.rivals);
+  };
+  const reward = (r: SeasonRank) => [r.coins ? `${r.coins.toLocaleString('de-DE')} Coins` : '', ...(r.packs ?? []).map((id) => PACKS.find((p) => p.id === id)?.name ?? id), r.rivals ? `${r.rivals}× Rivals-Pack (+${r.boost})` : ''].filter(Boolean).join(' · ');
   return (
     <section className="season">
       {open.map((s) => (
-        <button key={s.id} className="season-claim" onClick={() => setClubState(claimSeason(getClubState(), s.id))}>
-          <Glyph e={s.rank.icon} size={18} /> Saison {seasonName(s.id)} beendet: {s.rank.name} mit {s.points} Punkten – <Icon name="coin" size={16} className="coin-ic" />{s.rank.coins.toLocaleString('de-DE')} abholen ›
+        <button key={s.id} className="season-claim" onClick={() => claim(s.id)}>
+          <Glyph e={s.rank.icon} size={18} /> {seasonName(s.id)} beendet: {s.rank.name} mit {s.points} Punkten – {reward(s.rank)} abholen ›
         </button>
       ))}
       <div className="season-head">
         <span className="season-icon" aria-hidden="true"><Glyph e={rank.icon} /></span>
         <div>
-          <small>Duell-Saison {seasonName(sid)} · noch {daysLeft} {daysLeft === 1 ? 'Tag' : 'Tage'}</small>
+          <small>Wochen-Saison · {seasonName(sid)} · noch {daysLeft} {daysLeft === 1 ? 'Tag' : 'Tage'}</small>
           <strong>{rank.name} · {pts} Punkte</strong>
         </div>
       </div>
       <div className="season-bar"><i style={{ width: `${progress}%` }} /></div>
       <p className="hint">
-        {next ? `Noch ${next.min - pts} Punkte bis ${next.name} (${next.coins.toLocaleString('de-DE')} Coins am Saisonende).` : 'Höchster Rang erreicht!'}
-        {' '}Sieg = 10 Punkte × Divisionsstufe (Division 10 = 1 bis Elite = 11), Unentschieden = 3 ×.
+        {next ? `Noch ${next.min - pts} Punkte bis ${next.name}: ${reward(next)}.` : 'Höchster Rang erreicht!'}
+        {' '}Sieg = 10 Punkte × Divisionsstufe (Division 10 = 1, Elite = 11, Champions = 12), Unentschieden = 3 ×. Belohnung jeden Montag.
       </p>
       <details className="season-more">
         <summary>Ränge & Rangliste</summary>
         <ul className="season-ranks">
           {SEASON_RANKS.map((r) => (
             <li key={r.name} className={r.name === rank.name ? 'on' : ''}>
-              <span><Glyph e={r.icon} size={18} /> {r.name}</span><span>ab {r.min}</span><span>{r.coins ? `${r.coins.toLocaleString('de-DE')} Coins` : '–'}</span>
+              <span><Glyph e={r.icon} size={18} /> {r.name}</span><span>ab {r.min}</span><span>{reward(r) || '–'}</span>
             </li>
           ))}
         </ul>
@@ -205,8 +210,10 @@ function DuelSeason() {
             <li key={`${b.name}-${i}`} className={b.me ? 'me' : ''}><span>{i + 1}.</span><span>{b.name}</span><strong>{b.points}</strong></li>
           ))}
         </ol>
-        <p className="hint">Freunde erscheinen hier, wenn sie dir in diesem Monat einen neuen Team-Code schicken (unter „Mein Team“ › Freunde).</p>
+        <p className="hint">Freunde erscheinen hier, wenn sie dir in dieser Woche einen neuen Team-Code schicken (unter „Mein Team“ › Freunde).</p>
       </details>
+      <p className="season-rivals"><Icon name="duel" size={16} /> <b>Rivals-Pack:</b> Eine Karte aus deiner Elf kommt verbessert zurück (+2 bis +5) – dazu 2 Extrakarten ab 80.</p>
+      {rivals && createPortal(<PackOpening name="Rivals-Pack" result={rivals} onClose={() => setRivals(null)} onCollection={() => setRivals(null)} />, document.body)}
     </section>
   );
 }
@@ -449,11 +456,11 @@ function Duels({ full, onSquad, onLeagues }: { full: boolean; onSquad: () => voi
     <>
       <EvoStatus />
       <button className="dv-strip" onClick={onLeagues} aria-label="Alle Divisionen ansehen">
-        <span className={`div-badge small ${d.div === ELITE ? 'elite' : ''}`}>{d.div === ELITE ? <Icon name="crown" size={18} /> : d.div}</span>
+        <span className={`div-badge small ${d.div === ELITE ? 'elite' : d.div === CHAMPIONS ? 'champ' : ''}`}>{d.div === CHAMPIONS ? <Icon name="trophy" size={18} /> : d.div === ELITE ? <Icon name="crown" size={18} /> : d.div}</span>
         <span className="dv-mid">
           <b>{divName(d.div)}</b>
           <span className="div-pips" aria-label={`Fortschritt ${d.pts} von ${PROMOTE_AT}`}>{Array.from({ length: PROMOTE_AT }, (_, i) => <i key={i} className={i < d.pts ? 'on' : ''} />)}</span>
-          <small>{d.div === ELITE ? 'Höchste Division' : `Noch ${PROMOTE_AT - d.pts} bis ${divName(d.div - 1)}`}{safe ? ' · kein Abstieg' : ''}</small>
+          <small>{d.div === TOP ? 'Höchste Division' : `Noch ${PROMOTE_AT - d.pts} bis ${divName(d.div - 1)}`}{safe ? ' · kein Abstieg' : ''}</small>
         </span>
         <span className="dv-pay"><Icon name="coin" size={14} className="coin-ic" />{divReward(d.div).toLocaleString('de-DE')}<small>pro Sieg</small></span>
         <Icon name="arrow" size={18} />

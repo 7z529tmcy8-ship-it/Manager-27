@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-02-champions-rivals',
+    date: '02.11.2026',
+    title: 'Duelle: Champions-Division und Wochen-Saisons',
+    items: [
+      'Neue höchste Stufe über der Elite: die Champions-Division – stärkere Gegner, mehr Coins, mehr Saisonpunkte.',
+      'Duell-Saisons laufen jetzt eine Woche (Mo–So). Jeden Montag gibt es je nach Rang Coins, Packs und Rivals-Packs.',
+      'Neu: Rivals-Pack – eine Karte aus deiner Elf kommt als Rivals-Karte verbessert zurück (+2 bis +5, je nach Rang), dazu 2 Extrakarten ab 80.',
+    ],
+  },
+  {
     id: '2026-11-02-bestenliste',
     date: '02.11.2026',
     title: 'Neu: Bestenliste',
