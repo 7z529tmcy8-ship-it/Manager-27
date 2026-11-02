@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-02-faehigkeiten-2',
+    date: '02.11.2026',
+    title: 'Fähigkeitenbaum: länger, verästelt, mit Meisterung',
+    items: [
+      'Der Baum ist länger: neue Stufe 6 „Legende“, das Meisterstück ist jetzt Stufe 7.',
+      'Jeder Ast gabelt sich ab Stufe 3 in zwei Zweige – z. B. Torjäger: „Allrounder“ oder „Distanzschütze“. Du wählst einen, der andere ist dann zu. 60 neue Fähigkeiten.',
+      'Meisterung: Gelernte Fähigkeiten werden durch Benutzen stärker – Bronze, Silber (+20 %), Gold (+40 %), Prisma (+70 %). Tor-Fähigkeiten zählen Tore, Abwehr-Fähigkeiten Spiele zu null und so weiter.',
+      'Deine bisherigen Fähigkeiten bleiben erhalten und zählen ab jetzt mit.',
+    ],
+  },
+  {
     id: '2026-11-02-akademie-talente',
     date: '02.11.2026',
     title: '10 neue Akademie-Talente (15/16 Jahre)',

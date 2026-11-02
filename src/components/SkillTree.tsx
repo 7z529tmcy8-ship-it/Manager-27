@@ -12,7 +12,10 @@ import {
   MASTER_TOP,
   levelInfo,
   lockReason,
+  MASTERY_NAME,
+  masteryProgress,
   rankOf,
+  usesOf,
   respecSkills,
   skillMods,
   unlockSkill,
@@ -40,7 +43,7 @@ export function ArchetypePicker({ career, onChange }: { career: Career; onChange
             <small><Glyph e={a.icon} /> Spielertyp</small>
             <strong>{a.name}</strong>
             <span className="cs-choice-meta">{a.text}</span>
-            <span className="cs-choice-league">{a.skills.filter((s) => s.tier === 5).map((s) => s.name).join(' · ')}</span>
+            <span className="cs-choice-league">{a.skills.filter((s) => s.tier === 6).slice(0, 2).map((s) => s.name).join(' · ')}</span>
           </button>
         ))}
       </div>
@@ -72,6 +75,7 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
   const free = freePoints(p);
   const bonuses = bonusSummary(skillMods(p));
   const [just, setJust] = useState<string | null>(null);
+  const [tab, setTab] = useState<'a' | 'b'>('a');
   // Gedrückt halten zum Lernen: verhindert Fehlklicks und fühlt sich nach „Aufladen“ an.
   const [holding, setHolding] = useState<string | null>(null);
   const timer = useRef<number | null>(null);
@@ -134,22 +138,50 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
           </span>
         )}
         {can && <span className="sk-hold" aria-hidden="true" />}
+        {owned && !s.maxRank && (() => {
+          const m = masteryProgress(s, usesOf(p, s.id));
+          return (
+            <span className={`sk-mast m${m.level}`}>
+              <b>{MASTERY_NAME[m.level]}</b>
+              {m.next !== null
+                ? <><span className="sk-mast-bar"><i style={{ width: `${Math.min(100, (usesOf(p, s.id) / m.next) * 100)}%` }} /></span><small>{usesOf(p, s.id)}/{m.next} {m.word}</small></>
+                : <small>Maximale Stufe</small>}
+            </span>
+          );
+        })()}
         <em>{owned ? 'aktiv' : can ? (holding === s.id ? 'Halten …' : `${s.cost} FP · gedrückt halten`) : reason === `${s.cost} FP nötig` ? `${s.cost} FP` : `${reason}`}</em>
       </button>
     );
   };
 
+  const tierTag = (t: number) => `Stufe ${t}${t === 6 ? ' · Legende' : t === 5 ? ' · Weltklasse' : t === 4 ? ' · Elite' : ''}`;
+  const step = (s: Skill, prev?: Skill) => (
+    <div key={s.id} className={`sk-step ${prev ? 'linked' : ''} ${prev && sk.unlocked.includes(prev.id) ? 'lit' : ''}`}>
+      <span className={`sk-tier-tag ${s.tier >= 4 ? 'elite' : ''}`}>{tierTag(s.tier)}</span>
+      {node(s)}
+    </div>
+  );
+  /** Ein Ast: Stamm (Stufe 1–2), dann Gabelung in zwei Zweige (Stufe 3–6) – man wählt einen. */
   const branch = (b: 'a' | 'b') => {
-    const list = type.skills.filter((s) => s.branch === b).sort((x, y) => x.tier - y.tier);
+    const trunk = type.skills.filter((s) => s.branch === b && !s.twig).sort((x, y) => x.tier - y.tier);
+    const twig = (n: 1 | 2) => type.skills.filter((s) => s.branch === b && s.twig === n).sort((x, y) => x.tier - y.tier);
+    const chosen = ([1, 2] as const).find((n) => twig(n).some((s) => sk.unlocked.includes(s.id)));
+    const names = type.twigs?.[b === 'a' ? 0 : 1] ?? ['Zweig 1', 'Zweig 2'];
     return (
       <div className="sk-branch">
-        <h3>{type.branches[b === 'a' ? 0 : 1]}</h3>
-        {list.map((s, i) => (
-          <div key={s.id} className={`sk-step ${i > 0 ? 'linked' : ''} ${i > 0 && sk.unlocked.includes(list[i - 1].id) ? 'lit' : ''}`}>
-            <span className={`sk-tier-tag ${s.tier >= 4 ? 'elite' : ''}`}>Stufe {s.tier}{s.tier === 5 ? ' · Weltklasse' : s.tier === 4 ? ' · Elite' : ''}</span>
-            {node(s)}
-          </div>
-        ))}
+        {trunk.map((s, i) => step(s, trunk[i - 1]))}
+        <div className="sk-fork-head" aria-hidden="true"><i /><span>Gabelung – wähle einen Zweig</span><i /></div>
+        <div className="sk-fork">
+          {([1, 2] as const).map((n) => {
+            const list = twig(n);
+            return (
+              <div key={n} className={`sk-twig ${chosen === n ? 'chosen' : chosen ? 'closed' : ''}`}>
+                <h4>{names[n - 1]}{chosen === n && <small> · gewählt</small>}</h4>
+                {list.map((s, i) => step(s, i === 0 ? trunk[trunk.length - 1] : list[i - 1]))}
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -187,14 +219,19 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
           )}
         </div>
 
-        <div className="sk-tree">
-          {branch('a')}
-          {branch('b')}
+        <div className="segmented sk-tabs" role="tablist" aria-label="Äste">
+          {(['a', 'b'] as const).map((b) => (
+            <button key={b} role="tab" aria-selected={tab === b} className={tab === b ? 'active' : ''} onClick={() => setTab(b)}>
+              {type.branches[b === 'a' ? 0 : 1]}
+            </button>
+          ))}
         </div>
+        <p className="sk-mast-hint">Gelernte Fähigkeiten werden durch Benutzen stärker: Bronze → Silber (+20 %) → Gold (+40 %) → Prisma (+70 %).</p>
+        <div className="sk-tree one" key={tab}>{branch(tab)}</div>
         {master && (
           <section className="sk-master-wrap">
             <h3>Meisterstück</h3>
-            <p className="sk-master-hint">Nur für die Größten: ein Ast komplett bis Stufe {MASTER_TOP}, der andere mindestens bis Stufe {MASTER_OTHER}.</p>
+            <p className="sk-master-hint">Nur für die Größten: ein Zweig komplett bis Stufe {MASTER_TOP}, im anderen Ast mindestens Stufe {MASTER_OTHER}.</p>
             {node(master, true)}
           </section>
         )}

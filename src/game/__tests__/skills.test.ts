@@ -11,10 +11,12 @@ it('Jede Position hat mindestens einen Spielertyp, Fähigkeiten-IDs sind eindeut
   const ids = ARCHETYPES.flatMap((a) => a.skills.map((s) => s.id));
   expect(new Set(ids).size).toBe(ids.length);
   for (const a of ARCHETYPES) {
-    for (const t of [1, 2, 3, 4, 5]) expect(a.skills.filter((s) => s.tier === t)).toHaveLength(2);
-    expect(a.skills.filter((s) => s.tier === 6)).toHaveLength(1);
-    expect(a.skills.filter((s) => s.branch === 'a')).toHaveLength(5);
-    expect(a.skills.filter((s) => s.branch === 'b')).toHaveLength(5);
+    // Stamm: Stufe 1–2 je Ast; ab Stufe 3 gabelt sich jeder Ast in zwei Zweige bis Stufe 6; Meisterstück Stufe 7.
+    for (const t of [1, 2]) expect(a.skills.filter((s) => s.tier === t)).toHaveLength(2);
+    for (const t of [3, 4, 5, 6]) expect(a.skills.filter((s) => s.tier === t)).toHaveLength(4);
+    expect(a.skills.filter((s) => s.tier === 7)).toHaveLength(1);
+    for (const b of ['a', 'b'] as const) for (const tw of [1, 2] as const) expect(a.skills.filter((s) => s.branch === b && s.twig === tw)).toHaveLength(4);
+    expect(a.twigs).toBeTruthy();
   }
 });
 
@@ -60,15 +62,17 @@ it('Fähigkeiten freischalten: Kosten, Stufen-Voraussetzung, Wirkung', () => {
 it('Äste, Meisterstück, mehrstufige Fähigkeiten und Neuverteilen', async () => {
   const { lockReason, rankOf, respecSkills, bonusSummary } = await import('../skills');
   let c = chooseArchetype(base(), 'striker');
-  c = { ...c, player: { ...c.player, skills: { ...c.player.skills!, xp: 60000 } } };
+  c = { ...c, player: { ...c.player, skills: { ...c.player.skills!, xp: 120000 } } };
   // Stufe 2 im rechten Ast braucht die Stufe-1-Fähigkeit des rechten Asts.
   c = unlockSkill(c, 'st_finish');
   expect(lockReason(c.player, 'st_clinical')).toContain('Kopfballungeheuer');
   // Meisterstück erst, wenn ein Ast komplett und der andere bis Stufe 2 gelernt ist.
   expect(canUnlock(c.player, 'st_master')).toBe(false);
-  for (const id of ['st_poacher', 'st_complete', 'st_volley', 'st_header', 'st_clinical']) c = unlockSkill(c, id);
-  expect(lockReason(c.player, 'st_master')).toContain('Stufe 5');
-  c = unlockSkill(c, 'st_world');
+  for (const id of ['st_poacher', 'st_complete', 'st_volley', 'st_header', 'st_clinical', 'st_world']) c = unlockSkill(c, id);
+  expect(lockReason(c.player, 'st_master')).toContain('Stufe 6');
+  // Gabelung: Zweig 2 im linken Ast ist jetzt gesperrt
+  expect(lockReason(c.player, 'st_long')).toBe('Anderer Zweig gewählt');
+  c = unlockSkill(c, 'st_ballon');
   expect(canUnlock(c.player, 'st_master')).toBe(true);
   const ovr = c.player.ovr;
   c = unlockSkill(c, 'st_master');
@@ -83,7 +87,36 @@ it('Äste, Meisterstück, mehrstufige Fähigkeiten und Neuverteilen', async () =
   const r = respecSkills(c);
   expect(r.player.skills!.unlocked).toHaveLength(0);
   expect(freePoints(r.player)).toBeGreaterThan(before);
-  expect(r.player.ovr).toBe(c.player.ovr - 5); // Kompletter Stürmer +1, Weltklasse +2, Meisterstück +2
+  expect(r.player.ovr).toBe(c.player.ovr - 6); // Kompletter Stürmer +1, Weltklasse +2, Anwärter +1, Meisterstück +2
   const again = unlockSkill(r, 'st_finish');
   expect(respecSkills(again)).toBe(again); // zweites Neuverteilen geht nicht
+});
+
+it('Verästelung: Zweig wählen, der andere wird gesperrt; Stufe 3 braucht den Stamm', async () => {
+  const { lockReason } = await import('../skills');
+  let c = chooseArchetype(base(), 'striker');
+  c = { ...c, player: { ...c.player, skills: { ...c.player.skills!, xp: 60000 } } };
+  expect(lockReason(c.player, 'st_long')).toContain('Abstauber');
+  c = unlockSkill(unlockSkill(c, 'st_finish'), 'st_poacher');
+  expect(canUnlock(c.player, 'st_long')).toBe(true);
+  expect(canUnlock(c.player, 'st_complete')).toBe(true);
+  c = unlockSkill(c, 'st_long');
+  expect(lockReason(c.player, 'st_complete')).toBe('Anderer Zweig gewählt');
+  expect(lockReason(c.player, 'st_rocketfoot')).toContain('Sonntagsschuss');
+});
+
+it('Meisterung: Fähigkeiten steigen durch Benutzen von Bronze bis Prisma und wirken stärker', async () => {
+  const { trainSkills, masteryOf, usesOf, getArchetype } = await import('../skills');
+  let c = chooseArchetype(base(), 'striker');
+  c = { ...c, player: { ...c.player, skills: { ...c.player.skills!, xp: 60000 } } };
+  c = unlockSkill(c, 'st_finish');
+  const s = getArchetype('striker').skills.find((x) => x.id === 'st_finish')!;
+  expect(skillMods(c.player).goal).toBeCloseTo(1.12);
+  const season = { goals: 20, assists: 5, apps: 34, cleanSheets: 0, trophies: [] as string[] };
+  expect(trainSkills(c, season)).toEqual(['„Abschlussstärke“ erreicht Silber']);
+  expect(usesOf(c.player, 'st_finish')).toBe(20);
+  expect(skillMods(c.player).goal).toBeCloseTo(1 + 0.12 * 1.2);
+  for (let i = 0; i < 3; i++) trainSkills(c, season);
+  expect(masteryOf(s, usesOf(c.player, 'st_finish'))).toBe(3);
+  expect(skillMods(c.player).goal).toBeCloseTo(1 + 0.12 * 1.7);
 });

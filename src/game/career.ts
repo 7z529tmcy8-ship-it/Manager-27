@@ -1,3 +1,4 @@
+import { trainSkills } from './skills';
 import { developAttributes } from './attributes';
 import type { Avatar, OriginId } from './creator';
 import { getClub, getLeague, initialClubLeague, youthClubOf } from '../data/leagues';
@@ -631,6 +632,8 @@ function completeSeason(career: Career): Career {
   record.marketValue = playerValue(p);
 
   career.history.push(record);
+  // Fähigkeiten werden durch Benutzen besser (Bronze → Silber → Gold → Prisma)
+  for (const up of trainSkills(career, record)) record.notes.push(`Fähigkeit: ${up}.`);
   scenarioSeasonEnd(career, record);
   const extraNews = [...captainAndLegend(career, record), ...simulateRivalSeason(career, record)];
   record.achievements = checkAchievements(career, record.season);

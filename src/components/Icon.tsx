@@ -110,6 +110,18 @@ const FROM_EMOJI: Record<string, IconName> = {
   '📦': 'pack', '🔁': 'swap', '↩': 'rewind', '⏪': 'rewind', '🔮': 'eye', '🎭': 'film', '🧾': 'book', '🗞': 'news', '📺': 'film',
 };
 
+/** Fähigkeiten-Symbole (Fähigkeitenbaum). */
+const SKILL_EMOJI: Record<string, IconName> = {
+  '🔨': 'bolt', '🌈': 'spark', '🏭': 'stadium', '🧱': 'shield', '🐂': 'fire', '🗼': 'pillars', '⬆': 'rise', '🕸': 'link', '🚩': 'flag',
+  '🪶': 'boot', '🔟': 'star', '📏': 'arrow', '↪': 'arrow', '🐺': 'eye', '🪝': 'target', '💥': 'bolt', '⛔': 'shield', '🗝': 'key',
+  '🧭': 'globe', '♟': 'brain', '©': 'crown', '🗿': 'shield', '🦅': 'plane', '🪽': 'plane', '🦶': 'boot', '🎳': 'ball', '🧹': 'shield',
+  '🅰': 'link', '👃': 'eye', '🦸': 'star', '🦊': 'eye', '👁': 'eye', '🌀': 'wave', '🎼': 'music', '🗡': 'target', '🎻': 'music',
+  '💨': 'bolt', '🪄': 'spark', '🫀': 'heart', '🎪': 'spark', '🌪': 'wave', '🔋': 'bolt', '🦵': 'boot', '🫁': 'heart', '♾': 'infinity',
+  '📐': 'target', '🛑': 'shield', '🎖': 'medal', '🗽': 'pillars', '🏰': 'shield', '✋': 'shield', '🐈': 'bolt', '🍷': 'clock',
+  '👹': 'fire', '⚙': 'gear', '🩺': 'cross',
+};
+Object.assign(FROM_EMOJI, Object.fromEntries(Object.entries(SKILL_EMOJI).filter(([k]) => !(k in FROM_EMOJI))));
+
 const EMOJI_RE = /\p{Extended_Pictographic}/u;
 
 export function iconForEmoji(e: string): IconName {
