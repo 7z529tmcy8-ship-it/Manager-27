@@ -35,7 +35,7 @@ export const UPDATES: UpdateNote[] = [
     items: [
       'Wer hat die meisten Trophäen? Die Top 100 – tippe im Profil auf deine Trophäen.',
       'Dein Platz ist hervorgehoben; bist du noch nicht in den Top 100, siehst du, wie viele Trophäen dir fehlen.',
-      'Die Konkurrenz schläft nicht: Jeden Tag kommen bei den anderen Trophäen dazu.',
+      'Die Konkurrenz schläft nicht: Die Top 10 liegen um 50.000 Trophäen, und jeden Tag kommen bei allen welche dazu.',
     ],
   },
   {

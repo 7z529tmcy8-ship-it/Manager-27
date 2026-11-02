@@ -24,3 +24,12 @@ it('Bestenliste: mit vielen Trophäen bist du drin – an der richtigen Stelle',
   expect(top[mine + 1].trophies).toBeLessThanOrEqual(5_000);
   expect(leaderboard({ ...me, trophies: 99_999 }, now).rank).toBe(1);
 });
+
+it('Bestenliste: Top 10 um 50.000, kein Vorname öfter als zweimal', () => {
+  const b = bots(new Date(2026, 10, 2).getTime());
+  b.slice(0, 10).forEach((x) => expect(x.trophies).toBeGreaterThan(44_000));
+  expect(b[10].trophies).toBeLessThan(b[9].trophies);
+  const firsts = new Map<string, number>();
+  for (const x of b) { const m = x.name.match(/^([A-ZÄÖÜ][a-zäöüé]+)(?: [A-Z]\.|_)/); if (m) firsts.set(m[1], (firsts.get(m[1]) ?? 0) + 1); }
+  for (const n of firsts.values()) expect(n).toBeLessThanOrEqual(3);
+});

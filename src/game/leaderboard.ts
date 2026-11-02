@@ -21,39 +21,51 @@ function rng(seed: number) {
   };
 }
 
-const STYLES: ((n: string, k: number) => string)[] = [
-  (n) => n,
-  (n, k) => `${n.replace(/\s+/g, '')}${k}`,
-  (n) => `xX${n.replace(/\s+/g, '')}Xx`,
-  (n) => `${n.replace(/\s+/g, '_')}_FC`,
-  (n, k) => `${n} ${['II', 'III', 'Jr.', 'Pro'][k % 4]}`,
-  (n) => `The ${n}`,
-  (n, k) => `${n.split(' ')[0]}${['Gamer', 'TV', 'Kicker', 'Boss', 'King'][k % 5]}`,
-  (n, k) => `${n.toLowerCase().replace(/\s+/g, '.')}.${(k * 7) % 100}`,
-];
+// Namen: die 12 aus der Tauschbörse (je einmal) plus frei erfundene – Vornamen mit Kürzel und Gamer-Namen aus zwei Teilen.
+const FIRST = ['Luca', 'Mehmet', 'Jonas', 'Lina', 'Noah', 'Emre', 'Finn', 'Mia', 'Yusuf', 'Ben', 'Elif', 'Leon', 'Kerem', 'Paul', 'Amira', 'Tim',
+  'Selin', 'Milan', 'Can', 'Lea', 'Ilias', 'Nico', 'Hannah', 'Deniz', 'Matteo', 'Sofia', 'Malik', 'Jannik', 'Aylin', 'Henri', 'Elias', 'Zoe',
+  'Ömer', 'Felix', 'Leyla', 'Arda', 'Moritz', 'Nele', 'Samir', 'Tom', 'Ida', 'Bilal', 'Lukas', 'Mila', 'Jamal', 'Ole', 'Lara', 'Kenan',
+  'Erik', 'Nora', 'Dario', 'Ela', 'Vincent', 'Hamza', 'Greta', 'Rafael', 'Ayla', 'Joel', 'Liv', 'Toni'];
+const PART_A = ['Blitz', 'Neon', 'Gold', 'Turbo', 'Night', 'Ice', 'Storm', 'Pixel', 'Shadow', 'Rocket', 'Lucky', 'Wild', 'Silent', 'Iron',
+  'Cosmic', 'Mega', 'Ultra', 'Red', 'Blue', 'Fire', 'Dark', 'Crazy', 'Royal', 'Golden', 'Mighty', 'Hyper', 'Stealth', 'Atomic', 'Laser', 'Venom'];
+const PART_B = ['Wolf', 'Fuchs', 'Kicker', 'Falke', 'Tiger', 'Hai', 'Panther', 'Rakete', 'Komet', 'Drache', 'Löwe', 'Adler', 'Ninja', 'Titan',
+  'Knipser', 'Keeper', 'Zehner', 'Libero', 'Magier', 'Boss', 'King', 'Joker', 'Sniper', 'Ghost', 'Viper', 'Bulle', 'Phantom', 'Blitzer', 'Rebell', 'Pirat'];
+const TAGS = ['FC', 'TV', 'YT', 'Pro', 'HD', 'XL', 'GG', '07', '10', '99', '23', '11', '19'];
 
 /** 499 erfundene Gegner – Namen eindeutig; angezeigt werden die besten 100. */
 const BOTS: (Omit<Ranked, 'trophies'> & { base: number; pace: number })[] = (() => {
   const r = rng(2026);
+  const pick = <T,>(a: readonly T[]) => a[Math.floor(r() * a.length)];
   const used = new Set<string>();
-  const out: (Omit<Ranked, 'trophies'> & { base: number; pace: number })[] = [];
-  for (let i = 0; out.length < 499 && i < 20000; i++) {
-    const base = NAMES[Math.floor(r() * NAMES.length)];
-    const name = STYLES[Math.floor(r() * STYLES.length)](base, 2 + Math.floor(r() * 998));
-    if (used.has(name)) continue;
-    used.add(name);
-    const rank = out.length;
-    out.push({
-      name,
-      emblem: EMBLEMS[Math.floor(r() * EMBLEMS.length)],
-      color: PROFILE_COLORS[Math.floor(r() * PROFILE_COLORS.length)],
-      fx: rank < 3 ? ['chroma', 'gold', 'holo'][rank] : r() < 0.12 ? ['gold', 'neon', 'lava', 'eis', 'galaxie'][Math.floor(r() * 5)] : 'weiss',
-      // Verteilung: Spitze um 20.000, Platz 100 um 1.600, Platz 500 bei 0
-      base: Math.max(0, Math.round(19_500 * Math.exp(-rank / 26) + (498 - rank) * 2.8 + (r() - 0.5) * 200)),
-      pace: rank < 150 ? 15 + Math.round(r() * 55) : Math.round(r() * 15),
-    });
+  const perFirst = new Map<string, number>();
+  const names: string[] = [];
+  const add = (n: string) => { if (!used.has(n.toLowerCase())) { used.add(n.toLowerCase()); names.push(n); return true; } return false; };
+  for (const n of NAMES) add(n);
+  for (let i = 0; names.length < 499 && i < 50_000; i++) {
+    const kind = r();
+    if (kind < 0.4) {
+      const f = pick(FIRST);
+      if ((perFirst.get(f) ?? 0) >= 2) continue; // jeder Vorname höchstens zweimal
+      const v = r();
+      const n = v < 0.4 ? `${f} ${String.fromCharCode(65 + Math.floor(r() * 26))}.` : v < 0.75 ? `${f}_${pick(TAGS)}` : `${f.toLowerCase()}${10 + Math.floor(r() * 90)}`;
+      if (add(n)) perFirst.set(f, (perFirst.get(f) ?? 0) + 1);
+    } else {
+      const g = `${pick(PART_A)}${pick(PART_B)}`;
+      const v = r();
+      add(v < 0.5 ? g : v < 0.75 ? `${g}${pick(TAGS)}` : `xX${g}Xx`);
+    }
   }
-  return out;
+  // Mischen, damit die Tauschbörsen-Namen nicht alle oben stehen
+  for (let i = names.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [names[i], names[j]] = [names[j], names[i]]; }
+  return names.map((name, rank) => ({
+    name,
+    emblem: pick(EMBLEMS),
+    color: pick(PROFILE_COLORS),
+    fx: rank < 3 ? ['chroma', 'gold', 'holo'][rank] : rank < 10 || r() < 0.1 ? pick(['gold', 'neon', 'lava', 'eis', 'galaxie', 'holo']) : 'weiss',
+    // Top 10 um 50.000, dann steil abwärts: Platz 100 um 3.000, Platz 500 bei 0
+    base: Math.max(0, Math.round(rank < 10 ? 58_000 - rank * 1_250 + (r() - 0.5) * 600 : 46_000 * Math.exp(-(rank - 10) / 28) + (498 - rank) * 2.5 + (r() - 0.5) * 200)),
+    pace: rank < 10 ? 120 + Math.round(r() * 120) : rank < 150 ? 15 + Math.round(r() * 55) : Math.round(r() * 15),
+  }));
 })();
 
 /** Erfundene Spieler zum Zeitpunkt `now` (wachsen täglich). */
