@@ -4,8 +4,8 @@ import { getClubState, setClubState } from '../clubStore';
 import { getClub, getLeague } from '../data/leagues';
 import { storePacks, type CollectCard } from '../game/club';
 import {
-  FORMATIONS, SQUAD_MAX, SQUAD_MIN, TACTICS, bestXI, buyPlayer, clubsForLeague, dropFromMarket, finishSeason, fixXI, halfRound, loadManager,
-  managerLeagues, moneyShort, myLeague, newManager, playRound, playerValueM, saveManager, sellOffer, sellPlayer, slotRating, startBudget, tablePos,
+  BENCH_SIZE, FORMATIONS, SQUAD_MAX, SQUAD_MIN, TACTICS, avgRating, bestBench, bestXI, fixBench, isGoal, buyPlayer, clubsForLeague, dropFromMarket, finishSeason, fixXI, halfRound, loadManager,
+  managerLeagues, moneyShort, myLeague, newManager, playRound, saveManager, sellOffer, sellPlayer, slotRating, startBudget, tablePos,
   teamRating, willingness, windowName, windowOpen, zoneOf,
   type Formation, type MPlayer, type ManagerState, type MarketPlayer, type MyMatch, type SeasonSummary, type Tactic,
 } from '../game/manager';
@@ -223,54 +223,109 @@ function Setup({ onClose, onPick }: { onClose: () => void; onPick: (clubId: stri
 
 // ---------- Kader & Aufstellung ----------
 function Squad({ m, setM, onToast }: { m: ManagerState; setM: (m: ManagerState) => void; onToast: (t: string) => void }) {
-  const [slot, setSlot] = useState<number | null>(null);
+  const [view, setView] = useState<'elf' | 'zentrale'>('elf');
+  return (
+    <section className="mg-panel">
+      <div className="mg-seg" role="tablist">
+        <button className={view === 'elf' ? 'on' : ''} onClick={() => setView('elf')}><Icon name="tactics" size={16} />Aufstellung & Bank</button>
+        <button className={view === 'zentrale' ? 'on' : ''} onClick={() => setView('zentrale')}><Icon name="chart" size={16} />Team-Zentrale</button>
+      </div>
+      {view === 'elf' ? <Lineup m={m} setM={setM} onToast={onToast} /> : <Central m={m} />}
+    </section>
+  );
+}
+
+type Pick = { kind: 'xi' | 'bench'; i: number } | null;
+function Lineup({ m, setM, onToast }: { m: ManagerState; setM: (m: ManagerState) => void; onToast: (t: string) => void }) {
+  const [sel, setSel] = useState<Pick>(null);
   const f = FORMATIONS[m.formation];
   const byId = new Map(m.squad.map((p) => [p.id, p]));
   const xi = fixXI(m);
-  const bench = m.squad.filter((p) => !xi.includes(p.id)).sort((a, b) => b.ovr - a.ovr);
+  const bench = fixBench({ ...m, xi });
   const open = windowOpen(m);
-  const put = (id: string) => {
-    if (slot === null) return;
+  const slotPos = sel?.kind === 'xi' ? f.slots[sel.i] : null;
+  const status = (id: string) => (xi.includes(id) ? 'xi' : bench.includes(id) ? 'bank' : 'res');
+
+  const choose = (id: string) => {
+    if (!sel) return;
     const nx = [...xi];
-    const at = nx.indexOf(id);
-    if (at >= 0) nx[at] = nx[slot];
-    nx[slot] = id;
-    setM({ ...m, xi: nx });
-    setSlot(null);
+    const nb = [...bench];
+    if (sel.kind === 'xi') {
+      const old = nx[sel.i];
+      const atX = nx.indexOf(id), atB = nb.indexOf(id);
+      if (atX >= 0) nx[atX] = old; // Tausch innerhalb der Elf
+      else if (atB >= 0) nb[atB] = old; // Bankspieler rein, Startspieler auf seinen Bankplatz
+      nx[sel.i] = id;
+    } else {
+      if (nx.includes(id)) { onToast('Startspieler zuerst über das Spielfeld tauschen.'); return; }
+      const atB = nb.indexOf(id);
+      if (atB >= 0) nb[atB] = nb[sel.i] ?? '';
+      if (sel.i < nb.length) nb[sel.i] = id; else nb.push(id);
+    }
+    setM({ ...m, xi: nx, bench: nb.filter(Boolean) });
+    setSel(null);
     sfx('tap');
   };
+  const toggleBench = (id: string) => {
+    if (bench.includes(id)) setM({ ...m, xi, bench: bench.filter((b) => b !== id) });
+    else if (bench.length >= BENCH_SIZE) { onToast(`Die Bank ist voll (${BENCH_SIZE}). Tippe einen Bankplatz an, um zu tauschen.`); return; }
+    else setM({ ...m, xi, bench: [...bench, id] });
+    sfx('tap');
+  };
+  const list = sel
+    ? [...m.squad].filter((p) => sel.kind === 'xi' || !xi.includes(p.id)).sort((a, b) => (slotPos ? slotRating(b, slotPos) - slotRating(a, slotPos) : b.ovr - a.ovr))
+    : [...m.squad].filter((p) => !xi.includes(p.id)).sort((a, b) => Number(bench.includes(b.id)) - Number(bench.includes(a.id)) || b.ovr - a.ovr);
+
   return (
-    <section className="mg-panel">
+    <>
       <div className="mg-forms">
         {(Object.keys(FORMATIONS) as Formation[]).map((k) => (
-          <button key={k} className={m.formation === k ? 'on' : ''} onClick={() => setM({ ...m, formation: k, xi: bestXI(m.squad, k) })}>{k}</button>
+          <button key={k} className={m.formation === k ? 'on' : ''} onClick={() => { const nx = bestXI(m.squad, k); setM({ ...m, formation: k, xi: nx, bench: bestBench(m.squad, nx) }); }}>{k}</button>
         ))}
-        <button className="mg-auto" onClick={() => { setM({ ...m, xi: bestXI(m.squad, m.formation) }); onToast('Beste Elf aufgestellt'); }}><Icon name="spark" size={14} />Beste Elf</button>
+        <button className="mg-auto" onClick={() => { const nx = bestXI(m.squad, m.formation); setM({ ...m, xi: nx, bench: bestBench(m.squad, nx) }); onToast('Beste Elf und Bank aufgestellt'); }}><Icon name="spark" size={14} />Beste Elf</button>
       </div>
       <div className="mg-pitch" aria-label="Aufstellung">
         <i className="mg-line mid" /><i className="mg-line box-t" /><i className="mg-line box-b" /><i className="mg-line circle" />
         {f.slots.map((s, i) => {
           const p = byId.get(xi[i]);
           const r = p ? slotRating(p, s) : 0;
+          const on = sel?.kind === 'xi' && sel.i === i;
           return (
-            <button key={i} className={`mg-dotp ${slot === i ? 'sel' : ''} ${p && r < p.ovr ? 'off' : ''}`} style={{ left: `${f.xy[i][0]}%`, top: `${f.xy[i][1]}%` }} onClick={() => setSlot(slot === i ? null : i)}>
+            <button key={i} className={`mg-dotp ${on ? 'sel' : ''} ${p && r < p.ovr ? 'off' : ''}`} style={{ left: `${f.xy[i][0]}%`, top: `${f.xy[i][1]}%` }} onClick={() => setSel(on ? null : { kind: 'xi', i })}>
               <b>{p ? r : '–'}</b><small>{p ? p.name.split(' ').slice(-1)[0] : s}</small><em>{s}</em>
             </button>
           );
         })}
       </div>
-      <p className="mg-hint">{slot !== null ? `Spieler für ${f.slots[slot]} wählen` : 'Tippe auf einen Platz, um ihn neu zu besetzen.'}</p>
-      <ul className="mg-list">
-        {(slot !== null ? [...m.squad].sort((a, b) => slotRating(b, f.slots[slot]) - slotRating(a, f.slots[slot])) : bench).map((p) => {
-          const inXI = xi.includes(p.id);
-          const offer = open ? sellOffer(m, p) : null;
-          return (
-            <li key={p.id} className={inXI ? 'xi' : ''}>
-              <button className="mg-row" onClick={() => put(p.id)} disabled={slot === null}>
-                <span className={`mg-ovr t-${p.ovr >= 75 ? 'g' : p.ovr >= 65 ? 's' : 'b'}`}>{slot !== null ? slotRating(p, f.slots[slot]) : p.ovr}</span>
-                <span className="mg-row-text"><b>{p.name}{p.joined !== undefined && <i className="mg-new">Neu</i>}</b><small>{p.pos} · {p.age} J. · Pot. {p.pot} · {p.goals} Tore · {moneyShort(playerValueM(p))} €</small></span>
+      <div className="mg-bench" aria-label="Ersatzbank">
+        <h3><Icon name="swap" size={14} />Bank · {bench.length}/{BENCH_SIZE}<small>Ab der 55. Minute kommen 3–5 von ihnen ins Spiel</small></h3>
+        <div className="mg-bench-row">
+          {Array.from({ length: BENCH_SIZE }, (_, i) => {
+            const p = byId.get(bench[i]);
+            const on = sel?.kind === 'bench' && sel.i === i;
+            return (
+              <button key={i} className={`mg-bslot ${p ? '' : 'empty'} ${on ? 'sel' : ''}`} onClick={() => setSel(on ? null : { kind: 'bench', i: Math.min(i, bench.length) })}>
+                {p ? <><b className={`mg-ovr t-${p.ovr >= 75 ? 'g' : p.ovr >= 65 ? 's' : 'b'}`}>{p.ovr}</b><small>{p.name.split(' ').slice(-1)[0]}</small><em>{p.pos}</em></> : <><b className="mg-plus">+</b><small>frei</small></>}
               </button>
-              {offer && slot === null && (
+            );
+          })}
+        </div>
+      </div>
+      <p className="mg-hint">{sel ? (sel.kind === 'xi' ? `Spieler für ${f.slots[sel.i]} wählen` : 'Spieler für die Bank wählen') : 'Tippe auf einen Platz oder Bankplatz, um ihn neu zu besetzen.'}</p>
+      <ul className="mg-list">
+        {list.map((p) => {
+          const st = status(p.id);
+          const offer = open && !sel ? sellOffer(m, p) : null;
+          return (
+            <li key={p.id} className={st === 'xi' ? 'xi' : st === 'bank' ? 'bank' : ''}>
+              <button className="mg-row" onClick={() => (sel ? choose(p.id) : toggleBench(p.id))}>
+                <span className={`mg-ovr t-${p.ovr >= 75 ? 'g' : p.ovr >= 65 ? 's' : 'b'}`}>{slotPos ? slotRating(p, slotPos) : p.ovr}</span>
+                <span className="mg-row-text">
+                  <b>{p.name}<i className={`mg-st st-${st}`}>{st === 'xi' ? 'Startelf' : st === 'bank' ? 'Bank' : 'Reserve'}</i>{p.joined !== undefined && <i className="mg-new">Neu</i>}</b>
+                  <small>{p.pos} · {p.age} J. · {p.apps} Spiele · {p.mins ?? 0} Min. · {p.goals} Tore</small>
+                </span>
+              </button>
+              {offer && (
                 <button className="btn ghost small mg-sell" disabled={m.squad.length <= SQUAD_MIN}
                   onClick={() => { const n = sellPlayer(m, p.id); if (n) { setM(n); sfx('coin'); onToast(`${p.name} verkauft: +${moneyShort(offer.amount)} €`); } }}>
                   {moneyShort(offer.amount)}
@@ -280,8 +335,61 @@ function Squad({ m, setM, onToast }: { m: ManagerState; setM: (m: ManagerState) 
           );
         })}
       </ul>
-      {slot === null && <p className="mg-hint">Startelf: {xi.length} Spieler · Bank und Reserve: {bench.length} · Kader {m.squad.length}/{SQUAD_MAX}{open ? ' · Verkaufen: Betrag antippen' : ''}</p>}
-    </section>
+      {!sel && <p className="mg-hint">Spieler antippen: auf die Bank oder runter · Kader {m.squad.length}/{SQUAD_MAX}{open ? ' · Verkaufen: Betrag antippen' : ''}</p>}
+    </>
+  );
+}
+
+// ---------- Team-Zentrale: Einsätze, Minuten, Tore, Vorlagen, Noten ----------
+type SortKey = 'ovr' | 'apps' | 'mins' | 'goals' | 'assists' | 'note';
+const COLS: [SortKey, string, string][] = [['ovr', 'GES', 'Gesamtwertung'], ['apps', 'Sp', 'Spiele'], ['mins', 'Min', 'Minuten'], ['goals', 'T', 'Tore'], ['assists', 'V', 'Vorlagen'], ['note', 'Ø', 'Durchschnittsnote']];
+function Central({ m }: { m: ManagerState }) {
+  const [sort, setSort] = useState<SortKey>('mins');
+  const val = (p: MPlayer, k: SortKey) => (k === 'ovr' ? p.ovr : k === 'apps' ? p.apps : k === 'mins' ? p.mins ?? 0 : k === 'goals' ? p.goals : k === 'assists' ? p.assists ?? 0 : avgRating(p));
+  const rows = [...m.squad].sort((a, b) => val(b, sort) - val(a, sort) || b.ovr - a.ovr);
+  const played = m.squad.filter((p) => p.apps > 0);
+  const top = (k: SortKey, min = 0) => [...played].filter((p) => p.apps >= min).sort((a, b) => val(b, k) - val(a, k))[0];
+  const tiles: [string, string, MPlayer | undefined, string][] = [
+    ['ball', 'Torjäger', top('goals'), 'Tore'], ['spark', 'Vorlagen', top('assists'), 'Vorlagen'],
+    ['star', 'Beste Note', top('note', 3), 'Ø'], ['clock', 'Dauerbrenner', top('mins'), 'Min.'],
+  ];
+  const matches = m.won + m.drawn + m.lost;
+  return (
+    <>
+      <div className="mg-tz-tiles">
+        {tiles.map(([ic, label, p, unit]) => (
+          <span key={label} className="mg-tz-tile">
+            <Icon name={ic} size={18} /><small>{label}</small>
+            <b>{p && val(p, label === 'Torjäger' ? 'goals' : label === 'Vorlagen' ? 'assists' : label === 'Beste Note' ? 'note' : 'mins') ? p.name.split(' ').slice(-1)[0] : '–'}</b>
+            <em>{p ? `${unit === 'Ø' ? avgRating(p).toFixed(1) : val(p, label === 'Torjäger' ? 'goals' : label === 'Vorlagen' ? 'assists' : 'mins').toLocaleString('de-DE')} ${unit === 'Ø' ? 'Ø' : unit}` : 'noch kein Spiel'}</em>
+          </span>
+        ))}
+      </div>
+      <div className="mg-tz-wrap">
+        <table className="mg-table mg-tz">
+          <thead>
+            <tr>
+              <th>Spieler</th>
+              {COLS.map(([k, l, full]) => <th key={k}><button className={sort === k ? 'on' : ''} title={full} aria-label={full} onClick={() => setSort(k)}>{l}</button></th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((p) => {
+              const share = matches ? Math.round(((p.mins ?? 0) / (matches * 90)) * 100) : 0;
+              const n = avgRating(p);
+              return (
+                <tr key={p.id} className={p.apps === 0 ? 'idle' : ''}>
+                  <td><span className="mg-tz-name"><b>{p.name}</b><small>{p.pos} · {p.starts ?? 0}× Start · {p.subs ?? 0}× rein{p.motm ? ` · ${p.motm}★` : ''}</small><i className="mg-tz-bar"><em style={{ transform: `scaleX(${share / 100})` }} /></i></span></td>
+                  <td>{p.ovr}</td><td>{p.apps}</td><td>{(p.mins ?? 0).toLocaleString('de-DE')}</td><td>{p.goals}</td><td>{p.assists ?? 0}</td>
+                  <td><b className={`mg-note ${n >= 7.5 ? 'hi' : n >= 6.5 ? 'ok' : n > 0 ? 'lo' : ''}`}>{n ? n.toFixed(1) : '–'}</b></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="mg-hint">GES Wertung · Sp Spiele · Min Minuten · T Tore · V Vorlagen · Ø Note · ★ Spieler des Spiels<br />Balken = Anteil an allen Spielminuten · Spalte antippen zum Sortieren</p>
+    </>
   );
 }
 
@@ -383,12 +491,13 @@ function MatchReveal({ match, me, onClose }: { match: MyMatch; me: string; onClo
   const [min, setMin] = useState(() => (motionReduced() ? 90 : 0));
   const timer = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const shown = match.events.filter((e) => e.min <= min);
-  const hg = shown.filter((e) => e.home).length, ag = shown.length - hg;
+  const shownGoals = shown.filter(isGoal);
+  const hg = shownGoals.filter((e) => e.home).length, ag = shownGoals.length - hg;
   const done = min >= 90;
   const meHome = match.home === me;
   const gf = meHome ? match.hg : match.ag, ga = meHome ? match.ag : match.hg;
   const res = gf > ga ? 'win' : gf === ga ? 'draw' : 'loss';
-  const lastGoal = shown[shown.length - 1];
+  const lastGoal = shownGoals[shownGoals.length - 1];
   const [flash, setFlash] = useState<{ k: number; mine: boolean } | null>(null);
   useEffect(() => {
     if (done) return;
@@ -400,10 +509,10 @@ function MatchReveal({ match, me, onClose }: { match: MyMatch; me: string; onClo
     const mine = lastGoal.home === meHome;
     sfx(mine ? 'revealRare' : 'fall');
     buzz(mine ? [40, 30, 90] : 60);
-    setFlash({ k: shown.length, mine });
+    setFlash({ k: shownGoals.length, mine });
     const t = setTimeout(() => setFlash(null), 750);
     return () => clearTimeout(t);
-  }, [shown.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [shownGoals.length]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (done) { sfx(res === 'win' ? 'fanfare' : res === 'draw' ? 'whistle' : 'fall'); } }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className={`mg-match ${done ? `end ${res}` : ''}`} role="dialog" aria-modal="true" aria-label="Spiel" onClick={() => (done ? onClose() : setMin(90))}>
@@ -412,16 +521,24 @@ function MatchReveal({ match, me, onClose }: { match: MyMatch; me: string; onClo
       <small className="mg-m-round">Spieltag {match.round}</small>
       <div className="mg-board-big">
         <span className={match.home === me ? 'me' : ''}>{getClub(match.home).name}</span>
-        <b key={`${hg}-${ag}`} className={shown.length ? 'pop' : ''}>{hg}<i>:</i>{ag}</b>
+        <b key={`${hg}-${ag}`} className={shownGoals.length ? 'pop' : ''}>{hg}<i>:</i>{ag}</b>
         <span className={match.away === me ? 'me' : ''}>{getClub(match.away).name}</span>
       </div>
       <div className="mg-clock"><i style={{ transform: `scaleX(${min / 90})` }} /><b>{min}'</b></div>
       <ul className="mg-events">
-        {shown.map((e, i) => <li key={i} className={`${e.home ? 'h' : 'a'} ${e.home === meHome ? 'mine' : ''}`}><b>{e.min}'</b><Icon name="ball" size={14} />{e.scorer}</li>)}
+        {shown.map((e, i) => e.kind === 'sub'
+          ? <li key={i} className={`${e.home ? 'h' : 'a'} sub`}><b>{e.min}'</b><Icon name="swap" size={14} /><span><em className="in">{e.scorer}</em> für <em className="out">{e.out}</em></span></li>
+          : <li key={i} className={`${e.home ? 'h' : 'a'} ${e.home === meHome ? 'mine' : ''}`}><b>{e.min}'</b><Icon name="ball" size={14} /><span>{e.scorer}{e.assist && <small> · Vorlage {e.assist}</small>}</span></li>)}
       </ul>
       {done ? (
         <div className="mg-m-res" onClick={(ev) => ev.stopPropagation()}>
           <strong>{res === 'win' ? 'Sieg!' : res === 'draw' ? 'Unentschieden' : 'Niederlage'}</strong>
+          {match.motm && <span className="mg-motm"><Icon name="star" size={16} />Spieler des Spiels: <b>{match.motm}</b>{match.ratings?.[0] && <em>{match.ratings[0].r.toFixed(1)}</em>}</span>}
+          {match.ratings && (
+            <ul className="mg-rates">
+              {match.ratings.map((r) => <li key={r.name}><span>{r.name}</span><small>{r.mins}'</small><b className={`mg-note ${r.r >= 7.5 ? 'hi' : r.r >= 6.5 ? 'ok' : 'lo'}`}>{r.r.toFixed(1)}</b></li>)}
+            </ul>
+          )}
           <button className="btn primary big" onClick={onClose}>Weiter</button>
         </div>
       ) : <button className="pack-skip mt-skip" onClick={(ev) => { ev.stopPropagation(); setMin(90); }}>Überspringen</button>}

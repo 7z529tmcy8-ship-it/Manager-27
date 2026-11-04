@@ -25,7 +25,18 @@ export interface MPlayer {
   /** Echter Spieler aus der Datenbank (sonst erfunden). */
   real?: boolean;
   goals: number;
+  /** Einsätze gesamt (Startelf + eingewechselt). */
   apps: number;
+  starts?: number;
+  /** Wie oft eingewechselt. */
+  subs?: number;
+  mins?: number;
+  assists?: number;
+  /** Summe der Spielnoten und Anzahl benoteter Spiele (für den Schnitt). */
+  rSum?: number;
+  rN?: number;
+  /** Spieler des Spiels */
+  motm?: number;
   /** Seit dieser Saison im Verein (für „Neuzugang“). */
   joined?: number;
 }
@@ -54,9 +65,10 @@ export const TACTICS: Record<Tactic, { att: number; def: number; text: string }>
   offensiv: { att: 3, def: -2, text: 'Mehr Tore – vorne wie hinten' },
 };
 
-export interface MatchEvent { min: number; home: boolean; scorer: string }
+export interface MatchEvent { min: number; home: boolean; scorer: string; kind?: 'goal' | 'sub'; assist?: string; out?: string }
+export const isGoal = (e: MatchEvent) => e.kind !== 'sub';
 export interface MatchLine { home: string; away: string; hg: number; ag: number }
-export interface MyMatch extends MatchLine { events: MatchEvent[]; round: number }
+export interface MyMatch extends MatchLine { events: MatchEvent[]; round: number; motm?: string; ratings?: { name: string; r: number; mins: number }[] }
 
 export interface SeasonRecord { season: number; leagueId: string; pos: number; points: number; target: number; title?: string; topScorer?: string }
 
@@ -70,6 +82,8 @@ export interface ManagerState {
   squad: MPlayer[];
   /** Spieler-IDs der Startelf in Reihenfolge der Formations-Plätze. */
   xi: string[];
+  /** Ersatzbank (bis zu 7 Spieler). Fehlt sie, wird sie automatisch besetzt. */
+  bench?: string[];
   formation: Formation;
   tactic: Tactic;
   rows: TableRow[];
@@ -166,6 +180,25 @@ export function fixXI(m: Pick<ManagerState, 'squad' | 'xi' | 'formation'>): stri
   return xi;
 }
 
+export const BENCH_SIZE = 7;
+/** Beste Bank: ein Torwart, danach die stärksten übrigen Spieler, möglichst verschiedene Positionen. */
+export function bestBench(squad: MPlayer[], xi: string[]): string[] {
+  const free = squad.filter((p) => !xi.includes(p.id)).sort((a, b) => b.ovr - a.ovr);
+  const out: MPlayer[] = [];
+  const tw = free.find((p) => p.pos === 'TW');
+  if (tw) out.push(tw);
+  for (const p of free) { if (out.length >= BENCH_SIZE) break; if (!out.includes(p) && !out.some((o) => o.pos === p.pos && o.pos !== 'IV' && o.pos !== 'ZM')) out.push(p); }
+  for (const p of free) { if (out.length >= BENCH_SIZE) break; if (!out.includes(p)) out.push(p); }
+  return out.map((p) => p.id);
+}
+/** Gültige Bank: nur Kaderspieler, die nicht in der Startelf stehen. */
+export function fixBench(m: Pick<ManagerState, 'squad' | 'xi' | 'bench'>): string[] {
+  if (!m.bench) return bestBench(m.squad, m.xi);
+  const ids = new Set(m.squad.map((p) => p.id));
+  return m.bench.filter((id, i, a) => ids.has(id) && !m.xi.includes(id) && a.indexOf(id) === i).slice(0, BENCH_SIZE);
+}
+export const avgRating = (p: MPlayer) => (p.rN ? Math.round(((p.rSum ?? 0) / p.rN) * 10) / 10 : 0);
+
 /** Teamstärke der Startelf. */
 export function teamRating(m: Pick<ManagerState, 'squad' | 'xi' | 'formation'>): number {
   const slots = FORMATIONS[m.formation].slots;
@@ -203,6 +236,7 @@ export function newManager(clubId: string): ManagerState {
     board: 70, won: 0, drawn: 0, lost: 0,
   };
   base.xi = bestXI(squad, base.formation);
+  base.bench = bestBench(squad, base.xi);
   return seasonSetup(base);
 }
 
@@ -283,7 +317,8 @@ export function sellPlayer(m: ManagerState, id: string): ManagerState | null {
   if (!p) return null;
   const o = sellOffer(m, p);
   const squad = m.squad.filter((x) => x.id !== id);
-  return { ...m, squad, budget: m.budget + o.amount, xi: fixXI({ ...m, squad }), news: [`Abgang: ${p.name} wechselt für ${moneyShort(o.amount)} zu ${getClub(o.clubId).name}.`, ...m.news].slice(0, 30) };
+  const xi2 = fixXI({ ...m, squad });
+  return { ...m, squad, budget: m.budget + o.amount, xi: xi2, bench: fixBench({ ...m, squad, xi: xi2 }), news: [`Abgang: ${p.name} wechselt für ${moneyShort(o.amount)} zu ${getClub(o.clubId).name}.`, ...m.news].slice(0, 30) };
 }
 
 export const moneyShort = (v: number) => (v >= 1e6 ? `${(v / 1e6).toLocaleString('de-DE', { maximumFractionDigits: 1 })} Mio.` : `${Math.round(v / 1e3).toLocaleString('de-DE')} Tsd.`);
@@ -291,22 +326,20 @@ export const moneyShort = (v: number) => (v >= 1e6 ? `${(v / 1e6).toLocaleString
 // ---------- Spieltag ----------
 
 const SCORE_W: Record<Position, number> = { ST: 10, FL: 6, ZOM: 6, ZM: 3, ZDM: 1.5, AV: 1, IV: 1, TW: 0.02 };
+const ASSIST_W: Partial<Record<Position, number>> = { ZOM: 8, FL: 7, ZM: 5, ST: 4, AV: 3, ZDM: 2, IV: 0.8, TW: 0.2 };
 
-function goalEvents(n: number, home: boolean, names: () => string): MatchEvent[] {
-  return Array.from({ length: n }, () => ({ min: randInt(1, 90), home, scorer: names() }));
-}
 
 export function playRound(m: ManagerState): ManagerState {
   if (m.done || m.round >= m.rounds.length) return m;
   const lg = myLeague(m);
   const xi = fixXI(m);
+  const bench = fixBench({ ...m, xi });
   const my = { ...m, xi };
   const myStr = teamRating(my);
   const t = TACTICS[m.tactic];
   const rows = m.rows.map((r) => ({ ...r }));
   const row = (id: string) => rows.find((r) => r.clubId === id)!;
   const byId = new Map(m.squad.map((p) => [p.id, { ...p }]));
-  const starters = xi.map((id) => byId.get(id)).filter((p): p is MPlayer => !!p);
   const others: MatchLine[] = [];
   let mine: MyMatch | null = null;
   for (const [h, a] of m.rounds[m.round]) {
@@ -319,14 +352,9 @@ export function playRound(m: ManagerState): ManagerState {
     const ag = poisson(goalsExpected(attA, sH, false, lg.goalsPerGame));
     addResult(row(h), hg, ag);
     addResult(row(a), ag, hg);
-    if (isH || isA) {
-      const pickMine = () => { const s = weightedPick(starters, (p) => SCORE_W[p.pos] * (p.ovr / 70)); s.goals++; return s.name; };
-      const pickOpp = () => `${pick(FIRST)[0]}. ${pick(LAST)}`;
-      const ev = [...goalEvents(hg, true, isH ? pickMine : pickOpp), ...goalEvents(ag, false, isA ? pickMine : pickOpp)].sort((x, y) => x.min - y.min);
-      mine = { home: h, away: a, hg, ag, events: ev, round: m.round + 1 };
-    } else others.push({ home: h, away: a, hg, ag });
+    if (isH || isA) mine = myMatch(m, byId, xi, bench, h, a, hg, ag);
+    else others.push({ home: h, away: a, hg, ag });
   }
-  for (const p of starters) p.apps++;
   let { won, drawn, lost, board } = m;
   if (mine) {
     const me = mine as MyMatch;
@@ -334,10 +362,81 @@ export function playRound(m: ManagerState): ManagerState {
     if (gf > ga) { won++; board = clamp(board + 2, 0, 100); } else if (gf === ga) drawn++; else { lost++; board = clamp(board - 2, 0, 100); }
   }
   const round = m.round + 1;
-  const next: ManagerState = { ...m, xi, squad: m.squad.map((p) => byId.get(p.id) ?? p), rows, round, won, drawn, lost, board, last: { mine, others } };
+  const next: ManagerState = { ...m, xi, bench: m.bench ? bench : undefined, squad: m.squad.map((p) => byId.get(p.id) ?? p), rows, round, won, drawn, lost, board, last: { mine, others } };
   if (round === halfRound(m)) next.market = buildMarket(next);
   if (round >= m.rounds.length) next.done = true;
   return next;
+}
+
+/**
+ * Das eigene Spiel im Detail: 3–5 Wechsel von der Bank ab der 55. Minute (müde oder schwache Spieler raus,
+ * der passendste Bankspieler rein), Torschützen und Vorlagen nur von Spielern, die gerade auf dem Platz stehen,
+ * Minuten und Noten für alle, die gespielt haben.
+ */
+function myMatch(m: ManagerState, byId: Map<string, MPlayer>, xi: string[], bench: string[], h: string, a: string, hg: number, ag: number): MyMatch {
+  const meHome = h === m.clubId;
+  const gf = meHome ? hg : ag, ga = meHome ? ag : hg;
+  const slots = FORMATIONS[m.formation].slots;
+  // Wer steht wann auf dem Platz: [Spieler, von, bis]
+  const spells: { p: MPlayer; from: number; to: number; slot: Position }[] = xi.map((id, i) => ({ p: byId.get(id)!, from: 0, to: 90, slot: slots[i] })).filter((x) => x.p);
+  const events: MatchEvent[] = [];
+  const pool = bench.map((id) => byId.get(id)).filter((p): p is MPlayer => !!p && p.pos !== 'TW');
+  const nSubs = Math.min(pool.length, randInt(3, 5));
+  const subMins = Array.from({ length: nSubs }, () => randInt(55, 86)).sort((x, y) => x - y);
+  for (const min of subMins) {
+    const onPitch = spells.filter((s) => s.to === 90 && s.from === 0 && s.slot !== 'TW');
+    if (!onPitch.length || !pool.length) break;
+    // Raus: Ältere und Schwächere eher (Müdigkeit), mit Zufall
+    const out = onPitch.map((s) => ({ s, w: -s.p.ovr + (s.p.age - 26) * 0.6 + normal(0, 3) })).sort((x, y) => y.w - x.w)[0].s;
+    const inn = pool.sort((x, y) => slotRating(y, out.slot) - slotRating(x, out.slot))[0];
+    pool.splice(pool.indexOf(inn), 1);
+    out.to = min;
+    spells.push({ p: inn, from: min, to: 90, slot: out.slot });
+    events.push({ min, home: meHome, scorer: inn.name, out: out.p.name, kind: 'sub' });
+  }
+  const at = (min: number) => spells.filter((s) => s.from < min && s.to >= min);
+  const goals: Map<string, number> = new Map();
+  const assists: Map<string, number> = new Map();
+  const addGoal = (min: number) => {
+    const on = at(min);
+    const sc = weightedPick(on, (s) => SCORE_W[s.p.pos] * (s.p.ovr / 70)).p;
+    goals.set(sc.id, (goals.get(sc.id) ?? 0) + 1);
+    let as: MPlayer | undefined;
+    if (chance(0.72)) {
+      const mates = on.filter((s) => s.p.id !== sc.id);
+      if (mates.length) { as = weightedPick(mates, (s) => (ASSIST_W[s.p.pos] ?? 1) * (s.p.ovr / 70)).p; assists.set(as.id, (assists.get(as.id) ?? 0) + 1); }
+    }
+    events.push({ min, home: meHome, scorer: sc.name, assist: as?.name, kind: 'goal' });
+  };
+  for (let i = 0; i < gf; i++) addGoal(randInt(1, 90));
+  for (let i = 0; i < ga; i++) events.push({ min: randInt(1, 90), home: !meHome, scorer: `${pick(FIRST)[0]}. ${pick(LAST)}`, kind: 'goal' });
+  // Gleiche Minute: Wechsel vor dem Tor anzeigen
+  events.sort((x, y) => x.min - y.min || (x.kind === 'sub' ? -1 : 1));
+  // Minuten, Noten, Statistik
+  const avg = spells.reduce((s, x) => s + x.p.ovr, 0) / Math.max(1, spells.length);
+  const res = gf > ga ? 0.45 : gf === ga ? 0 : -0.45;
+  const ratings: { name: string; r: number; mins: number; id: string }[] = [];
+  for (const s of spells) {
+    const mins = s.to - s.from;
+    const g = goals.get(s.p.id) ?? 0, as = assists.get(s.p.id) ?? 0;
+    const defBonus = ga === 0 && ['TW', 'IV', 'AV', 'ZDM'].includes(s.p.pos) ? 0.5 : ga >= 3 && ['TW', 'IV'].includes(s.p.pos) ? -0.5 : 0;
+    const share = Math.min(1, mins / 60);
+    let r = 6.4 + ((s.p.ovr - avg) * 0.05 + res + defBonus + normal(0, 0.45)) * share + g * 0.9 + as * 0.5;
+    r = Math.round(clamp(r, 3.5, 10) * 10) / 10;
+    ratings.push({ name: s.p.name, r, mins, id: s.p.id });
+    const p = s.p;
+    p.apps++;
+    if (s.from === 0) p.starts = (p.starts ?? 0) + 1; else p.subs = (p.subs ?? 0) + 1;
+    p.mins = (p.mins ?? 0) + mins;
+    p.goals += g;
+    p.assists = (p.assists ?? 0) + as;
+    p.rSum = Math.round(((p.rSum ?? 0) + r) * 10) / 10;
+    p.rN = (p.rN ?? 0) + 1;
+  }
+  ratings.sort((x, y) => y.r - x.r);
+  const best = ratings[0];
+  if (best) { const p = byId.get(best.id)!; p.motm = (p.motm ?? 0) + 1; }
+  return { home: h, away: a, hg, ag, events, round: m.round + 1, motm: best?.name, ratings: ratings.map(({ name, r, mins }) => ({ name, r, mins })) };
 }
 
 export const tablePos = (m: ManagerState) => sortTable(m.rows).findIndex((r) => r.clubId === m.clubId) + 1;
@@ -396,7 +495,7 @@ export function finishSeason(m: ManagerState): { m: ManagerState; summary: Seaso
     else if (p.age >= 31) ovr = ovr - randInt(0, p.age >= 33 ? 3 : 2);
     if (age >= 36 || (age >= 34 && chance(0.4))) { retired.push(p.name); continue; }
     if (ovr !== p.ovr && ovr > p.ovr) grew.push({ name: p.name, from: p.ovr, to: ovr });
-    squad.push({ ...p, age, ovr, pot: Math.max(p.pot, ovr), goals: 0, apps: 0 });
+    squad.push({ ...p, age, ovr, pot: Math.max(p.pot, ovr), goals: 0, apps: 0, starts: 0, subs: 0, mins: 0, assists: 0, rSum: 0, rN: 0, motm: 0 });
   }
   // Nach Karriereenden mit Nachwuchs auffüllen
   while (squad.length < SQUAD_MIN + 2) {
@@ -415,6 +514,7 @@ export function finishSeason(m: ManagerState): { m: ManagerState; summary: Seaso
     trophies: title ? [title, ...m.trophies] : m.trophies, news, board: clamp(m.board + (reached ? 10 : -15), 0, 100),
   });
   next.xi = bestXI(next.squad, next.formation);
+  next.bench = bestBench(next.squad, next.xi);
   next.target = boardTarget(next);
   return { m: next, summary: { pos, points, target: m.target, reached, title, move, newLeague, prize, coins, grew: grew.sort((a, b) => (b.to - b.from) - (a.to - a.from)).slice(0, 5), retired, topScorer: scorer && scorer.goals ? { name: scorer.name, goals: scorer.goals } : null } };
 }

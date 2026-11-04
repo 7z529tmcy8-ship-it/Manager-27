@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-04-manager-zentrale',
+    date: '04.11.2026',
+    title: 'Manager-Modus: Bank, Einwechslungen und Team-Zentrale',
+    items: [
+      'Neue Ersatzbank mit 7 Plätzen – du bestimmst, wer draufsitzt. Ab der 55. Minute werden 3–5 Spieler eingewechselt und bekommen Spielzeit.',
+      'Team-Zentrale: Einsätze (Startelf und eingewechselt), Minuten, Tore, Vorlagen und Noten für jeden Spieler – sortierbar, mit Bestwerten oben.',
+      'Nach jedem Spiel: Noten für alle Spieler, Spieler des Spiels, Wechsel und Vorlagen im Spielverlauf.',
+    ],
+  },
+  {
     id: '2026-11-04-manager-modus',
     date: '04.11.2026',
     title: 'Neu: Manager-Modus',

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FORMATIONS, SQUAD_MIN, bestXI, buildSquad, buyPlayer, finishSeason, halfRound, leagueOfClub, newManager, playRound, sellPlayer, tablePos, teamRating, windowOpen } from '../manager';
+import { BENCH_SIZE, FORMATIONS, avgRating, bestBench, fixBench, SQUAD_MIN, bestXI, buildSquad, buyPlayer, finishSeason, halfRound, leagueOfClub, newManager, playRound, sellPlayer, tablePos, teamRating, windowOpen } from '../manager';
 
 describe('Manager-Modus', () => {
   it('Kader: echte Spieler plus Auffüllung, jede Position besetzt', () => {
@@ -25,7 +25,19 @@ describe('Manager-Modus', () => {
     const goals = m.squad.reduce((a, p) => a + p.goals, 0);
     const row = m.rows.find((r) => r.clubId === m.clubId)!;
     expect(goals).toBe(row.goalsFor);
+    // Jedes Spiel: 11 Plätze × 90 Minuten, Bankspieler bekommen Einsätze
+    expect(m.squad.reduce((a, p) => a + (p.mins ?? 0), 0)).toBe(34 * 990);
+    expect(m.squad.some((p) => (p.subs ?? 0) > 0)).toBe(true);
+    expect(m.squad.every((p) => p.apps === (p.starts ?? 0) + (p.subs ?? 0))).toBe(true);
+    const assists = m.squad.reduce((a, p) => a + (p.assists ?? 0), 0);
+    expect(assists).toBeLessThanOrEqual(goals);
+    const ev = m.last!.mine!.events;
+    const subs = ev.filter((e) => e.kind === 'sub');
+    expect(subs.length).toBeGreaterThanOrEqual(3);
+    // Wer eingewechselt wurde, wird nicht wieder ausgewechselt
+    expect(subs.every((x) => !subs.some((y) => y.out === x.scorer))).toBe(true);
     const pos = tablePos(m);
+    expect(m.squad.filter((p) => avgRating(p) > 0).every((p) => avgRating(p) >= 3.5 && avgRating(p) <= 10)).toBe(true);
     const { m: next, summary } = finishSeason(m);
     expect(summary.pos).toBe(pos);
     expect(next.season).toBe(2026);
@@ -49,6 +61,20 @@ describe('Manager-Modus', () => {
     const sold = sellPlayer(res.m, res.m.squad[0].id)!;
     expect(sold.budget).toBeGreaterThan(res.m.budget);
     expect(sold.xi.every((id) => sold.squad.some((p) => p.id === id))).toBe(true);
+  });
+
+  it('Bank: 7 Spieler, nicht in der Startelf, mit Torwart; nur Bankspieler werden eingewechselt', () => {
+    let m = newManager('fc-bayern-munchen');
+    expect(m.bench).toHaveLength(BENCH_SIZE);
+    expect(m.bench!.some((id) => m.squad.find((p) => p.id === id)?.pos === 'TW')).toBe(true);
+    expect(m.bench!.every((id) => !m.xi.includes(id))).toBe(true);
+    const two = m.bench!.slice(0, 3);
+    m = { ...m, bench: two };
+    expect(fixBench(m)).toEqual(two);
+    const allowed = new Set([...m.xi, ...two]);
+    for (let i = 0; i < 5; i++) m = playRound(m);
+    expect(m.squad.filter((p) => p.apps > 0).every((p) => allowed.has(p.id))).toBe(true);
+    expect(bestBench(m.squad, m.xi)).toHaveLength(BENCH_SIZE);
   });
 
   it('Formationen haben 11 Plätze, Teamstärke passt grob zur Vereinsstärke', () => {
