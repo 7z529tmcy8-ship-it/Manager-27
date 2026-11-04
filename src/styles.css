@@ -5553,7 +5553,7 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .upd-promo-code b { font-family: var(--display, inherit); font-size: 1.35rem; letter-spacing: .08em; color: #ffd24a; }
 .upd-promo-text { font-size: .8125rem; line-height: 1.35; color: #ffe9c7; }
 .upd-promo-btn { white-space: nowrap; }
-@media (max-width: 420px) { .upd-promo { grid-template-columns: auto minmax(0, 1fr); } .upd-promo-btn { grid-column: 1 / -1; } }
+@media (max-width: 420px) { .upd-promo { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; } .upd-promo-btn { grid-column: 1 / -1; justify-self: stretch; } }
 
 /* ---------- Duelle: Reiter, kompakt, Ligen ---------- */
 .dl-tabs { position: sticky; top: 8px; z-index: 20; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin: 10px 0 14px; padding: 5px; border-radius: 20px;
@@ -6115,3 +6115,133 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .season-rivals b { color: var(--text); }
 :root.aqua .season-claim { color: #7a4a00; background: linear-gradient(180deg, #fff6dc, #ffe9b0); border: 1px solid #f2c45a; font-weight: 700; }
 :root.aqua .season-claim .ic { color: #b26200; }
+
+/* ---------- Jungle Crash: Absturz-Kiste ---------- */
+.mt.jc { background: linear-gradient(180deg, #4fb8ff 0%, #8fd9ff 38%, #c9f0d0 62%, #2f7a3a 100%); }
+.mt.jc.impact .mt-stage, .mt.jc.impact .jc-hills { animation: mt-shake .45s ease-out both; }
+.jc-sky { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.jc-sun { position: absolute; right: 14%; top: 9%; width: 90px; height: 90px; border-radius: 50%; background: radial-gradient(circle, #fff7c2, #ffd84a 55%, rgba(255, 216, 74, 0) 72%); }
+.jc-cloud { position: absolute; height: 34px; border-radius: 30px; background: #fff; opacity: .9; box-shadow: 30px -14px 0 4px #fff, 64px 0 0 -2px #fff; animation: jc-cloud 14s linear infinite; }
+.jc-cloud.c1 { top: 12%; left: -20%; width: 90px; } .jc-cloud.c2 { top: 24%; left: 40%; width: 70px; animation-duration: 18s; animation-delay: -6s; opacity: .75; } .jc-cloud.c3 { top: 6%; left: 70%; width: 60px; animation-duration: 22s; animation-delay: -12s; opacity: .6; }
+@keyframes jc-cloud { to { transform: translateX(140vw); } }
+/* Flugzeug: einfache Formen, zieht schräg über den Himmel, Rauchwölkchen hinterher */
+.jc-plane { position: absolute; left: -30%; top: 18%; width: 150px; height: 60px; animation: jc-fly 1.2s cubic-bezier(.4, 0, .7, 1) both; will-change: transform; }
+@keyframes jc-fly { from { transform: translate(0, 0) rotate(6deg); } to { transform: translate(150vw, 18vh) rotate(16deg); } }
+.jc-body { position: absolute; left: 10px; top: 20px; width: 120px; height: 24px; border-radius: 14px 40px 40px 14px; background: linear-gradient(180deg, #f4f0e6, #c9bfa8); box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .12); }
+.jc-wing { position: absolute; left: 50px; top: 6px; width: 46px; height: 52px; border-radius: 10px; background: linear-gradient(90deg, #ff8a1f, #e06a00); transform: skewX(-18deg); }
+.jc-tail { position: absolute; left: 8px; top: 4px; width: 22px; height: 24px; border-radius: 6px 6px 0 0; background: #ff8a1f; transform: skewX(-24deg); }
+.jc-prop { position: absolute; right: 12px; top: 14px; width: 6px; height: 36px; border-radius: 3px; background: rgba(60, 60, 60, .5); animation: jc-prop .08s linear infinite; }
+@keyframes jc-prop { 50% { transform: scaleY(.2); } }
+.jc-puff { position: absolute; left: calc(-14px - var(--k) * 22px); top: calc(26px + var(--k) * 2px); width: calc(16px + var(--k) * 4px); height: calc(16px + var(--k) * 4px); border-radius: 50%;
+  background: rgba(80, 80, 80, calc(.55 - var(--k) * .07)); }
+/* Kiste */
+.jc-crate { position: absolute; left: -60px; top: -60px; width: 120px; height: 110px; will-change: transform; }
+.jc-crate.sky { opacity: 0; }
+.jc-crate.fall { animation: jc-drop .85s cubic-bezier(.5, 0, .9, .5) both; }
+@keyframes jc-drop { from { transform: translate(28vw, -60vh) rotate(-40deg) scale(.4); } to { transform: translate(0, 0) rotate(8deg) scale(1); } }
+.jc-crate.impact { animation: jc-squash .45s cubic-bezier(.2, 1.6, .4, 1) both; }
+@keyframes jc-squash { 0% { transform: scale(1.2, .75); } 100% { transform: scale(1); } }
+.jc-box { position: absolute; left: 0; right: 0; bottom: 0; height: 78px; border-radius: 8px; border: 3px solid #4a2a0e;
+  background: repeating-linear-gradient(90deg, #a8662a 0 18px, #94571f 18px 20px), linear-gradient(180deg, #b8742f, #7a4515); box-shadow: inset 0 -8px 0 rgba(0, 0, 0, .2), 0 10px 20px rgba(0, 0, 0, .3); }
+.jc-lid { position: absolute; left: -6px; right: -6px; top: 6px; height: 30px; border-radius: 8px; border: 3px solid #4a2a0e; background: linear-gradient(180deg, #c98238, #8f521b); z-index: 2; transform-origin: 20% 100%; }
+.jc-crate.open .jc-lid { animation: jc-lid .65s cubic-bezier(.2, .9, .3, 1) both; }
+@keyframes jc-lid { to { transform: translate(-70px, -140px) rotate(-120deg); opacity: 0; } }
+.jc-band { position: absolute; top: 32px; bottom: 0; width: 12px; background: linear-gradient(180deg, #ffd84a, #c99400); border-left: 2px solid #4a2a0e; border-right: 2px solid #4a2a0e; z-index: 1; }
+.jc-band.b1 { left: 18px; } .jc-band.b2 { right: 18px; }
+.jc-lock { position: absolute; left: 50%; top: 40px; width: 22px; height: 22px; margin-left: -11px; border-radius: 6px; background: radial-gradient(circle at 35% 35%, #fff0a8, #e0a800); border: 2px solid #4a2a0e; z-index: 3; }
+.jc-glow { position: absolute; left: 50%; top: 30px; width: 260px; height: 260px; margin: -150px 0 0 -130px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 245, 190, .95), rgba(255, 210, 74, .55) 35%, transparent 70%); animation: vt-fade .5s ease-out both; z-index: -1; }
+/* Einschlag */
+.jc-flash { background: #f3ffe0; }
+.jc-dust { position: absolute; left: -90px; top: 20px; width: 180px; height: 60px; border-radius: 50%; background: radial-gradient(closest-side, rgba(140, 100, 60, .7), rgba(140, 100, 60, 0));
+  animation: jc-dust .8s ease-out both; }
+.jc-dust.d2 { animation-delay: .08s; filter: blur(2px); }
+@keyframes jc-dust { from { transform: scale(.2); opacity: 1; } to { transform: scale(3.2, 1.6); opacity: 0; } }
+.jc-burst i { position: absolute; left: -10px; top: -6px; width: 22px; height: 12px; border-radius: 0 100% 0 100%; background: #3fbf4a; animation: mt-debris .9s cubic-bezier(.2, .7, .3, 1) both; will-change: transform, opacity; }
+.jc-burst i.h1 { background: #2a9a3a; } .jc-burst i.h2 { background: #7ad65a; }
+/* Glühwürmchen und Goldfunken steigen auf */
+.jc-flies i { position: absolute; left: var(--x); top: 0; width: 8px; height: 8px; border-radius: 50%; background: #fff6a0; box-shadow: 0 0 10px #ffe24a, 0 0 20px #ffd21f;
+  animation: jc-fly-up 1.6s ease-out both; animation-delay: var(--d); }
+@keyframes jc-fly-up { from { transform: translateY(0) scale(var(--s)); opacity: 0; } 20% { opacity: 1; } to { transform: translateY(-46vh) translateX(20px) scale(var(--s)); opacity: 0; } }
+/* Hügel, Blätterdach, fallende Blätter */
+.jc-hills { position: absolute; left: 0; right: 0; bottom: 0; height: 40%; pointer-events: none; }
+.jc-hills i { position: absolute; bottom: 0; border-radius: 50% 50% 0 0; }
+.jc-hills .h1 { left: -20%; width: 80%; height: 70%; background: #3c9a46; } .jc-hills .h2 { right: -25%; width: 90%; height: 85%; background: #2f8a3c; } .jc-hills .h3 { left: 10%; width: 90%; height: 45%; background: #23702f; }
+.jc-canopy { position: absolute; left: 0; right: 0; top: 0; height: 90px; pointer-events: none;
+  background: radial-gradient(60px 50px at 10% 0, #1f6a2c 98%, transparent), radial-gradient(70px 60px at 30% 0, #2a8a38 98%, transparent), radial-gradient(60px 54px at 52% 0, #1f6a2c 98%, transparent),
+    radial-gradient(76px 62px at 75% 0, #2a8a38 98%, transparent), radial-gradient(60px 50px at 95% 0, #1f6a2c 98%, transparent); }
+.jc-falling i { position: absolute; top: -20px; width: 16px; height: 9px; border-radius: 0 100% 0 100%; background: #4fbf4a; opacity: .85; animation: jc-leaf 1.6s linear infinite; }
+@keyframes jc-leaf { from { transform: translate(0, 0) rotate(0); } to { transform: translate(-40px, 105vh) rotate(540deg); } }
+.mt.jc.sky .jc-falling { opacity: .4; }
+/* Belohnung */
+.mt.jc.reveal { background: radial-gradient(90% 60% at 50% 30%, #2f8a3c, #14401c 70%, #0a2410); }
+.mt.jc.reveal :is(.jc-sky, .jc-hills, .jc-canopy) { opacity: 0; transition: opacity .4s; }
+.jc-title { background: linear-gradient(90deg, #c6f07a, #ffd84a, #ff9a2e); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.jc-sub { color: #dff5c8; }
+.jc-card { animation-name: vt-out; }
+.jc-card.best::before { background: radial-gradient(closest-side, rgba(198, 240, 122, .6), transparent); }
+.jc-new { background: #c6f07a; color: #143a0c; }
+.lite .jc-falling, .lite .jc-burst, .lite .jc-flies { display: none; }
+@media (prefers-reduced-motion: reduce) { .jc-cloud, .jc-falling i { animation: none; } }
+
+/* Dschungel-Karte */
+.ucard.v-jungle { --a: #1f6a2c; --b: #0b2a12; --ink: #f2ffe0; --edge: #c6f07a; --glow: rgba(150, 230, 90, .55); }
+.ucard.v-jungle.special { --pat:
+  repeating-linear-gradient(55deg, transparent 0 9px, rgba(198, 240, 122, .13) 9px 11px, transparent 11px 22px),
+  repeating-linear-gradient(-55deg, transparent 0 9px, rgba(122, 214, 90, .1) 9px 11px, transparent 11px 22px),
+  linear-gradient(180deg, rgba(4, 30, 12, 0) 45%, rgba(4, 30, 12, .55)),
+  radial-gradient(70% 45% at 50% 28%, rgba(255, 216, 74, .32), transparent 70%); }
+.ucard.v-jungle .ucard-club, .ucard.v-jungle .ucard-badge { color: #ffd84a; letter-spacing: .06em; text-transform: uppercase; opacity: 1; }
+
+/* ---------- Jungle Crash: Expeditions-Pfad ---------- */
+.overlay.era.jungle { background:
+  radial-gradient(90% 40% at 50% 0%, rgba(255, 210, 63, .18), transparent 60%),
+  repeating-linear-gradient(115deg, rgba(40, 120, 60, .08) 0 14px, transparent 14px 36px),
+  linear-gradient(180deg, #0f3a1e 0%, #082414 45%, #041209 100%); }
+.jg-hero { position: relative; overflow: hidden; border-radius: 22px; aspect-ratio: 16 / 9; margin: 4px 0 10px; background: #0a2a14; border: 2px solid rgba(255, 210, 63, .45); box-shadow: 0 10px 30px rgba(0, 0, 0, .45), 0 0 30px rgba(80, 200, 110, .2); }
+.jg-hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.jg-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(3, 18, 8, .92)); pointer-events: none; }
+.jg-hero-text { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 1; display: grid; gap: 2px; }
+.jg-hero-text small { color: #ffe27a; font-weight: 800; font-size: .78rem; letter-spacing: .04em; }
+.jg-hero-text h1 { margin: 0; font-family: var(--display, inherit); font-size: clamp(2rem, 9vw, 2.8rem); line-height: .95; letter-spacing: .05em; text-transform: uppercase;
+  color: #ffd23f; -webkit-text-stroke: 1.5px #3a2200; text-shadow: 0 3px 0 #3a2200, 0 0 24px rgba(255, 210, 63, .5); }
+.jg-hero-text span { color: #c9f2d2; font-size: .85rem; font-weight: 700; }
+.jungle .ep-sub { color: #bfe6c7; }
+.jungle .ep-progress { background: linear-gradient(135deg, rgba(47, 191, 113, .18), rgba(255, 210, 63, .1)), rgba(0, 0, 0, .35); border: 1px solid rgba(255, 210, 63, .3); }
+.jungle .ep-shards, .jungle .ep-cards { color: #ffd23f; }
+.jungle :is(.ep-shards small, .ep-cards small, .ep-bar-wrap small) { color: #bfe6c7; }
+.jungle .ep-bar { border-color: rgba(255, 210, 63, .4); }
+.jungle .ep-bar i { background: linear-gradient(90deg, #1f8a4c, #6fdc5c 55%, #ffd23f); }
+.jungle .ep-how li { color: #d7f5dc; background: rgba(47, 191, 113, .1); border-color: rgba(111, 220, 92, .2); }
+.jungle .ep-how li b, .jungle .ep-how .ic { color: #ffd23f; }
+.jungle .ep-how .jg-code { border-color: rgba(255, 210, 63, .5); background: rgba(255, 210, 63, .12); }
+/* Liane statt Linie: gedrehtes Seil mit Blättern */
+.jg-path::before { left: 19px; width: 8px; opacity: 1; border-radius: 4px;
+  background: repeating-linear-gradient(160deg, #4f8a2a 0 6px, #2f5e17 6px 12px); box-shadow: 0 0 0 1px rgba(0, 0, 0, .3); }
+.jg-path .ep-step::after { content: ''; position: absolute; left: 26px; top: 50%; width: 14px; height: 8px; margin-top: -18px; border-radius: 0 100% 0 100%; background: #6fdc5c; transform: rotate(-20deg); opacity: .8; pointer-events: none; }
+.jg-path .ep-step:nth-child(even)::after { left: 6px; transform: rotate(200deg); }
+.jungle .ep-node { background: #0b2e17; border-color: #3f7a2a; color: #bfe6c7; }
+.jungle .ep-step.done .ep-node { background: #2fbf71; color: #04220f; border-color: #9dffc9; }
+.jungle .ep-step.ready .ep-node { background: #ffd23f; color: #2a1a00; border-color: #fff3b0; box-shadow: 0 0 16px rgba(255, 210, 63, .8); }
+.jungle .ep-step.next .ep-node { border-color: #ffd23f; color: #ffd23f; }
+.jungle .ep-reward { color: #d7f5dc; background: rgba(20, 70, 35, .55); border-color: rgba(111, 220, 92, .18); }
+.jungle .ep-reward .ic { color: #ffd23f; }
+.jungle .ep-end { color: #bfe6c7; }
+.jungle .ep-got { background: #0b2e17; border: 2px solid #ffd23f; }
+.jungle .ep-got strong { color: #ffd23f; }
+.jg-banana { flex: none; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); }
+/* Hub-Kachel */
+.era-call.jungle-call { background: linear-gradient(110deg, #1f8a4c 0%, #0f4a22 55%, #3a5a10 100%); border: 1px solid rgba(255, 210, 63, .55); box-shadow: 0 6px 20px rgba(31, 138, 76, .35); overflow: hidden; position: relative; }
+.era-call.jungle-call::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, rgba(255, 255, 255, .06) 0 10px, transparent 10px 28px); pointer-events: none; }
+.jungle-call .era-call-text b { color: #ffd23f !important; }
+.jungle-call .era-call-text small { color: #d7f5dc !important; }
+.jg-call-art { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 14px; background: radial-gradient(circle at 40% 35%, #3a8a3a, #0f3a1e); border: 2px solid rgba(255, 210, 63, .6); animation: jg-sway 2.4s ease-in-out infinite; }
+@keyframes jg-sway { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+@media (prefers-reduced-motion: reduce) { .jg-call-art { animation: none; } }
+:root.reduce-motion .jg-call-art { animation: none; }
+/* Profil-Banner */
+.bn-jungle .pf-banner { background: radial-gradient(30% 40% at 80% 25%, rgba(255, 210, 63, .55), transparent 70%), repeating-linear-gradient(115deg, rgba(111, 220, 92, .25) 0 8px, transparent 8px 22px), linear-gradient(160deg, #1f8a4c, #082414 70%); }
+
+:root.aqua .mt.jc .mt-title.jc-title, .mt.jc .mt-title.jc-title { background: linear-gradient(90deg, #c6f07a, #ffd84a, #ff9a2e); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; filter: drop-shadow(0 3px 0 rgba(0, 0, 0, .35)); }
+:root.aqua .jungle .ep-bar { background: rgba(0, 0, 0, .45); border: 1px solid rgba(255, 210, 63, .4); box-shadow: none; }
+.mt.jc .mt-grid { padding-top: 12px; }

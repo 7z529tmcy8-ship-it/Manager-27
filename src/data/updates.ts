@@ -29,6 +29,21 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-04-jungle-crash',
+    date: '04.11.2026',
+    title: 'Jungle Crash – ab 4. November auf Roblox',
+    pinned: true,
+    video: '/news/jungle-crash-trailer.mp4',
+    poster: '/news/jungle-crash-trailer.jpg',
+    imageAlt: 'Trailer von Jungle Crash',
+    items: [
+      'Das neue Roblox-Spiel der Entwickler ist da. Dazu läuft eine Woche lang (bis 11. November) das Event „Jungle Crash“.',
+      'Bananen sammeln (Duelle, Drops, Höher/Tiefer, Draft, Karriere) und den Expeditions-Pfad hochklettern: 30 Stufen, 6 Dschungel-Karten mit +4 – Mbappé, Haaland, van Dijk, Alisson, Pedri und Leão.',
+      'Neue Enthüllung: Ein Frachtflieger wirft eine Kiste ab, sie kracht in den Dschungel und springt auf. Dazu Titel „Expeditionsleiter“ und Banner „Dschungel“.',
+    ],
+    promo: { code: 'JUNGLECRASH', text: 'Im Shop einlösen: Absturz-Kiste mit Dschungel-Karte + 2 Topkarten.' },
+  },
+  {
     id: '2026-11-02-champions-rivals',
     date: '02.11.2026',
     title: 'Duelle: Champions-Division und Wochen-Saisons',
@@ -124,7 +139,6 @@ export const UPDATES: UpdateNote[] = [
     id: '2026-11-01-meteor-rush-trailer',
     date: '01.11.2026',
     title: 'Meteor Rush – bald auf Roblox',
-    pinned: true,
     video: '/news/meteor-rush-trailer.mp4',
     poster: '/news/meteor-rush-trailer.jpg',
     imageAlt: 'Trailer von Meteor Rush',

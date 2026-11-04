@@ -1,8 +1,11 @@
 import { SHOP_SALES } from '../game/shopConfig';
 import EraEvent from './EraEvent';
+import JungleEvent, { Banana } from './JungleEvent';
+import { jungleReady } from '../game/jungle';
+import { JUNGLE_PLAYERS, jungleCardId } from '../data/jungleCards';
 import { ERA_NAME, ERA_PLAYERS, eraCardId, eraToday } from '../data/eraCards';
 import { eraReady } from '../game/era';
-import { eraLive } from '../game/eraTime';
+import { eraLive, jungleLive } from '../game/eraTime';
 import { Children, useRef, useState, type ReactNode } from 'react';
 import { getClub } from '../data/leagues';
 import { ballonTipCorrect, collectionProgress, ballonTipOpen, careerCard, claimBallonTip, creditCareer, eventActive, halloweenActive, rewardPending, type PackResult } from '../game/club';
@@ -62,6 +65,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   const [full, setFull] = useState(isFullscreen());
   const [glory, setGlory] = useState(false);
   const [era, setEra] = useState(false);
+  const [jungle, setJungle] = useState(false);
   const tipWon = ballonTipCorrect(club) === true && !club.ballonTipClaimed;
   const gigLastDay = new Date().getDate() === 18;
   const me = profileOf(club);
@@ -92,6 +96,14 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
       </header>
 
       <EventStrip>
+        {(jungleLive() || jungleReady(club) > 0) && (
+          <button className="era-call jungle-call" onClick={() => setJungle(true)}>
+            <span className="jg-call-art" aria-hidden="true"><Banana size={30} /></span>
+            <span className="era-call-text"><b>Jungle Crash</b><small>Expedition · {JUNGLE_PLAYERS.filter(([n]) => (club.cards[jungleCardId(n)] ?? 0) > 0).length}/6 Dschungel-Karten</small></span>
+            <Icon name="arrow" size={22} />
+            {jungleReady(club) > 0 && <b className="shop-badge">{jungleReady(club)}</b>}
+          </button>
+        )}
         {(eraLive() || eraReady(club) > 0) && (
           <button className="era-call" onClick={() => setEra(true)}>
             <span className="ep-clock" aria-hidden="true"><i className="h" /><i className="m" /></span>
@@ -270,6 +282,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
       )}
       {backup && <Backup onClose={() => setBackup(false)} />}
       {tipOpen && <BallonTip onClose={() => setTipOpen(false)} />}
+      {jungle && <JungleEvent onClose={() => setJungle(false)} onCollection={() => { setJungle(false); onCollection(); }} />}
       {era && <EraEvent onClose={() => setEra(false)} onCollection={() => { setEra(false); onCollection(); }} />}
       {glory && <GloryRoad onClose={() => setGlory(false)} onStore={() => { setGlory(false); onStore(); }} />}
       {profile && <ProfileScreen careers={saves} onClose={() => setProfile(false)} />}

@@ -6,7 +6,7 @@ import { ERA_END, ERA_START, SHARDS, addShards, eraLive } from '../eraTime';
 import { vaultCards } from '../codes';
 
 const during = new Date(2026, 10, 4, 12);
-const after = new Date(2026, 10, 9, 12);
+const after = new Date(2026, 10, 12, 12); // nach Zeitreise und Jungle Crash
 
 it('Zeitreise: genau 10 Ära-Karten, je eine auf jeder 4. Stufe', () => {
   expect(ERA_PLAYERS).toHaveLength(10);

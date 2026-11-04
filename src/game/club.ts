@@ -1,5 +1,6 @@
 import { ERA_NAME, ERA_PLAYERS, eraCardId, eraToday, type Era } from '../data/eraCards';
-import { ERA_END, ERA_START, SHARDS, addShards, type EraState } from './eraTime';
+import { ERA_END, ERA_START, JUNGLE_END, JUNGLE_START, SHARDS, addShards, type EraState, type JungleState } from './eraTime';
+import { JUNGLE_BOOST, JUNGLE_PLAYERS, jungleCardId } from '../data/jungleCards';
 import { METEOR_GOALS, meteorGoals } from './achievements';
 import type { Avatar } from './creator';
 import { FAILED_TALENTS, LEGENDS } from '../data/legends';
@@ -16,7 +17,7 @@ import type { Career, CoachSeason, Position, SeasonRecord, SpecialCard, SpecialT
 
 /** Auszeichnungs-Karten, die man am Karriereende statt der Ikone wählen kann. */
 export type AwardVariant = 'ballondor' | 'poty' | 'topscorer' | 'goldenboy' | 'ucl' | 'worldcup';
-export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | 'gala' | 'totw' | 'comeback' | 'flashback' | 'pass' | 'gig' | 'winter' | 'silvester' | 'unvergessen' | 'ewig' | 'serie' | 'aera' | 'rivals' | AwardVariant | SpecialType;
+export type CardVariant = 'silver' | 'gold' | 'gold-rare' | 'icon' | 'talent' | 'cult' | 'moment' | 'present' | 'halloween' | 'debut' | 'gala' | 'totw' | 'comeback' | 'flashback' | 'pass' | 'gig' | 'winter' | 'silvester' | 'unvergessen' | 'ewig' | 'serie' | 'aera' | 'rivals' | 'jungle' | AwardVariant | SpecialType;
 
 export interface CollectCard {
   id: string;
@@ -87,6 +88,8 @@ export interface ClubState {
   meteorDrops?: number;
   /** Ära-Event: Zeit-Splitter und abgeholte Pfad-Stufen. */
   aera?: EraState;
+  /** Event „Jungle Crash“: Bananen und abgeholte Pfad-Stufen. */
+  jungle?: JungleState;
   dropDay?: { day: string; n: number };
   dropsOpened?: number;
   /** Ruhmesweg: aktuelle und beste Trophäen, abgeholte Stufen (Trophäen-Marke). */
@@ -208,6 +211,12 @@ for (const p of ERA_PLAYERS) {
   const [club, league, ovr, when] = p.eras.prime;
   CARD_POOL.push({ id: eraCardId(p.name), name: p.name, position: p.position, nation: p.nation, club, league, ovr, variant: 'aera', era: 'prime', label: `${ERA_NAME.prime} · ${when}` });
 }
+// Dschungel-Karten (Event „Jungle Crash“): Stars mit Tier-Spitznamen, +4
+for (const [name, nick] of JUNGLE_PLAYERS) {
+  const base = CARD_POOL.find((c) => c.name === name && ['silver', 'gold', 'gold-rare'].includes(c.variant));
+  if (!base) continue;
+  CARD_POOL.push({ id: jungleCardId(name), name, position: base.position, nation: base.nation, club: base.club, league: base.league, ovr: Math.min(99, base.ovr + JUNGLE_BOOST), variant: 'jungle', label: `${nick} · Jungle Crash` });
+}
 /** Ära-Karte in der Zeit von heute (oder einer bestimmten Zeit). */
 export function eraView(card: CollectCard, era: Era = eraToday()): CollectCard {
   const p = ERA_PLAYERS.find((x) => eraCardId(x.name) === card.id);
@@ -240,7 +249,7 @@ export function sellValue(c: CollectCard): number {
 
 /** Seltenheit für Sortierung und „bester Zug“. */
 export function rarity(c: CollectCard): number {
-  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, gala: 3.9, totw: 3.1, comeback: 3.3, flashback: 3.5, pass: 3.95, gig: 4.1, winter: 3.85, silvester: 4.05, aera: 4.0, rivals: 3.7, unvergessen: 4.1, ewig: 4.6, serie: 2.4, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
+  const base = { silver: 0, gold: 1, 'gold-rare': 2, talent: 2.5, cult: 2.7, icon: 4, moment: 3.6, present: 3.4, halloween: 3.5, debut: 2.8, gala: 3.9, totw: 3.1, comeback: 3.3, flashback: 3.5, pass: 3.95, gig: 4.1, winter: 3.85, silvester: 4.05, aera: 4.0, rivals: 3.7, jungle: 3.95, unvergessen: 4.1, ewig: 4.6, serie: 2.4, ballondor: 4.2, poty: 3.8, topscorer: 3.7, goldenboy: 3.7, ucl: 3.8, worldcup: 4, tots: 3, potm: 3, record: 3, champion: 3 }[c.variant];
   return base * 100 + c.ovr;
 }
 
@@ -255,7 +264,7 @@ const TIERS: PackTier[] = ['silver', 'gold', 'rare', 'elite', 'special', 'icon']
 /** Stufe einer Karte für Packs: Silber < 75, Gold 75–82, Selten 83–86, Elite 87+, Spezial (Kult/Was wäre wenn), Ikone. */
 export function packTier(c: CollectCard): PackTier {
   if (c.variant === 'icon') return 'icon';
-  if (c.variant === 'talent' || c.variant === 'cult' || c.variant === 'halloween' || c.variant === 'debut' || c.variant === 'gala' || c.variant === 'comeback' || c.variant === 'flashback' || c.variant === 'pass' || c.variant === 'gig' || c.variant === 'winter' || c.variant === 'silvester' || c.variant === 'aera' || c.variant === 'rivals') return 'special';
+  if (c.variant === 'talent' || c.variant === 'cult' || c.variant === 'halloween' || c.variant === 'debut' || c.variant === 'gala' || c.variant === 'comeback' || c.variant === 'flashback' || c.variant === 'pass' || c.variant === 'gig' || c.variant === 'winter' || c.variant === 'silvester' || c.variant === 'aera' || c.variant === 'rivals' || c.variant === 'jungle') return 'special';
   return c.ovr >= 87 ? 'elite' : c.ovr >= 83 ? 'rare' : c.ovr >= 75 ? 'gold' : 'silver';
 }
 
@@ -857,7 +866,7 @@ export const halloweenActive = (now = new Date()) => now <= HALLOWEEN_END;
 /** Ballon-d’Or-Verleihung 2026: 26.10., 21 Uhr (Tipps bis dahin). */
 export const BALLON_CEREMONY = new Date(2026, 9, 26, 21, 0, 0);
 
-export type EventId = 'halloween' | 'geisternacht' | 'gala' | 'gig' | 'winter' | 'silvester' | 'aera';
+export type EventId = 'halloween' | 'geisternacht' | 'gala' | 'gig' | 'winter' | 'silvester' | 'aera' | 'jungle';
 /** Zeitfenster der Events (Ortszeit des Geräts). */
 export const EVENTS: Record<EventId, { start: Date; end: Date }> = {
   halloween: { start: new Date(2026, 9, 1), end: HALLOWEEN_END },
@@ -873,6 +882,8 @@ export const EVENTS: Record<EventId, { start: Date; end: Date }> = {
   silvester: { start: new Date(2026, 11, 31, 0, 0, 0), end: new Date(2027, 0, 1, 23, 59, 59) },
   // Ära-Event „Zeitreise“: eine Woche
   aera: { start: ERA_START, end: ERA_END },
+  // Jungle Crash: Start des Roblox-Spiels der Entwickler
+  jungle: { start: JUNGLE_START, end: JUNGLE_END },
 };
 export const eventActive = (e: EventId, now = new Date()) => now >= EVENTS[e].start && now <= EVENTS[e].end;
 /** Zu welchem Event eine Karte gehört (nur in dessen Packs ziehbar). */
@@ -882,6 +893,7 @@ export function eventOfCard(c: CollectCard): EventId | null {
   if (c.variant === 'winter') return 'winter';
   if (c.variant === 'silvester') return 'silvester';
   if (c.variant === 'aera') return 'aera';
+  if (c.variant === 'jungle') return 'jungle';
   if (c.variant === 'halloween') return c.club === 'Geisternacht' ? 'geisternacht' : 'halloween';
   return null;
 }

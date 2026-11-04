@@ -1,11 +1,12 @@
+import { jungleCrate } from './jungle';
 import { CARD_POOL, cardForGifts, type ClubState, type CollectCard, type PackResult } from './club';
 
 // ---------- Codes im Shop ----------
 // Codes lassen sich beliebig oft einlösen. Groß-/Kleinschreibung und Leerzeichen sind egal.
 // redeemedCodes merkt sich nur, welche Codes man schon einmal benutzt hat (für Banner und Titel im Profil).
 
-export type CodeTheme = 'meteor' | 'frost' | 'vault';
-export type CodeReward = { kind: 'icons'; n: number; theme: 'meteor' } | { kind: 'frost'; theme: 'frost' } | { kind: 'vault'; theme: 'vault' };
+export type CodeTheme = 'meteor' | 'frost' | 'vault' | 'jungle';
+export type CodeReward = { kind: 'icons'; n: number; theme: 'meteor' } | { kind: 'frost'; theme: 'frost' } | { kind: 'vault'; theme: 'vault' } | { kind: 'jungle'; theme: 'jungle' };
 const METEOR_CODE: CodeReward = { kind: 'icons', n: 10, theme: 'meteor' };
 export const CODES: Record<string, CodeReward> = {
   // Meteor-Drop: 10 zufällige Ikonen mit Einschlag
@@ -17,6 +18,8 @@ export const CODES: Record<string, CodeReward> = {
   EISSTURM: { kind: 'frost', theme: 'frost' },
   // Tresor-Drop: 5 Karten, die man garantiert noch nicht hat (eine davon ab 88)
   TRESOR: { kind: 'vault', theme: 'vault' },
+  // Absturz-Kiste zum Start von Jungle Crash: 1 Dschungel-Karte + 2 Topkarten ab 85
+  JUNGLECRASH: { kind: 'jungle', theme: 'jungle' },
 };
 
 export const normCode = (input: string) => input.trim().toUpperCase().replace(/\s+/g, '');
@@ -84,7 +87,7 @@ export function redeemCode(club: ClubState, input: string, rand = Math.random): 
   const code = normCode(input);
   const reward = CODES[code];
   if (!reward) return { ok: false, reason: 'unknown' };
-  const g = reward.kind === 'frost' ? grantCards(club, frostCards(rand)) : reward.kind === 'vault' ? grantCards(club, vaultCards(club, rand)) : grantIcons(club, reward.n, rand);
+  const g = reward.kind === 'frost' ? grantCards(club, frostCards(rand)) : reward.kind === 'vault' ? grantCards(club, vaultCards(club, rand)) : reward.kind === 'jungle' ? grantCards(club, jungleCrate(club, rand)) : grantIcons(club, reward.n, rand);
   const used = club.redeemedCodes ?? [];
   return { ok: true, club: { ...g.club, redeemedCodes: used.includes(code) ? used : [...used, code] }, result: g.result, theme: reward.theme };
 }
