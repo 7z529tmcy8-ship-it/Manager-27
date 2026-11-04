@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-04-manager-modus',
+    date: '04.11.2026',
+    title: 'Neu: Manager-Modus',
+    items: [
+      'Übernimm einen Verein aus 11 Ligen – der Kader besteht aus den echten Spielern des Vereins, aufgefüllt mit Nachwuchs und Ergänzungsspielern.',
+      'Aufstellung auf dem Spielfeld (4 Formationen), Taktik vor jedem Spiel, Spieltag für Spieltag mit Live-Anzeigetafel – oder direkt bis zur Winterpause simulieren.',
+      'Transfermarkt im Sommer und Winter: echte Spieler, Juwelen und ein Traum-Transfer. Jeder Spieler hat eine Wechsel-Lust – zu kleine Vereine bekommen auch Absagen.',
+      'Vorstandsziel, Preisgeld, Auf- und Abstieg zwischen 1. und 2. Liga, Spielerentwicklung. Coins für dein Konto und als Meister ein Premium-Pack.',
+    ],
+  },
+  {
     id: '2026-11-04-jungle-crash',
     date: '04.11.2026',
     title: 'Jungle Crash – ab 4. November auf Roblox',

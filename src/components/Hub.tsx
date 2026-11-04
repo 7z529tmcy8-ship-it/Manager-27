@@ -1,5 +1,7 @@
 import { SHOP_SALES } from '../game/shopConfig';
 import EraEvent from './EraEvent';
+import ManagerMode from './ManagerMode';
+import { loadManager } from '../game/manager';
 import JungleEvent, { Banana } from './JungleEvent';
 import { jungleReady } from '../game/jungle';
 import { JUNGLE_PLAYERS, jungleCardId } from '../data/jungleCards';
@@ -66,6 +68,8 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   const [glory, setGlory] = useState(false);
   const [era, setEra] = useState(false);
   const [jungle, setJungle] = useState(false);
+  const [manager, setManager] = useState(false);
+  const mgr = manager ? null : loadManager();
   const tipWon = ballonTipCorrect(club) === true && !club.ballonTipClaimed;
   const gigLastDay = new Date().getDate() === 18;
   const me = profileOf(club);
@@ -222,6 +226,11 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
           <span><strong>Shop</strong><small>{!SHOP_SALES ? 'Casino & Codes' : !club.megaSuperClaimed || !club.megaXxlClaimed || !club.welcomeClaimed ? 'Gratis-Pack!' : 'Packs & Drops'}</small></span>
           {(freePacks + (club.storedPacks?.length ?? 0) + (club.drops ?? 0) + (club.megaDrops ?? 0) + (club.meteorDrops ?? 0)) > 0 && <b className="hub-badge">{freePacks + (club.storedPacks?.length ?? 0) + (club.drops ?? 0) + (club.megaDrops ?? 0) + (club.meteorDrops ?? 0)}</b>}
         </button>
+        <button className="hub-big hb-manager" onClick={() => setManager(true)}>
+          <span className="hb-mg-pitch" aria-hidden="true"><i /><i /><i /></span>
+          <span><strong>Manager-Modus</strong><small>{mgr ? `${getClub(mgr.clubId).name} · Spieltag ${mgr.round}/${mgr.rounds.length}` : 'Eigener Verein · Transfermarkt · Titel'}</small></span>
+          <b className="hb-mg-tag">{mgr ? 'Weiter' : 'Neu'}</b>
+        </button>
         <PassTile onClick={onPass} />
         <GloryTile onClick={() => setGlory(true)} />
         <Tile small icon="cards" title="Sammlung" sub={`${progress.label} gesammelt · ${progress.have} von ${progress.total} Karten`} onClick={onCollection} />
@@ -282,6 +291,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
       )}
       {backup && <Backup onClose={() => setBackup(false)} />}
       {tipOpen && <BallonTip onClose={() => setTipOpen(false)} />}
+      {manager && <ManagerMode onClose={() => setManager(false)} />}
       {jungle && <JungleEvent onClose={() => setJungle(false)} onCollection={() => { setJungle(false); onCollection(); }} />}
       {era && <EraEvent onClose={() => setEra(false)} onCollection={() => { setEra(false); onCollection(); }} />}
       {glory && <GloryRoad onClose={() => setGlory(false)} onStore={() => { setGlory(false); onStore(); }} />}
