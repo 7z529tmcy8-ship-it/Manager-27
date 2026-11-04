@@ -166,6 +166,20 @@ export function bestXI(squad: MPlayer[], formation: Formation): string[] {
   return out;
 }
 
+/** Formation wechseln, ohne die Auswahl zu verlieren: dieselben elf Spieler auf die neuen Plätze verteilen. */
+export function remapXI(squad: MPlayer[], xi: string[], formation: Formation): string[] {
+  const mine = xi.map((id) => squad.find((p) => p.id === id)).filter((p): p is MPlayer => !!p);
+  const slots = FORMATIONS[formation].slots;
+  const order = slots.map((s, i) => ({ s, i })).sort((a, b) => (a.s === 'TW' ? -1 : b.s === 'TW' ? 1 : 0));
+  const out: string[] = new Array(slots.length).fill('');
+  const used = new Set<string>();
+  for (const { s, i } of order) {
+    const best = mine.filter((p) => !used.has(p.id)).sort((a, b) => slotRating(b, s) - slotRating(a, s))[0];
+    if (best) { used.add(best.id); out[i] = best.id; }
+  }
+  return out;
+}
+
 /** Elf bereinigen: fehlende oder verkaufte Spieler durch die besten freien ersetzen. */
 export function fixXI(m: Pick<ManagerState, 'squad' | 'xi' | 'formation'>): string[] {
   const slots = FORMATIONS[m.formation].slots;
@@ -509,13 +523,13 @@ export function finishSeason(m: ManagerState): { m: ManagerState; summary: Seaso
     ...(move === 'up' ? [`Aufstieg in die ${getLeague(newLeague!).name}!`] : move === 'down' ? [`Abstieg in die ${getLeague(newLeague!).name}.`] : []),
     ...m.news,
   ].slice(0, 30);
+  // Deine Aufstellung bleibt: nur Plätze von Spielern, die aufgehört haben, werden nachbesetzt
+  const xi = fixXI({ squad, xi: m.xi, formation: m.formation });
+  const bench = m.bench ? fixBench({ squad, xi, bench: m.bench }) : undefined;
   const next = seasonSetup({
-    ...m, leagueOf, season: m.season + 1, squad, xi: [], budget: m.budget + prize, history: [rec, ...m.history],
+    ...m, leagueOf, season: m.season + 1, squad, xi, bench, budget: m.budget + prize, history: [rec, ...m.history],
     trophies: title ? [title, ...m.trophies] : m.trophies, news, board: clamp(m.board + (reached ? 10 : -15), 0, 100),
   });
-  next.xi = bestXI(next.squad, next.formation);
-  next.bench = bestBench(next.squad, next.xi);
-  next.target = boardTarget(next);
   return { m: next, summary: { pos, points, target: m.target, reached, title, move, newLeague, prize, coins, grew: grew.sort((a, b) => (b.to - b.from) - (a.to - a.from)).slice(0, 5), retired, topScorer: scorer && scorer.goals ? { name: scorer.name, goals: scorer.goals } : null } };
 }
 

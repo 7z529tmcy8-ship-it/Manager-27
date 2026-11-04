@@ -29,6 +29,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-04-manager-aufstellung',
+    date: '04.11.2026',
+    title: 'Manager-Modus: Deine Aufstellung bleibt',
+    items: [
+      'Elf und Bank werden zum Saisonende nicht mehr neu gewählt – nur Plätze von Spielern, die aufgehört haben, werden nachbesetzt.',
+      'Formation wechseln behält deine elf Spieler und verteilt sie nur auf die neuen Positionen. Komplett neu aufstellen geht weiter mit „Beste Elf“.',
+    ],
+  },
+  {
     id: '2026-11-04-manager-zentrale',
     date: '04.11.2026',
     title: 'Manager-Modus: Bank, Einwechslungen und Team-Zentrale',

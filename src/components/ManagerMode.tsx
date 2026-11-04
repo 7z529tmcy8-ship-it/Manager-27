@@ -4,7 +4,7 @@ import { getClubState, setClubState } from '../clubStore';
 import { getClub, getLeague } from '../data/leagues';
 import { storePacks, type CollectCard } from '../game/club';
 import {
-  BENCH_SIZE, FORMATIONS, SQUAD_MAX, SQUAD_MIN, TACTICS, avgRating, bestBench, bestXI, fixBench, isGoal, buyPlayer, clubsForLeague, dropFromMarket, finishSeason, fixXI, halfRound, loadManager,
+  BENCH_SIZE, FORMATIONS, SQUAD_MAX, SQUAD_MIN, TACTICS, avgRating, bestBench, bestXI, fixBench, isGoal, remapXI, buyPlayer, clubsForLeague, dropFromMarket, finishSeason, fixXI, halfRound, loadManager,
   managerLeagues, moneyShort, myLeague, newManager, playRound, saveManager, sellOffer, sellPlayer, slotRating, startBudget, tablePos,
   teamRating, willingness, windowName, windowOpen, zoneOf,
   type Formation, type MPlayer, type ManagerState, type MarketPlayer, type MyMatch, type SeasonSummary, type Tactic,
@@ -280,7 +280,7 @@ function Lineup({ m, setM, onToast }: { m: ManagerState; setM: (m: ManagerState)
     <>
       <div className="mg-forms">
         {(Object.keys(FORMATIONS) as Formation[]).map((k) => (
-          <button key={k} className={m.formation === k ? 'on' : ''} onClick={() => { const nx = bestXI(m.squad, k); setM({ ...m, formation: k, xi: nx, bench: bestBench(m.squad, nx) }); }}>{k}</button>
+          <button key={k} className={m.formation === k ? 'on' : ''} onClick={() => setM({ ...m, formation: k, xi: fixXI({ squad: m.squad, formation: k, xi: remapXI(m.squad, xi, k) }), bench })}>{k}</button>
         ))}
         <button className="mg-auto" onClick={() => { const nx = bestXI(m.squad, m.formation); setM({ ...m, xi: nx, bench: bestBench(m.squad, nx) }); onToast('Beste Elf und Bank aufgestellt'); }}><Icon name="spark" size={14} />Beste Elf</button>
       </div>

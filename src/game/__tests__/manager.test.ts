@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BENCH_SIZE, FORMATIONS, avgRating, bestBench, fixBench, SQUAD_MIN, bestXI, buildSquad, buyPlayer, finishSeason, halfRound, leagueOfClub, newManager, playRound, sellPlayer, tablePos, teamRating, windowOpen } from '../manager';
+import { remapXI, BENCH_SIZE, FORMATIONS, avgRating, bestBench, fixBench, SQUAD_MIN, bestXI, buildSquad, buyPlayer, finishSeason, halfRound, leagueOfClub, newManager, playRound, sellPlayer, tablePos, teamRating, windowOpen } from '../manager';
 
 describe('Manager-Modus', () => {
   it('Kader: echte Spieler plus Auffüllung, jede Position besetzt', () => {
@@ -75,6 +75,27 @@ describe('Manager-Modus', () => {
     for (let i = 0; i < 5; i++) m = playRound(m);
     expect(m.squad.filter((p) => p.apps > 0).every((p) => allowed.has(p.id))).toBe(true);
     expect(bestBench(m.squad, m.xi)).toHaveLength(BENCH_SIZE);
+  });
+
+  it('Eigene Aufstellung und Bank bleiben über das Saisonende erhalten', () => {
+    let m = newManager('borussia-dortmund');
+    // Eigene Wahl: Elf mit vertauschten Plätzen, Bank mit nur 3 Spielern
+    const xi = [...m.xi];
+    [xi[6], xi[7]] = [xi[7], xi[6]];
+    const bench = m.bench!.slice(0, 3);
+    m = { ...m, xi, bench };
+    while (!m.done) m = playRound(m);
+    const { m: next } = finishSeason(m);
+    const kept = new Set(next.squad.map((p) => p.id));
+    xi.forEach((id, i) => { if (kept.has(id)) expect(next.xi[i]).toBe(id); });
+    expect(next.bench).toEqual(bench.filter((id) => kept.has(id)));
+    expect(new Set(next.xi).size).toBe(11);
+  });
+
+  it('Formationswechsel behält dieselben elf Spieler', () => {
+    const m = newManager('fc-barcelona');
+    const xi = remapXI(m.squad, m.xi, '3-5-2');
+    expect(new Set(xi)).toEqual(new Set(m.xi));
   });
 
   it('Formationen haben 11 Plätze, Teamstärke passt grob zur Vereinsstärke', () => {
