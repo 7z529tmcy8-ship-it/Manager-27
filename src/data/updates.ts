@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-05-fettes-update',
+    date: '05.11.2026',
+    title: 'Fettes Update: Packs zurück, 250 neue Spieler, 5 neue Ewig-SBCs',
+    items: [
+      'Packs, Angebote und Drops sind zurück im Shop.',
+      'Über 250 neue echte Spieler – als Karten, in der Spielerkarriere und in den Kadern im Manager-Modus. Die Bundesliga ist jetzt fast komplett echt besetzt, dazu viele Stars aus Premier League, LaLiga, Serie A, Ligue 1 und Portugal. Bekannte Sommer-Wechsel 2026 sind eingearbeitet.',
+      'Fünf neue Ewig-SBCs mit Karten über 100 – erstmals auf neuen Positionen: Maradona (ZOM, 103), Kahn (TW, 101), Cafu (AV, 101), Matthäus (ZDM, 101) und Maldini (AV, 100).',
+    ],
+  },
+  {
     id: '2026-11-05-the-hallway',
     date: '05.11.2026',
     title: 'The Hallway – das neue Roblox-Spiel',

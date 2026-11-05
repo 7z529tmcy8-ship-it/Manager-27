@@ -120,6 +120,62 @@ export const MOMENTS: MomentSbc[] = [
       { label: 'Ikonen', count: 3, test: isIcon },
     ],
   },
+  // ----- Ewig II (100–103): neue Positionen – Torwart, Außenverteidiger, Sechser, Zehner -----
+  {
+    id: 'moment-ewig-maradona',
+    reward: eternal('ewig-maradona', 'Diego Maradona', 'ZOM', 'Argentinien', 'WM 1986', 103, 'Mexiko 1986 · Weltmeister'),
+    story: 'Aztekenstadion, 22. Juni 1986: Im Viertelfinale gegen England läuft Maradona von der Mittellinie durch die halbe Mannschaft zum 2:0 – später zum „Tor des Jahrhunderts“ gewählt. Eine Woche später ist Argentinien Weltmeister.',
+    minAvg: 94, minEach: 90,
+    needs: [
+      { label: 'Argentinier', count: 3, test: nation('Argentinien') },
+      { label: 'Ikonen', count: 3, test: isIcon },
+      { label: 'Spezialkarten', count: 3, test: isSpecial },
+    ],
+  },
+  {
+    id: 'moment-ewig-kahn',
+    reward: eternal('ewig-kahn', 'Oliver Kahn', 'TW', 'Deutschland', 'WM 2002', 101, 'Yokohama 2002 · Goldener Ball'),
+    story: 'WM 2002 in Japan und Südkorea: Oliver Kahn hält Deutschland fast im Alleingang bis ins Finale und wird als erster und bisher einziger Torwart zum besten Spieler einer WM gewählt – den Goldenen Ball.',
+    minAvg: 92, minEach: 89,
+    needs: [
+      { label: 'Torhüter', count: 2, test: (c) => c.position === 'TW' },
+      { label: 'Deutsche', count: 3, test: nation('Deutschland') },
+      { label: 'Ikonen', count: 2, test: isIcon },
+    ],
+  },
+  {
+    id: 'moment-ewig-cafu',
+    reward: eternal('ewig-cafu', 'Cafu', 'AV', 'Brasilien', 'WM 2002', 101, 'Yokohama 2002 · Kapitän des Weltmeisters'),
+    story: 'Yokohama, 30. Juni 2002: Kapitän Cafu stemmt den WM-Pokal in die Höhe – in seinem dritten WM-Finale nacheinander (1994, 1998, 2002) – das hat sonst kein Spieler geschafft.',
+    minAvg: 92, minEach: 89,
+    needs: [
+      { label: 'Brasilianer', count: 3, test: nation('Brasilien') },
+      { label: 'Außenverteidiger', count: 2, test: (c) => c.position === 'AV' },
+      { label: 'Ikonen', count: 2, test: isIcon },
+    ],
+  },
+  {
+    id: 'moment-ewig-maldini',
+    reward: eternal('ewig-maldini', 'Paolo Maldini', 'AV', 'Italien', 'Champions League 2007', 100, 'Athen 2007 · Kapitän mit 38'),
+    story: 'Athen, 23. Mai 2007: Mit 38 Jahren gewinnt Kapitän Paolo Maldini mit dem AC Mailand gegen Liverpool die Champions League – sein fünfter Titel im wichtigsten Klubwettbewerb.',
+    minAvg: 91, minEach: 87,
+    needs: [
+      { label: 'Italiener', count: 2, test: nation('Italien') },
+      { label: 'Verteidiger', count: 3, test: (c) => c.position === 'IV' || c.position === 'AV' },
+      { label: 'Ikonen', count: 2, test: isIcon },
+    ],
+  },
+  {
+    id: 'moment-ewig-matthaeus',
+    reward: eternal('ewig-matthaeus', 'Lothar Matthäus', 'ZDM', 'Deutschland', 'WM 1990', 101, 'Rom 1990 · Weltmeister & Ballon d’Or'),
+    story: 'Rom, 8. Juli 1990: Kapitän Lothar Matthäus führt Deutschland im Finale gegen Argentinien zum WM-Titel. Im selben Jahr gewinnt er den Ballon d’Or.',
+    minAvg: 92, minEach: 89,
+    needs: [
+      { label: 'Deutsche', count: 3, test: nation('Deutschland') },
+      { label: 'Defensive Mittelfeldspieler', count: 2, test: (c) => c.position === 'ZDM' },
+      { label: 'Ikonen', count: 2, test: isIcon },
+    ],
+  },
   // ----- Unvergessen (neues Kartendesign) -----
   {
     id: 'moment-zidane-volley',
