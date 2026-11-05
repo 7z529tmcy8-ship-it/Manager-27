@@ -29,6 +29,20 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-05-the-hallway',
+    date: '05.11.2026',
+    title: 'The Hallway – das neue Roblox-Spiel',
+    pinned: true,
+    image: '/news/the-hallway.webp',
+    imageAlt: 'Eine Taube späht um die Ecke, im roten Flur steht eine Lampe',
+    items: [
+      'Ein endloser roter Flur, flackerndes Licht – und irgendwo versteckt sich die Taube. Finde sie, bevor die Lampen dich erreichen.',
+      'Zum Start gibt es die Flur-Kiste: Drei Türen, hinter einer sitzt die Taube. Jede falsche Tür lässt die Lampen näher kommen.',
+      'Mit dem Code freigeschaltet: Profil-Banner „Der Flur“ und Titel „Taubenfinder“.',
+    ],
+    promo: { code: 'HALLWAY', text: 'Im Shop einlösen: Flur-Kiste mit 3 Topkarten (eine ab 88). Auch der Code TAUBE funktioniert.' },
+  },
+  {
     id: '2026-11-05-manager-kalender',
     date: '05.11.2026',
     title: 'Manager-Modus: Kalender, Ereignisse und News-Zentrale',
@@ -83,7 +97,6 @@ export const UPDATES: UpdateNote[] = [
     id: '2026-11-04-jungle-crash',
     date: '04.11.2026',
     title: 'Jungle Crash – ab 4. November auf Roblox',
-    pinned: true,
     video: '/news/jungle-crash-trailer.mp4',
     poster: '/news/jungle-crash-trailer.jpg',
     imageAlt: 'Trailer von Jungle Crash',

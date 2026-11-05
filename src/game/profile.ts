@@ -84,6 +84,7 @@ export const BANNERS: ProfileBanner[] = [
   { id: 'meteor', name: 'Meteor', need: 'Einen Meteor-Code einlösen', ok: (c) => usedCode(c, ['METEOR', 'METEORRUSH', 'KRATER', 'STERNSCHNUPPE']) },
   { id: 'eis', name: 'Eissturm', need: 'Code EISSTURM einlösen', ok: (c) => usedCode(c, ['EISSTURM']) },
   { id: 'zeit', name: 'Zeitreise', need: 'Zeitreise-Pfad komplett', ok: (c) => (c.aera?.claimed ?? 0) >= 40 },
+  { id: 'hallway', name: 'Der Flur', need: 'Code HALLWAY oder TAUBE einlösen', ok: (c) => usedCode(c, ['HALLWAY', 'TAUBE']) },
   { id: 'jungle', name: 'Dschungel', need: 'Code JUNGLECRASH oder Expeditions-Pfad komplett', ok: (c) => usedCode(c, ['JUNGLECRASH']) || (c.jungle?.claimed ?? 0) >= 30 },
 ];
 const usedCode = (club: ClubState, codes: string[]) => (club.redeemedCodes ?? []).some((c) => codes.includes(c));
@@ -112,6 +113,7 @@ export const TITLES: ProfileTitle[] = [
   { id: 'meteor', name: 'Meteor-Rusher', need: 'Einen Meteor-Code einlösen', ok: (c) => usedCode(c, ['METEOR', 'METEORRUSH', 'KRATER', 'STERNSCHNUPPE']) },
   { id: 'eis', name: 'Eisherz', need: 'Code EISSTURM einlösen', ok: (c) => usedCode(c, ['EISSTURM']) },
   { id: 'zeit', name: 'Zeitreisender', need: 'Zeitreise-Pfad komplett (Event)', ok: (c) => (c.aera?.claimed ?? 0) >= 40 },
+  { id: 'hallway', name: 'Taubenfinder', need: 'Code HALLWAY oder TAUBE einlösen', ok: (c) => usedCode(c, ['HALLWAY', 'TAUBE']) },
   { id: 'jungle', name: 'Expeditionsleiter', need: 'Expeditions-Pfad komplett (Jungle Crash)', ok: (c) => (c.jungle?.claimed ?? 0) >= 30 },
 ];
 export const titleOf = (club: ClubState, careers: Career[]) => {

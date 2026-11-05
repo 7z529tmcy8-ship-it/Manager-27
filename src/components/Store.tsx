@@ -13,6 +13,7 @@ import MeteorReveal from './MeteorReveal';
 import FrostReveal from './FrostReveal';
 import VaultReveal from './VaultReveal';
 import JungleReveal from './JungleReveal';
+import HallwayReveal from './HallwayReveal';
 import { openMeteorDrop, redeemCode } from '../game/codes';
 import DropOpener from './DropOpener';
 import PolarCalendar from './PolarCalendar';
@@ -47,6 +48,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
   const [frost, setFrost] = useState<PackResult | null>(null);
   const [vault, setVault] = useState<PackResult | null>(null);
   const [jungle, setJungle] = useState<PackResult | null>(null);
+  const [hallway, setHallway] = useState<PackResult | null>(null);
   const redeem = () => {
     if (!code.trim()) return;
     const r = redeemCode(getClubState(), code);
@@ -54,7 +56,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
     setClubState(r.club);
     setCode('');
     setCodeMsg('');
-    if (r.theme === 'frost') setFrost(r.result); else if (r.theme === 'vault') setVault(r.result); else if (r.theme === 'jungle') setJungle(r.result); else setMeteor(r.result);
+    if (r.theme === 'frost') setFrost(r.result); else if (r.theme === 'vault') setVault(r.result); else if (r.theme === 'jungle') setJungle(r.result); else if (r.theme === 'hallway') setHallway(r.result); else setMeteor(r.result);
   };
   const [mega, setMega] = useState(false);
   const [superPack, setSuperPack] = useState<PackResult | null>(null);
@@ -255,6 +257,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         <PackOpening name="MEGA SUPER XXL PACK" result={superPack} onClose={() => setSuperPack(null)} onCollection={() => { setSuperPack(null); onCollection(); }} />
       )}
 
+      {hallway && <HallwayReveal result={hallway} onClose={() => setHallway(null)} onCollection={() => { setHallway(null); onCollection(); }} />}
       {jungle && <JungleReveal result={jungle} onClose={() => setJungle(null)} onCollection={() => { setJungle(null); onCollection(); }} />}
       {vault && <VaultReveal result={vault} onClose={() => setVault(null)} onCollection={() => { setVault(null); onCollection(); }} />}
       {frost && <FrostReveal result={frost} onClose={() => setFrost(null)} onCollection={() => { setFrost(null); onCollection(); }} />}

@@ -5,8 +5,8 @@ import { CARD_POOL, cardForGifts, type ClubState, type CollectCard, type PackRes
 // Codes lassen sich beliebig oft einlösen. Groß-/Kleinschreibung und Leerzeichen sind egal.
 // redeemedCodes merkt sich nur, welche Codes man schon einmal benutzt hat (für Banner und Titel im Profil).
 
-export type CodeTheme = 'meteor' | 'frost' | 'vault' | 'jungle';
-export type CodeReward = { kind: 'icons'; n: number; theme: 'meteor' } | { kind: 'frost'; theme: 'frost' } | { kind: 'vault'; theme: 'vault' } | { kind: 'jungle'; theme: 'jungle' };
+export type CodeTheme = 'meteor' | 'frost' | 'vault' | 'jungle' | 'hallway';
+export type CodeReward = { kind: 'icons'; n: number; theme: 'meteor' } | { kind: 'frost'; theme: 'frost' } | { kind: 'vault'; theme: 'vault' } | { kind: 'jungle'; theme: 'jungle' } | { kind: 'hallway'; theme: 'hallway' };
 const METEOR_CODE: CodeReward = { kind: 'icons', n: 10, theme: 'meteor' };
 export const CODES: Record<string, CodeReward> = {
   // Meteor-Drop: 10 zufällige Ikonen mit Einschlag
@@ -20,6 +20,9 @@ export const CODES: Record<string, CodeReward> = {
   TRESOR: { kind: 'vault', theme: 'vault' },
   // Absturz-Kiste zum Start von Jungle Crash: 1 Dschungel-Karte + 2 Topkarten ab 85
   JUNGLECRASH: { kind: 'jungle', theme: 'jungle' },
+  // Roblox-Spiel „The Hallway“: Taube finden, den Lampen entkommen
+  HALLWAY: { kind: 'hallway', theme: 'hallway' },
+  TAUBE: { kind: 'hallway', theme: 'hallway' },
 };
 
 export const normCode = (input: string) => input.trim().toUpperCase().replace(/\s+/g, '');
@@ -71,6 +74,25 @@ export function vaultCards(club: ClubState, rand = Math.random): CollectCard[] {
   return out.sort((a, b) => a.ovr - b.ovr);
 }
 
+/**
+ * Flur-Kiste (Codes HALLWAY, TAUBE): 3 Karten – eine ab 88, zwei ab 82, bevorzugt welche, die man noch nicht hat.
+ * Keine Karten aus laufenden oder kommenden Events.
+ */
+export const HALLWAY_CARDS = 3;
+export function hallwayCards(club: ClubState, rand = Math.random): CollectCard[] {
+  const pool = CARD_POOL.filter((c) => !c.avatar && cardForGifts(c));
+  const out: CollectCard[] = [];
+  const take = (min: number, n: number) => {
+    const ok = (c: CollectCard) => c.ovr >= min && !out.some((o) => o.name === c.name);
+    const fresh = pool.filter((c) => ok(c) && !((club.cards[c.id] ?? 0) > 0));
+    const list = fresh.length ? fresh : pool.filter(ok);
+    for (let i = 0; i < n && list.length; i++) out.push(list.splice(Math.floor(rand() * list.length), 1)[0]);
+  };
+  take(88, 1);
+  take(82, HALLWAY_CARDS - out.length);
+  return out.sort((a, b) => a.ovr - b.ovr);
+}
+
 /** Karten in die Sammlung legen. */
 function grantCards(club: ClubState, list: CollectCard[]): { club: ClubState; result: PackResult } {
   const cards = { ...club.cards };
@@ -87,7 +109,7 @@ export function redeemCode(club: ClubState, input: string, rand = Math.random): 
   const code = normCode(input);
   const reward = CODES[code];
   if (!reward) return { ok: false, reason: 'unknown' };
-  const g = reward.kind === 'frost' ? grantCards(club, frostCards(rand)) : reward.kind === 'vault' ? grantCards(club, vaultCards(club, rand)) : reward.kind === 'jungle' ? grantCards(club, jungleCrate(club, rand)) : grantIcons(club, reward.n, rand);
+  const g = reward.kind === 'frost' ? grantCards(club, frostCards(rand)) : reward.kind === 'vault' ? grantCards(club, vaultCards(club, rand)) : reward.kind === 'jungle' ? grantCards(club, jungleCrate(club, rand)) : reward.kind === 'hallway' ? grantCards(club, hallwayCards(club, rand)) : grantIcons(club, reward.n, rand);
   const used = club.redeemedCodes ?? [];
   return { ok: true, club: { ...g.club, redeemedCodes: used.includes(code) ? used : [...used, code] }, result: g.result, theme: reward.theme };
 }
