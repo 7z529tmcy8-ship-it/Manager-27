@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-05-manager-kalender',
+    date: '05.11.2026',
+    title: 'Manager-Modus: Kalender, Ereignisse und News-Zentrale',
+    items: [
+      'Die Saison läuft jetzt Tag für Tag: Spieltage, Trainingstage, Regeneration, Winterpause und Deadline Day. Schnellknöpfe: Nächster Tag, Bis zum nächsten Spiel, Bis zur Winterpause, Bis Saisonende – oder einen Tag im Kalender antippen.',
+      'Transferfenster nach Datum: im August und im Januar, mit Countdown bis zur Deadline.',
+      'Ereignisse mit drei Antworten: Transferinteresse an deinen Stars, Sponsoren, unzufriedene Spieler, Fans, Kampfansagen vor dem Spiel, Jugend-Juwelen, Scout-Tipps. Deine Antworten wirken auf Budget, Vorstand und Teamstimmung.',
+      'Neu: Teamstimmung und Form, News-Zentrale mit Filtern. Alles Bisherige (Aufstellung, Bank, Live-Spiel, Team-Zentrale, Transfermarkt) bleibt, alte Spielstände laufen weiter.',
+    ],
+  },
+  {
     id: '2026-11-05-ausruester-kickgram',
     date: '05.11.2026',
     title: 'Karriere: Ausrüster-Verträge und Kickgram',

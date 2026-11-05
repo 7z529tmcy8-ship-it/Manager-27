@@ -6647,3 +6647,86 @@ button.mg-row:not(:disabled) { cursor: pointer; }
 .kit-card .km-freedom, .kit-sign .km-freedom { letter-spacing: .2em; font-size: min(1.5rem, 6.4vw) !important; }
 .kit-sign .km-freedom { font-size: min(2.2rem, 8vw) !important; }
 .kg-tile .kg-card i { display: none; }
+
+/* ---------- Manager: Kalender & Alltag ---------- */
+.mg-tabs { grid-template-columns: repeat(6, 1fr); }
+.mg-tabs button span { font-size: .64rem; }
+.mg-day { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 18px; background: linear-gradient(110deg, rgba(43, 181, 99, .2), rgba(255, 255, 255, .03)); border: 1px solid rgba(43, 181, 99, .35); }
+.mg-day.k-training { background: linear-gradient(110deg, rgba(255, 179, 71, .2), rgba(255, 255, 255, .03)); border-color: rgba(255, 179, 71, .4); }
+.mg-day.k-deadline { background: linear-gradient(110deg, rgba(255, 90, 95, .25), rgba(255, 255, 255, .03)); border-color: rgba(255, 90, 95, .5); }
+.mg-day.k-break { background: linear-gradient(110deg, rgba(159, 211, 255, .2), rgba(255, 255, 255, .03)); border-color: rgba(159, 211, 255, .4); }
+.mg-day.k-rest, .mg-day.k-free { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .1); }
+.mg-day-ic { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 14px; background: rgba(0, 0, 0, .3); color: #ffd23f; }
+.mg-day-text { display: grid; gap: 2px; min-width: 0; }
+.mg-day-text small { font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #9fb8c8; }
+.mg-day-text b { color: #fff; font-size: .98rem; }
+.mg-day-n { display: grid; justify-items: end; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; } .mg-day-n small { color: #8aa3b3; font-weight: 700; font-size: .7rem; }
+.mg-window.deadline { border-color: #ff5a5f; background: linear-gradient(110deg, rgba(255, 90, 95, .3), rgba(255, 90, 95, .06)); color: #ffc1c3; animation: ep-pulse 1.4s ease-in-out infinite; }
+.mg-fixture.live { border-color: #ffd23f; box-shadow: 0 0 0 1px rgba(255, 210, 63, .4), 0 0 30px rgba(255, 210, 63, .15); }
+.mg-in { color: #ffd23f; font-weight: 800; font-size: .85rem; }
+.mg-hype { display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin: 0; color: #ff9a4a; font-weight: 800; }
+.mg-adv { display: grid; gap: 8px; }
+.mg-next { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.mg-tomatch { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; border-radius: 14px; border: 1px solid rgba(43, 181, 99, .5) !important; background: rgba(43, 181, 99, .15) !important; color: #8ff0b8 !important; font-weight: 800; box-shadow: none !important; }
+.mg .btn.ghost.on { border-color: #ffd23f; color: #ffd23f; }
+.mg-status { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mg-status > div { display: grid; gap: 6px; padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .08); }
+.mg-status small { font-size: .66rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #8aa3b3; }
+.mg-form span { display: flex; gap: 4px; } .mg-form em { font-style: normal; color: #6f8796; font-size: .78rem; }
+.mg-form i { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 6px; font-style: normal; font-size: .7rem; font-weight: 900; }
+.mg-form i.w { background: #2fd27a; color: #03220f; } .mg-form i.d { background: #8aa3b3; color: #0b1622; } .mg-form i.l { background: #ff5a5f; color: #fff; }
+.mg-mood-bar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; align-items: center; }
+.mg-mood-bar i { height: 10px; border-radius: 3px; background: rgba(255, 255, 255, .1); }
+.mg-mood-bar i.mid { height: 14px; background: rgba(255, 255, 255, .3); }
+.mg-mood-bar i.up { background: #2fd27a; } .mg-mood-bar i.down { background: #ff5a5f; }
+.mg-results h3 { display: flex; align-items: center; justify-content: space-between; }
+.mg-more { border: 0; background: none; color: #8ff0b8; font: inherit; font-size: .72rem; font-weight: 800; cursor: pointer; text-transform: none; letter-spacing: 0; }
+.mg-feed { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.mg-feed.big { gap: 8px; }
+.mg-fr { display: grid !important; grid-template-columns: auto minmax(0, 1fr) auto !important; gap: 10px !important; align-items: start !important; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, .04); }
+.mg-feed.big .mg-fr { padding: 12px; border: 1px solid rgba(255, 255, 255, .07); }
+.mg-fr-ic { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; background: rgba(255, 255, 255, .08); color: #cfe3d6; }
+.mg-fr.c-spiel .mg-fr-ic { color: #2fd27a; } .mg-fr.c-transfer .mg-fr-ic { color: #9fd3ff; } .mg-fr.c-liga .mg-fr-ic { color: #ffd23f; } .mg-fr.c-verein .mg-fr-ic { color: #c58bff; }
+.mg-fr-text { display: grid; gap: 2px; min-width: 0; text-align: left !important; } .mg-fr-text b { color: #fff; font-size: .86rem; white-space: normal !important; } .mg-fr-text small { color: #8aa3b3; font-size: .74rem; white-space: normal; }
+.mg-fr > em { font-style: normal; color: #6f8796; font-size: .7rem; font-weight: 700; }
+/* Monatskalender */
+.mg-cal { padding: 10px; border-radius: 18px; background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .08); animation: shopIn .25s ease; }
+.mg-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.mg-cal-head b { color: #fff; } .mg-cal-head button { width: 34px; height: 34px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, .15); background: none; color: #fff; font-size: 1.2rem; cursor: pointer; }
+.mg-cal-head button:disabled { opacity: .3; }
+.mg-cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+.mg-cal-grid > small { text-align: center; font-size: .62rem; font-weight: 800; color: #8aa3b3; padding-bottom: 2px; }
+.mg-cd { position: relative; aspect-ratio: 1; display: grid; align-content: start; justify-items: start; gap: 1px; padding: 3px 4px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, .06); background: rgba(255, 255, 255, .03); color: #cfe3d6; font: inherit; cursor: pointer; overflow: hidden; }
+.mg-cd > span { font-size: .7rem; font-weight: 800; }
+.mg-cd em { font-style: normal; font-size: .55rem; font-weight: 900; color: #fff; display: flex; gap: 2px; } .mg-cd em i { font-style: normal; color: #ffd23f; }
+.mg-cd.k-match { background: rgba(43, 181, 99, .25); border-color: rgba(43, 181, 99, .5); }
+.mg-cd.k-break { background: rgba(159, 211, 255, .1); }
+.mg-cd .dot { position: absolute; right: 4px; bottom: 4px; width: 5px; height: 5px; border-radius: 50%; background: #ffb347; }
+.mg-cd .dl { position: absolute; inset: auto 3px 3px; height: 3px; border-radius: 2px; background: #ff5a5f; }
+.mg-cd.today { outline: 2px solid #ffd23f; outline-offset: -1px; }
+.mg-cd.past { opacity: .4; }
+.mg-cd:disabled { cursor: default; }
+.mg-cal-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 8px 0 0; font-size: .64rem; color: #8aa3b3; }
+.mg-cal-legend i { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+.mg-cal-legend .k-match { background: #2bb563; } .mg-cal-legend .k-training { background: #ffb347; border-radius: 50%; } .mg-cal-legend .k-deadline { background: #ff5a5f; } .mg-cal-legend .k-break { background: rgba(159, 211, 255, .5); }
+/* Ereignis */
+.mg-ev-wrap { position: fixed; inset: 0; z-index: 85; display: grid; place-items: center; padding: 16px; background: rgba(3, 8, 14, .72); backdrop-filter: blur(6px); animation: vt-fade .2s ease; }
+.mg-ev { width: min(440px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; border-radius: 24px; background: #0d1a26; border: 1px solid rgba(255, 255, 255, .1); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); color: #eaf6ee; animation: pf-up .3s cubic-bezier(.2, 1.3, .4, 1); }
+.mg-ev header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; background: linear-gradient(120deg, #2bb563, #168a4a); color: #03220f; border-radius: 24px 24px 0 0; }
+.mg-ev.ev-interest header, .mg-ev.ev-scout header { background: linear-gradient(120deg, #3aa0ff, #1d5fd0); color: #fff; }
+.mg-ev.ev-unhappy header, .mg-ev.ev-rumor header, .mg-ev.ev-fans header { background: linear-gradient(120deg, #ff8a4a, #d0452a); color: #fff; }
+.mg-ev.ev-rival header { background: linear-gradient(120deg, #ff3b3b, #8a0018); color: #fff; }
+.mg-ev.ev-sponsor header { background: linear-gradient(120deg, #ffd23f, #d9a200); color: #2a1a00; }
+.mg-ev.ev-youth header { background: linear-gradient(120deg, #c58bff, #7b3fd0); color: #fff; }
+.mg-ev-tag { padding: 3px 10px; border-radius: 999px; background: rgba(0, 0, 0, .2); font-size: .68rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.mg-ev-ic { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 14px; background: rgba(0, 0, 0, .18); }
+.mg-ev h2 { margin: 16px 18px 6px; font-size: 1.3rem; line-height: 1.15; color: #fff; }
+.mg-ev > p { margin: 0 18px 14px; color: #b8cdd9; font-size: .9rem; line-height: 1.45; }
+.mg-ev-opts { display: grid; gap: 8px; padding: 0 14px 16px; }
+.mg-ev-opts button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 12px 14px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, .1); background: rgba(255, 255, 255, .04); color: #fff; font: inherit; text-align: left; cursor: pointer; transition: transform .12s, border-color .12s; }
+.mg-ev-opts button:hover:not(:disabled) { border-color: #2fd27a; }
+.mg-ev-opts button:active:not(:disabled) { transform: scale(.98); }
+.mg-ev-opts button:disabled { opacity: .4; cursor: default; }
+.mg-ev-opts span { display: grid; gap: 2px; } .mg-ev-opts small { color: #8aa3b3; font-size: .74rem; }
+.mg-ev-opts i { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: rgba(47, 210, 122, .15); color: #2fd27a; font-style: normal; font-weight: 900; }
+.mg-ev-amt { display: block; padding: 0 18px 16px; color: #6f8796; font-size: .72rem; }

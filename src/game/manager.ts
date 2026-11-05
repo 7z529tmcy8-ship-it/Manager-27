@@ -102,6 +102,70 @@ export interface ManagerState {
   board: number;
   /** Gesamtstatistik */
   won: number; drawn: number; lost: number;
+  /** Saisonkalender (Tag für Tag). Ältere Spielstände bekommen ihn beim Laden. */
+  cal?: Cal;
+  /** Teamstimmung −3 … +3: wirkt auf die Stärke im Spiel */
+  mood?: number;
+  /** Kampfansage vor dem nächsten Spiel (Ereignis) */
+  hype?: number;
+  /** Offenes Ereignis, das erst beantwortet werden muss */
+  event?: import('./managerDays').DayEvent | null;
+  lastEventDay?: number;
+  /** News-Zentrale */
+  feed?: FeedItem[];
+}
+
+// ---------- Kalender ----------
+export interface Cal {
+  /** 1. August der Saison (UTC, ms) */
+  start: number;
+  /** Heutiger Tag (0 = 1. August) */
+  day: number;
+  len: number;
+  /** Tag jedes Spieltags */
+  roundDays: number[];
+  /** Transferfenster [von, bis] (Tage, inkl.) */
+  win: [number, number][];
+  /** Winterpause [von, bis] */
+  brk: [number, number];
+}
+export interface FeedItem { d: number; season: number; cat: 'verein' | 'liga' | 'transfer' | 'spiel'; title: string; text?: string }
+export const SEASON_DAYS = 305;
+const DAY = 86_400_000;
+export const calDate = (c: Cal, d = c.day) => new Date(c.start + d * DAY);
+const idxOf = (start: number, y: number, mo: number, da: number) => Math.round((Date.UTC(y, mo, da) - start) / DAY);
+
+/** Spieltage gleichmäßig verteilen: Hinrunde Mitte August bis Mitte Dezember, Rückrunde Mitte Januar bis Ende Mai. */
+export function buildCal(season: number, rounds: number): Cal {
+  const start = Date.UTC(season, 7, 1);
+  const brk: [number, number] = [idxOf(start, season, 11, 20), idxOf(start, season + 1, 0, 15)];
+  const spread = (from: number, to: number, n: number) => {
+    if (n <= 0) return [];
+    const wd = (d: number) => new Date(start + d * DAY).getUTCDay();
+    let cands: number[] = [];
+    for (let d = from; d <= to; d++) if (wd(d) === 6) cands.push(d);
+    // Zu wenige Wochenenden: englische Wochen (Mittwoch) dazunehmen
+    if (cands.length < n) {
+      const mids: number[] = [];
+      for (let d = to; d >= from && cands.length + mids.length < n; d--) if (wd(d) === 3) mids.push(d);
+      cands = [...cands, ...mids].sort((a, b) => a - b);
+    }
+    if (n === 1) return [cands[0]];
+    return Array.from({ length: n }, (_, i) => cands[Math.round((i * (cands.length - 1)) / (n - 1))]);
+  };
+  const h1 = Math.floor(rounds / 2);
+  const roundDays = [...spread(idxOf(start, season, 7, 15), brk[0] - 1, h1), ...spread(brk[1] + 1, idxOf(start, season + 1, 4, 24), rounds - h1)];
+  return { start, day: 0, len: SEASON_DAYS, roundDays, win: [[0, idxOf(start, season, 7, 31)], [idxOf(start, season + 1, 0, 1), idxOf(start, season + 1, 0, 31)]], brk };
+}
+/** Ältere Spielstände: Kalender passend zum Stand anlegen. */
+export function ensureCal(m: ManagerState): ManagerState {
+  if (m.cal) return m;
+  const cal = buildCal(m.season, m.rounds.length);
+  cal.day = m.done ? cal.len - 1 : m.round === 0 ? 0 : Math.min(cal.len - 1, cal.roundDays[m.round - 1] + 1);
+  return { ...m, cal, mood: m.mood ?? 0, feed: m.feed ?? [] };
+}
+export function addFeed(m: ManagerState, cat: FeedItem['cat'], title: string, text?: string): void {
+  m.feed = [{ d: m.cal?.day ?? 0, season: m.season, cat, title, text }, ...(m.feed ?? [])].slice(0, 80);
 }
 
 export const leagueOfClub = (m: Pick<ManagerState, 'leagueOf'>, clubId: string) => m.leagueOf[clubId] ?? getClub(clubId).leagueId;
@@ -109,8 +173,10 @@ export const myLeague = (m: ManagerState) => getLeague(leagueOfClub(m, m.clubId)
 export const clubsIn = (m: Pick<ManagerState, 'leagueOf'>, leagueId: string) => CLUBS.filter((c) => leagueOfClub(m, c.id) === leagueId).map((c) => c.id);
 export const halfRound = (m: ManagerState) => Math.floor(m.rounds.length / 2);
 /** Sommerfenster vor dem 1. Spieltag, Winterfenster zur Halbzeit. */
-export const windowOpen = (m: ManagerState) => !m.done && (m.round === 0 || m.round === halfRound(m));
-export const windowName = (m: ManagerState) => (m.round === 0 ? 'Sommer-Transferfenster' : 'Winter-Transferfenster');
+export const windowOpen = (m: ManagerState) => !m.done && (m.cal ? m.cal.win.some(([a, b]) => m.cal!.day >= a && m.cal!.day <= b) : m.round === 0 || m.round === halfRound(m));
+export const windowName = (m: ManagerState) => ((m.cal ? m.cal.day < 60 : m.round === 0) ? 'Sommer-Transferfenster' : 'Winter-Transferfenster');
+/** Tage bis zum Ende des offenen Fensters (0 = Deadline Day) */
+export const windowLeft = (m: ManagerState) => { const w = m.cal?.win.find(([a, b]) => m.cal!.day >= a && m.cal!.day <= b); return w ? w[1] - m.cal!.day : null; };
 
 /** Start-Budget: stärkere Vereine haben deutlich mehr Geld. */
 export const startBudget = (strength: number) => roundMoney(5e6 * Math.exp(0.14 * (strength - 66)));
@@ -226,7 +292,9 @@ function boardTarget(m: ManagerState): number {
   const ids = clubsIn(m, leagueOfClub(m, m.clubId));
   const mine = teamRating(m);
   const rank = 1 + ids.filter((id) => id !== m.clubId && (m.strength[id] ?? 0) > mine).length;
-  return clamp(rank + 1, 1, ids.length);
+  // Mindestziel ist der Klassenerhalt – „Platz 18“ als Ziel wäre sinnlos
+  const safe = ids.length - (getLeague(leagueOfClub(m, m.clubId)).down?.spots ?? 2);
+  return clamp(rank + 1, 1, Math.max(1, safe));
 }
 
 function seasonSetup(m: ManagerState): ManagerState {
@@ -235,7 +303,8 @@ function seasonSetup(m: ManagerState): ManagerState {
   const strength: Record<string, number> = {};
   // Die Gegner schwanken von Saison zu Saison etwas
   for (const id of ids) if (id !== m.clubId) strength[id] = Math.round((getClub(id).strength + normal(0, 1.2)) * 10) / 10;
-  const next: ManagerState = { ...m, strength, rows: ids.map(emptyRow), rounds: roundRobin(shuffle([...ids])), round: 0, last: undefined, done: false };
+  const rounds = roundRobin(shuffle([...ids]));
+  const next: ManagerState = { ...m, strength, rows: ids.map(emptyRow), rounds, round: 0, last: undefined, done: false, cal: buildCal(m.season, rounds.length), event: null, hype: 0, lastEventDay: undefined };
   next.target = boardTarget(next);
   next.market = buildMarket(next);
   return next;
@@ -247,7 +316,7 @@ export function newManager(clubId: string): ManagerState {
   const base: ManagerState = {
     v: 1, clubId, leagueOf: {}, season: 2025, budget: startBudget(club.strength), squad, xi: [], formation: '4-3-3', tactic: 'ausgewogen',
     rows: [], rounds: [], round: 0, strength: {}, market: [], history: [], trophies: [], target: 1, news: [`Willkommen bei ${club.name}! Der Vorstand erwartet eine starke Saison.`],
-    board: 70, won: 0, drawn: 0, lost: 0,
+    board: 70, won: 0, drawn: 0, lost: 0, mood: 0, feed: [],
   };
   base.xi = bestXI(squad, base.formation);
   base.bench = bestBench(squad, base.xi);
@@ -310,6 +379,7 @@ export function buyPlayer(m: ManagerState, id: string, roll = Math.random()): Bu
     ...m, budget: m.budget - p.price, squad: [...m.squad, player], market: m.market.filter((x) => x.id !== id),
     news: [`Neuzugang: ${p.name} kommt für ${moneyShort(p.price)} von ${getClub(p.clubId).name}.`, ...m.news].slice(0, 30),
   };
+  addFeed(next, 'transfer', `${p.name} unterschreibt`, `Kommt für ${moneyShort(p.price)} € von ${getClub(p.clubId).name}.`);
   return { ok: true, m: next, player };
 }
 /** Nach einer Absage ist der Spieler weg. */
@@ -332,7 +402,9 @@ export function sellPlayer(m: ManagerState, id: string): ManagerState | null {
   const o = sellOffer(m, p);
   const squad = m.squad.filter((x) => x.id !== id);
   const xi2 = fixXI({ ...m, squad });
-  return { ...m, squad, budget: m.budget + o.amount, xi: xi2, bench: fixBench({ ...m, squad, xi: xi2 }), news: [`Abgang: ${p.name} wechselt für ${moneyShort(o.amount)} zu ${getClub(o.clubId).name}.`, ...m.news].slice(0, 30) };
+  const out: ManagerState = { ...m, squad, budget: m.budget + o.amount, xi: xi2, bench: fixBench({ ...m, squad, xi: xi2 }), news: [`Abgang: ${p.name} wechselt für ${moneyShort(o.amount)} zu ${getClub(o.clubId).name}.`, ...m.news].slice(0, 30) };
+  addFeed(out, 'transfer', `${p.name} verlässt den Verein`, `Wechselt für ${moneyShort(o.amount)} € zu ${getClub(o.clubId).name}.`);
+  return out;
 }
 
 export const moneyShort = (v: number) => (v >= 1e6 ? `${(v / 1e6).toLocaleString('de-DE', { maximumFractionDigits: 1 })} Mio.` : `${Math.round(v / 1e3).toLocaleString('de-DE')} Tsd.`);
@@ -349,7 +421,8 @@ export function playRound(m: ManagerState): ManagerState {
   const xi = fixXI(m);
   const bench = fixBench({ ...m, xi });
   const my = { ...m, xi };
-  const myStr = teamRating(my);
+  // Stimmung und Kampfansage wirken leicht auf die Stärke
+  const myStr = teamRating(my) + (m.mood ?? 0) * 0.5 + (m.hype ?? 0) * 0.6;
   const t = TACTICS[m.tactic];
   const rows = m.rows.map((r) => ({ ...r }));
   const row = (id: string) => rows.find((r) => r.clubId === id)!;
@@ -540,7 +613,7 @@ export const managerLeagues = () => LEAGUES.filter((l) => MANAGER_LEAGUES.includ
 // ---------- Speichern ----------
 const KEY = 'fc-manager-mode';
 export function loadManager(): ManagerState | null {
-  try { const raw = localStorage.getItem(KEY); return raw ? (JSON.parse(raw) as ManagerState) : null; } catch { return null; }
+  try { const raw = localStorage.getItem(KEY); return raw ? ensureCal(JSON.parse(raw) as ManagerState) : null; } catch { return null; }
 }
 export function saveManager(m: ManagerState | null): void {
   try { if (m) localStorage.setItem(KEY, JSON.stringify(m)); else localStorage.removeItem(KEY); } catch { /* voll oder gesperrt */ }

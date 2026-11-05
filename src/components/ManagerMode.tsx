@@ -16,9 +16,11 @@ import { play } from '../sound';
 import Confetti from './Confetti';
 import Icon from './Icon';
 import UtCard from './UtCard';
+import { EventCard, NewsCenter, Today, abbr } from './ManagerToday';
+import { kickoff as kickoffDay, resolveEvent } from '../game/managerDays';
 
-type Tab = 'spiel' | 'kader' | 'markt' | 'tabelle' | 'verein';
-const TABS: [Tab, string, string][] = [['spiel', 'Spieltag', 'ball'], ['kader', 'Kader', 'tactics'], ['markt', 'Transfers', 'swap'], ['tabelle', 'Tabelle', 'trophy'], ['verein', 'Verein', 'shield']];
+type Tab = 'spiel' | 'kader' | 'markt' | 'tabelle' | 'news' | 'verein';
+const TABS: [Tab, string, string][] = [['spiel', 'Heute', 'calendar'], ['kader', 'Kader', 'tactics'], ['markt', 'Transfers', 'swap'], ['tabelle', 'Tabelle', 'trophy'], ['news', 'News', 'news'], ['verein', 'Verein', 'shield']];
 const sfx = (id: Parameters<typeof play>[0]) => { try { play(id); } catch { /* kein Ton */ } };
 const buzz = (p: number | number[]) => { try { navigator.vibrate?.(p); } catch { /* egal */ } };
 const short = (id: string) => getClub(id).name;
@@ -46,7 +48,7 @@ export default function ManagerMode({ onClose }: { onClose: () => void }) {
   const open = windowOpen(m);
 
   const kickoff = () => {
-    const n = playRound(m);
+    const n = m.cal ? kickoffDay(m) : playRound(m);
     setM(n);
     sfx('whistle');
     if (n.last?.mine) setMatch(n.last.mine);
@@ -78,7 +80,7 @@ export default function ManagerMode({ onClose }: { onClose: () => void }) {
         </header>
 
         <section className="mg-hero">
-          <span className="mg-crest" aria-hidden="true">{getClub(m.clubId).name.replace(/^(FC|SV|1\.|VfL|VfB|TSG|SC|RB|AC|AS|SSC|US|CF|RC|OGC|AJ|SCO|CD|GD|FK)\s+/i, '').slice(0, 2).toUpperCase()}</span>
+          <span className="mg-crest" aria-hidden="true">{abbr(m.clubId)}</span>
           <div className="mg-hero-text">
             <small>Saison {m.season}/{String(m.season + 1).slice(2)} · {lg.name}</small>
             <h1>{getClub(m.clubId).name}</h1>
@@ -102,7 +104,12 @@ export default function ManagerMode({ onClose }: { onClose: () => void }) {
           ))}
         </nav>
 
-        {tab === 'spiel' && (
+        {tab === 'spiel' && m.cal && !m.done && (
+          <Today m={m} setM={setM} onKickoff={kickoff} onToast={setToast} onMarket={() => setTab('markt')} onNews={() => setTab('news')} />
+        )}
+        {tab === 'news' && <NewsCenter m={m} />}
+
+        {tab === 'spiel' && (!m.cal || m.done) && (
           <section className="mg-panel">
             {open && (
               <button className="mg-window" onClick={() => setTab('markt')}>
@@ -162,6 +169,7 @@ export default function ManagerMode({ onClose }: { onClose: () => void }) {
       </div>
 
       {createPortal(<>
+        {m.event && !match && !summary && <EventCard e={m.event} onAnswer={(k) => { const r = resolveEvent(m, k); setM(r.m); if (r.note) setToast(r.note); sfx(k === 'A' ? 'coin' : 'tap'); }} />}
         {match && <MatchReveal match={match} me={m.clubId} onClose={() => setMatch(null)} />}
         {signed && <Signing p={signed} clubId={m.clubId} onClose={() => setSigned(null)} />}
         {summary && <SeasonEnd s={summary} m={m} onClose={() => setSummary(null)} />}

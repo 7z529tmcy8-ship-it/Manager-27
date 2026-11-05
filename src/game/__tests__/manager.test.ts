@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { remapXI, BENCH_SIZE, FORMATIONS, avgRating, bestBench, fixBench, SQUAD_MIN, bestXI, buildSquad, buyPlayer, finishSeason, halfRound, leagueOfClub, newManager, playRound, sellPlayer, tablePos, teamRating, windowOpen } from '../manager';
+import { type ManagerState, remapXI, BENCH_SIZE, FORMATIONS, avgRating, bestBench, fixBench, SQUAD_MIN, bestXI, buildSquad, buyPlayer, finishSeason, halfRound, leagueOfClub, newManager, playRound, sellPlayer, tablePos, teamRating, windowOpen } from '../manager';
 
 describe('Manager-Modus', () => {
   it('Kader: echte Spieler plus Auffüllung, jede Position besetzt', () => {
@@ -12,7 +12,8 @@ describe('Manager-Modus', () => {
   });
 
   it('Ganze Saison: 34 Spieltage, Tabelle stimmt, Fenster im Sommer und Winter', () => {
-    let m = newManager('hannover-96');
+    // Ohne Kalender (alter Ablauf): Fenster vor dem 1. Spieltag und zur Halbzeit
+    let m: ManagerState = { ...newManager('hannover-96'), cal: undefined };
     expect(m.rounds.length).toBe(34);
     expect(windowOpen(m)).toBe(true);
     m = playRound(m);
