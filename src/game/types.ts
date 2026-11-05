@@ -502,6 +502,12 @@ export interface Career {
   coach?: CoachState | null;
   /** Familie (Kinder) und Vermögen (Immobilien, Klub-Anteile). */
   household?: Household;
+  /** Ausrüster-Vertrag, offene Angebote und frühere Marken. */
+  kit?: import('./kit').KitContract | null;
+  kitOffers?: import('./kit').KitOffer[];
+  kitHistory?: { brand: import('./kit').BrandId; from: number; earned: number }[];
+  /** Kickgram-Profil */
+  gram?: import('./kickgram').Gram;
 }
 
 // ---------- Familie & Vermögen ----------

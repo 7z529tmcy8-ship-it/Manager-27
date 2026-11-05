@@ -9,6 +9,7 @@ import { grantXp, levelInfo, xpFor, xpForSeason } from './skills';
 import { coolDownScandal } from './vices';
 import { maybeFlirt } from './family';
 import { closeYear } from './household';
+import { refreshKitOffers } from './kit';
 import type { Career, Offer } from './types';
 
 // Vereinfachter Spielablauf: immer bis zur nächsten Pause simulieren (Winterpause, dann Saisonende),
@@ -57,6 +58,7 @@ function withXp(c: Career): Career {
   // Familie und Vermögen: Jahresabschluss nach jeder Saison, in jeder Pause evtl. eine Einladung.
   if (!winter) closeYear(career);
   if (career.phase !== 'retired') maybeFlirt(career);
+  refreshKitOffers(career);
   if (!career.player.skills) return career;
   const p = career.player;
   const last = career.history[career.history.length - 1];

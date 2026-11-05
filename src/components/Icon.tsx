@@ -68,6 +68,7 @@ const P: Record<string, string> = {
   book: 'M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2Z M4 21a2 2 0 0 1 2-2h13v2 M8 7h7',
   warn: 'M12 3 2.5 20h19Z M12 9.5v5 M12 17.5v.01',
   info: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18Z M12 11v6 M12 7.5v.01',
+  camera: 'M4 8h3l2-3h6l2 3h3v11H4Z M12 10.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7Z',
   whistle: 'M3 10h11a5 5 0 1 1-4.6 7H7l-4-3Z M14 10V6h4 M14.5 15h.01',
   car: 'M4 16v-4l2.5-5h11l2.5 5v4Z M3 16h18v3H3Z M7 19v1.5 M17 19v1.5 M4 12h16 M7 14h.01 M17 14h.01',
   plane: 'M3 13l7-1.5L13.5 4h2l-1.5 7.5L21 10v2.5l-7 2L12.5 20h-2l.5-4.5-6 1Z',

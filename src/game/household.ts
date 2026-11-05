@@ -1,6 +1,8 @@
 import { CLUBS, LEAGUES } from '../data/leagues';
 import { familyYear, householdOf, maybeFlirt } from './family';
 import { glamIncome } from './clinic';
+import { kitYear } from './kit';
+import { gramYear } from './kickgram';
 import { investYear } from './invest';
 import { clubLeagueId, clubStrength } from './player';
 import { normal, poisson } from './random';
@@ -17,7 +19,11 @@ export function closeYear(career: Career): void {
   // Netto: Einnahmen minus Erziehungskosten (kann auch negativ sein).
   const sponsor = glamIncome(career);
   if (sponsor) inv.notes.push(`📸 Werbedeals dank Glamour: +${sponsor.toLocaleString('de-DE')} Coins.`);
-  const total = kids.income + inv.rent + inv.dividends + sponsor - kids.costs;
+  // Ausrüster zahlt, Kickgram wächst (nur in Spielerjahren)
+  const kit = kitYear(career);
+  if (kit.note) inv.notes.push(kit.note);
+  if (career.phase !== 'retired') { const g = gramYear(career); if (g) inv.notes.push(g); }
+  const total = kids.income + inv.rent + inv.dividends + sponsor + kit.coins - kids.costs;
   h.totalIncome += total;
   h.report = {
     year: h.year,

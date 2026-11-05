@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-05-ausruester-kickgram',
+    date: '05.11.2026',
+    title: 'Karriere: Ausrüster-Verträge und Kickgram',
+    items: [
+      'Schon als Jugendspieler melden sich Ausrüster: Winnerz, Freedom Paris, Ami und Helmut Lang. Jede Marke zahlt Coins pro Saison plus Bonus für Tore und Titel – je besser du bist, desto größer die Marke.',
+      'Neu: Kickgram – dein eigenes Profil mit Followern. Lade Fotos aus deiner Galerie hoch oder poste Saison-Highlights, sammle Likes und Kommentare. Ab 100.000 Followern gibt es den blauen Haken.',
+      'Mit Ausrüster kannst du Werbeposts machen (2 pro Pause), die Coins bringen. Deine Bilder bleiben nur auf deinem Gerät.',
+    ],
+  },
+  {
     id: '2026-11-04-manager-aufstellung',
     date: '04.11.2026',
     title: 'Manager-Modus: Deine Aufstellung bleibt',

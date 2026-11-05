@@ -7,6 +7,10 @@ import VicePanel from './VicePanel';
 import FamilyPanel from './FamilyPanel';
 import InvestPanel from './InvestPanel';
 import ClinicPanel from './ClinicPanel';
+import KitPanel from './KitPanel';
+import KickgramPanel from './KickgramPanel';
+import { BRANDS } from '../game/kit';
+import { fmtFollowers, gramOf } from '../game/kickgram';
 import PositionPanel from './PositionPanel';
 import LifePopups from './LifePopups';
 import MomentOverlay from './MomentOverlay';
@@ -70,7 +74,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   const [open, setOpen] = useState<string | null>(null);
   const [tree, setTree] = useState(false);
   const [full, setFull] = useState(false);
-  const [panel, setPanel] = useState<'family' | 'invest' | 'clinic' | 'position' | null>(null);
+  const [panel, setPanel] = useState<'family' | 'invest' | 'clinic' | 'position' | 'kit' | 'gram' | null>(null);
   const kids = career.household?.children.length ?? 0;
   // Nur einklappen, wenn sich das lohnt (mindestens zwei ältere Saisons)
   const shown = full || career.history.length <= COLLAPSED + 1 ? career.history : career.history.slice(-COLLAPSED);
@@ -162,6 +166,8 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       {panel === 'invest' && <InvestPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {panel === 'clinic' && <ClinicPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {panel === 'position' && <PositionPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
+      {panel === 'kit' && <KitPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
+      {panel === 'gram' && <KickgramPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {moments.length > 0 ? (
         <MomentOverlay key={moments.map((m) => m.title).join('|')} moments={moments} onDone={() => setMoments([])} />
       ) : (
@@ -202,6 +208,12 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         </button>
         <button className="cs-life-btn" onClick={() => setPanel('invest')}>Vermögen</button>
         <button className="cs-life-btn" onClick={() => setPanel('clinic')}>Klinik{career.glam ? ` · ${career.glam}` : ''}</button>
+        <button className="cs-life-btn cs-kg-btn" onClick={() => setPanel('gram')}>Kickgram · {fmtFollowers(gramOf(career).followers)}</button>
+        {!retired && (
+          <button className={`cs-life-btn ${(career.kitOffers?.length ?? 0) > 0 ? 'cs-kit-new' : ''}`} onClick={() => setPanel('kit')}>
+            {career.kit ? BRANDS[career.kit.brand].name : 'Ausrüster'}{(career.kitOffers?.length ?? 0) > 0 ? ` · ${career.kitOffers!.length} neu` : ''}
+          </button>
+        )}
         {!retired && (
           <button className="cs-life-btn" onClick={() => setPanel('position')}>
             Position{p.retrain ? ` · ${p.retrain.total - p.retrain.left}/${p.retrain.total}` : ''}
@@ -212,6 +224,11 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       {career.history.length > 0 && <CareerPulse career={career} />}
       <AttrPanel career={career} />
 
+      {!retired && (career.kitOffers?.length ?? 0) > 0 && (
+        <button className="cs-note good sk-note kit-note" onClick={() => setPanel('kit')}>
+          {career.kitOffers!.length === 1 ? `${BRANDS[career.kitOffers![0].brand].name} will dich als Ausrüster` : `${career.kitOffers!.length} Ausrüster wollen dich`} – Angebot ansehen
+        </button>
+      )}
       {(career.gifts?.length ?? 0) > 0 && (
         <button className="cs-note good sk-note gift-note" onClick={() => setPanel('invest')}>
           {career.gifts!.length === 1 ? 'Ein Geschenk' : `${career.gifts!.length} Geschenke`} vom Aufsichtsrat – jetzt öffnen!
