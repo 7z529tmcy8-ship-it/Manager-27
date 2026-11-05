@@ -6808,3 +6808,9 @@ button.mg-row:not(:disabled) { cursor: pointer; }
 .mt.hw.doors.d1 .hw-lamp { --near: 1.7; }
 .mt.hw.doors.d2 .hw-lamp { --near: 2.5; }
 .mt.hw.doors .hw-lamp .beam { opacity: 1; }
+/* SBC-Hinweis lesbar in allen Looks */
+.lt-note { color: #7a1030 !important; background: #ffe3ec !important; border-color: #ff9ab8 !important; font-weight: 600; }
+.lt-note.ok { color: #0b5a2a !important; background: #dcf9e6 !important; border-color: #6fdc9a !important; }
+:root:not(.aqua) .lt-note { color: #ffd0de !important; background: rgba(255, 77, 141, .14) !important; border-color: rgba(255, 77, 141, .45) !important; }
+:root:not(.aqua) .lt-note.ok { color: #c9ffe0 !important; background: rgba(57, 255, 136, .14) !important; border-color: rgba(57, 255, 136, .45) !important; }
+.lt-more { display: block; margin: 10px auto 0; }

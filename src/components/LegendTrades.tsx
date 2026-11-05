@@ -1,5 +1,5 @@
 import { PASS_XP, addPassXp } from '../game/pass';
-import { useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { rarity, type CollectCard } from '../game/club';
 import { MOMENTS, MOMENT_SIZE, autoFillMoment, checkMoment, completeMoment, momentCandidates, momentDone, momentMissing, momentOpen, momentVisible, type MomentSbc } from '../game/legendTrades';
 import Icon from './Icon';
@@ -59,27 +59,34 @@ export default function LegendTrades() {
   );
 }
 
-type Filter = 'all' | 'icon' | 'cult' | 'league' | 'pos';
+type Filter = 'fit' | 'all' | 'icon' | 'cult' | 'league' | 'pos';
+/** So viele Karten werden zuerst gezeigt – alles auf einmal ruckelt bei großen Sammlungen. */
+const PAGE = 60;
 
 function Builder({ m, onClose, onDone }: { m: MomentSbc; onClose: () => void; onDone: (c: CollectCard) => void }) {
   const club = useClub();
   const [picked, setPicked] = useState<string[]>([]);
   const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<Filter>('all');
+  const [filter, setFilter] = useState<Filter>('fit');
+  const [limit, setLimit] = useState(PAGE);
   const pool = useMemo(() => momentCandidates(club).sort((a, b) => rarity(b) - rarity(a)), [club]);
   const byId = useMemo(() => new Map(pool.map((c) => [c.id, c])), [pool]);
   const chosen = picked.map((id) => byId.get(id)).filter((c): c is CollectCard => !!c);
   const check = checkMoment(m, chosen);
-  const leagueName = m.reward.league!;
+  // Ewig-Karten haben keine echte Liga – dann gibt es den Liga-Filter nicht
+  const leagueName = m.reward.league && m.reward.league !== 'Ewig' && pool.some((c) => c.league === m.reward.league) ? m.reward.league : null;
 
-  const shown = pool.filter((c) => {
+  const shown = useMemo(() => pool.filter((c) => {
     if (query && !c.name.toLowerCase().includes(query.toLowerCase())) return false;
+    // „Passend“: stark genug und erfüllt mindestens eine Bedingung (oder ist stark genug, wenn es keine gibt)
+    if (filter === 'fit') return c.ovr >= m.minEach && (m.needs.some((n) => n.test(c)) || c.ovr >= m.minAvg);
     if (filter === 'icon') return c.variant === 'icon';
     if (filter === 'cult') return c.variant === 'cult';
     if (filter === 'league') return c.league === leagueName;
     if (filter === 'pos') return c.position === 'ST' || c.position === 'IV';
     return true;
-  });
+  }), [pool, query, filter, m, leagueName]);
+  const pickedSet = useMemo(() => new Set(picked), [picked]);
   const [note, setNote] = useState<string | null>(null);
   const autoFill = () => {
     const ids = autoFillMoment(getClubState(), m);
@@ -88,8 +95,8 @@ function Builder({ m, onClose, onDone }: { m: MomentSbc; onClose: () => void; on
     const missing = momentMissing(m, cards);
     setNote(missing.length ? `Mit deinen Karten geht es noch nicht – es fehlt: ${missing.join(' · ')}` : 'Passt! Prüf die Auswahl und tippe auf „Tauschen“.');
   };
-  const toggle = (id: string) =>
-    setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length < MOMENT_SIZE ? [...p, id] : p));
+  const toggle = useCallback((id: string) =>
+    setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length < MOMENT_SIZE ? [...p, id] : p)), []);
 
   const trade = () => {
     if (!check.ok) return;
@@ -139,18 +146,18 @@ function Builder({ m, onClose, onDone }: { m: MomentSbc; onClose: () => void; on
         <h2 className="lt-sub">Deine Karten</h2>
         <input className="search" placeholder="Karte suchen …" value={query} onChange={(e) => setQuery(e.target.value)} />
         <div className="chips lt-chips">
-          {([['all', 'Alle'], ['league', leagueName], ['icon', 'Ikonen'], ['cult', 'Kult'], ['pos', 'ST & IV']] as [Filter, string][]).map(([id, label]) => (
-            <button key={id} className={`chip ${filter === id ? 'active' : ''}`} onClick={() => setFilter(id)}>{label}</button>
+          {([['fit', 'Passend'], ['all', 'Alle'], ...(leagueName ? [['league', leagueName]] : []), ['icon', 'Ikonen'], ['cult', 'Kult'], ['pos', 'ST & IV']] as [Filter, string][]).map(([id, label]) => (
+            <button key={id} className={`chip ${filter === id ? 'active' : ''}`} onClick={() => { setFilter(id); setLimit(PAGE); }}>{label}</button>
           ))}
         </div>
         {pool.length < MOMENT_SIZE && <p className="hub-sub">Du hast noch nicht genug verschiedene Karten.</p>}
         <div className="lt-pool">
-          {shown.map((c) => (
-            <div key={c.id} className={`trade-pickcard ${picked.includes(c.id) ? 'on' : ''} ${c.ovr < m.minEach ? 'weak' : ''}`}>
-              <UtCard card={c} size="xs" onClick={() => toggle(c.id)} />
-            </div>
+          {shown.slice(0, limit).map((c) => (
+            <PoolCard key={c.id} c={c} on={pickedSet.has(c.id)} weak={c.ovr < m.minEach} onToggle={toggle} />
           ))}
         </div>
+        {!shown.length && <p className="hub-sub">Keine Karten für diesen Filter.</p>}
+        {shown.length > limit && <button className="btn ghost small lt-more" onClick={() => setLimit(limit + PAGE * 2)}>Mehr anzeigen ({shown.length - limit} weitere)</button>}
 
         <div className="lt-bar">
           <span>{chosen.length}/{MOMENT_SIZE} · Schnitt {chosen.length ? check.avg.toFixed(1).replace('.', ',') : '–'}</span>
@@ -160,3 +167,12 @@ function Builder({ m, onClose, onDone }: { m: MomentSbc; onClose: () => void; on
     </div>
   );
 }
+
+/** Eine Karte in der Auswahl – nur neu zeichnen, wenn sich ihr Zustand ändert. */
+const PoolCard = memo(function PoolCard({ c, on, weak, onToggle }: { c: CollectCard; on: boolean; weak: boolean; onToggle: (id: string) => void }) {
+  return (
+    <div className={`trade-pickcard ${on ? 'on' : ''} ${weak ? 'weak' : ''}`}>
+      <UtCard card={c} size="xs" onClick={() => onToggle(c.id)} />
+    </div>
+  );
+});

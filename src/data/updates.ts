@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-05-sbc-fix',
+    date: '05.11.2026',
+    title: 'SBC: Automatisch füllen repariert',
+    items: [
+      '„Automatisch füllen“ reagiert wieder sofort – vorher hakte es, weil bei jedem Klick alle Karten neu gezeichnet wurden.',
+      'Neuer Filter „Passend“ zeigt nur Karten, die für den Tausch in Frage kommen. Weitere Karten über „Mehr anzeigen“.',
+      'Der Hinweis nach dem Füllen ist wieder lesbar, und bei den Ewig-SBCs gibt es keinen leeren Liga-Filter mehr.',
+    ],
+  },
+  {
     id: '2026-11-05-fettes-update',
     date: '05.11.2026',
     title: 'Fettes Update: Packs zurück, 250 neue Spieler, 5 neue Ewig-SBCs',
