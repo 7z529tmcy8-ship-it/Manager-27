@@ -1,7 +1,8 @@
 import { expect, it } from 'vitest';
 import { getClub, getLeague, slugify, youthClubOf, youthTeamOfClub } from '../../data/leagues';
 import { createCareer, playSeason, stayAtClub } from '../career';
-import { applyRetrain, nlzCompetitions, nlzDevOptions, nlzHalfEnd, nlzSeasonEnd, retrainSuggestion, setNlzProgram, setProTraining } from '../nlz';
+import { applyRetrain, nlzCompetitions, nlzDevOptions, nlzHalfEnd, nlzOfferText, nlzSeasonEnd, resolveNlzOffer, retrainSuggestion, setNlzProgram, setProTraining } from '../nlz';
+import { applyChoice, seasonChoices } from '../simple';
 import { currentClubId } from '../player';
 import { startSeason } from '../season';
 import type { Career, SeasonRecord } from '../types';
@@ -59,14 +60,18 @@ const record = (over: Partial<SeasonRecord>): SeasonRecord => ({
 const good = { minutes: 2600, apps: 30, avgRating: 7.3 };
 
 it('Langsamer hoch: aus U15/U17 nur Stufe für Stufe, direkt zu den Profis nur als Ausnahmetalent', () => {
-  const c = talent(14, 52);
+  let c = talent(14, 52);
   c.player.age = 15;
   c.player.ovr = 74; // stark, aber kein Ausnahmetalent (Bayern 85)
-  expect(nlzSeasonEnd(c, record(good))).toBe('up');
+  expect(nlzSeasonEnd(c, record(good))).toBe('up'); // zu alt für die U15: Pflicht, keine Frage
   expect(c.player.nlz?.team).toBe('U17');
-  c.player.ovr = 82; // Ausnahmetalent
-  expect(nlzSeasonEnd(c, record(good))).toBe('pros');
+  c.player.ovr = 82; // Ausnahmetalent: der Spieler wird gefragt
+  expect(nlzSeasonEnd(c, record(good))).toBe('offer');
+  expect(c.nlzPending?.kind).toBe('pros');
+  expect(c.player.nlz?.team).toBe('U17');
+  c = resolveNlzOffer(c, true);
   expect(c.player.nlz).toBeUndefined();
+  expect(c.nlzPending).toBeNull();
 });
 
 it('Schwach bei den Profis: zurück in die U19 bzw. U23 – stark im NLZ: hochgezogen', () => {
@@ -81,9 +86,10 @@ it('Schwach bei den Profis: zurück in die U19 bzw. U23 – stark im NLZ: hochge
   d.player.age = 20;
   expect(nlzSeasonEnd(d, record({}))).toBe('down-u23');
 
-  const s = talent(17, 64);
+  let s = talent(17, 64);
   s.player.ovr = 78;
-  expect(nlzSeasonEnd(s, record(good))).toBe('pros');
+  expect(nlzSeasonEnd(s, record(good))).toBe('offer');
+  s = resolveNlzOffer(s, true);
   expect(s.player.nlz).toBeUndefined();
   expect(currentClubId(s.player)).toBe(bayern);
 });
@@ -97,8 +103,33 @@ it('Zweite Mannschaft: zu alt für die U19 und nicht reif → II, mit starker Sa
   expect(nlzSeasonEnd(c, record({ minutes: 1500, apps: 20, avgRating: 6.8 }))).toBe('reserve');
   expect(c.player.contract.clubId).toBe(slugify('VfB Stuttgart II'));
   c.player.ovr = 75;
-  expect(nlzSeasonEnd(c, record({ minutes: 2600, apps: 30, avgRating: 7.2 }))).toBe('reserve-up');
-  expect(c.player.contract.clubId).toBe(vfb);
+  expect(nlzSeasonEnd(c, record({ minutes: 2600, apps: 30, avgRating: 7.2 }))).toBe('offer');
+  expect(c.nlzPending?.kind).toBe('reserve-up');
+  const up = resolveNlzOffer(c, true);
+  expect(up.player.contract.clubId).toBe(vfb);
+  // Oder: noch eine Saison in der Zweiten – als Leistungsträger
+  const stay = resolveNlzOffer(c, false);
+  expect(stay.player.contract.clubId).toBe(slugify('VfB Stuttgart II'));
+  expect(stay.player.contract.role).toBe('Schlüsselspieler');
+});
+
+it('U17 → U19 ein Jahr früher: Spieler entscheidet – bleiben heißt Stammspieler in der U17', () => {
+  const c = talent(15, 60);
+  expect(c.player.nlz?.team).toBe('U17');
+  c.player.age = 16; // noch nicht zu alt für die U17
+  c.player.ovr = 70;
+  c.player.nlz = { ...c.player.nlz!, seasons: 1 };
+  expect(nlzSeasonEnd(c, record(good))).toBe('offer');
+  expect(c.nlzPending).toMatchObject({ kind: 'up', from: 'U17', to: 'U19' });
+  expect(nlzOfferText(c)?.go).toContain('U19');
+  const go = resolveNlzOffer(c, true);
+  expect(go.player.nlz?.team).toBe('U19');
+  const stay = resolveNlzOffer(c, false);
+  expect(stay.player.nlz?.team).toBe('U17');
+  expect(stay.player.nlz?.role).toBe('Schlüsselspieler');
+  // Nicht beantwortet und trotzdem weitergespielt: gilt als bleiben
+  const auto = applyChoice(c, seasonChoices(c)[0] ?? { kind: 'stay', title: 'Bleiben' });
+  expect(auto.nlzPending ?? null).toBeNull();
 });
 
 it('Förderprogramm und Profi-Training ändern die Entwicklung; Profi-Training bringt Einsätze', () => {

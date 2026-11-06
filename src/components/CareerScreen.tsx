@@ -27,7 +27,7 @@ import { ATTR_WEIGHTS } from '../game/attributes';
 import { halfStats } from '../game/season';
 import Negotiation from './Negotiation';
 import { negotiable } from '../game/negotiation';
-import { NLZ_PROGRAMS, nlzStatus, setNlzProgram, setProTraining } from '../game/nlz';
+import { NLZ_PROGRAMS, nlzOfferText, nlzStatus, resolveNlzOffer, setNlzProgram, setProTraining } from '../game/nlz';
 import { freePoints, levelInfo } from '../game/skills';
 import { motionReduced } from '../settings';
 import { play } from '../sound';
@@ -244,7 +244,12 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         <button className="cs-note good sk-note" onClick={() => setTree(true)}>{xpNote}{p.skills && freePoints(p) > 0 ? ' → Fähigkeiten öffnen' : ''}</button>
       )}
 
-      {!needType && career.phase === 'window' && choices.length > 0 && (
+      {!needType && career.phase === 'window' && career.nlzPending && <NlzOfferCard career={career} onChange={onChange} />}
+      {!needType && career.phase === 'window' && !career.nlzPending && career.decisionResult && (
+        <p className={`cs-note ${career.decisionResult.tone}`}><b>{career.decisionResult.title}:</b> {career.decisionResult.text}</p>
+      )}
+
+      {!needType && career.phase === 'window' && !career.nlzPending && choices.length > 0 && (
         <section className="cs-window">
           <h2>Transferfenster</h2>
           <p className="cs-sub">Die Saison ist vorbei. Wähle, wie es weitergeht.</p>
@@ -274,7 +279,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           )}
         </section>
       )}
-      {!needType && career.phase === 'window' && choices.length > 0 && (
+      {!needType && career.phase === 'window' && !career.nlzPending && choices.length > 0 && (
         <div className="cs-extras cs-extras-out">
           <ScorerRace career={career} />
           <VicePanel career={career} onChange={onChange} />
@@ -572,5 +577,27 @@ function NlzBar({ career, onChange }: { career: Career; onChange: (c: Career) =>
         </div>
       )}
     </div>
+  );
+}
+
+/** Entscheidungskarte: hochgezogen werden oder noch eine Saison in der U17/U19/zweiten Mannschaft bleiben. */
+function NlzOfferCard({ career, onChange }: { career: Career; onChange: (c: Career) => void }) {
+  const t = nlzOfferText(career);
+  if (!t) return null;
+  return (
+    <section className="cs-window nlz-offer">
+      <span className="nlz-offer-kicker"><Icon name="rise" size={16} />Deine Entscheidung</span>
+      <h2>{t.title}</h2>
+      <p className="cs-sub">{t.text}</p>
+      <div className="nlz-offer-opts">
+        <button className="nlz-opt go" onClick={() => { try { play('fanfare'); } catch { /* kein Ton */ } onChange(resolveNlzOffer(career, true)); }}>
+          <Icon name="rise" size={22} /><span><b>{t.go}</b><small>{t.goHint}</small></span>
+        </button>
+        <button className="nlz-opt stay" onClick={() => { try { play('tap'); } catch { /* kein Ton */ } onChange(resolveNlzOffer(career, false)); }}>
+          <Icon name="shield" size={22} /><span><b>{t.stay}</b><small>{t.stayHint}</small></span>
+        </button>
+      </div>
+      <p className="hint">Danach geht es wie gewohnt mit dem Transferfenster weiter.</p>
+    </section>
   );
 }

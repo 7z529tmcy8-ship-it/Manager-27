@@ -6849,3 +6849,17 @@ button.mg-row:not(:disabled) { cursor: pointer; }
 .upd2 .upd-foot { flex: none; display: flex; gap: 8px; padding: 10px 16px max(12px, env(safe-area-inset-bottom)); border-top: 1px solid var(--hairline, rgba(255, 255, 255, .1)); background: inherit; }
 .upd2 .upd-foot .btn { flex: 1; min-height: 46px; padding: 10px 12px; font-size: .95rem; }
 .upd2 .upd-foot .upd-go { flex: 1.4; }
+
+/* NLZ: hochziehen lassen oder noch eine Saison bleiben */
+.nlz-offer { border: 2px solid var(--accent, #0a84ff); box-shadow: 0 10px 30px rgba(10, 132, 255, .18); animation: pf-up .35s ease both; }
+.nlz-offer-kicker { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--accent, #0a84ff); color: #fff; font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.nlz-offer h2 { margin: 10px 0 4px; }
+.nlz-offer-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0 6px; }
+@media (max-width: 480px) { .nlz-offer-opts { grid-template-columns: 1fr; } }
+.nlz-opt { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; padding: 14px; border-radius: 18px; border: 2px solid var(--hairline, rgba(0, 0, 0, .1)); background: var(--surface, #fff); color: inherit; font: inherit; text-align: left; cursor: pointer; transition: transform .12s, border-color .12s, box-shadow .12s; }
+.nlz-opt:active { transform: scale(.97); }
+.nlz-opt span { display: grid; gap: 2px; } .nlz-opt b { font-size: 1rem; } .nlz-opt small { font-size: .78rem; opacity: .75; }
+.nlz-opt.go { border-color: #2fa84f; background: linear-gradient(135deg, rgba(47, 168, 79, .14), transparent 70%), var(--surface, #fff); }
+.nlz-opt.go .ic { color: #2fa84f; }
+.nlz-opt.stay .ic { color: var(--accent, #0a84ff); }
+.nlz-opt:hover { box-shadow: 0 6px 18px rgba(0, 0, 0, .1); }

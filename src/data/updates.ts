@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-06-nlz-entscheidung',
+    date: '06.11.2026',
+    title: 'Karriere: Du entscheidest, wann du hochgehst',
+    items: [
+      'Wenn dich dein Verein früher hochziehen will – von der U17 in die U19, aus dem NLZ zu den Profis oder aus der zweiten Mannschaft zurück zu den Profis –, entscheidest du jetzt selbst.',
+      'Hochgehen bringt stärkere Gegner und mehr Gehalt. Bleiben macht dich zum Leistungsträger mit viel Spielzeit – nächsten Sommer kommt eine neue Chance.',
+      'Wer zu alt für seine Mannschaft ist, rückt wie bisher automatisch auf.',
+    ],
+  },
+  {
     id: '2026-11-06-tauschen-update-box',
     date: '06.11.2026',
     title: 'SBC-Tauschen-Knopf und neue Update-Box',

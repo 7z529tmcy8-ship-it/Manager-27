@@ -133,7 +133,9 @@ export function nlzStatus(career: Career): {
   };
 }
 
-export type NlzMove = 'up' | 'pros' | 'reserve' | 'u23' | 'down-u19' | 'down-u23' | 'down-reserve' | 'reserve-up';
+export type NlzMove = 'up' | 'pros' | 'reserve' | 'u23' | 'down-u19' | 'down-u23' | 'down-reserve' | 'reserve-up' | 'offer';
+/** Offenes Angebot zum Hochziehen – der Spieler entscheidet im Sommer. */
+export interface NlzOffer { kind: 'up' | 'pros' | 'reserve-up'; from: NlzTeam | 'Zweite'; to?: NlzTeam }
 
 /**
  * Saisonende (nach dem Geburtstag): Aufrücken, Hochziehen oder Zurückstufen.
@@ -154,6 +156,14 @@ export function nlzSeasonEnd(career: Career, record: SeasonRecord): NlzMove | nu
     postInbox(career, { kind: 'event', season: record.season, title, text, action: 'career' });
     addNews(career, 2, 'Verein', headline);
     return move;
+  };
+  // Freiwilliger Aufstieg: erst fragen (Entscheidungskarte im Sommer), nicht sofort umsetzen
+  const offer = (o: NlzOffer): NlzMove => {
+    career.nlzPending = o;
+    const where = o.kind === 'up' ? `in die ${o.to}` : 'zu den Profis';
+    record.notes.push(`Angebot: ${parent.name} will dich ${where} hochziehen – du entscheidest.`);
+    postInbox(career, { kind: 'event', season: record.season, title: `Hochziehen ${where}?`, text: `Starke Saison! Du darfst ${where} – oder noch eine Saison ${o.from === 'Zweite' ? 'in der zweiten Mannschaft' : `in der ${o.from}`} spielen und Stammspieler bleiben.`, action: 'career' });
+    return 'offer';
   };
 
   if (p.nlz) {
@@ -178,16 +188,24 @@ export function nlzSeasonEnd(career: Career, record: SeasonRecord): NlzMove | nu
         `${parent.name} zieht Talent ${p.name} aus dem NLZ zu den Profis hoch.`);
     };
     // Außergewöhnliche Talente überspringen Stufen; sonst erst nach einer Saison in U19/U23.
-    if (exceptional || (senior && seasons >= 1 && ready)) return toPros();
+    // Nicht zu alt: Der Spieler entscheidet selbst, ob er hochgeht oder noch eine Saison bleibt.
+    if (exceptional || (senior && seasons >= 1 && ready)) {
+      if (outgrown) return toPros();
+      p.nlz = { team, role: nlzRole(career, team), seasons, ...keep };
+      return offer({ kind: 'pros', from: team });
+    }
     // Nächste Nachwuchsstufe (U15 → U17 → U19); fehlende Stufen werden übersprungen.
     const idx = NLZ_TEAMS.indexOf(team);
     if (idx < 2) {
       const nextClub = youthClubOf(parentId, NLZ_TEAMS[idx + 1]);
       const next = nextClub ? youthTeamOfClub(nextClub.id) : null;
-      if (next && next !== team && (outgrown || (strong && seasons >= 1 && p.ovr >= clubStrength(career, nextClub!.id) - 2))) {
-        return moveTo(next, `Aufgerückt in die ${next}`, outgrown
-          ? `Du bist zu alt für die ${team} und rückst in die ${next} von ${parent.name} auf.`
-          : `Starke Saison: ${parent.name} zieht dich ein Jahr früher in die ${next} hoch.`);
+      if (next && next !== team && outgrown) {
+        return moveTo(next, `Aufgerückt in die ${next}`, `Du bist zu alt für die ${team} und rückst in die ${next} von ${parent.name} auf.`);
+      }
+      // Ein Jahr früher hoch? Das entscheidet der Spieler.
+      if (next && next !== team && strong && seasons >= 1 && p.ovr >= clubStrength(career, nextClub!.id) - 2) {
+        p.nlz = { team, role: nlzRole(career, team), seasons, ...keep };
+        return offer({ kind: 'up', from: team, to: next });
       }
     }
     if (outgrown) {
@@ -214,9 +232,7 @@ export function nlzSeasonEnd(career: Career, record: SeasonRecord): NlzMove | nu
   if (first) {
     const firstStrength = clubStrength(career, first.id);
     if (p.ovr >= firstStrength - READY_GAP || (strong && p.ovr >= firstStrength - READY_GAP_STRONG)) {
-      p.contract = { ...p.contract, clubId: first.id, role: roleFor(p.ovr, firstStrength, p.age) };
-      return note('reserve-up', 'Zurück bei den Profis!', `Starke Saison in der ${parent.name}: ${first.name} holt dich zu den Profis hoch.`,
-        `${first.name} holt ${p.name} aus der zweiten Mannschaft zu den Profis.`);
+      return offer({ kind: 'reserve-up', from: 'Zweite' });
     }
     return null;
   }
@@ -347,4 +363,69 @@ export function nlzCompetitions(career: Career): void {
   if (!comps.length) return;
   prog.youthComps = comps;
   prog.pendingFinals = finals;
+}
+
+/** Text für die Entscheidungskarte. */
+export function nlzOfferText(career: Career): { title: string; text: string; go: string; stay: string; goHint: string; stayHint: string } | null {
+  const o = career.nlzPending;
+  if (!o) return null;
+  const p = career.player;
+  const parentId = p.contract.clubId;
+  const first = o.kind === 'reserve-up' ? firstTeamOf(parentId) : null;
+  const club = first ? first.name : getClub(parentId).name;
+  const fromName = o.from === 'Zweite' ? 'der zweiten Mannschaft' : `der ${o.from}`;
+  if (o.kind === 'up') {
+    return {
+      title: `Ein Jahr früher in die ${o.to}?`,
+      text: `Starke Saison! ${club} will dich schon jetzt aus ${fromName} in die ${o.to} hochziehen. Dort sind die Gegner älter und stärker – du lernst schneller, spielst aber vielleicht weniger.`,
+      go: `In die ${o.to} wechseln`, goHint: 'Stärkere Gegner, mehr Entwicklung',
+      stay: `Noch eine Saison in der ${o.from}`, stayHint: 'Stammspieler bleiben, sicher spielen',
+    };
+  }
+  return {
+    title: 'Hochziehen zu den Profis?',
+    text: `Der Cheftrainer von ${club} will dich aus ${fromName} zu den Profis holen. Du kannst sofort hoch – oder noch eine Saison ${fromName.replace('der ', 'in der ')} Spielpraxis sammeln.`,
+    go: 'Zu den Profis', goHint: `Profivertrag bei ${club}, mehr Gehalt`,
+    stay: `Noch eine Saison ${o.from === 'Zweite' ? 'in der Zweiten' : `in der ${o.from}`}`, stayHint: 'Viel Spielzeit, Leistungsträger',
+  };
+}
+
+/** Entscheidung umsetzen: hoch (accept) oder noch eine Saison bleiben. */
+export function resolveNlzOffer(prev: Career, accept: boolean): Career {
+  const o = prev.nlzPending;
+  if (!o) return prev;
+  const career: Career = structuredClone(prev);
+  career.nlzPending = null;
+  const p = career.player;
+  const parentId = p.contract.clubId;
+  const parent = getClub(parentId);
+  const season = career.history[career.history.length - 1]?.season;
+  const tell = (title: string, text: string, headline?: string) => {
+    postInbox(career, { kind: 'event', season, title, text, action: 'career' });
+    if (headline) addNews(career, 2, 'Verein', headline);
+    career.decisionResult = { title, text, tone: accept ? 'good' : 'neutral' };
+  };
+  if (!accept) {
+    if (p.nlz) p.nlz = { ...p.nlz, role: 'Schlüsselspieler' };
+    else p.contract = { ...p.contract, role: 'Schlüsselspieler' };
+    tell('Noch eine Saison', `Du bleibst ${o.from === 'Zweite' ? 'in der zweiten Mannschaft' : `in der ${o.from}`} – als Leistungsträger mit viel Spielzeit. Nächsten Sommer gibt es eine neue Chance.`);
+  } else if (o.kind === 'up' && o.to && p.nlz) {
+    p.nlz = { ...p.nlz, team: o.to, role: nlzRole(career, o.to), seasons: 0 };
+    tell(`Aufgerückt in die ${o.to}`, `Ein Jahr früher als geplant: Du spielst jetzt in der ${o.to} von ${parent.name}.`, `${p.name} rückt bei ${parent.name} vorzeitig in die ${o.to} auf.`);
+  } else if (o.kind === 'pros') {
+    const pro = clubStrength(career, parentId);
+    p.nlz = undefined;
+    p.contract.role = roleFor(p.ovr, pro, p.age);
+    p.contract.wage = Math.max(p.contract.wage, wageFor(p.ovr, pro));
+    tell('Hochgezogen zu den Profis!', `Der Cheftrainer von ${parent.name} holt dich zu den Profis – Rolle: ${p.contract.role}.`, `${parent.name} zieht Talent ${p.name} aus dem NLZ zu den Profis hoch.`);
+  } else if (o.kind === 'reserve-up') {
+    const first = firstTeamOf(parentId);
+    if (first) {
+      const fs = clubStrength(career, first.id);
+      p.contract = { ...p.contract, clubId: first.id, role: roleFor(p.ovr, fs, p.age), wage: Math.max(p.contract.wage, wageFor(p.ovr, fs)) };
+      tell('Zurück bei den Profis!', `Starke Saison in der ${parent.name}: ${first.name} holt dich zu den Profis hoch.`, `${first.name} holt ${p.name} aus der zweiten Mannschaft zu den Profis.`);
+    }
+  }
+  career.updatedAt = Date.now();
+  return career;
 }

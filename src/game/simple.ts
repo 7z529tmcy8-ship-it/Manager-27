@@ -10,6 +10,7 @@ import { coolDownScandal } from './vices';
 import { maybeFlirt } from './family';
 import { closeYear } from './household';
 import { refreshKitOffers } from './kit';
+import { resolveNlzOffer } from './nlz';
 import type { Career, Offer } from './types';
 
 // Vereinfachter Spielablauf: immer bis zur nächsten Pause simulieren (Winterpause, dann Saisonende),
@@ -158,7 +159,9 @@ export function seasonChoices(career: Career): Choice[] {
   return out;
 }
 
-export function applyChoice(prev: Career, choice: Choice): Career {
+export function applyChoice(input: Career, choice: Choice): Career {
+  // Offenes Hochzieh-Angebot nicht beantwortet: gilt als „noch eine Saison bleiben“
+  const prev = input.nlzPending ? resolveNlzOffer(input, false) : input;
   const next =
     choice.kind === 'retire' ? retire(prev)
       : choice.kind === 'stay' ? stayAtClub(prev)
