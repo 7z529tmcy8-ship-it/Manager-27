@@ -63,34 +63,40 @@ export default function UpdateBanner({ notes, onClose, onStore }: { notes: Updat
   return (
     <div className="upd" role="dialog" aria-modal="true" aria-labelledby="upd-greeting">
       {!note.video && <Confetti pieces={60} />}
-      <div className={`upd-card ${note.video ? 'has-video' : ''}`}>
-        {note.video && (
-          <div className="upd-video-wrap">
-            <video key={note.video} ref={vid} className="upd-video" src={note.video} poster={note.poster} autoPlay muted={!sound} loop playsInline preload="auto" aria-label={note.imageAlt} />
-            <button className="upd-sound" onClick={() => { const v = vid.current; setSound(!sound); if (v) { v.muted = sound; if (!sound) { v.currentTime = 0; void v.play().catch(() => {}); } } }} aria-label={sound ? 'Ton aus' : 'Ton an'}>
-              <Icon name="music" size={16} />{sound ? 'Ton aus' : 'Ton an'}
-            </button>
+      <div className={`upd-card upd2 ${note.video ? 'has-video' : ''} ${note.image || note.video ? 'has-media' : ''}`}>
+        {(note.video || note.image) && (
+          <div className="upd-media">
+            {note.video ? (
+              <>
+                <video key={note.video} ref={vid} className="upd-video" src={note.video} poster={note.poster} autoPlay muted={!sound} loop playsInline preload="auto" aria-label={note.imageAlt} />
+                <button className="upd-sound" onClick={() => { const v = vid.current; setSound(!sound); if (v) { v.muted = sound; if (!sound) { v.currentTime = 0; void v.play().catch(() => {}); } } }} aria-label={sound ? 'Ton aus' : 'Ton an'}>
+                  <Icon name="music" size={14} />{sound ? 'Ton aus' : 'Ton an'}
+                </button>
+              </>
+            ) : (
+              <img className="upd-image" src={note.image} alt={note.imageAlt ?? ''} width={960} height={540} decoding="async" />
+            )}
+            <span className="upd-media-cap"><span className="upd-badge">Update · {note.date}</span><b>{noEmoji(note.title)}</b></span>
           </div>
         )}
-        {note.image && !note.video && <img className="upd-image" src={note.image} alt={note.imageAlt ?? ''} width={960} height={540} decoding="async" />}
-        <span className="upd-badge">Update · {note.date}</span>
-        <h2 id="upd-greeting">{GREETING}</h2>
-        <h3>{noEmoji(note.title)}</h3>
-        <ul>
-          {note.items.map((t) => <li key={t}>{noEmoji(t)}</li>)}
-        </ul>
-        {note.promo && (
-          <div className="upd-promo">
-            <span className="upd-promo-code"><small>Code</small><b>{note.promo.code}</b></span>
-            <span className="upd-promo-text">{note.promo.text}</span>
-            {onStore && <button className="btn primary upd-promo-btn" onClick={() => { markSeen(); onStore(note.promo!.code); }}>Zum Shop</button>}
-          </div>
-        )}
-        <div className="upd-actions">
-          {i + 1 < notes.length && <button className="btn secondary big" onClick={() => setI(i + 1)}>Ältere Neuigkeiten</button>}
-          <button className="btn primary big" onClick={close}>Los geht’s!</button>
+        <div className="upd-body">
+          {!(note.video || note.image) && <><span className="upd-badge">Update · {note.date}</span><h3 className="upd-title">{noEmoji(note.title)}</h3></>}
+          <h2 id="upd-greeting" className="upd-greet">{GREETING}</h2>
+          <ul>
+            {note.items.map((t) => <li key={t}>{noEmoji(t)}</li>)}
+          </ul>
+          {note.promo && (
+            <div className="upd-promo">
+              <span className="upd-promo-code"><small>Code</small><b>{note.promo.code}</b></span>
+              <span className="upd-promo-text">{note.promo.text}</span>
+              {onStore && <button className="btn primary upd-promo-btn" onClick={() => { markSeen(); onStore(note.promo!.code); }}>Einlösen</button>}
+            </div>
+          )}
         </div>
-        {notes.length > 1 && <small className="upd-count">{i + 1} / {notes.length}</small>}
+        <div className="upd-foot">
+          {i + 1 < notes.length && <button className="btn secondary upd-older" onClick={() => setI(i + 1)}>Ältere News{notes.length > 1 ? ` (${i + 1}/${notes.length})` : ''}</button>}
+          <button className="btn primary upd-go" onClick={close}>Los geht’s!</button>
+        </div>
       </div>
     </div>
   );

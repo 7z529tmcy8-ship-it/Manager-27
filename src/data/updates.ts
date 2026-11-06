@@ -29,6 +29,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-06-tauschen-update-box',
+    date: '06.11.2026',
+    title: 'SBC-Tauschen-Knopf und neue Update-Box',
+    items: [
+      'Der „Tauschen“-Knopf beim SBC-Bau klebt wieder sichtbar am unteren Rand – vorher lag er ganz unten unter allen Karten.',
+      'Die Update-Box passt jetzt immer auf den Bildschirm: Bild mit Titel oben, kompakter Text, „Los geht’s!“ immer sichtbar.',
+    ],
+  },
+  {
     id: '2026-11-05-sbc-fix',
     date: '05.11.2026',
     title: 'SBC: Automatisch füllen repariert',

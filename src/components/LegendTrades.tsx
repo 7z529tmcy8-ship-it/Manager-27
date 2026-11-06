@@ -1,5 +1,6 @@
 import { PASS_XP, addPassXp } from '../game/pass';
 import { memo, useCallback, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { rarity, type CollectCard } from '../game/club';
 import { MOMENTS, MOMENT_SIZE, autoFillMoment, checkMoment, completeMoment, momentCandidates, momentDone, momentMissing, momentOpen, momentVisible, type MomentSbc } from '../game/legendTrades';
 import Icon from './Icon';
@@ -40,20 +41,22 @@ export default function LegendTrades() {
           );
         })}
       </div>
-      {open && (
+      {/* Direkt an die Seite hängen: der Bereich hier ist animiert, darin wären Vollbild-Ebenen nicht bildschirmhoch
+          (der Tauschen-Knopf landete sonst am Ende der Kartenliste) */}
+      {open && createPortal(
         <Builder
           m={open}
           onClose={() => setOpen(null)}
           onDone={(card) => { setOpen(null); setReveal(card); }}
-        />
+        />, document.body,
       )}
-      {reveal && (
+      {reveal && createPortal(
         <PackOpening
           name="Spezial-Tausch"
           result={{ cards: [{ card: reveal, duplicate: false }], items: [] }}
           onClose={() => setReveal(null)}
           onCollection={() => setReveal(null)}
-        />
+        />, document.body,
       )}
     </section>
   );
