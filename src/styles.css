@@ -6874,3 +6874,9 @@ button.mg-row:not(:disabled) { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .reward-drawn { animation: none; } }
 .reward-card h2 { color: #fff7dc; }
 .reward-back small { color: #e9e4ff; opacity: .85; }
+
+/* Auffangnetz bei Abstürzen */
+.crash-guard { min-height: 100dvh; display: grid; place-content: center; gap: 12px; padding: 24px 16px; text-align: center; background: #0b0c18; color: #f3f1ff; }
+.crash-guard h2 { margin: 0; font-size: 1.5rem; }
+.crash-guard p { margin: 0; opacity: .85; }
+.crash-guard small { opacity: .5; font-size: .75rem; word-break: break-word; }

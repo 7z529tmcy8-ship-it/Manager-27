@@ -138,5 +138,7 @@ export function Glyph({ e, size = 20, className }: { e: string; size?: number; c
 
 /** Entfernt Emojis (inkl. Varianten-Selektoren) aus Oberflächen-Text. */
 export function noEmoji(s: string): string {
+  // Absicherung: Kommt aus Versehen etwas anderes als Text an (z. B. ein Klick-Ereignis), nicht abstürzen.
+  if (typeof s !== 'string') return '';
   return s.replace(/[\p{Extended_Pictographic}️‍]/gu, '').replace(/\s{2,}/g, ' ').trim();
 }

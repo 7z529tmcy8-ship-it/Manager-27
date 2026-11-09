@@ -46,7 +46,7 @@ function AwardChoice({ career, onDone }: { career: Career; onDone: () => void })
             : options.map((o) => <span key={o.id} className="reward-back" aria-label="Verdeckte Karte"><i>?</i><small>{o.label}</small></span>)}
         </div>
         {card
-          ? <button className="btn primary big" onClick={onDone}>Weiter</button>
+          ? <button className="btn primary big" onClick={() => onDone()}>Weiter</button>
           : <button className="btn primary big" onClick={draw}>Karte ziehen</button>}
       </div>
     </div>
@@ -72,7 +72,7 @@ function CareerPacks({ career, onDone }: { career: Career; onDone: (msg?: string
     onDone(`${tier.packs.length} ${tier.packs.length === 1 ? 'Pack liegt' : 'Packs liegen'} in deiner Ablage im Shop.`);
   };
 
-  if (opened) return <PackOpening name={tier.name} result={opened} onClose={onDone} onCollection={onDone} />;
+  if (opened) return <PackOpening name={tier.name} result={opened} onClose={() => onDone()} onCollection={() => onDone()} />;
 
   return (
     <div className="reward" role="dialog" aria-modal="true" aria-labelledby="reward-title">

@@ -29,6 +29,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-09-absturz-fix',
+    date: '09.11.2026',
+    title: 'Absturz-Fix: Karriere-Belohnung',
+    items: [
+      'Behoben: Das Spiel stürzte ab, wenn man nach dem Karriereende „Weiter“, „Fertig“ oder „Zur Sammlung“ getippt hat.',
+      'Neu: ein Auffangnetz – falls doch mal etwas schiefgeht, kommst du mit einem Tipp zurück ins Menü statt auf einen weißen Bildschirm.',
+    ],
+  },
+  {
     id: '2026-11-09-talente',
     date: '09.11.2026',
     title: '9 neue Talente',
