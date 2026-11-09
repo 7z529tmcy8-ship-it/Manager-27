@@ -79,6 +79,12 @@ export const LEAGUES: League[] = [
     id: 'ere', name: 'Eredivisie', country: 'Niederlande', cup: 'KNVB-Beker', tier: 1, goalsPerGame: 3.1,
     europe: { cl: 2, el: 1, conf: 1 }, topScorerGoals: 24,
   },
+  {
+    // Brasileirão Série A 2026: 20 Vereine (Liste laut Flashscore-Saisonguide, recherchiert 11/2026).
+    // Vereinfacht: keine Copa Libertadores, kein Abstieg in die Série B. Stärken geschätzt.
+    id: 'bra', name: 'Brasileirão Série A', country: 'Brasilien', cup: 'Copa do Brasil', tier: 1, goalsPerGame: 2.4,
+    europe: { cl: 0, el: 0, conf: 0 }, topScorerGoals: 20,
+  },
   // Exotische Ligen für das Karriereende: Angebote von dort gibt es erst für ältere Spieler (ab 31).
   {
     // Vereinfacht: Auswahl von 16 der 30 MLS-Teams, ohne Conferences und Playoffs.
@@ -230,6 +236,12 @@ const RAW: Record<string, [string, number][]> = {
     ['SC Heerenveen', 71], ['FC Groningen', 70], ['Sparta Rotterdam', 69], ['Fortuna Sittard', 69],
     ['PEC Zwolle', 69], ['NAC Breda', 68], ['Heracles Almelo', 68], ['FC Volendam', 67],
     ['Excelsior Rotterdam', 67], ['Telstar', 66],
+  ],
+  bra: [
+    ['Flamengo', 77], ['Palmeiras', 77], ['Cruzeiro', 74], ['Botafogo', 74], ['Fluminense', 74],
+    ['Atlético Mineiro', 73], ['São Paulo FC', 73], ['SC Corinthians', 73], ['SC Internacional', 72], ['EC Bahia', 72],
+    ['Grêmio', 71], ['Red Bull Bragantino', 71], ['Vasco da Gama', 71], ['Santos FC', 71], ['Mirassol FC', 70],
+    ['Athletico Paranaense', 69], ['EC Vitória', 68], ['Coritiba FC', 68], ['Chapecoense', 67], ['Clube do Remo', 67],
   ],
   mls: [
     ['Inter Miami CF', 72], ['Los Angeles FC', 71], ['San Diego FC', 70], ['Vancouver Whitecaps', 70],

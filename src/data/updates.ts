@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-09-brasilien',
+    date: '09.11.2026',
+    title: 'Brasileirão, Floyd Samba und Zufalls-Karte',
+    items: [
+      'Neue Liga: Brasileirão Série A mit allen 20 Vereinen der Saison 2026 – von Flamengo und Palmeiras bis Remo und Chapecoense. Pokal: Copa do Brasil.',
+      'Neue Spieler: Floyd Samba (Manchester City, 17 – zwei Tore beim Debüt) und Brasilien-Stars wie Pedro, Arrascaeta, Samuel Lino, Vitor Roque, Flaco López, Gabigol, Kaio Jorge, Viveros, Breno Bidon und Junior Alonso. Lucas Paquetá spielt jetzt für Flamengo.',
+      'Karriereende: Du wählst deine Auszeichnungs-Karte nicht mehr aus – eine deiner verdienten Karten wird zufällig gezogen.',
+    ],
+  },
+  {
     id: '2026-11-06-nlz-entscheidung',
     date: '06.11.2026',
     title: 'Karriere: Du entscheidest, wann du hochgehst',

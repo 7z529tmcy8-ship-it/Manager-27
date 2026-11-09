@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { getLeague, slugify } from '../../data/leagues';
 import { createCareer, retire } from '../career';
-import { CAREER_REWARD_TIERS, careerRewardKind, careerRewardOptions, careerRewardTier, chooseCareerReward, claimCareerReward, creditCareer, freshClub, rewardPending } from '../club';
+import { CAREER_REWARD_TIERS, careerRewardKind, careerRewardOptions, careerRewardTier, chooseCareerReward, claimCareerReward, drawCareerReward, creditCareer, freshClub, rewardPending } from '../club';
 import { boardTrust, chooseCoachClub, endCoaching, playCoachHalf, playCoachSeason, setTactic, signTarget, startCoaching, winterAction } from '../coach';
 import { generateOffers } from '../offers';
 import { clubLeagueId } from '../player';
@@ -90,6 +90,14 @@ it('Karriereende: echter Spieler mit Auszeichnung wählt eine Auszeichnungs-Kart
   const c = chooseCareerReward(club, awarded, opts[0].id);
   expect(c.specials.map((x) => x.variant)).toEqual(['ballondor']);
   expect(rewardPending(c, awarded)).toBe(false);
+  // Zufall statt Wahl: zwei verdiente Karten, gezogen wird je nach Zufallszahl – und nur einmal.
+  awarded.history[0].trophies.push('Champions League');
+  const two = careerRewardOptions(awarded);
+  expect(two.length).toBe(2);
+  expect(drawCareerReward(club, awarded, () => 0).card!.id).toBe(two[0].id);
+  const d = drawCareerReward(club, awarded, () => 0.99);
+  expect(d.card!.id).toBe(two[1].id);
+  expect(drawCareerReward(d.club, awarded).card).toBeNull();
 });
 
 it('Trainerkarriere: Verein wählen, Saisons spielen, Bilanz und Ruhestand', () => {

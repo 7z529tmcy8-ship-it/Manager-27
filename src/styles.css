@@ -6863,3 +6863,14 @@ button.mg-row:not(:disabled) { cursor: pointer; }
 .nlz-opt.go .ic { color: #2fa84f; }
 .nlz-opt.stay .ic { color: var(--accent, #0a84ff); }
 .nlz-opt:hover { box-shadow: 0 6px 18px rgba(0, 0, 0, .1); }
+
+/* Karriereende: Zufalls-Karte */
+.reward-back { width: 132px; height: 184px; border-radius: 16px; display: grid; place-items: center; align-content: center; gap: 8px; padding: 10px; text-align: center;
+  background: repeating-linear-gradient(135deg, #2a2350 0 10px, #221c44 10px 20px); border: 2px solid rgba(255, 215, 106, .45); box-shadow: inset 0 0 24px rgba(255, 215, 106, .15); }
+.reward-back i { font-style: normal; font-size: 2.6rem; font-weight: 900; color: #ffd76a; }
+.reward-back small { font-size: .72rem; opacity: .75; line-height: 1.2; }
+.reward-drawn { animation: reward-flip .6s cubic-bezier(.2, .9, .3, 1.2) both; }
+@keyframes reward-flip { from { transform: rotateY(90deg) scale(.8); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .reward-drawn { animation: none; } }
+.reward-card h2 { color: #fff7dc; }
+.reward-back small { color: #e9e4ff; opacity: .85; }

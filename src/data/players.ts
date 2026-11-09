@@ -501,7 +501,7 @@ const NOVEMBER_2026: typeof RAW = [
   ['Max Kilman', 'England', 'IV', 28, 78, 78, 'West Ham United'],
   ['Aaron Wan-Bissaka', 'England', 'AV', 27, 79, 79, 'West Ham United'],
   ['Tomáš Souček', 'Tschechien', 'ZM', 30, 79, 79, 'West Ham United'],
-  ['Lucas Paquetá', 'Brasilien', 'ZOM', 28, 82, 82, 'West Ham United'],
+  ['Lucas Paquetá', 'Brasilien', 'ZOM', 28, 82, 82, 'Flamengo'], // 2026 zurück zu Flamengo
   ['Jarrod Bowen', 'England', 'FL', 28, 82, 82, 'West Ham United'],
   ['José Sá', 'Portugal', 'TW', 32, 79, 79, 'Wolverhampton Wanderers'],
   ['Toti Gomes', 'Portugal', 'IV', 26, 76, 78, 'Wolverhampton Wanderers'],
@@ -625,6 +625,20 @@ const NOVEMBER_2026: typeof RAW = [
   ['Samu Aghehowa', 'Spanien', 'ST', 21, 80, 87, 'FC Porto'],
   ['Morten Hjulmand', 'Dänemark', 'ZDM', 26, 83, 84, 'Sporting Lissabon'],
   ['Pedro Gonçalves', 'Portugal', 'ZOM', 27, 82, 82, 'Sporting Lissabon'],
+  // Manchester City: Floyd Samba (geb. 15.01.2009, Sohn von Chris Samba), Debüt am 17.09.2026 mit zwei Toren
+  // beim 5:0 im League Cup gegen Norwich (recherchiert 11/2026).
+  ['Floyd Samba', 'England', 'ZM', 16, 66, 88, 'Manchester City'],
+  // Brasileirão 2026 (Vereine laut Torjägerliste/Marktwert-Ranking, recherchiert 11/2026). Wertungen geschätzt.
+  ['Pedro', 'Brasilien', 'ST', 28, 80, 80, 'Flamengo'],
+  ['Giorgian de Arrascaeta', 'Uruguay', 'ZOM', 31, 81, 81, 'Flamengo'],
+  ['Samuel Lino', 'Brasilien', 'FL', 25, 79, 81, 'Flamengo'],
+  ['Vitor Roque', 'Brasilien', 'ST', 20, 77, 86, 'Palmeiras'],
+  ['José Manuel López', 'Argentinien', 'ST', 24, 77, 80, 'Palmeiras'],
+  ['Gabriel Barbosa', 'Brasilien', 'ST', 28, 76, 76, 'Santos FC'],
+  ['Kaio Jorge', 'Brasilien', 'ST', 23, 77, 82, 'Cruzeiro'],
+  ['Kevin Viveros', 'Kolumbien', 'ST', 26, 75, 78, 'Athletico Paranaense'],
+  ['Breno Bidon', 'Brasilien', 'ZM', 20, 73, 83, 'SC Corinthians'],
+  ['Junior Alonso', 'Paraguay', 'IV', 32, 76, 76, 'Atlético Mineiro'],
 ];
 
 export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026, ...ADDITIONS_2026, ...WORLD_STARS_2026, ...DEPTH_2026, ...OCTOBER_2026, ...YOUTH_2026, ...YOUTH_2026_B, ...YOUTH_2026_C, ...NOVEMBER_2026]

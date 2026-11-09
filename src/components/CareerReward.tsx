@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { CAREER_REWARD_TIERS, PACKS, careerRewardKind, careerRewardOptions, careerRewardTier, chooseCareerReward, claimCareerReward, type PackResult } from '../game/club';
+import { CAREER_REWARD_TIERS, PACKS, careerRewardKind, careerRewardOptions, careerRewardTier, claimCareerReward, drawCareerReward, type PackResult } from '../game/club';
 import UtCard from './UtCard';
+import type { CollectCard } from '../game/club';
+import { play } from '../sound';
 import type { Career } from '../game/types';
 import { getClubState, setClubState } from '../clubStore';
 import Icon from './Icon';
@@ -16,34 +18,36 @@ export default function CareerReward({ career, onDone }: { career: Career; onDon
   return careerRewardKind(career) === 'card' ? <AwardChoice career={career} onDone={onDone} /> : <CareerPacks career={career} onDone={onDone} />;
 }
 
-/** Eine Auszeichnungs-Karte wählen – die Wahl ist endgültig. */
+/** Eine Auszeichnungs-Karte wird zufällig gezogen – keine Wahl, das Ergebnis ist endgültig. */
 function AwardChoice({ career, onDone }: { career: Career; onDone: () => void }) {
   const options = careerRewardOptions(career);
-  const [pick, setPick] = useState(options[0].id);
-  const chosen = options.find((o) => o.id === pick)!;
-  const confirm = () => {
-    setClubState(chooseCareerReward(getClubState(), career, pick));
-    onDone();
+  const [card, setCard] = useState<CollectCard | null>(null);
+  const draw = () => {
+    const res = drawCareerReward(getClubState(), career);
+    setClubState(res.club);
+    try { play(res.card && res.card.ovr >= 90 ? 'revealRare' : 'fanfare'); } catch { /* kein Ton */ }
+    if (res.card) setCard(res.card); else onDone();
   };
   return (
     <div className="reward" role="dialog" aria-modal="true" aria-labelledby="reward-title">
       <div className="reward-card">
         <span className="upd-badge">Karriereende · {career.player.name}</span>
-        <h2 id="reward-title">Wähle deine Karte</h2>
+        <h2 id="reward-title">{card ? card.label : 'Deine Karte wird gezogen'}</h2>
         <p className="muted">
-          {options.length > 1
-            ? 'Du hast dir eine Auszeichnungs-Karte verdient. Wähle den größten Moment deiner Karriere – du bekommst genau eine.'
-            : 'Du hast dir eine Auszeichnungs-Karte verdient – sie kommt in deine Sammlung.'}
+          {card
+            ? `Gezogen aus ${options.length} möglichen ${options.length === 1 ? 'Karte' : 'Karten'} – sie liegt jetzt in deiner Sammlung.`
+            : options.length > 1
+              ? `Du hast ${options.length} Auszeichnungs-Karten verdient. Eine davon bekommst du – zufällig.`
+              : 'Du hast dir eine Auszeichnungs-Karte verdient – sie kommt in deine Sammlung.'}
         </p>
         <div className="reward-options">
-          {options.map((o) => (
-            <button key={o.id} className={`reward-opt ${o.id === pick ? 'on' : ''}`} onClick={() => setPick(o.id)} aria-pressed={o.id === pick}>
-              <UtCard card={o} size="md" shine={o.id === pick} />
-            </button>
-          ))}
+          {card
+            ? <span className="reward-drawn"><UtCard card={card} size="md" shine /></span>
+            : options.map((o) => <span key={o.id} className="reward-back" aria-label="Verdeckte Karte"><i>?</i><small>{o.label}</small></span>)}
         </div>
-        {options.length > 1 && <p className="reward-hint">← wischen · {options.length} Karten zur Wahl →</p>}
-        <button className="btn primary big" onClick={confirm}>{chosen.label} ({chosen.ovr}) nehmen</button>
+        {card
+          ? <button className="btn primary big" onClick={onDone}>Weiter</button>
+          : <button className="btn primary big" onClick={draw}>Karte ziehen</button>}
       </div>
     </div>
   );

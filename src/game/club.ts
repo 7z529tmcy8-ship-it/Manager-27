@@ -622,6 +622,13 @@ export function chooseCareerReward(club: ClubState, career: Career, cardId: stri
 }
 
 
+/** Am Karriereende wird nicht mehr gewählt: Eine der verdienten Auszeichnungs-Karten wird zufällig gezogen. */
+export function drawCareerReward(club: ClubState, career: Career, rnd: () => number = Math.random): { club: ClubState; card: CollectCard | null } {
+  const opts = careerRewardOptions(career);
+  if (!opts.length || !rewardPending(club, career) || careerRewardKind(career) !== 'card') return { club, card: null };
+  const card = opts[Math.min(opts.length - 1, Math.floor(rnd() * opts.length))];
+  return { club: chooseCareerReward(club, career, card.id), card };
+}
 
 // ---------- Karriereende: Packs statt Karten ----------
 // Je besser die Karriere (Bilanz-Punkte wie in der Hall of Fame), desto stärkere Packs. Eigene Karten gibt es nicht mehr.
