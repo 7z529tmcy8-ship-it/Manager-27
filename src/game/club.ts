@@ -974,22 +974,3 @@ export function openTotwPack(club: ClubState, rand = Math.random, now = new Date
   };
 }
 
-// ---------- Ballon d’Or 2026: Tipp ----------
-/** Tippen geht bis zur Verleihung. */
-export const ballonTipOpen = (now = new Date()) => now < BALLON_CEREMONY;
-export function setBallonTip(club: ClubState, tip: string, now = new Date()): ClubState {
-  if (!ballonTipOpen(now)) return club;
-  return { ...club, ballonTip: tip };
-}
-/** Richtig getippt? (null = Sieger noch nicht bekannt) */
-export function ballonTipCorrect(club: ClubState, winner = BALLON_WINNER_2026): boolean | null {
-  if (!winner || !club.ballonTip) return null;
-  return club.ballonTip === winner;
-}
-/** Belohnung für den richtigen Tipp: ein Gala-Pack gratis (einmalig). */
-export function claimBallonTip(club: ClubState, rand = Math.random, winner = BALLON_WINNER_2026): { club: ClubState; result: PackResult } | null {
-  if (club.ballonTipClaimed || ballonTipCorrect(club, winner) !== true) return null;
-  const res = openPack(club, 'gala', rand, true);
-  if (!res) return null;
-  return { club: { ...res.club, ballonTipClaimed: true }, result: res.result };
-}

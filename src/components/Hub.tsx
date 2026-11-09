@@ -10,9 +10,7 @@ import { eraReady } from '../game/era';
 import { eraLive, jungleLive } from '../game/eraTime';
 import { Children, useRef, useState, type ReactNode } from 'react';
 import { getClub } from '../data/leagues';
-import { ballonTipCorrect, collectionProgress, ballonTipOpen, careerCard, claimBallonTip, creditCareer, eventActive, halloweenActive, rewardPending, type PackResult } from '../game/club';
-import { BALLON_WINNER_2026 } from '../data/cards';
-import BallonTip from './BallonTip';
+import { collectionProgress, careerCard, creditCareer, eventActive, rewardPending, type PackResult } from '../game/club';
 import { PackOpening } from './Store';
 import { currentClubId, seasonLabel } from '../game/player';
 import { deleteCareer, listCareers, saveCareer } from '../game/storage';
@@ -45,7 +43,6 @@ interface Props {
   onFame: () => void;
   onAchievements: () => void;
   onPass: () => void;
-  onGig: () => void;
   /** Beendete Karriere, deren Belohnungskarte noch gewählt werden muss. */
   onReward: (career: Career) => void;
 }
@@ -53,14 +50,12 @@ interface Props {
 const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 
 /** Hauptmenü im Stil eines Sammelkarten-Hubs: große Kacheln, Coins oben, die eigene Karte im Mittelpunkt. */
-export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTeam, onTrade, onDuels, onSbc, onFame, onAchievements, onPass, onGig, onReward }: Props) {
+export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTeam, onTrade, onDuels, onSbc, onFame, onAchievements, onPass, onReward }: Props) {
   const club = useClub();
   const [saves, setSaves] = useState(listCareers);
   const [showSaves, setShowSaves] = useState(false);
   const [settings, setSettings] = useState(false);
   const [backup, setBackup] = useState(false);
-  const [tipOpen, setTipOpen] = useState(false);
-  const [tipPack, setTipPack] = useState<PackResult | null>(null);
   const [nyPack, setNyPack] = useState<PackResult | null>(null);
   const [advent, setAdvent] = useState(false);
   const [profile, setProfile] = useState(false);
@@ -70,8 +65,6 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
   const [jungle, setJungle] = useState(false);
   const [manager, setManager] = useState(false);
   const mgr = manager ? null : loadManager();
-  const tipWon = ballonTipCorrect(club) === true && !club.ballonTipClaimed;
-  const gigLastDay = new Date().getDate() === 18;
   const me = profileOf(club);
   const toggleFull = async () => { if (isFullscreen()) exitFullscreen(); else await enterFullscreen(); setTimeout(() => setFull(isFullscreen()), 200); };
   const latest = [...saves].sort((a, b) => b.updatedAt - a.updatedAt)[0];
@@ -122,17 +115,6 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
             Karriere von {pendingReward.player.name} beendet – jetzt deine Belohnung abholen ›
           </button>
         )}
-        {tipWon && (
-          <button className="reward-call gala-call" onClick={() => {
-            const res = claimBallonTip(getClubState());
-            if (!res) return;
-            setClubState(res.club);
-            setTipPack(res.result);
-          }}>
-            <Icon name="trophy" size={20} />
-            Richtig getippt: {BALLON_WINNER_2026} gewinnt den Ballon d’Or! Dein Gala-Pack abholen ›
-          </button>
-        )}
         {newYearGiftOpen(club) && (
           <button className="ny-call" onClick={() => {
             const res = claimNewYearGift(getClubState());
@@ -152,40 +134,11 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
             <Icon name="arrow" size={22} />
           </button>
         )}
-        {SHOP_SALES && halloweenActive() && (
-          <button className="ev-call ev-halloween" onClick={onStore}>
-            <span className="ev-call-icon"><Icon name="pumpkin" size={24} /></span>
-            <span className="ev-call-text"><b>{eventActive('geisternacht') ? 'Geisternacht' : 'Halloween'}</b><small>{eventActive('geisternacht') ? 'Nur bis 31.10. · Geisternacht-Pack im Shop' : 'Bis 2.11. · Kürbis- und Geisterstunde-Pack im Shop'}</small></span>
-            <Icon name="arrow" size={22} />
-          </button>
-        )}
-        {eventActive('gala') && (
-          <button className="ev-call ev-gala" onClick={onSbc}>
-            <span className="ev-call-icon"><Icon name="medal" size={24} /></span>
-            <span className="ev-call-text"><b>Gala-Woche</b><small>{SHOP_SALES ? 'Bis 9.11. · Gala-Pack im Shop · SBC „Ballon d’Or 2026“' : 'Bis 9.11. · SBC „Ballon d’Or 2026“'}</small></span>
-            <Icon name="arrow" size={22} />
-          </button>
-        )}
         {adventToday() > 0 && (
           <button className="winter-call" onClick={() => setAdvent(true)}>
             <span className="winter-call-num">{adventToday()}</span>
             <span className="winter-call-text"><b>Adventskalender</b><small>{(club.advent ?? []).includes(adventToday()) ? 'Heute schon geöffnet – morgen geht’s weiter' : `Türchen ${adventToday()} wartet auf dich`}{SHOP_SALES ? ' · Winter-Wunder-Pack im Shop' : ''}</small></span>
             <Icon name="arrow" size={22} />
-          </button>
-        )}
-        {eventActive('gig') && (
-          <button className="gig-call" onClick={onGig}>
-            <span className="gig-call-title" data-text="GIG">GIG</span>
-            <span className="gig-call-text"><b>Glücksrad-Event</b><small>{gigLastDay ? 'Nur noch heute' : 'Nur heute und morgen'} · Packs bis GOAT · 0,5 % auf Yamal 95</small></span>
-            <Icon name="arrow" size={22} />
-          </button>
-        )}
-        {ballonTipOpen() && (
-          <button className="reward-call gala-call" onClick={() => setTipOpen(true)}>
-            <Icon name="medal" size={20} />
-            {club.ballonTip
-              ? `Dein Ballon-d’Or-Tipp: ${club.ballonTip === 'other' ? 'jemand anderes' : club.ballonTip} – ändern bis 26.10. ›`
-              : 'Ballon d’Or 2026: Wer gewinnt? Tippe bis 26.10. – richtig getippt = Gala-Pack gratis ›'}
           </button>
         )}
       </EventStrip>
@@ -290,7 +243,6 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
         />
       )}
       {backup && <Backup onClose={() => setBackup(false)} />}
-      {tipOpen && <BallonTip onClose={() => setTipOpen(false)} />}
       {manager && <ManagerMode onClose={() => setManager(false)} />}
       {jungle && <JungleEvent onClose={() => setJungle(false)} onCollection={() => { setJungle(false); onCollection(); }} />}
       {era && <EraEvent onClose={() => setEra(false)} onCollection={() => { setEra(false); onCollection(); }} />}
@@ -298,7 +250,6 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
       {profile && <ProfileScreen careers={saves} onClose={() => setProfile(false)} />}
       {advent && <AdventCalendar onClose={() => setAdvent(false)} onCollection={() => { setAdvent(false); onCollection(); }} />}
       {nyPack && <PackOpening name="Feuerwerks-Pack" theme="silvester" result={nyPack} onClose={() => setNyPack(null)} onCollection={() => { setNyPack(null); onCollection(); }} />}
-      {tipPack && <PackOpening name="Gala-Pack" theme="gala" result={tipPack} onClose={() => setTipPack(null)} onCollection={() => { setTipPack(null); onCollection(); }} />}
     </main>
   );
 }

@@ -1,5 +1,4 @@
-import { BALLON_WINNER_2026 } from '../data/cards';
-import { CARD_POOL, eventActive, getCard, rarity, withUpgrade, type ClubState, type CollectCard, type EventId } from './club';
+import { eventActive, getCard, rarity, withUpgrade, type ClubState, type CollectCard, type EventId } from './club';
 
 // Spezial-Tausche: Legendäre Momente als Karten (91–96). Man gibt genau 11 starke Karten ab – die Regeln sind hart.
 // Jede Karte gibt es nur einmal. „Automatisch füllen“ sucht die günstigste passende Abgabe heraus (autoFillMoment).
@@ -40,23 +39,6 @@ const unforgettable = (id: string, name: string, position: CollectCard['position
   ({ id: `moment-${id}`, name, position, nation: nat, club, league: lg, ovr, variant: 'unvergessen', label });
 const isFullback = (min: number) => (c: CollectCard) => c.position === 'AV' && c.ovr >= min;
 
-/** Ballon-d’Or-Sieger 2026 als SBC – erst, wenn der Sieger eingetragen ist. */
-function galaWinnerSbc(): MomentSbc[] {
-  if (!BALLON_WINNER_2026) return [];
-  const base = CARD_POOL.find((c) => c.variant === 'gala' && c.name === BALLON_WINNER_2026);
-  if (!base) return [];
-  return [{
-    id: 'moment-ballondor-2026',
-    event: 'gala',
-    reward: { ...base, id: 'moment-ballondor-2026', ovr: 96, label: 'Ballon d’Or 2026' },
-    story: `London, 26. Oktober 2026: ${BALLON_WINNER_2026} gewinnt den Ballon d’Or. Die Siegerkarte gibt es nur in der Gala-Woche.`,
-    minAvg: 89, minEach: 86,
-    needs: [
-      { label: 'Gala-Nominierte', count: 2, test: (c) => c.variant === 'gala' },
-      { label: 'Ikonen', count: 2, test: isIcon },
-    ],
-  }];
-}
 
 /** „Ewig“: die größten Momente der Fußballgeschichte – dreistellige Wertung (99–102), eigenes Obsidian-Prisma-Design. */
 const eternal = (id: string, name: string, position: CollectCard['position'], nat: string, club: string, ovr: number, label: string): CollectCard =>
@@ -64,7 +46,6 @@ const eternal = (id: string, name: string, position: CollectCard['position'], na
 const isSpecial = (c: CollectCard) => !['silver', 'gold', 'gold-rare', 'icon'].includes(c.variant);
 
 export const MOMENTS: MomentSbc[] = [
-  ...galaWinnerSbc(),
   // ----- Ewig (99–102) -----
   {
     id: 'moment-ewig-ronaldo',
@@ -230,30 +211,6 @@ export const MOMENTS: MomentSbc[] = [
     needs: [
       { label: 'Bundesliga-Spieler', count: 6, test: league('Bundesliga') },
       { label: 'Deutsche', count: 4, test: nation('Deutschland') },
-      { label: 'Ikone', count: 1, test: isIcon },
-    ],
-  },
-  {
-    id: 'moment-suarez-geisternacht',
-    event: 'geisternacht',
-    reward: { id: 'moment-suarez-geisternacht', name: 'Luis Suárez', position: 'ST', nation: 'Uruguay', club: 'Geisternacht', league: 'LaLiga', ovr: 94, variant: 'halloween', label: 'Der Beißer' },
-    story: 'Geisternacht-SBC: Nur zwei Nächte lang kommt der Stürmer mit dem berüchtigtsten Biss des Fußballs zurück – als Vampir. Am 1. November ist er wieder verschwunden.',
-    minAvg: 88, minEach: 85,
-    needs: [
-      { label: 'Halloween-Kostümkarten', count: 2, test: (c) => c.variant === 'halloween' },
-      { label: 'Kult-Helden', count: 3, test: isCult },
-      { label: 'Ikone', count: 1, test: isIcon },
-    ],
-  },
-  {
-    id: 'moment-adriano-halloween',
-    event: 'halloween',
-    reward: { id: 'moment-adriano-halloween', name: 'Adriano', position: 'ST', nation: 'Brasilien', club: 'Halloween', league: 'Serie A', ovr: 93, variant: 'halloween', label: 'Zombie-Imperator' },
-    story: 'Halloween-SBC „Die Nacht der lebenden Toten“: Nur wer Karrieren wiederbelebt, die eigentlich vorbei waren, bekommt den Imperator – als Zombie. Nur bis 2. November!',
-    minAvg: 88, minEach: 85,
-    needs: [
-      { label: 'Kult-Helden', count: 4, test: isCult },
-      { label: '„Was wäre wenn“-Talente', count: 3, test: (c) => c.variant === 'talent' },
       { label: 'Ikone', count: 1, test: isIcon },
     ],
   },

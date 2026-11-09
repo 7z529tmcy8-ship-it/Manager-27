@@ -1,7 +1,6 @@
 import ClubCrest from './ClubCrest';
 import Icon from './Icon';
 import { useEffect, useRef, useState } from 'react';
-import CoachPanel from './CoachPanel';
 import ScorerRace from './ScorerRace';
 import VicePanel from './VicePanel';
 import FamilyPanel from './FamilyPanel';
@@ -192,7 +191,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
             <span className="cs-pos">{p.position}</span>
             <span className="cs-age"><small>Alter</small> {p.age}</span>
           </div>
-          <div className="cs-club">{retired ? (career.coach ? 'Trainer' : 'Karriere beendet') : <><ClubCrest id={clubId} size={26} />{getClub(clubId).name}</>}</div>
+          <div className="cs-club">{retired ? 'Karriere beendet' : <><ClubCrest id={clubId} size={26} />{getClub(clubId).name}</>}</div>
           <div className="cs-head-row">
             <span className="cs-league">{retired ? `${career.history.length} ${career.history.length === 1 ? 'Saison' : 'Saisons'}` : getLeague(clubLeagueId(career, clubId)).name}{p.loan ? (p.loan.buyOption ? ' · Leihe mit Kaufoption' : ' · Leihe') : ''}</span>
             <span className="cs-value"><small>Wert</small> {money(playerValue(p))}</span>
@@ -341,7 +340,13 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       {retired && isBroke(career, coins) && (
         <button className="cs-note bad sk-note" onClick={() => setPanel('invest')}>Du bist pleite. Das Fernsehen hat angerufen … → Vermögen öffnen</button>
       )}
-      {retired && <CoachPanel career={career} onChange={onChange} onExit={onExit} />}
+      {retired && (
+        <section className="cs-window">
+          <h2>Karriereende</h2>
+          {career.retiredReason && <p className="cs-sub">{career.retiredReason}</p>}
+          <button className="btn secondary big cs-go" onClick={onExit}>Zum Hauptmenü</button>
+        </section>
+      )}
 
       {/* Zeitleiste: standardmäßig nur die letzten Saisons, damit Entscheidungen oben bleiben */}
       <div className="cs-timeline-head">

@@ -5,7 +5,6 @@ import { INFINITE_COINS, devAdvance, devAllCards, devCoins, devFlags, devLevels,
 import { CLUBS, LEAGUES, getClub } from '../data/leagues';
 import { currentClubId } from '../game/player';
 import { readDevTrade, writeDevTrade, type DevTrade } from '../game/trade';
-import { halloweenActive } from '../game/club';
 import { DIFFICULTIES, setCareerSettings, settingsOf } from '../game/difficulty';
 import type { Career, Difficulty } from '../game/types';
 import { canFullscreen, enterFullscreen, exitFullscreen, updateSettings, useSettings, type AppSettings, lockLandscape, unlockOrientation } from '../settings';
@@ -112,9 +111,6 @@ export default function Settings({ career, onChange, onClose }: Props) {
           <Toggle label="Karten mit dem Handy neigen" checked={app.tilt !== false} onToggle={async () => {
             if (app.tilt === false) { set({ tilt: true }); await startMotion(); } else { set({ tilt: false }); stopMotion(); }
           }} hint="Große Karten kippen in 3D und der Glanz wandert mit – am PC mit der Maus, am Handy durch Neigen." />
-          {halloweenActive() && (
-            <Toggle label="Halloween-Design" checked={app.halloween !== false} onToggle={() => set({ halloween: app.halloween === false })} hint="Nur bis 2. November: Kürbisse, Fledermäuse und Nebel." />
-          )}
           <Toggle label="Sounds" checked={app.sound} onToggle={() => { set({ sound: !app.sound }); if (!app.sound) setTimeout(() => play('coin'), 30); }} hint="Klicks, Coins, Pack-Öffnung, Pfiff, Fanfare bei Titeln." />
           {app.sound && (
             <Choice<string>

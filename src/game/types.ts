@@ -643,6 +643,7 @@ export interface CoachSeason {
   signings?: string[];
 }
 
+/** Alte Trainerkarriere (entfernt) – bleibt nur, damit alte Spielstände lesbar bleiben. */
 export interface CoachState {
   clubId: string | null;
   /** Trainerwert (ähnlich der Gesamtwertung beim Spieler), beeinflusst die Teamstärke. */
@@ -659,15 +660,15 @@ export interface CoachState {
   /** Laufende Trainersaison. */
   live?: CoachLive | null;
   /** Trainer-Linie je Situation ('ask' = selbst entscheiden). */
-  policies?: Partial<Record<import('./coachlife').PolicyId, string>>;
+  policies?: Record<string, string>;
   /** Offene Meldungen, die auf eine Entscheidung warten. */
-  pending?: import('./coachlife').Incident[];
+  pending?: unknown[];
   /** Letzte Meldungen (neueste zuerst). */
   feed?: string[];
   /** Trainer-Ruf: Kabine, Medien, Konsequenz. */
-  profile?: import('./coachlife').CoachProfile;
+  profile?: unknown;
   /** Letzte Entscheidung je Situation (für die Konsequenz). */
-  lastChoice?: Partial<Record<import('./coachlife').PolicyId, string>>;
+  lastChoice?: Record<string, string>;
   /** Feste Kadernamen des aktuellen Vereins. */
   squad?: string[];
   squadClub?: string | null;

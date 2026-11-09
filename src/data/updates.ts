@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-09-aufgeraeumt',
+    date: '09.11.2026',
+    title: 'Aufgeräumt: weniger Ballast',
+    items: [
+      'Die Trainerkarriere nach dem Karriereende ist raus – dafür gibt es jetzt den viel größeren Manager-Modus im Hauptmenü.',
+      'Vorbei und entfernt: Halloween-Deko, Gala-Woche, Glücksrad-Event und der Ballon-d’Or-Tipp. Karten aus diesen Events bleiben natürlich in deiner Sammlung.',
+      'Adventskalender, Polarlicht-Kalender und Silvester kommen wie geplant im Dezember.',
+    ],
+  },
+  {
     id: '2026-11-09-absturz-fix',
     date: '09.11.2026',
     title: 'Absturz-Fix: Karriere-Belohnung',

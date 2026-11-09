@@ -1,6 +1,5 @@
 import { expect, it } from 'vitest';
-import { PACKS, activePacks, ballonTipCorrect, claimBallonTip, eventActive, eventOfCard, freshClub, halloweenActive, openPack, setBallonTip } from '../club';
-import { MOMENTS, momentVisible } from '../legendTrades';
+import { PACKS, activePacks, eventActive, eventOfCard, freshClub, halloweenActive, openPack } from '../club';
 
 it('Halloween: Kostümkarten nur in Halloween-Packs, Garantien stimmen, Ende am 2. November', () => {
   let club = { ...freshClub(), coins: 50_000_000 };
@@ -40,19 +39,4 @@ it('Geisternacht nur am 30. und 31. Oktober, Gala-Woche ab der Verleihung', () =
     expect(openPack(club, 'geisternacht')!.result.cards.some((c) => eventOfCard(c.card) === 'geisternacht')).toBe(true);
     expect(openPack(club, 'gala')!.result.cards.some((c) => c.card.variant === 'gala')).toBe(true);
   }
-  const suarez = MOMENTS.find((m) => m.id === 'moment-suarez-geisternacht')!;
-  expect(suarez.event).toBe('geisternacht');
-  expect(momentVisible(freshClub(), suarez)).toBe(eventActive('geisternacht'));
-});
-
-it('Ballon-d’Or-Tipp: nur vor der Verleihung, Gratis-Pack bei richtigem Tipp', () => {
-  const before = new Date(2026, 9, 20);
-  const club = setBallonTip(freshClub(), 'Lamine Yamal', before);
-  expect(club.ballonTip).toBe('Lamine Yamal');
-  expect(setBallonTip(club, 'Harry Kane', new Date(2026, 9, 27)).ballonTip).toBe('Lamine Yamal');
-  expect(ballonTipCorrect(club, null)).toBeNull();
-  expect(claimBallonTip(club, Math.random, 'Harry Kane')).toBeNull();
-  const won = claimBallonTip(club, Math.random, 'Lamine Yamal')!;
-  expect(won.result.cards.some((c) => c.card.variant === 'gala')).toBe(true);
-  expect(claimBallonTip(won.club, Math.random, 'Lamine Yamal')).toBeNull();
 });

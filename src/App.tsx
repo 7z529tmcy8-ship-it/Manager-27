@@ -5,7 +5,6 @@ import { cleanStorage, migrateSaves, onSaveStatus, storageBreakdown } from './ga
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import Hub from './components/Hub';
 import Store from './components/Store';
-import HalloweenDecor from './components/HalloweenDecor';
 import NavBar, { type NavTarget } from './components/NavBar';
 import { listCareers } from './game/storage';
 
@@ -19,7 +18,6 @@ const Team = lazy(() => import('./components/Team'));
 const DuelsScreen = lazy(() => import('./components/Team').then((m) => ({ default: m.DuelsScreen })));
 const SbcScreen = lazy(() => import('./components/Team').then((m) => ({ default: m.SbcScreen })));
 const Trade = lazy(() => import('./components/Trade'));
-const GigEvent = lazy(() => import('./components/GigEvent'));
 const SeasonPass = lazy(() => import('./components/SeasonPass'));
 import UpdateBanner, { unseenUpdates } from './components/UpdateBanner';
 import { UPDATES, type UpdateNote } from './data/updates';
@@ -43,7 +41,6 @@ type Screen =
   | { name: 'fame' }
   | { name: 'achievements' }
   | { name: 'pass' }
-  | { name: 'gig' }
   | { name: 'game'; career: Career };
 
 export default function App() {
@@ -147,7 +144,6 @@ export default function App() {
   return (
     <div className={`app ${showNav ? 'has-nav' : ''}`}>
       {showNav && <NavBar active={navActive} onGo={go} />}
-      <HalloweenDecor />
       {/* Hinweis aufs Querformat nur in der Karriere – das Startmenü ist fürs Hochformat gebaut */}
       {!hintClosed && screen.name === 'game' && (
         <div className="rotate-hint" role="status">
@@ -175,7 +171,6 @@ export default function App() {
           onFame={() => setScreen({ name: 'fame' })}
           onAchievements={() => setScreen({ name: 'achievements' })}
           onPass={() => setScreen({ name: 'pass' })}
-          onGig={() => setScreen({ name: 'gig' })}
           onReward={setReward}
         />
       )}
@@ -186,7 +181,6 @@ export default function App() {
       {screen.name === 'sbc' && <SbcScreen onBack={home} />}
       {screen.name === 'trade' && <Trade onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
       {screen.name === 'achievements' && <Achievements onBack={home} />}
-      {screen.name === 'gig' && <GigEvent onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
       {screen.name === 'pass' && <SeasonPass onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
       {screen.name === 'fame' && <HallOfFame onBack={home} onOpen={load} />}
       {screen.name === 'create' && <CreateCareer onCancel={home} onCreate={update} />}
