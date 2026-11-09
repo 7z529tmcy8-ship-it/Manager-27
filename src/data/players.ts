@@ -639,6 +639,17 @@ const NOVEMBER_2026: typeof RAW = [
   ['Kevin Viveros', 'Kolumbien', 'ST', 26, 75, 78, 'Athletico Paranaense'],
   ['Breno Bidon', 'Brasilien', 'ZM', 20, 73, 83, 'SC Corinthians'],
   ['Junior Alonso', 'Paraguay', 'IV', 32, 76, 76, 'Atlético Mineiro'],
+  // Talente-Liste 11/2026 (Geburtsdaten und Positionen laut Vereins-/Wikipedia-Profilen, recherchiert 11/2026).
+  // Iličević: geb. 31.10.2010, Bundesliga-Debüt am 01.11.2026 mit 16 Jahren und 1 Tag (Nationalität nicht geprüft).
+  ['Niko Iličević', 'Deutschland', 'ST', 14, 60, 86, 'Eintracht Frankfurt'],
+  ['Bara Sapoko Ndiaye', 'Senegal', 'ZDM', 17, 68, 84, 'FC Bayern München'],
+  ['Joél Drakes-Thomas', 'England', 'FL', 16, 65, 86, 'Crystal Palace'],
+  ['Jayden Lienou', 'Wales', 'AV', 17, 64, 80, 'Leeds United'],
+  ['Sean Neave', 'England', 'ST', 18, 66, 80, 'Newcastle United'],
+  ['Josh King', 'England', 'ZM', 18, 70, 82, 'Fulham FC'],
+  ['Veljko Milosavljević', 'Serbien', 'IV', 18, 70, 84, 'AFC Bournemouth'],
+  ['Gabriel Mec', 'Brasilien', 'ZOM', 17, 70, 86, 'Grêmio'],
+  ['Luiz Benedetti', 'Brasilien', 'IV', 19, 70, 84, 'Palmeiras'],
 ];
 
 export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026, ...ADDITIONS_2026, ...WORLD_STARS_2026, ...DEPTH_2026, ...OCTOBER_2026, ...YOUTH_2026, ...YOUTH_2026_B, ...YOUTH_2026_C, ...NOVEMBER_2026]

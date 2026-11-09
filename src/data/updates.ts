@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-09-talente',
+    date: '09.11.2026',
+    title: '9 neue Talente',
+    items: [
+      'Rekord-Debütant Niko Iličević (Eintracht Frankfurt, mit 16 Jahren und 1 Tag in der Bundesliga) ist spielbar.',
+      'Dazu: Bara Sapoko Ndiaye (Bayern), Joél Drakes-Thomas (Crystal Palace), Jayden Lienou (Leeds), Sean Neave (Newcastle), Josh King (Fulham) und Veljko Milosavljević (Bournemouth).',
+      'Aus Brasilien: Gabriel Mec (Grêmio) und Luiz Benedetti (Palmeiras).',
+    ],
+  },
+  {
     id: '2026-11-09-brasilien',
     date: '09.11.2026',
     title: 'Brasileirão, Floyd Samba und Zufalls-Karte',

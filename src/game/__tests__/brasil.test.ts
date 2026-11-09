@@ -12,3 +12,11 @@ it('Brasileirão mit 20 Vereinen, Floyd Samba bei Manchester City', () => {
     expect(CLUBS.find((c) => c.id === p.clubId)?.leagueId).toBe('bra');
   }
 });
+
+it('Neue Talente haben gültige Vereine', () => {
+  for (const n of ['Niko Iličević', 'Bara Sapoko Ndiaye', 'Joél Drakes-Thomas', 'Jayden Lienou', 'Sean Neave', 'Josh King', 'Veljko Milosavljević', 'Gabriel Mec', 'Luiz Benedetti']) {
+    const p = REAL_PLAYERS.find((x) => x.name === n);
+    expect(p, n).toBeTruthy();
+    expect(CLUBS.some((c) => c.id === p!.clubId), n).toBe(true);
+  }
+});
