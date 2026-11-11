@@ -1,3 +1,4 @@
+import { allSquadIds } from './squad';
 import { eventActive, getCard, rarity, withUpgrade, type ClubState, type CollectCard, type EventId } from './club';
 
 // Spezial-Tausche: Legendäre Momente als Karten (91–96). Man gibt genau 11 starke Karten ab – die Regeln sind hart.
@@ -377,7 +378,7 @@ export function completeMoment(club: ClubState, momentId: string, ids: string[])
  * Karten aus der Aufstellung nur, wenn es nicht anders geht. Gibt die Auswahl zurück (auch unvollständig).
  */
 export function autoFillMoment(club: ClubState, m: MomentSbc): string[] {
-  const inSquad = new Set(club.squad.filter(Boolean) as string[]);
+  const inSquad = allSquadIds(club);
   // Seltenheit zuerst (normale Elite-Karten vor Sonderkarten), dann Wertung; Doppelte billiger, Stammspieler teuer.
   const cost = (c: CollectCard) => rarity(c) + (inSquad.has(c.id) ? 500 : 0) - ((club.cards[c.id] ?? 0) > 1 ? 40 : 0);
   const pool = momentCandidates(club).filter((c) => c.ovr >= m.minEach).sort((a, b) => cost(a) - cost(b));

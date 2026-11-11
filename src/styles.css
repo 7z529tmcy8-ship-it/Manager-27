@@ -6109,3 +6109,8 @@ button.mg-row:not(:disabled) { cursor: pointer; }
 .crash-guard h2 { margin: 0; font-size: 1.5rem; }
 .crash-guard p { margin: 0; opacity: .85; }
 .crash-guard small { opacity: .5; font-size: .75rem; word-break: break-word; }
+
+/* Zwei Teams: Umschalter */
+.team-switch { display: grid; gap: 4px; margin: 0 0 10px; }
+.team-switch .segmented button small { opacity: .6; font-weight: 600; margin-left: 4px; }
+.team-switch-hint { margin: 0; font-size: .8rem; opacity: .65; text-align: center; }

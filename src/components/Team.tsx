@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { PACKS, openPack, rarity, storePacks, type CollectCard, type PackResult } from '../game/club';
 import {
-  FORMATIONS, FORMATION_ORDER, TASKS, changeFormation, slotsOf, autoSquad, cardById, chemistry, completeTask, fit, ownedCards,
+  FORMATIONS, FORMATION_ORDER, TASKS, changeFormation, slotsOf, autoSquad, cardById, chemistry, completeTask, fit, teamCards, switchTeam, activeTeam, TEAM_NAMES, type TeamKind,
   setSlot, swapSlots, chemLinks, taskPick, teamRating, teamStrength, type DuelResult,
 } from '../game/squad';
 import { getClubState, setClubState, useClub } from '../clubStore';
@@ -43,6 +43,7 @@ export default function Team({ onBack, onStore }: { onBack: () => void; onStore:
         <span className="hub-coins"><Icon name="coin" size={16} className="coin-ic" />{club.coins.toLocaleString('de-DE')}</span>
       </header>
       <h1 className="hub-title">Mein Team</h1>
+      <TeamSwitch />
       <div className="team-stats">
         <div><small>Wertung</small><strong>{rating || '–'}</strong></div>
         <div><small>Chemie</small><strong>{chem.total}<em>/33</em></strong></div>
@@ -56,6 +57,26 @@ export default function Team({ onBack, onStore }: { onBack: () => void; onStore:
       {tab === 'squad' && <Squad onStore={onStore} />}
       {tab === 'friends' && <Friends full={full} onSquad={() => setTab('squad')} />}
     </main>
+  );
+}
+
+/** Umschalter zwischen Haupt-Team und Karriere-Team (gilt für Aufstellung und Duelle). */
+function TeamSwitch({ hint }: { hint?: string }) {
+  const club = useClub();
+  const on = activeTeam(club);
+  const count = (k: TeamKind) => teamCards(club, k).length;
+  return (
+    <div className="team-switch">
+      <div className="segmented" role="radiogroup" aria-label="Team wählen">
+        {(['main', 'career'] as TeamKind[]).map((k) => (
+          <button key={k} role="radio" aria-checked={on === k} className={on === k ? 'active' : ''}
+            onClick={() => setClubState(switchTeam(getClubState(), k))}>
+            {TEAM_NAMES[k]} <small>{count(k)}</small>
+          </button>
+        ))}
+      </div>
+      <p className="team-switch-hint">{hint ? `${hint} ` : ''}{on === 'career' ? 'Karriere- und SBC-Karten.' : 'Gezogene Karten, Event- und SBC-Karten.'}</p>
+    </div>
   );
 }
 
@@ -88,6 +109,7 @@ export function DuelsScreen({ onBack, onTeam }: { onBack: () => void; onTeam: ()
   return (
     <main className="hub duels-screen">
       <ScreenHead title="Duelle" onBack={onBack} />
+      <TeamSwitch hint="Duelle spielst du mit dem gewählten Team." />
       <div className="team-stats">
         <div><small>Wertung</small><strong>{teamRating(cards) || '–'}</strong></div>
         <div><small>Division</small><strong>{divisionOf(club).div <= ELITE ? divName(divisionOf(club).div) : divisionOf(club).div}</strong></div>
@@ -242,7 +264,7 @@ function Squad({ onStore }: { onStore: () => void }) {
   const cards = club.squad.map((id) => cardById(club, id));
   const slots = slotsOf(club);
   const chem = chemistry(cards, slots);
-  const owned = ownedCards(club);
+  const owned = teamCards(club);
   const reserve = owned.filter((c) => !club.squad.includes(c.id)).sort((a, b) => b.ovr - a.ovr).slice(0, 24);
 
   useEffect(() => {
@@ -301,6 +323,13 @@ function Squad({ onStore }: { onStore: () => void }) {
   };
   const open = (i: number) => { if (!suppressClick.current) setSlotOpen(i); };
 
+  if (!owned.length && activeTeam(club) === 'career') {
+    return (
+      <div className="hub-empty">
+        <p>Im Karriere-Team spielen nur Karten aus deinen Karrieren (Auszeichnungen, Ikonen, Saison-Specials) und SBC-Karten. Beende eine Karriere oder erledige ein SBC, dann kannst du hier aufstellen.</p>
+      </div>
+    );
+  }
   if (!owned.length) {
     return (
       <div className="hub-empty">
@@ -374,7 +403,7 @@ function Picker({ slot, onClose }: { slot: number; onClose: () => void }) {
   const slotDef = slotsOf(club)[slot];
   const pos = slotDef.pos;
   const current = club.squad[slot];
-  const list = ownedCards(club)
+  const list = teamCards(club)
     .map((c) => ({ c, f: fit(c, pos) }))
     .sort((a, b) => ({ ok: 0, near: 1, off: 2 }[a.f] - { ok: 0, near: 1, off: 2 }[b.f]) || b.c.ovr - a.c.ovr);
   const pick = (c: CollectCard | null) => {

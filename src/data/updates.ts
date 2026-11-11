@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-11-zwei-teams',
+    date: '11.11.2026',
+    title: 'Zwei Teams: Haupt-Team und Karriere-Team',
+    items: [
+      'In „Mein Team“ und bei den Duellen wählst du jetzt oben zwischen zwei Teams – jedes mit eigener Aufstellung und Formation.',
+      'Haupt-Team: Karten aus Packs, Events, Drops und SBCs.',
+      'Karriere-Team: Karten aus deinen Karrieren (Auszeichnungen, Ikonen, Saison-Specials) und SBC-Karten. Karriere-Karten, die bisher im Haupt-Team standen, ziehen beim ersten Wechsel automatisch um.',
+      'Duelle spielst du mit dem Team, das gerade gewählt ist.',
+    ],
+  },
+  {
     id: '2026-11-11-zeitreise-teams',
     date: '11.11.2026',
     title: 'Neue Zeitreise-Teams: Chelsea 2014/15 und 96 II',

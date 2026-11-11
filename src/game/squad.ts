@@ -89,6 +89,49 @@ export function ownedCards(club: ClubState): CollectCard[] {
   ].map((c) => withUpgrade(club, c));
 }
 
+// ---------- Zwei Teams ----------
+// Haupt-Team: gezogene Karten, Event-Karten, SBC-Karten – alles außer Karriere-Karten.
+// Karriere-Team: Karten aus eigenen Karrieren (Auszeichnungen, Ikonen, Saison-Specials) plus SBC-Karten.
+// Aktiv ist immer eines davon in club.squad/club.formation – Duelle spielen mit dem aktiven Team.
+export type TeamKind = 'main' | 'career';
+export const TEAM_NAMES: Record<TeamKind, string> = { main: 'Haupt-Team', career: 'Karriere-Team' };
+export const activeTeam = (club: Pick<ClubState, 'activeTeam'>): TeamKind => club.activeTeam ?? 'main';
+const isCareerCard = (id: string) => id.startsWith('own-');
+const isSbcCard = (id: string) => id.startsWith('moment-');
+export const fitsTeam = (id: string, kind: TeamKind) => (kind === 'career' ? isCareerCard(id) || isSbcCard(id) : !isCareerCard(id));
+
+/** Karten, die im aktiven Team aufgestellt werden dürfen. */
+export function teamCards(club: ClubState, kind: TeamKind = activeTeam(club)): CollectCard[] {
+  return ownedCards(club).filter((c) => fitsTeam(c.id, kind));
+}
+
+/** Alle aufgestellten Karten aus beiden Teams (z. B. damit man sie nicht verkauft oder abgibt). */
+export function allSquadIds(club: ClubState): Set<string> {
+  return new Set([...club.squad, ...(club.altTeam?.squad ?? [])].filter((x): x is string => !!x));
+}
+
+/** Zum anderen Team wechseln. Beim ersten Wechsel ziehen Karriere-Karten aus dem Haupt-Team ins Karriere-Team um. */
+export function switchTeam(club: ClubState, to: TeamKind): ClubState {
+  const from = activeTeam(club);
+  if (from === to) return club;
+  let current = [...club.squad];
+  let next = club.altTeam ? [...club.altTeam.squad] : Array<string | null>(11).fill(null);
+  if (!club.altTeam && to === 'career') {
+    next = current.map((id) => (id && isCareerCard(id) ? id : null));
+    current = current.map((id) => (id && isCareerCard(id) ? null : id));
+  }
+  const owned = new Set(ownedCards(club).map((c) => c.id));
+  const clean = (sq: (string | null)[], kind: TeamKind) =>
+    Array.from({ length: 11 }, (_, i) => { const id = sq[i] ?? null; return id && owned.has(id) && fitsTeam(id, kind) ? id : null; });
+  return {
+    ...club,
+    activeTeam: to,
+    squad: clean(next, to),
+    formation: club.altTeam?.formation ?? club.formation,
+    altTeam: { squad: clean(current, from), formation: club.formation },
+  };
+}
+
 export function cardById(club: ClubState, id: string | null): CollectCard | null {
   if (!id) return null;
   const card = getCard(id) ?? club.specials.find((s) => s.id === id);
@@ -131,7 +174,7 @@ export function teamStrength(cards: (CollectCard | null)[], slots: Slot[] = FORM
 
 /** Automatisch aufstellen: je Position die beste passende Karte, danach die besten übrigen. */
 export function autoSquad(club: ClubState): (string | null)[] {
-  const pool = ownedCards(club).sort((a, b) => b.ovr - a.ovr);
+  const pool = teamCards(club).sort((a, b) => b.ovr - a.ovr);
   const used = new Set<string>();
   const squad: (string | null)[] = Array(11).fill(null);
   const slots = slotsOf(club);
@@ -320,7 +363,7 @@ export const TASKS: Task[] = [
  */
 export function taskPick(club: ClubState, task: Task): string[] | null {
   const counts = { ...club.cards };
-  const inSquad = new Set(club.squad.filter(Boolean) as string[]);
+  const inSquad = allSquadIds(club);
   // Verfügbare Exemplare: Doppelte immer, Einzelstücke nur, wenn nicht aufgestellt (bei „Aufräumen“ nur Doppelte).
   const copies: CollectCard[] = [];
   for (const [id, n] of Object.entries(counts)) {

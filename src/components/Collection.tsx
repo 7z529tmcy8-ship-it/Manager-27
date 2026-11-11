@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { CARD_POOL, collectionProgress, getCard, rarity, sellDuplicates, sellValue, withUpgrade, type CollectCard } from '../game/club';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import UtCard from './UtCard';
-import { cardById } from '../game/squad';
+import { allSquadIds, cardById } from '../game/squad';
 import Icon from './Icon';
 import { MOMENTS } from '../game/legendTrades';
 import { EVO_CAP, EVO_FEE, EVO_PATHS, EVO_VARIANTS, cancelEvo, evoBlocker, evoGained, getPath, startEvo, stepText } from '../game/evolutions';
@@ -132,7 +132,7 @@ function CardDetail({ id, onClose }: { id: string; onClose: () => void }) {
   // Verkaufswert immer vom Grundwert – Evolutions bringen beim Verkauf nichts zurück.
   const value = sellValue({ ...card, ovr: card.ovr - (card.boost ?? 0) });
   const own = club.specials.some((s) => s.id === id);
-  const inSquad = club.squad.includes(id);
+  const inSquad = allSquadIds(club).has(id);
   const canSell = !own && (count > 1 || !inSquad);
   const sellOne = () => {
     const c = getClubState();

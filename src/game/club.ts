@@ -132,6 +132,10 @@ export interface ClubState {
   megaSuperClaimed?: boolean;
   /** Gewählte Formation in „Mein Team“ (Standard 4-3-3). */
   formation?: import('./squad').FormationId;
+  /** Welches Team gerade aktiv ist (Aufstellung, Duelle): Haupt-Team oder Karriere-Team. */
+  activeTeam?: import('./squad').TeamKind;
+  /** Das gerade nicht aktive Team (Aufstellung + Formation). */
+  altTeam?: { squad: (string | null)[]; formation?: import('./squad').FormationId };
   /** Abgeschlossene Trades in der Tauschbörse. */
   tradesDone?: number;
   /** Karriereende: gewählte Belohnungskarte je Karriere (Karriere-ID → Karten-ID). */
