@@ -1,5 +1,6 @@
 import { EMBLEMS, PROFILE_COLORS } from './profile';
-import { NAMES } from './trade';
+// Spielernamen für die Bestenliste (früher aus der Tauschbörse).
+const NAMES = ['Alex der Yogi', 'Hamudi California', 'Rene Dost', 'Dore65', 'Karsten Boss', 'Alpha67', 'Yo Olli', 'Barello', 'Arafat', 'Paulm67', 'Leontin-296', 'Masi'];
 
 // ---------- Bestenliste (Top 100 nach Trophäen) ----------
 // Die anderen Plätze sind erfundene Spieler – Namen aus der Tauschbörse, abgewandelt.

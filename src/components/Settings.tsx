@@ -4,7 +4,6 @@ import { getClubState, setClubState, useClub } from '../clubStore';
 import { INFINITE_COINS, devAdvance, devAllCards, devCoins, devFlags, devLevels, devMaxCards, devOvr, devTransfer, isDevCode } from '../game/dev';
 import { CLUBS, LEAGUES, getClub } from '../data/leagues';
 import { currentClubId } from '../game/player';
-import { readDevTrade, writeDevTrade, type DevTrade } from '../game/trade';
 import { DIFFICULTIES, setCareerSettings, settingsOf } from '../game/difficulty';
 import type { Career, Difficulty } from '../game/types';
 import { canFullscreen, enterFullscreen, exitFullscreen, updateSettings, useSettings, type AppSettings, lockLandscape, unlockOrientation } from '../settings';
@@ -204,7 +203,6 @@ function DevPanel({ career, onChange, onLock }: { career?: Career; onChange?: (c
 
       {career && onChange && <DevCareerTools career={career} onDone={career$} />}
 
-      <DevTradeTools onMsg={setMsg} />
 
       {msg && <p className="cs-note good" role="status">✓ {msg}</p>}
       <button className="btn ghost small" onClick={onLock}>Entwickler-Bereich ausblenden</button>
@@ -275,27 +273,3 @@ function DevCareerTools({ career, onDone }: { career: Career; onDone: (c: Career
   );
 }
 
-/** Entwickler: Tauschbörse steuern (gilt für den nächsten Trade). */
-function DevTradeTools({ onMsg }: { onMsg: (t: string) => void }) {
-  const [d, setD] = useState<DevTrade>(readDevTrade);
-  const set = (patch: Partial<DevTrade>, text: string) => {
-    const next = { ...d, ...patch };
-    setD(next);
-    writeDevTrade(next);
-    onMsg(text);
-  };
-  return (
-    <div className="dev-group">
-      <span className="setting-label">Tauschbörse</span>
-      <div className="dev-btns">
-        {([[null, 'Abbruch: Zufall'], ['force', 'Abbruch: immer'], ['never', 'Abbruch: nie']] as [DevTrade['drop'], string][]).map(([v, label]) => (
-          <button key={label} className={`btn small ${(d.drop ?? null) === v ? 'primary' : 'secondary'}`} onClick={() => set({ drop: v }, label)}>{label}</button>
-        ))}
-        <button className={`btn small ${d.chef ? 'primary' : 'secondary'}`} onClick={() => set({ chef: !d.chef }, d.chef ? 'ChefJakob aus' : 'ChefJakob bei jedem Trade')}>ChefJakob {d.chef ? 'an' : 'aus'}</button>
-      </div>
-      <div className="dev-row">
-        <input placeholder="Bot-Name erzwingen (leer = Zufall)" value={d.name ?? ''} maxLength={24} onChange={(e) => set({ name: e.target.value || undefined }, e.target.value ? `Bot heißt jetzt „${e.target.value}“` : 'Bot-Name wieder zufällig')} />
-      </div>
-    </div>
-  );
-}

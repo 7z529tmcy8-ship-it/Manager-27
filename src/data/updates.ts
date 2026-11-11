@@ -29,6 +29,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-11-schlanker',
+    date: '11.11.2026',
+    title: 'Schlanker: Tauschbörse entfernt',
+    items: [
+      'Die Tauschbörse ist raus – Karten bekommst du weiter über Packs, SBCs, Drops und deine Karrieren.',
+      'Rund 65 KB alter Design-Code von Bildschirmen, die es nicht mehr gibt, wurden gelöscht – das Spiel lädt etwas schneller.',
+    ],
+  },
+  {
     id: '2026-11-09-aufgeraeumt',
     date: '09.11.2026',
     title: 'Aufgeräumt: weniger Ballast',

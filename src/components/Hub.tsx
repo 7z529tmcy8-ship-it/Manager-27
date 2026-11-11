@@ -37,7 +37,6 @@ interface Props {
   onStore: () => void;
   onCollection: () => void;
   onTeam: () => void;
-  onTrade: () => void;
   onDuels: () => void;
   onSbc: () => void;
   onFame: () => void;
@@ -50,7 +49,7 @@ interface Props {
 const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 
 /** Hauptmenü im Stil eines Sammelkarten-Hubs: große Kacheln, Coins oben, die eigene Karte im Mittelpunkt. */
-export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTeam, onTrade, onDuels, onSbc, onFame, onAchievements, onPass, onReward }: Props) {
+export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTeam, onDuels, onSbc, onFame, onAchievements, onPass, onReward }: Props) {
   const club = useClub();
   const [saves, setSaves] = useState(listCareers);
   const [showSaves, setShowSaves] = useState(false);
@@ -195,7 +194,6 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
       <h2 className="hub-section">Mehr</h2>
       <div className="hub-list">
         <Row icon="news" title="Neuigkeiten" sub="Alle Updates im Überblick" onClick={onNews} />
-        <Row icon="swap" title="Tauschbörse" sub="Karten mit echten Spielern tauschen – 100 % fair*" onClick={onTrade} />
         <Row icon="folder" title="Spielstände" sub={`${saves.length} gespeichert`} onClick={() => setShowSaves(true)} disabled={!saves.length} />
         <Row icon="trophy" title="Erfolge" sub="Karriereziele" onClick={onAchievements} disabled={!saves.length} />
         <Row icon="pillars" title="Hall of Fame" sub="Deine besten Karrieren" onClick={onFame} disabled={!hasHistory} />

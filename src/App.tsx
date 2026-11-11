@@ -17,7 +17,6 @@ const HallOfFame = lazy(() => import('./components/HallOfFame'));
 const Team = lazy(() => import('./components/Team'));
 const DuelsScreen = lazy(() => import('./components/Team').then((m) => ({ default: m.DuelsScreen })));
 const SbcScreen = lazy(() => import('./components/Team').then((m) => ({ default: m.SbcScreen })));
-const Trade = lazy(() => import('./components/Trade'));
 const SeasonPass = lazy(() => import('./components/SeasonPass'));
 import UpdateBanner, { unseenUpdates } from './components/UpdateBanner';
 import { UPDATES, type UpdateNote } from './data/updates';
@@ -34,7 +33,6 @@ type Screen =
   | { name: 'store' }
   | { name: 'collection' }
   | { name: 'team' }
-  | { name: 'trade' }
   | { name: 'duels' }
   | { name: 'sbc' }
   | { name: 'create' }
@@ -165,7 +163,6 @@ export default function App() {
           onStore={() => setScreen({ name: 'store' })}
           onCollection={() => setScreen({ name: 'collection' })}
           onTeam={() => setScreen({ name: 'team' })}
-          onTrade={() => setScreen({ name: 'trade' })}
           onDuels={() => setScreen({ name: 'duels' })}
           onSbc={() => setScreen({ name: 'sbc' })}
           onFame={() => setScreen({ name: 'fame' })}
@@ -179,7 +176,6 @@ export default function App() {
       {screen.name === 'team' && <Team onBack={home} onStore={() => setScreen({ name: 'store' })} />}
       {screen.name === 'duels' && <DuelsScreen onBack={home} onTeam={() => setScreen({ name: 'team' })} />}
       {screen.name === 'sbc' && <SbcScreen onBack={home} />}
-      {screen.name === 'trade' && <Trade onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
       {screen.name === 'achievements' && <Achievements onBack={home} />}
       {screen.name === 'pass' && <SeasonPass onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
       {screen.name === 'fame' && <HallOfFame onBack={home} onOpen={load} />}
