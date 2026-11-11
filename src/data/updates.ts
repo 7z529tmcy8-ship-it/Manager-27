@@ -29,6 +29,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-11-zeitreise-teams',
+    date: '11.11.2026',
+    title: 'Neue Zeitreise-Teams: Chelsea 2014/15 und 96 II',
+    items: [
+      'Karriere → „Chelsea 14“: zehn Spieler aus Mourinhos Meisterteam 2014/15 – Hazard, Diego Costa, Fàbregas, Terry, Courtois und mehr. Jeder startet mit seinem damaligen Alter bei Chelsea.',
+      'Karriere → „96 II (24)“: zehn Spieler der U23 von Hannover 96, die 2024 Meister der Regionalliga Nord wurde und in die 3. Liga aufstieg – mit Kapitän Lars Gindorf.',
+    ],
+  },
+  {
     id: '2026-11-11-familie-raus',
     date: '11.11.2026',
     title: 'Noch schlanker: Familie und Geheimseite entfernt',

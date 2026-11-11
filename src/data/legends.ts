@@ -144,6 +144,45 @@ export const HANNOVER_2018: LegendTemplate[] = H96_2018_RAW.map(([name, nation, 
   name, nation, position, age, ovr, potential, clubId: slugify('Hannover 96'), traits: [], bio,
 }));
 
+// Chelsea, Meister 2014/15 unter Mourinho (Liga-Titel, Ligapokal). Alter zum Saisonstart 2014/15 laut Geburtsdaten,
+// Positionen laut Kaderlisten; Wertungen und Potenziale sind eigene Schätzungen. (Willian gibt es schon bei den Kult-Helden.)
+const CHELSEA_2014_RAW: typeof H96_2018_RAW = [
+  ['Thibaut Courtois', 'Belgien', 'TW', 22, 84, 91, 'Kam von der Atlético-Leihe zurück und wurde sofort die Nummer 1.'],
+  ['Branislav Ivanović', 'Serbien', 'AV', 30, 83, 83, 'Rechtsverteidiger mit Kopfballstärke und Torgefahr.'],
+  ['John Terry', 'England', 'IV', 33, 84, 84, 'Kapitän, Leader, Abwehrchef – stemmt den Meisterpokal in die Höhe.'],
+  ['Gary Cahill', 'England', 'IV', 28, 82, 83, 'Terrys Partner in der Innenverteidigung.'],
+  ['César Azpilicueta', 'Spanien', 'AV', 24, 82, 86, 'Spielte als Rechtsfuß links hinten – zuverlässig wie ein Uhrwerk.'],
+  ['Nemanja Matić', 'Serbien', 'ZDM', 26, 83, 85, 'Der Staubsauger vor der Abwehr.'],
+  ['Cesc Fàbregas', 'Spanien', 'ZM', 27, 86, 86, 'Kam von Barcelona und verteilte die Bälle – Vorlagen-König.'],
+  ['Oscar', 'Brasilien', 'ZOM', 22, 82, 86, 'Brasilianischer Zehner mit viel Laufarbeit.'],
+  ['Eden Hazard', 'Belgien', 'FL', 23, 87, 91, 'Spieler der Saison 2014/15 in der Premier League – Dribbelkönig.'],
+  ['Diego Costa', 'Spanien', 'ST', 25, 85, 87, 'Kam von Atlético und wurde mit 20 Ligatoren Chelseas bester Torschütze.'],
+];
+
+export const CHELSEA_2014: LegendTemplate[] = CHELSEA_2014_RAW.map(([name, nation, position, age, ovr, potential, bio]) => ({
+  name, nation, position, age, ovr, potential, clubId: slugify('Chelsea FC'), traits: [], bio,
+}));
+
+// Hannover 96 II (U23), Meister der Regionalliga Nord 2023/24 und Aufstieg in die 3. Liga (Relegation gegen Würzburg,
+// 5:4 im Elfmeterschießen). Kaderzugehörigkeit laut DFB-Datencenter bzw. hannover96.de (recherchiert 11/2026).
+// Alter zum Saisonstart 2023/24 – bei Spielern ohne gefundenes Geburtsdatum geschätzt. Wertungen sind eigene Schätzungen.
+const H96_U23_2024_RAW: typeof H96_2018_RAW = [
+  ['Luca Joel Grimpe', 'Deutschland', 'TW', 21, 58, 68, 'Torwart der Meistermannschaft.'],
+  ['Fynn Arkenberg', 'Deutschland', 'AV', 22, 58, 66, 'Kam 2023 aus Havelse, Rechtsverteidiger – später Kapitän in der 3. Liga.'],
+  ['Tim Walbrecht', 'Deutschland', 'IV', 21, 57, 66, 'Innenverteidiger aus der 96-Jugend.'],
+  ['Eric Uhlmann', 'Deutschland', 'IV', 21, 59, 69, 'Seit 2022 bei 96, nach dem Aufstieg mit im Profi-Trainingslager.'],
+  ['Hayate Matsuda', 'Japan', 'AV', 20, 59, 70, 'Japanischer Stammspieler in der Abwehr, 26 Einsätze in der Meistersaison.'],
+  ['Keanu Brandt', 'Deutschland', 'ZM', 19, 57, 70, 'Junger Mittelfeldspieler, geboren 2004.'],
+  ['Marin Popović', 'Bosnien-Herzegowina', 'ZM', 28, 58, 58, 'Erfahrener Mittelfeldmann, der Routinier im jungen Team.'],
+  ['Husseyn Chakroun', 'Libanon', 'ST', 18, 58, 72, 'Acht Tore und zwölf Vorlagen in der Meistersaison.'],
+  ['Sean Busch', 'Deutschland', 'ST', 20, 56, 67, 'Junger Angreifer im Meisterkader.'],
+  ['Lars Gindorf', 'Deutschland', 'FL', 21, 62, 74, 'Kapitän und Torjäger: 21 Tore, im Winter 2024 dann zu den Profis.'],
+];
+
+export const HANNOVER_U23_2024: LegendTemplate[] = H96_U23_2024_RAW.map(([name, nation, position, age, ovr, potential, bio]) => ({
+  name, nation, position, age, ovr, potential, clubId: slugify('Hannover 96 II'), traits: [], bio,
+}));
+
 // Kult-Helden: Publikumslieblinge und „Forgotten Names“ starten jung bei einem Verein ihrer Anfänge bzw. großen Zeit.
 // Startvereine teils vereinfacht (nur Vereine, die es im Spiel gibt). Werte sind eigene Schätzungen.
 const CULT_RAW: typeof RAW = [

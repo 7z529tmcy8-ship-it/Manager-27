@@ -5,7 +5,7 @@ import { play } from '../sound';
 import { motionReduced } from '../settings';
 import { CLUBS, LEAGUES, getClub, youthClubOf } from '../data/leagues';
 import { NATIONS, POSITIONS, REAL_PLAYERS, type RealPlayerTemplate } from '../data/players';
-import { CULT_LEGENDS, FAILED_TALENTS, HANNOVER_2018, ICON_LEGENDS, LEGENDS, type LegendTemplate } from '../data/legends';
+import { CHELSEA_2014, CULT_LEGENDS, FAILED_TALENTS, HANNOVER_2018, HANNOVER_U23_2024, ICON_LEGENDS, LEGENDS, type LegendTemplate } from '../data/legends';
 import { createCareer } from '../game/career';
 import { SCENARIOS, SCENARIO_REWARD, createScenarioCareer, type ScenarioId } from '../game/scenario';
 import Icon, { type IconName } from './Icon';
@@ -29,7 +29,7 @@ interface Props {
 }
 
 
-type Tab = 'own' | 'real' | 'scenario' | 'icons' | 'legends' | 'cult' | 'failed' | 'h96';
+type Tab = 'own' | 'real' | 'scenario' | 'icons' | 'legends' | 'cult' | 'failed' | 'h96' | 'chelsea' | 'h96u23';
 /** Reiter: [ID, langer Name, kurzer Name fürs Handy]. */
 const TABS: [Tab, string, string][] = [
   ['own', 'Eigener Spieler', 'Eigener'],
@@ -40,6 +40,8 @@ const TABS: [Tab, string, string][] = [
   ['cult', 'Kult-Helden', 'Kult'],
   ['failed', 'Zweite Chance', '2. Chance'],
   ['h96', '96 von 2018', '96 (2018)'],
+  ['h96u23', '96 II Aufstieg 2024', '96 II (24)'],
+  ['chelsea', 'Chelsea 2014/15', 'Chelsea 14'],
 ];
 
 export default function CreateCareer({ onCancel, onCreate }: Props) {
@@ -66,6 +68,8 @@ export default function CreateCareer({ onCancel, onCreate }: Props) {
       {tab === 'cult' && <LegendPicker onCreate={onCreate} list={CULT_LEGENDS} intro={CULT_INTRO} />}
       {tab === 'failed' && <LegendPicker onCreate={onCreate} list={FAILED_TALENTS} intro={FAILED_INTRO} secondChance />}
       {tab === 'h96' && <LegendPicker onCreate={onCreate} list={HANNOVER_2018} intro={H96_INTRO} />}
+      {tab === 'h96u23' && <LegendPicker onCreate={onCreate} list={HANNOVER_U23_2024} intro={H96_U23_INTRO} />}
+      {tab === 'chelsea' && <LegendPicker onCreate={onCreate} list={CHELSEA_2014} intro={CHELSEA_INTRO} />}
     </main>
   );
 }
@@ -445,6 +449,10 @@ const CULT_INTRO =
   'Kult-Helden: Publikumslieblinge und „Forgotten Names“ wie Ailton, Okocha, Quaresma, Podolski, Hulk, Paulinho oder Memphis Depay starten jung bei einem Verein ihrer Anfänge bzw. großen Zeit – im heutigen Fußball. Startvereine teils vereinfacht, Wertungen eigene Schätzungen.';
 const H96_INTRO =
   'Zeitreise: der Bundesliga-Kader von Hannover 96 aus der Saison 2018/19. Jeder Spieler startet mit seinem damaligen Alter bei Hannover 96 – im heutigen Fußball. Wertungen sind eigene Schätzungen.';
+const H96_U23_INTRO =
+  'Zeitreise: die U23 von Hannover 96, Meister der Regionalliga Nord 2023/24 und Aufsteiger in die 3. Liga. Jeder Spieler startet mit seinem damaligen Alter bei Hannover 96 II – im heutigen Fußball. Wertungen sind eigene Schätzungen.';
+const CHELSEA_INTRO =
+  'Zeitreise: Chelsea, Meister 2014/15 unter José Mourinho – mit Hazard, Diego Costa, Fàbregas und Terry. Jeder Spieler startet mit seinem damaligen Alter bei Chelsea – im heutigen Fußball. Wertungen sind eigene Schätzungen.';
 const FAILED_INTRO =
   'Als Wunderkinder gefeiert, am Ende nie ganz oben angekommen. Hier startest du noch einmal mit ihrem Talent – schaffst du, was ihnen verwehrt blieb? Ziel: Gesamtwertung 85. Werte sind eigene Schätzungen.';
 
