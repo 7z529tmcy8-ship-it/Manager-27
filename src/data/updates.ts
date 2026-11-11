@@ -36,7 +36,7 @@ export const UPDATES: UpdateNote[] = [
       'In „Mein Team“ und bei den Duellen wählst du jetzt oben zwischen zwei Teams – jedes mit eigener Aufstellung und Formation.',
       'Haupt-Team: Karten aus Packs, Events, Drops und SBCs.',
       'Karriere-Team: Karten aus deinen Karrieren (Auszeichnungen, Ikonen, Saison-Specials) und SBC-Karten. Karriere-Karten, die bisher im Haupt-Team standen, ziehen beim ersten Wechsel automatisch um.',
-      'Duelle spielst du mit dem Team, das gerade gewählt ist.',
+      'Bei den Duellen wählst du direkt über dem Gegner, mit welchem Team du spielst – mit Stärke und Spielerzahl beider Teams.',
     ],
   },
   {

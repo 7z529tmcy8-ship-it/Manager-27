@@ -6114,3 +6114,11 @@ button.mg-row:not(:disabled) { cursor: pointer; }
 .team-switch { display: grid; gap: 4px; margin: 0 0 10px; }
 .team-switch .segmented button small { opacity: .6; font-weight: 600; margin-left: 4px; }
 .team-switch-hint { margin: 0; font-size: .8rem; opacity: .65; text-align: center; }
+
+/* Duelle: Team wählen */
+.duel-team-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 12px; }
+.dtp { display: grid; gap: 2px; padding: 10px 12px; border-radius: 14px; border: 2px solid transparent; background: rgba(127, 127, 127, .12); color: inherit; text-align: left; cursor: pointer; position: relative; }
+.dtp b { font-size: .95rem; }
+.dtp span { font-size: .8rem; opacity: .75; }
+.dtp.on { border-color: #2f7cf6; background: rgba(47, 124, 246, .12); }
+.dtp em { position: absolute; top: 8px; right: 10px; font-style: normal; font-size: .7rem; font-weight: 700; color: #2f7cf6; text-transform: uppercase; }

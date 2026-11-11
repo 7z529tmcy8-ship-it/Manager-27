@@ -80,6 +80,33 @@ function TeamSwitch({ hint }: { hint?: string }) {
   );
 }
 
+/** Vor dem Duell: Mit welchem Team spielst du? Zeigt Stärke und ob die Elf vollständig ist. */
+function DuelTeamPick() {
+  const club = useClub();
+  const on = activeTeam(club);
+  const info = (k: TeamKind) => {
+    const team = k === on ? { squad: club.squad, formation: club.formation } : club.altTeam ?? { squad: [], formation: club.formation };
+    const cards = Array.from({ length: 11 }, (_, i) => cardById(club, team.squad[i] ?? null));
+    const n = cards.filter(Boolean).length;
+    return { n, strength: n ? teamStrength(cards, slotsOf(team)) : 0 };
+  };
+  return (
+    <div className="duel-team-pick" role="radiogroup" aria-label="Mit welchem Team spielst du?">
+      {(['main', 'career'] as TeamKind[]).map((k) => {
+        const t = info(k);
+        return (
+          <button key={k} role="radio" aria-checked={on === k} className={`dtp ${on === k ? 'on' : ''}`}
+            onClick={() => setClubState(switchTeam(getClubState(), k))}>
+            <b>{TEAM_NAMES[k]}</b>
+            <span>{t.n === 11 ? `Stärke ${t.strength.toFixed(1)}` : `${t.n}/11 Spieler`}</span>
+            {on === k && <em>spielt</em>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function ScreenHead({ title, onBack }: { title: string; onBack: () => void }) {
   const club = useClub();
   return (
@@ -109,7 +136,6 @@ export function DuelsScreen({ onBack, onTeam }: { onBack: () => void; onTeam: ()
   return (
     <main className="hub duels-screen">
       <ScreenHead title="Duelle" onBack={onBack} />
-      <TeamSwitch hint="Duelle spielst du mit dem gewählten Team." />
       <div className="team-stats">
         <div><small>Wertung</small><strong>{teamRating(cards) || '–'}</strong></div>
         <div><small>Division</small><strong>{divisionOf(club).div <= ELITE ? divName(divisionOf(club).div) : divisionOf(club).div}</strong></div>
@@ -474,7 +500,8 @@ function Duels({ full, onSquad, onLeagues }: { full: boolean; onSquad: () => voi
   if (!full) {
     return (
       <div className="hub-empty">
-        <p>Für Duelle brauchst du eine vollständige Elf (11 Spieler).</p>
+        <DuelTeamPick />
+        <p>Für Duelle brauchst du eine vollständige Elf (11 Spieler) im {TEAM_NAMES[activeTeam(club)]}.</p>
         <button className="btn primary" onClick={onSquad}>Zur Aufstellung</button>
       </div>
     );
@@ -495,10 +522,11 @@ function Duels({ full, onSquad, onLeagues }: { full: boolean; onSquad: () => voi
         <Icon name="arrow" size={18} />
       </button>
 
+      <DuelTeamPick />
       {opp && (
         <section className="dv-match" aria-label="Nächster Gegner">
           <div className="div-vs">
-            <div className="div-side"><small>Dein Team</small><strong>{strength.toFixed(1)}</strong></div>
+            <div className="div-side"><small>{TEAM_NAMES[activeTeam(club)]}</small><strong>{strength.toFixed(1)}</strong></div>
             <span className="div-vs-mark">VS</span>
             <div className="div-side opp"><small>{opp.name}</small><strong>{opp.strength}</strong></div>
           </div>
