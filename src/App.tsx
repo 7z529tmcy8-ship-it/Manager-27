@@ -203,15 +203,15 @@ function ScreenSkeleton() {
 function SaveWarning({ onRetry }: { onRetry: () => void }) {
   const [info, setInfo] = useState<string | null>(null);
   const b = storageBreakdown();
-  const total = b.careers + b.club + b.flavio + b.other;
+  const total = b.careers + b.club + b.other;
   return (
     <div className="banner warn save-warn" role="alert">
       <strong>Speichern hat nicht geklappt – der Browser-Speicher ist wahrscheinlich voll.</strong>
-      <small>Belegt: ca. {total.toLocaleString('de-DE')} KB (Karrieren {b.careers.toLocaleString('de-DE')} KB · Club {b.club.toLocaleString('de-DE')} KB · Onkel Flavio {b.flavio.toLocaleString('de-DE')} KB). Browser erlauben meist nur ca. 5.000 KB pro Seite.</small>
+      <small>Belegt: ca. {total.toLocaleString('de-DE')} KB (Karrieren {b.careers.toLocaleString('de-DE')} KB · Club {b.club.toLocaleString('de-DE')} KB). Browser erlauben meist nur ca. 5.000 KB pro Seite.</small>
       <span className="save-warn-actions">
         <button className="btn primary small" onClick={() => { const kb = cleanStorage(); setInfo(`Aufgeräumt – jetzt ca. ${kb.toLocaleString('de-DE')} KB.`); onRetry(); }}>Jetzt aufräumen</button>
       </span>
-      {info && <small>{info} {b.flavio > 1000 ? 'Tipp: Bei Onkel Flavio alte Posts mit Bildern löschen spart viel Platz.' : 'Wenn es weiter nicht klappt: alte Karrieren unter „Spielstände“ löschen.'}</small>}
+      {info && <small>{info} Wenn es weiter nicht klappt: alte Karrieren unter „Spielstände“ löschen.</small>}
     </div>
   );
 }

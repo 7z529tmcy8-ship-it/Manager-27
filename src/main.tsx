@@ -4,9 +4,11 @@ import App from './App';
 import PasswordGate from './components/PasswordGate';
 import CrashGuard from './components/CrashGuard';
 import { applySettings } from './settings';
+import { dropRemovedData } from './game/storage';
 import './styles.css';
 
 applySettings();
+dropRemovedData();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

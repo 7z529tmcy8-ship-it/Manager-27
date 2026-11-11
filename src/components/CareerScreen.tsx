@@ -3,7 +3,6 @@ import Icon from './Icon';
 import { useEffect, useRef, useState } from 'react';
 import ScorerRace from './ScorerRace';
 import VicePanel from './VicePanel';
-import FamilyPanel from './FamilyPanel';
 import InvestPanel from './InvestPanel';
 import ClinicPanel from './ClinicPanel';
 import KitPanel from './KitPanel';
@@ -11,7 +10,6 @@ import KickgramPanel from './KickgramPanel';
 import { BRANDS } from '../game/kit';
 import { fmtFollowers, gramOf } from '../game/kickgram';
 import PositionPanel from './PositionPanel';
-import LifePopups from './LifePopups';
 import MomentOverlay from './MomentOverlay';
 import LiveMatch from './LiveMatch';
 import { advanceFinal, autoFinal } from '../game/final';
@@ -73,8 +71,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   const [open, setOpen] = useState<string | null>(null);
   const [tree, setTree] = useState(false);
   const [full, setFull] = useState(false);
-  const [panel, setPanel] = useState<'family' | 'invest' | 'clinic' | 'position' | 'kit' | 'gram' | null>(null);
-  const kids = career.household?.children.length ?? 0;
+  const [panel, setPanel] = useState<'invest' | 'clinic' | 'position' | 'kit' | 'gram' | null>(null);
   // Nur einklappen, wenn sich das lohnt (mindestens zwei ältere Saisons)
   const shown = full || career.history.length <= COLLAPSED + 1 ? career.history : career.history.slice(-COLLAPSED);
   const hidden = career.history.length - shown.length;
@@ -161,16 +158,13 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       )}
       {/* Vollbild-Ebenen außerhalb der Spalten, sonst liegen sie im Querformat unter der rechten Spalte */}
       {tree && p.skills && <SkillTree career={career} onChange={onChange} onClose={() => setTree(false)} />}
-      {panel === 'family' && <FamilyPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {panel === 'invest' && <InvestPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {panel === 'clinic' && <ClinicPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {panel === 'position' && <PositionPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {panel === 'kit' && <KitPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {panel === 'gram' && <KickgramPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
-      {moments.length > 0 ? (
+      {moments.length > 0 && (
         <MomentOverlay key={moments.map((m) => m.title).join('|')} moments={moments} onDone={() => setMoments([])} />
-      ) : (
-        !panel && <LifePopups career={career} onChange={onChange} onFamily={() => setPanel('family')} />
       )}
       <div className="cs-side">
       <div className="cs-nav">
@@ -202,9 +196,6 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
 
       {/* Familie und Vermögen */}
       <div className="cs-life">
-        <button className="cs-life-btn" onClick={() => setPanel('family')}>
-          Familie{kids ? ` (${kids})` : ''}
-        </button>
         <button className="cs-life-btn" onClick={() => setPanel('invest')}>Vermögen</button>
         <button className="cs-life-btn" onClick={() => setPanel('clinic')}>Klinik{career.glam ? ` · ${career.glam}` : ''}</button>
         <button className="cs-life-btn cs-kg-btn" onClick={() => setPanel('gram')}>Kickgram · {fmtFollowers(gramOf(career).followers)}</button>

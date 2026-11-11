@@ -1069,9 +1069,6 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 @media (max-width: 480px) { .sk-tree { gap: 8px; } .sk-skill { padding: 10px; } .sk-skill small { font-size: .74rem; } }
 
 /* Geheime Seite: eingebettetes Rapper-Spiel im Vollbild */
-.secret-frame { position: fixed; inset: 0; display: flex; flex-direction: column; background: #1f4fd1; z-index: 100; }
-.secret-leave { align-self: flex-start; margin: 6px 10px; padding: 6px 12px; border-radius: 99px; border: 1px solid rgba(255, 255, 255, .15); background: transparent; color: #f2f3f7; font: inherit; font-size: .85rem; cursor: pointer; }
-.secret-frame iframe { flex: 1; width: 100%; border: 0; }
 
 /* Karten verbessern */
 .upgrade-box { display: grid; gap: 8px; margin: 12px 0; padding: 12px; border-radius: 16px; border: 1px solid var(--hairline); background: rgba(127, 127, 127, .06); }
@@ -1127,21 +1124,6 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .cs-life-btn b { background: var(--gold); color: #1a1300; border-radius: 99px; padding: 1px 8px; font-size: .72rem; }
 .fam-title { font-size: 1.7rem; margin: 6px 0 12px; }
 .fam-report { display: grid; gap: 4px; margin: 0 0 14px; padding: 12px; border-radius: 14px; background: rgba(127, 127, 127, .08); font-size: .9rem; }
-.fam-child { margin: 0 0 16px; padding: 14px; border-radius: 18px; border: 1px solid var(--hairline); background: var(--surface); }
-.fam-child-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-.fam-child-head h3 { margin: 0; font-size: 1.25rem; }
-.fam-child-head small { color: var(--muted); }
-.fam-pro { display: flex; gap: 8px; align-items: center; text-align: right; }
-.fam-pro small { color: var(--muted); font-size: .78rem; }
-.fam-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
-.fam-tags span { padding: 3px 10px; border-radius: 99px; background: rgba(127, 127, 127, .14); font-size: .75rem; font-weight: 700; }
-.fam-stats { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 5px; }
-.fam-stats li { display: grid; grid-template-columns: 96px 1fr 30px; gap: 8px; align-items: center; font-size: .85rem; }
-.fam-stats b { text-align: right; font-variant-numeric: tabular-nums; }
-.fam-bar { height: 8px; border-radius: 99px; background: var(--hairline); overflow: hidden; }
-.fam-bar i { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .3s; }
-.fam-bar i.low { background: var(--down); }
-.fam-log { margin: 12px 0 0; padding-left: 18px; color: var(--muted); font-size: .8rem; }
 .inv-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
 .inv-summary div { display: grid; padding: 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--hairline); }
 .inv-summary small { color: var(--muted); }
@@ -1169,13 +1151,11 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .life-card .muted { opacity: .75; color: inherit; font-size: .88rem; }
 .life-card label { display: grid; gap: 6px; text-align: left; font-weight: 700; }
 .life-card input { font: inherit; padding: 12px; border-radius: 12px; border: 1px solid rgba(0, 0, 0, .2); }
-.life-emoji { font-size: 3.4rem; animation: life-bounce .8s ease; }
 @keyframes life-bounce { 0% { transform: scale(.4); opacity: 0; } 60% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); } }
 .life-card.birth input { background: #fff; color: #1a1a1a; }
 .life-card.birth .btn.secondary { color: #1a1a1a; border-color: rgba(0, 0, 0, .35); background: rgba(255, 255, 255, .5); }
-.reduce-motion .life-emoji { animation: none; }
 .life-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
-@media (max-width: 480px) { .fam-stats li { grid-template-columns: 84px 1fr 28px; } .inv-list li { flex-wrap: wrap; } }
+@media (max-width: 480px) { .inv-list li { flex-wrap: wrap; } }
 
 .inv-inject { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; width: 100%; }
 .inv-inject small { color: var(--muted); font-size: .76rem; }
@@ -1230,24 +1210,6 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 /* Trainer: ein Knopf für die Saison, Details aufklappbar */
 
 /* Erziehungsregeln: einmal einstellen, wirken jedes Jahr */
-.fam-year { margin: 0 0 14px; }
-.fam-rules { margin-top: 14px; display: grid; gap: 10px; }
-.fam-rules-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.fam-rules-head h4 { margin: 0; font-size: 1rem; }
-.fam-rules-head small { color: var(--gold); font-weight: 700; }
-.fam-rules .muted { margin: -6px 0 2px; font-size: .8rem; }
-.fam-rule { display: grid; gap: 6px; padding: 10px; border-radius: 14px; background: rgba(127, 127, 127, .06); }
-.fam-rule.later { opacity: .6; }
-.fam-rule-name { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; }
-.fam-rule-name small { color: var(--muted); font-weight: 600; }
-.fam-seg { display: flex; flex-wrap: wrap; gap: 6px; }
-.fam-seg button {
-  flex: 1 1 auto; min-height: 40px; padding: 8px 10px; border-radius: 12px; border: 1px solid var(--hairline);
-  background: var(--surface); color: var(--text); font: inherit; font-size: .82rem; cursor: pointer;
-}
-.fam-seg button.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; font-weight: 800; }
-.fam-seg button:disabled { opacity: .4; cursor: default; }
-.fam-effect { color: var(--muted); font-size: .75rem; }
 
 /* ---------- Update-Banner ---------- */
 .upd { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; padding: 16px; overflow-y: auto; background: rgba(4, 6, 14, .82); animation: mo-in .3s ease; }
@@ -1358,22 +1320,8 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .broke h3 { margin: 0; }
 
 /* Trainer: Meldungen, Ruf, Linie */
-.incident { display: grid; gap: 6px; padding: 12px; border-radius: 14px; border: 1px solid var(--gold); background: linear-gradient(160deg, rgba(255, 196, 0, .08), transparent 70%); animation: sk-pop .4s ease; }
-.incident.big { border-color: #ff7b7b; background: linear-gradient(160deg, rgba(229, 72, 77, .12), transparent 70%); }
-.incident p { margin: 0; font-size: .88rem; line-height: 1.4; }
-.incident-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px; }
-.incident-opts .btn { display: grid; gap: 2px; text-align: left; padding: 10px 12px; height: auto; white-space: normal; }
-.incident-opts small { font-weight: 500; font-size: .74rem; opacity: .8; }
 
 /* Kinder: Jugendverein, Verhandlung, Ereignisse */
-.youth-club { display: grid; gap: 4px; margin-top: 6px; font-size: .8rem; }
-.youth-club select { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); font: inherit; }
-.kid-offer { display: grid; gap: 6px; margin: 10px 0; padding: 12px; border-radius: 14px; border: 1px solid var(--gold); background: linear-gradient(160deg, rgba(255, 196, 0, .1), transparent 70%); }
-.kid-offer small { color: var(--muted); font-size: .78rem; }
-.kid-demands { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px; }
-.kid-demands .btn { display: grid; gap: 2px; height: auto; padding: 8px 10px; white-space: normal; }
-.kid-demands .btn small { color: inherit; opacity: .8; font-size: .72rem; }
-.kid-event { margin: 10px 0; }
 
 /* Fähigkeiten: gedrückt halten zum Lernen */
 .sk-skill { position: relative; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
@@ -1389,9 +1337,7 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 .life-card.deal.good { border-color: #3ddc97; box-shadow: 0 0 40px rgba(61, 220, 151, .35); }
 .life-card.deal.bad { border-color: #f5c542; }
 .life-card.deal.angry { border-color: #ff7b7b; box-shadow: 0 0 40px rgba(229, 72, 77, .35); }
-.deal-phone { animation: ring .5s ease-in-out infinite; }
 @keyframes ring { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-14deg); } 75% { transform: rotate(14deg); } }
-.reduce-motion .deal-phone { animation: none; }
 
 /* Geschenke vom Aufsichtsrat */
 .gift-shelf { display: grid; gap: 8px; margin: 10px 0; padding: 12px; border-radius: 16px; border: 1px solid var(--gold); background: linear-gradient(160deg, rgba(255, 196, 0, .1), transparent 70%); }

@@ -1,5 +1,5 @@
 import { CLUBS, LEAGUES } from '../data/leagues';
-import { familyYear, householdOf, maybeFlirt } from './family';
+import { householdOf } from './family';
 import { glamIncome } from './clinic';
 import { kitYear } from './kit';
 import { gramYear } from './kickgram';
@@ -14,24 +14,24 @@ import type { Career, TableRow } from './types';
 
 export function closeYear(career: Career): void {
   const h = householdOf(career);
-  const kids = familyYear(career);
+  h.year += 1;
+  h.pending = [];
   const inv = investYear(career);
-  // Netto: Einnahmen minus Erziehungskosten (kann auch negativ sein).
   const sponsor = glamIncome(career);
   if (sponsor) inv.notes.push(`📸 Werbedeals dank Glamour: +${sponsor.toLocaleString('de-DE')} Coins.`);
   // Ausrüster zahlt, Kickgram wächst (nur in Spielerjahren)
   const kit = kitYear(career);
   if (kit.note) inv.notes.push(kit.note);
   if (career.phase !== 'retired') { const g = gramYear(career); if (g) inv.notes.push(g); }
-  const total = kids.income + inv.rent + inv.dividends + sponsor + kit.coins - kids.costs;
+  const total = inv.rent + inv.dividends + sponsor + kit.coins;
   h.totalIncome += total;
   h.report = {
     year: h.year,
-    kidIncome: kids.income,
-    kidCosts: kids.costs,
+    kidIncome: 0,
+    kidCosts: 0,
     rent: inv.rent,
     dividends: inv.dividends,
-    notes: kids.notes,
+    notes: [],
     investNotes: inv.notes,
   };
 }
@@ -45,7 +45,6 @@ export function restYear(prev: Career): Career {
   backgroundSeason(career);
   closeYear(career);
   if (career.player.hooked || career.player.gambler) career.drainPending = (career.drainPending ?? 0) + 1;
-  maybeFlirt(career);
   career.updatedAt = Date.now();
   return career;
 }

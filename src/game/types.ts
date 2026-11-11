@@ -543,7 +543,7 @@ export interface Child {
   /** Nach einer verpatzten Verhandlung sauer – gibt dir kein Geld mehr. */
   angry?: boolean;
   /** Erziehungsregeln (Regel → gewählte Option), wirken jedes Jahr. */
-  rules?: Partial<Record<import('./family').RuleId, string>>;
+  rules?: Record<string, string>;
   ovr?: number;
   potential?: number;
   clubId?: string;

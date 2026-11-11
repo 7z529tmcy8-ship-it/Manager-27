@@ -208,11 +208,20 @@ export function storageUsedKb(): number {
   }
 }
 
-/** Speicher je Bereich in KB: Karrieren, Club/Sammlung, Onkel Flavio, Rest. */
-export function storageBreakdown(): { careers: number; club: number; flavio: number; other: number } {
+/** Die Geheimseite „Onkel Flávio“ wurde entfernt – ihre alten Daten geben Speicher frei. */
+export function dropRemovedData(): void {
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('onkel-flavio')) localStorage.removeItem(k);
+    }
+  } catch { /* egal */ }
+}
+
+/** Speicher je Bereich in KB: Karrieren, Club/Sammlung, Rest. */
+export function storageBreakdown(): { careers: number; club: number; other: number } {
   let careers = 0;
   let club = 0;
-  let flavio = 0;
   let total = 0;
   try {
     for (let i = 0; i < localStorage.length; i++) {
@@ -221,11 +230,10 @@ export function storageBreakdown(): { careers: number; club: number; flavio: num
       total += kb;
       if (k.startsWith(PREFIX) || k === LEGACY_KEY) careers += kb;
       else if (k === 'fc-club') club += kb;
-      else if (k.startsWith('onkel-flavio')) flavio += kb;
     }
   } catch { /* leer */ }
   const r = Math.round;
-  return { careers: r(careers), club: r(club), flavio: r(flavio), other: r(Math.max(0, total - careers - club - flavio)) };
+  return { careers: r(careers), club: r(club), other: r(Math.max(0, total - careers - club)) };
 }
 
 /** Für Tests: Zwischenspeicher verwerfen und ausstehende Schreibvorgänge sofort ausführen. */

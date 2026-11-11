@@ -7,7 +7,6 @@ import { clubStrength } from './player';
 import { STAGES_PER_HALF, halfStats } from './season';
 import { grantXp, levelInfo, xpFor, xpForSeason } from './skills';
 import { coolDownScandal } from './vices';
-import { maybeFlirt } from './family';
 import { closeYear } from './household';
 import { refreshKitOffers } from './kit';
 import { resolveNlzOffer } from './nlz';
@@ -58,7 +57,6 @@ function withXp(c: Career): Career {
   const winter = career.phase === 'winter' && career.progress;
   // Familie und Vermögen: Jahresabschluss nach jeder Saison, in jeder Pause evtl. eine Einladung.
   if (!winter) closeYear(career);
-  if (career.phase !== 'retired') maybeFlirt(career);
   refreshKitOffers(career);
   if (!career.player.skills) return career;
   const p = career.player;

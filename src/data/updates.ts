@@ -29,6 +29,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-11-familie-raus',
+    date: '11.11.2026',
+    title: 'Noch schlanker: Familie und Geheimseite entfernt',
+    items: [
+      'Die Familie in der Karriere (Kinder, Erziehungsregeln, After-Party-Einladungen) ist raus. Vermögen, Immobilien und Vereinsanteile bleiben.',
+      'Die Geheimseite „Onkel Flávio“ ist entfernt – ihre alten Daten werden gelöscht, das gibt Speicher im Browser frei.',
+    ],
+  },
+  {
     id: '2026-11-11-schlanker',
     date: '11.11.2026',
     title: 'Schlanker: Tauschbörse entfernt',

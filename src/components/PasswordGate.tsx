@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { motionReduced } from '../settings';
-import SecretPage from './SecretPage';
 
 // Startbildschirm: Beim Öffnen der Seite läuft 5 Sekunden ein Ladebildschirm (Titelbild + Ladebalken 0–100 %),
 // danach geht es ins Spiel. Das Spiel baut sich dahinter schon auf. Pro Tab nur einmal.
 // Die geheime Seite erreicht man über die Adresse …/#larp.
 
 export const UNLOCK_KEY = 'fc-manager-unlocked';
-const SECRET_HASH = '#larp';
 export const LOAD_MS = 5000;
 
 const seen = () => { try { return sessionStorage.getItem(UNLOCK_KEY) === '1'; } catch { return false; } };
@@ -38,9 +36,7 @@ const STEPS: [number, string][] = [
 const stepText = (pct: number) => [...STEPS].reverse().find(([at]) => pct >= at)![1];
 
 export default function PasswordGate({ children }: { children: ReactNode }) {
-  const [secret, setSecret] = useState(() => location.hash.toLowerCase() === SECRET_HASH);
   const [loading, setLoading] = useState(() => !seen());
-  if (secret) return <SecretPage onLeave={() => { history.replaceState(null, '', location.pathname + location.search); setSecret(false); }} />;
   return (
     <>
       {children}
