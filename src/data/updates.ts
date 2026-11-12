@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-12-rivals-taeglich',
+    date: '12.11.2026',
+    title: 'Rivals jetzt jeden Tag',
+    items: [
+      'Die Duell-Saison läuft nicht mehr eine Woche, sondern einen Tag: Ab Mitternacht holst du die Belohnung für gestern ab – Coins, Packs und ab Gold ein Rivals-Pack.',
+      'Die Ränge sind dafür kleiner: Silber ab 15, Gold ab 45, Elite ab 100, Weltklasse ab 200, Legende ab 350 Punkten.',
+      'Punkte aus alten Wochen-Saisons bleiben erhalten und sind sofort abholbar.',
+    ],
+  },
+  {
     id: '2026-11-11-zwei-teams',
     date: '11.11.2026',
     title: 'Zwei Teams: Haupt-Team und Karriere-Team',

@@ -1,4 +1,4 @@
-import { getCard, isoWeek, withUpgrade, type ClubState, type CollectCard } from './club';
+import { getCard, withUpgrade, type ClubState, type CollectCard } from './club';
 import { clamp, poisson, randInt } from './random';
 import type { Position } from './types';
 
@@ -256,22 +256,23 @@ const DUEL_SPREAD = 10;
 
 export interface DuelResult { own: number; opp: number; outcome: 'win' | 'draw' | 'loss'; coins: number; goals: { minute: number; own: boolean }[]; points?: number; /** Hinweis zur laufenden Evolution. */ evo?: string; /** Gewonnene Saison-Pass-XP. */ passXp?: number; /** Wie die Taktik gewirkt hat. */ tactic?: string; /** Auf- oder Abstieg. */ division?: string; /** Trophäen für den Ruhmesweg (+/−). */ trophies?: number; /** Flutlicht-Drop erhalten? */ drop?: boolean }
 
-// ---------- Duell-Saison ----------
-// Jede Kalenderwoche (Mo–So) ist eine Saison – wie die Wochen-Belohnungen in Rivalen-Modi.
-// Siege bringen Punkte (je höher die Division, desto mehr), danach gibt es je nach Rang Coins, Packs
-// und Rivals-Packs (eine Karte aus dem eigenen Team kommt verbessert zurück). Abholbar ab Montag.
-// Ältere Spielstände haben noch Monats-Saisons („2026-10“) – die bleiben abholbar.
-export const seasonId = (now = new Date()) => isoWeek(now).id;
+// ---------- Duell-Saison (Rivals) ----------
+// Jeder Tag ist eine Saison: Siege bringen Punkte (je höher die Division, desto mehr), am nächsten Tag gibt es
+// je nach Rang Coins, Packs und Rivals-Packs (eine Karte aus dem eigenen Team kommt verbessert zurück).
+// Ältere Spielstände haben noch Wochen- („2026-W45“) oder Monats-Saisons („2026-10“) – die bleiben abholbar.
+const pad = (n: number) => String(n).padStart(2, '0');
+export const seasonId = (now = new Date()) => `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 export const seasonName = (id: string) => {
+  const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(id);
+  if (d) return `${Number(d[3])}. ${MONTHS[Number(d[2]) - 1]}`;
   const w = /^(\d{4})-W(\d+)$/.exec(id);
   return w ? `Woche ${Number(w[2])}` : `${MONTHS[Number(id.slice(5)) - 1]} ${id.slice(0, 4)}`;
 };
-/** Tage bis zum Saisonende (Sonntag 23:59). */
-export function seasonDaysLeft(now = new Date()): number {
-  const end = new Date(isoWeek(now).monday);
-  end.setDate(end.getDate() + 7);
-  return Math.max(1, Math.ceil((end.getTime() - now.getTime()) / 86_400_000));
+/** Stunden bis zum Saisonende (heute 24 Uhr). */
+export function seasonHoursLeft(now = new Date()): number {
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  return Math.max(1, Math.ceil((end.getTime() - now.getTime()) / 3_600_000));
 }
 /** Punkte für ein Duell: Sieg 10 × Stufe, Unentschieden 3 × Stufe. */
 export const duelPoints = (level: number, outcome: DuelResult['outcome']) => (outcome === 'win' ? 10 * level : outcome === 'draw' ? 3 * level : 0);
@@ -284,13 +285,14 @@ export interface SeasonRank {
   rivals?: number;
   boost?: number;
 }
+// Tages-Ränge: etwa ein Fünftel der früheren Wochen-Grenzen, Belohnungen etwas kleiner.
 export const SEASON_RANKS: SeasonRank[] = [
   { name: 'Bronze', icon: '🥉', min: 0, coins: 0 },
-  { name: 'Silber', icon: '🥈', min: 60, coins: 2_000, packs: ['gold'] },
-  { name: 'Gold', icon: '🥇', min: 180, coins: 5_000, packs: ['premium'], rivals: 1, boost: 2 },
-  { name: 'Elite', icon: '💎', min: 400, coins: 10_000, packs: ['megagold'], rivals: 1, boost: 3 },
-  { name: 'Weltklasse', icon: '🌍', min: 800, coins: 20_000, packs: ['ultimate'], rivals: 1, boost: 4 },
-  { name: 'Legende', icon: '👑', min: 1_400, coins: 40_000, packs: ['ultimate'], rivals: 2, boost: 5 },
+  { name: 'Silber', icon: '🥈', min: 15, coins: 1_000, packs: ['gold'] },
+  { name: 'Gold', icon: '🥇', min: 45, coins: 2_500, packs: ['premium'], rivals: 1, boost: 2 },
+  { name: 'Elite', icon: '💎', min: 100, coins: 5_000, packs: ['megagold'], rivals: 1, boost: 3 },
+  { name: 'Weltklasse', icon: '🌍', min: 200, coins: 10_000, packs: ['ultimate'], rivals: 1, boost: 4 },
+  { name: 'Legende', icon: '👑', min: 350, coins: 20_000, packs: ['ultimate'], rivals: 2, boost: 5 },
 ];
 export const seasonRank = (points: number) => [...SEASON_RANKS].reverse().find((r) => points >= r.min)!;
 export const nextRank = (points: number) => SEASON_RANKS.find((r) => r.min > points) ?? null;
@@ -300,8 +302,10 @@ export const seasonPoints = (club: ClubState, id = seasonId()) => club.duelSeaso
 export function unclaimedSeasons(club: ClubState, now = new Date()): { id: string; points: number; rank: SeasonRank }[] {
   const current = seasonId(now);
   const done = club.duelSeasonClaimed ?? [];
+  // Tages-IDs sind vergleichbar; alte Wochen-/Monats-Saisons gelten immer als beendet.
+  const over = (id: string) => (/^\d{4}-\d{2}-\d{2}$/.test(id) ? id < current : true);
   return Object.entries(club.duelSeasons ?? {})
-    .filter(([id]) => id < current && !done.includes(id))
+    .filter(([id]) => id !== current && over(id) && !done.includes(id))
     .map(([id, points]) => ({ id, points, rank: seasonRank(points) }))
     .filter((s) => s.rank.coins > 0 || !!s.rank.packs?.length)
     .sort((a, b) => a.id.localeCompare(b.id));

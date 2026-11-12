@@ -1,7 +1,7 @@
 import { CARD_POOL, cardForGifts, storePacks, type ClubState, type CollectCard, type PackResult } from './club';
 import { cardById, claimSeason, seasonName, unclaimedSeasons } from './squad';
 
-// ---------- Rivals-Pack (Belohnung der Wochen-Saison) ----------
+// ---------- Rivals-Pack (Belohnung der Tages-Saison) ----------
 // Eine zufällige Karte aus deiner Elf kommt als „Rivals“-Karte zurück: gleicher Spieler, höhere Wertung
 // (je nach Rang +2 bis +5), eigenes Design. Dazu zwei Extrakarten ab 80.
 
@@ -17,7 +17,7 @@ export function rivalsCard(club: ClubState, weekId: string, boost: number, k: nu
   return { ...plain, id: `rivals-${weekId}-${base.id}-${k}`, ovr: Math.min(99, base.ovr - (base.boost ?? 0) + boost), variant: 'rivals', label: `Rivals · ${seasonName(weekId)}` };
 }
 
-/** Wochen-Belohnung abholen: Coins, Packs in die Ablage, Rivals-Packs gleich öffnen (Ergebnis für die Animation). */
+/** Tages-Belohnung abholen: Coins, Packs in die Ablage, Rivals-Packs gleich öffnen (Ergebnis für die Animation). */
 export function claimDuelSeason(club: ClubState, id: string, now = new Date(), rand = Math.random): { club: ClubState; rivals: PackResult | null } {
   const s = unclaimedSeasons(club, now).find((x) => x.id === id);
   if (!s) return { club, rivals: null };

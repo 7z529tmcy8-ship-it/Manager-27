@@ -13,7 +13,7 @@ import {
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { FRIEND_REWARD, SLOT_LABELS, exportTeam, importTeam, playFriendDuel, record, removeFriend, resultText, saveFriend, withOwnerId, type FriendTeam } from '../game/friends';
 import { motionReduced } from '../settings';
-import { SEASON_RANKS, nextRank, seasonDaysLeft, seasonId, seasonName, seasonPoints, seasonRank, unclaimedSeasons, type SeasonRank } from '../game/squad';
+import { SEASON_RANKS, nextRank, seasonHoursLeft, seasonId, seasonName, seasonPoints, seasonRank, unclaimedSeasons, type SeasonRank } from '../game/squad';
 import { claimDuelSeason } from '../game/rivals';
 import { PackOpening, PackPrompt } from './Store';
 import UtCard from './UtCard';
@@ -204,7 +204,7 @@ function Leagues() {
   );
 }
 
-/** Duell-Saison: Punkte im laufenden Monat, Rang, offene Belohnungen und Freunde-Rangliste. */
+/** Duell-Saison: Punkte am heutigen Tag, Rang, offene Belohnungen und Freunde-Rangliste. */
 function DuelSeason() {
   const club = useClub();
   const sid = seasonId();
@@ -217,7 +217,7 @@ function DuelSeason() {
     { name: club.teamName || 'Du', points: pts, me: true },
     ...(club.friends ?? []).filter((f) => f.team.season?.id === sid).map((f) => ({ name: f.team.name, points: f.team.season!.points, me: false })),
   ].sort((a, b) => b.points - a.points);
-  const daysLeft = seasonDaysLeft();
+  const hoursLeft = seasonHoursLeft();
   const [rivals, setRivals] = useState<PackResult | null>(null);
   const claim = (id: string) => {
     const res = claimDuelSeason(getClubState(), id);
@@ -235,14 +235,14 @@ function DuelSeason() {
       <div className="season-head">
         <span className="season-icon" aria-hidden="true"><Glyph e={rank.icon} /></span>
         <div>
-          <small>Wochen-Saison · {seasonName(sid)} · noch {daysLeft} {daysLeft === 1 ? 'Tag' : 'Tage'}</small>
+          <small>Tages-Saison · {seasonName(sid)} · noch {hoursLeft} {hoursLeft === 1 ? 'Stunde' : 'Stunden'}</small>
           <strong>{rank.name} · {pts} Punkte</strong>
         </div>
       </div>
       <div className="season-bar"><i style={{ width: `${progress}%` }} /></div>
       <p className="hint">
         {next ? `Noch ${next.min - pts} Punkte bis ${next.name}: ${reward(next)}.` : 'Höchster Rang erreicht!'}
-        {' '}Sieg = 10 Punkte × Divisionsstufe (Division 10 = 1, Elite = 11, Champions = 12), Unentschieden = 3 ×. Belohnung jeden Montag.
+        {' '}Sieg = 10 Punkte × Divisionsstufe (Division 10 = 1, Elite = 11, Champions = 12), Unentschieden = 3 ×. Belohnung jeden Tag – abholbar ab Mitternacht.
       </p>
       <details className="season-more">
         <summary>Ränge & Rangliste</summary>
@@ -258,7 +258,7 @@ function DuelSeason() {
             <li key={`${b.name}-${i}`} className={b.me ? 'me' : ''}><span>{i + 1}.</span><span>{b.name}</span><strong>{b.points}</strong></li>
           ))}
         </ol>
-        <p className="hint">Freunde erscheinen hier, wenn sie dir in dieser Woche einen neuen Team-Code schicken (unter „Mein Team“ › Freunde).</p>
+        <p className="hint">Freunde erscheinen hier, wenn sie dir heute einen neuen Team-Code schicken (unter „Mein Team“ › Freunde).</p>
       </details>
       <p className="season-rivals"><Icon name="duel" size={16} /> <b>Rivals-Pack:</b> Eine Karte aus deiner Elf kommt verbessert zurück (+2 bis +5) – dazu 2 Extrakarten ab 80.</p>
       {rivals && createPortal(<PackOpening name="Rivals-Pack" result={rivals} onClose={() => setRivals(null)} onCollection={() => setRivals(null)} />, document.body)}
