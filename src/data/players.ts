@@ -650,6 +650,31 @@ const NOVEMBER_2026: typeof RAW = [
   ['Veljko Milosavljević', 'Serbien', 'IV', 18, 70, 84, 'AFC Bournemouth'],
   ['Gabriel Mec', 'Brasilien', 'ZOM', 17, 70, 86, 'Grêmio'],
   ['Luiz Benedetti', 'Brasilien', 'IV', 19, 70, 84, 'Palmeiras'],
+  // PSG-U23 („Espoirs“) laut Transfermarkt-Screenshot (11/2026). Eine eigene U23 gibt es im Spiel nicht – die Spieler
+  // starten bei Paris Saint-Germain. Alter hier zum Start 2025/26 (Transfermarkt-Alter minus 1). Wertungen geschätzt.
+  ["Landry N'Dri N'Guessan", 'Elfenbeinküste', 'ZM', 18, 63, 79, 'Paris Saint-Germain'],
+  ['Rayan Abo El Nay', 'Frankreich', 'ZM', 18, 62, 78, 'Paris Saint-Germain'],
+  ['Emmanuel Nzala', 'Frankreich', 'ZM', 17, 61, 79, 'Paris Saint-Germain'],
+  ['Ilian Mhand', 'Belgien', 'ZOM', 20, 66, 78, 'Paris Saint-Germain'],
+  ['Younes Idder', 'Marokko', 'ZOM', 17, 61, 79, 'Paris Saint-Germain'],
+  ['Paul Caumeil', 'Frankreich', 'ZOM', 18, 62, 78, 'Paris Saint-Germain'],
+  ['Fabio Domingos', 'Kap Verde', 'FL', 18, 62, 77, 'Paris Saint-Germain'],
+  ['Noa Bezeme', 'Frankreich', 'FL', 18, 63, 78, 'Paris Saint-Germain'],
+  ['Ethan Luvambano', 'Frankreich', 'FL', 18, 62, 78, 'Paris Saint-Germain'],
+  ['Adam Ayari', 'Frankreich', 'FL', 17, 63, 81, 'Paris Saint-Germain'],
+  ['Daniel Marques', 'Portugal', 'ST', 18, 62, 78, 'Paris Saint-Germain'],
+  // Hannover 96 II (U23) laut Transfermarkt-Screenshot (11/2026), Alter zum Start 2025/26. Wertungen geschätzt.
+  ['Tom Lange', 'Deutschland', 'TW', 18, 55, 70, 'Hannover 96 II'],
+  ['Abdoulaye Gueye', 'Italien', 'TW', 22, 56, 64, 'Hannover 96 II'],
+  ['Asuma Ikari', 'Japan', 'IV', 20, 60, 70, 'Hannover 96 II'],
+  ['Joschua Siewert', 'Deutschland', 'IV', 16, 57, 74, 'Hannover 96 II'],
+  ['Ilias Ebnoutalib', 'Marokko', 'IV', 20, 58, 67, 'Hannover 96 II'],
+  ['Niko Gießelmann', 'Deutschland', 'IV', 34, 62, 62, 'Hannover 96 II'],
+  ['Giordinelo Meulens', 'Curaçao', 'IV', 19, 57, 68, 'Hannover 96 II'],
+  ['Pepe Lorenz', 'Deutschland', 'IV', 18, 55, 68, 'Hannover 96 II'],
+  ['Manuel Braun', 'Deutschland', 'AV', 20, 58, 67, 'Hannover 96 II'],
+  ['Alexander Babitsch', 'Deutschland', 'AV', 21, 57, 64, 'Hannover 96 II'],
+  ['Yassin Jemai', 'Tunesien', 'AV', 19, 56, 66, 'Hannover 96 II'],
 ];
 
 export const REAL_PLAYERS: RealPlayerTemplate[] = [...RAW, ...WONDERKIDS_2026, ...ADDITIONS_2026, ...WORLD_STARS_2026, ...DEPTH_2026, ...OCTOBER_2026, ...YOUTH_2026, ...YOUTH_2026_B, ...YOUTH_2026_C, ...NOVEMBER_2026]

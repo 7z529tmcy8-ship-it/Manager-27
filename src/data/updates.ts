@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-13-u23-kader',
+    date: '13.11.2026',
+    title: 'Neu: Talente der PSG-U23 und von Hannover 96 II',
+    items: [
+      'Elf Talente aus der U23 von Paris Saint-Germain – u. a. Ilian Mhand, Noa Bezeme, Adam Ayari und Daniel Marques. Sie starten bei PSG.',
+      'Elf Spieler von Hannover 96 II – von Torwart Tom Lange über Asuma Ikari bis Routinier Niko Gießelmann.',
+      'Alle sind unter „Echter Spieler“ spielbar und als Karten in Packs.',
+    ],
+  },
+  {
     id: '2026-11-12-rivals-taeglich',
     date: '12.11.2026',
     title: 'Rivals jetzt jeden Tag',

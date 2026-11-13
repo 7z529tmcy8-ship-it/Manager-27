@@ -9,7 +9,7 @@ const FLAGS: Record<string, string> = {
   Kamerun: '🇨🇲', Ukraine: '🇺🇦', Serbien: '🇷🇸', Georgien: '🇬🇪', Ungarn: '🇭🇺', Tschechien: '🇨🇿', Griechenland: '🇬🇷', 'Bosnien-Herzegowina': '🇧🇦', Belarus: '🇧🇾', Bulgarien: '🇧🇬', Paraguay: '🇵🇾',
   Kanada: '🇨🇦', Australien: '🇦🇺', Algerien: '🇩🇿', Tunesien: '🇹🇳', Slowenien: '🇸🇮', Slowakei: '🇸🇰', Finnland: '🇫🇮', Russland: '🇷🇺',
   Rumänien: '🇷🇴', Island: '🇮🇸', Südafrika: '🇿🇦', Malawi: '🇲🇼', Kosovo: '🇽🇰', 'Sierra Leone': '🇸🇱', Libanon: '🇱🇧', Chile: '🇨🇱', Togo: '🇹🇬', Ecuador: '🇪🇨', China: '🇨🇳',
-  Luxemburg: '🇱🇺', Benin: '🇧🇯', 'Burkina Faso': '🇧🇫', Neuseeland: '🇳🇿', Armenien: '🇦🇲', Albanien: '🇦🇱',
+  Luxemburg: '🇱🇺', Benin: '🇧🇯', 'Burkina Faso': '🇧🇫', Neuseeland: '🇳🇿', Armenien: '🇦🇲', Albanien: '🇦🇱', 'Kap Verde': '🇨🇻', 'Curaçao': '🇨🇼',
 };
 
 export const flagOf = (nation: string) => FLAGS[nation] ?? '🏳️';
