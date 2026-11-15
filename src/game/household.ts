@@ -3,6 +3,7 @@ import { householdOf } from './family';
 import { glamIncome } from './clinic';
 import { kitYear } from './kit';
 import { gramYear } from './kickgram';
+import { larpYear } from './larp';
 import { investYear } from './invest';
 import { clubLeagueId, clubStrength } from './player';
 import { normal, poisson } from './random';
@@ -22,7 +23,13 @@ export function closeYear(career: Career): void {
   // Ausrüster zahlt, Kickgram wächst (nur in Spielerjahren)
   const kit = kitYear(career);
   if (kit.note) inv.notes.push(kit.note);
-  if (career.phase !== 'retired') { const g = gramYear(career); if (g) inv.notes.push(g); }
+  if (career.phase !== 'retired') {
+    const g = gramYear(career);
+    if (g) inv.notes.push(g);
+    // LARP: erst wachsen die Follower (mit Aura-Bonus), dann wird gewürfelt, ob der Look auffliegt.
+    const l = larpYear(career);
+    if (l) inv.notes.push(l);
+  }
   const total = inv.rent + inv.dividends + sponsor + kit.coins;
   h.totalIncome += total;
   h.report = {

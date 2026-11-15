@@ -508,6 +508,8 @@ export interface Career {
   kitHistory?: { brand: import('./kit').BrandId; from: number; earned: number }[];
   /** Kickgram-Profil */
   gram?: import('./kickgram').Gram;
+  /** LARP-Modus: Kleiderschrank, getragener Look, wie oft aufgeflogen. */
+  larp?: import('./larp').LarpState;
   /** Offenes Angebot zum Hochziehen (U17 → U19, NLZ → Profis, Zweite → Profis) – der Spieler entscheidet. */
   nlzPending?: import('./nlz').NlzOffer | null;
 }

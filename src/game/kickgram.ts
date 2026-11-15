@@ -3,6 +3,7 @@ import { BRANDS, type BrandId } from './kit';
 import { currentClubId } from './player';
 import { chance, clamp, pick, randInt, uid } from './random';
 import type { Career } from './types';
+import { auraBoost } from './larp';
 
 // ---------- Kickgram ----------
 // Eigenes Profil mit Followern. Posts mit Bildern aus der Galerie (die Bilder liegen nur im Browser, siehe gramImages.ts)
@@ -66,7 +67,7 @@ export function fameTarget(c: Career): number {
 /** Jahresabschluss: Follower wachsen (Freedom Paris: +50 %). Verändert den Spielstand direkt. */
 export function gramYear(c: Career): string | null {
   const g = gramOf(c);
-  const boost = c.kit?.brand === 'freedom' ? 1.5 : 1;
+  const boost = (c.kit?.brand === 'freedom' ? 1.5 : 1) * auraBoost(c);
   const gain = Math.round(fameTarget(c) * 0.4 * boost * (0.85 + Math.random() * 0.3));
   if (gain <= 0) return null;
   const was = g.followers;
@@ -88,7 +89,7 @@ export function makePost(prev: Career, input: { img?: string; card?: GramPost['c
   const n = g.breakPosts ?? 0;
   const fatigue = 1 / (1 + n * 0.6);
   const eng = (0.05 + Math.random() * 0.09) * (input.img ? 1.25 : 1) * (input.caption.trim().length > 10 ? 1.1 : 1);
-  const likes = Math.max(3, Math.round(g.followers * eng * (0.6 + 0.4 * fatigue)));
+  const likes = Math.max(3, Math.round(g.followers * eng * (0.6 + 0.4 * fatigue) * (1 + (auraBoost(prev) - 1) / 2)));
   const gained = Math.round(likes * (0.1 + Math.random() * 0.12) * fatigue * (prev.kit?.brand === 'freedom' ? 1.5 : 1));
   const canAd = !!input.ad && !!prev.kit && (g.breakAds ?? 0) < ADS_PER_BREAK;
   const coins = canAd ? Math.round(clamp(300 + Math.sqrt(g.followers) * 6, 300, 9_000) * (prev.kit!.brand === 'freedom' ? 2 : 1) / 50) * 50 : 0;

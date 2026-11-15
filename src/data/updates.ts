@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-15-larp',
+    date: '15.11.2026',
+    title: 'LARP-Modus: Old Money aus Eppendorf',
+    items: [
+      'Neu in der Karriere: „Look“. Kauf dir Golden-Goose-Sneaker im Used-Look, Kaschmir über den Schultern, die Vintage-Uhr „vom Opa“ und mehr – jedes Teil gibt Aura.',
+      'Aura bringt mehr Kickgram-Follower und Likes (Aura 30 = +30 % Follower-Wachstum).',
+      'Der Larp-Zähler zeigt, wie riskant dein Auftritt ist: Replikas sind billig, aber gefährlich, und mehr Aura, als zu deinem Stand passt, macht verdächtig. Fliegst du am Saisonende auf, verlierst du ein Viertel deiner Follower, die Replikas – und bei Fakes kündigt der Ausrüster.',
+      'Rettung: Teile ausziehen oder verkaufen (Originale bringen die Hälfte zurück) oder ein ehrlicher Post („Ist alles nur geliehen“) halbiert das Risiko.',
+    ],
+  },
+  {
     id: '2026-11-15-big-update',
     date: '15.11.2026',
     title: 'Big Update: schneller, flüssiger, Sommer 2014',
