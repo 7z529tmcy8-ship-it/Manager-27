@@ -15,6 +15,8 @@
 const { chromium } = require(require('child_process').execSync('npm root -g').toString().trim() + '/playwright');
 const fs = require('fs');
 const path = require('path');
+// Neueste Update-ID aus dem Spiel lesen (fürs Wegklicken des Update-Banners).
+const LATEST_UPDATE_ID = (() => { try { const t = fs.readFileSync(path.join(__dirname, '../../../../src/data/updates.ts'), 'utf8'); return /export const UPDATES[^=]*=\s*\[\s*\{\s*id: '([^']+)'/.exec(t)?.[1]; } catch { return undefined; } })();
 
 const args = process.argv.slice(2);
 const OUT = args.find((a) => !a.startsWith('--')) || 'feel-report';
@@ -34,7 +36,7 @@ const LIMIT = {
 };
 
 // Messwerkzeuge, die in jede Seite geladen werden
-function probes() {
+function probes(seenId) {
   const w = window;
   w.__feel = { frames: [], sampling: false, long: [], cls: 0, lat: [] };
   let last = performance.now();
@@ -51,7 +53,9 @@ function probes() {
     setTimeout(() => { if (!done) mo.disconnect(); }, 1500);
   }, true);
   sessionStorage.setItem('fc-manager-unlocked', '1');
-  localStorage.setItem('fc-seen-update', 'feel-audit');
+  // Neueste Update-ID setzen, sonst blockiert das Update-Banner jeden Klick.
+  localStorage.setItem('fc-seen-update', seenId || 'feel-audit');
+  sessionStorage.setItem('fc-pinned-shown', '1');
   if (!localStorage.getItem('fc-club')) {
     localStorage.setItem('fc-club', JSON.stringify({ coins: 2_000_000, cards: {}, drops: 3, megaDrops: 1, welcomeClaimed: true, megaXxlClaimed: true, megaSuperClaimed: true, trophies: 400, trophyBest: 400 }));
   }
@@ -298,7 +302,7 @@ async function staticChecks(page) {
 /** Bei „weniger Bewegung“ dürfen keine Endlos-Animationen laufen. */
 async function reducedMotion(browser) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
-  await ctx.addInitScript(probes);
+  await ctx.addInitScript(probes, LATEST_UPDATE_ID);
   const p = await ctx.newPage();
   const found = new Set();
   const scan = async () => {
@@ -317,7 +321,7 @@ async function reducedMotion(browser) {
 (async () => {
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: false });
-  await ctx.addInitScript(probes);
+  await ctx.addInitScript(probes, LATEST_UPDATE_ID);
   const page = await ctx.newPage();
   if (SLOW) {
     const cdp = await ctx.newCDPSession(page);

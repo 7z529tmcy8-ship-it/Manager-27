@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-15-larp-v2',
+    date: '15.11.2026',
+    title: 'LARP 2.0: Old Money, Flex & Fit-Check',
+    items: [
+      'Der Look-Bildschirm ist komplett neu: Fit-Check-Karte mit deinem Outfit, Aura-Zähler und einem Tacho von „Old Money“ über „Verdächtig“ bis „Larp-Alarm“.',
+      'Neu: Auftritt der Pause – einmal pro Pause flexen: Alster-Brunch, Sylt-Wochenende, geliehener 911er, Polo mit geliehenem VIP-Bändchen, Yacht in Monaco (Greenscreen) oder die Privatjet-Story. Bringt sofort Follower – Larp-Aktionen aber Verdacht.',
+      'Mehr im Schrank: Segelschuhe, Polo mit hochgeklapptem Kragen, Siegelring mit Familienwappen und der Golden Retriever vom Nachbarn.',
+      'Am Saisonende kommt der „Fit-Check des Jahres“: Die Nadel pendelt, die Kommentare laden – dann der Stempel: „Old Money bestätigt“ oder „Larp entlarvt“.',
+    ],
+  },
+  {
     id: '2026-11-15-larp',
     date: '15.11.2026',
     title: 'LARP-Modus: Old Money aus Eppendorf',

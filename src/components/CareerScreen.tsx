@@ -34,7 +34,8 @@ import { applyChoice, applyWinterChoice, choiceClub, choiceClubId, finishLiveFin
 import { STAGES_PER_HALF } from '../game/season';
 import type { Career, FinalState, NlzProgram, SeasonRecord } from '../game/types';
 import LookPanel from './LookPanel';
-import { auraOf, larpRisk } from '../game/larp';
+import { auraOf, canFlexNow, larpRisk } from '../game/larp';
+import LarpReveal from './LarpReveal';
 
 interface Props {
   career: Career;
@@ -169,6 +170,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       {moments.length > 0 && (
         <MomentOverlay key={moments.map((m) => m.title).join('|')} moments={moments} onDone={() => setMoments([])} />
       )}
+      {moments.length === 0 && career.larp?.reveal && <LarpReveal career={career} onChange={onChange} />}
       <div className="cs-side">
       <div className="cs-nav">
         <button className="cs-link" onClick={onExit}>‹ Menü</button>
@@ -201,7 +203,11 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       <div className="cs-life">
         <button className="cs-life-btn" onClick={() => setPanel('invest')}>Vermögen</button>
         <button className="cs-life-btn" onClick={() => setPanel('clinic')}>Klinik{career.glam ? ` · ${career.glam}` : ''}</button>
-        {!retired && <button className="cs-life-btn cs-look-btn" onClick={() => setPanel('look')}>Look · Aura {auraOf(career)}{larpRisk(career) >= 40 ? ' !' : ''}</button>}
+        {!retired && (
+          <button className={`cs-life-btn cs-look-btn ${larpRisk(career) >= 40 ? 'alarm' : ''} ${canFlexNow(career) ? 'can-flex' : ''}`} onClick={() => setPanel('look')}>
+            Look · Aura {auraOf(career)}{larpRisk(career) > 0 ? ` · ${larpRisk(career)} %` : ''}
+          </button>
+        )}
         <button className="cs-life-btn cs-kg-btn" onClick={() => setPanel('gram')}>Kickgram · {fmtFollowers(gramOf(career).followers)}</button>
         {!retired && (
           <button className={`cs-life-btn ${(career.kitOffers?.length ?? 0) > 0 ? 'cs-kit-new' : ''}`} onClick={() => setPanel('kit')}>

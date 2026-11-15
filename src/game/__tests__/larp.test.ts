@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { slugify } from '../../data/leagues';
 import { createCareer } from '../career';
-import { auraBoost, auraOf, buyItem, honestPost, larpOf, larpRisk, larpYear, sellItem, statusCap, takeOff } from '../larp';
+import { auraBoost, auraOf, buyItem, canFlexNow, dismissReveal, doFlex, honestPost, larpOf, larpRisk, larpYear, sellItem, statusCap, takeOff } from '../larp';
 import { gramOf } from '../kickgram';
 import { simulateToBreak } from '../simple';
 
@@ -43,8 +43,9 @@ it('Saisonende: entlarvt → Follower −25 %, Replikas weg; sonst bleibt alles'
   c = buyItem(c, 'cashmere-replika', 1e6)!.career;
   c = buyItem(c, 'gg-superstar', 1e6)!.career;
   const safe = structuredClone(c);
-  expect(larpYear(safe, 0.99)).toBeNull();
+  expect(larpYear(safe, 0.99)).toMatch(/bestanden/);
   expect(larpOf(safe).owned).toHaveLength(2);
+  expect(larpOf(safe).reveal?.exposed).toBe(false);
   const hit = structuredClone(c);
   const before = gramOf(hit).followers;
   const note = larpYear(hit, 0)!;
@@ -52,7 +53,26 @@ it('Saisonende: entlarvt → Follower −25 %, Replikas weg; sonst bleibt alles'
   expect(gramOf(hit).followers).toBe(before - Math.round(before * 0.25));
   expect(larpOf(hit).owned).toEqual(['gg-superstar']);
   expect(larpOf(hit).exposed).toBe(1);
+  expect(larpOf(hit).reveal).toMatchObject({ exposed: true, before, after: gramOf(hit).followers, lost: ['Kaschmir-Pulli über den Schultern'] });
+  expect(dismissReveal(hit).larp?.reveal).toBeNull();
   // Ganze Saison läuft mit Look ohne Absturz durch
   const played = simulateToBreak(simulateToBreak(c));
   expect(played.larp).toBeTruthy();
+});
+
+it('Flex-Aktionen: nur in der Pause, einmal pro Pause, Follower sofort, Heat aufs Risiko bis Saisonende', () => {
+  const c = young();
+  expect(canFlexNow(c)).toBe(false); // Saison läuft
+  const brk = { ...c, phase: 'winter' as const };
+  expect(canFlexNow(brk)).toBe(true);
+  const before = gramOf(brk).followers;
+  const res = doFlex(brk, 'porsche', 0)!;
+  expect(res.cost).toBe(0);
+  expect(gramOf(res.career).followers).toBe(before + res.gained);
+  expect(larpRisk(res.career)).toBe(15);
+  expect(doFlex(res.career, 'brunch', 1e6)).toBeNull(); // schon geflext
+  expect(doFlex(brk, 'sylt', 100)).toBeNull(); // zu wenig Coins
+  const end = structuredClone(res.career);
+  larpYear(end, 0.99);
+  expect(larpOf(end).heat).toBe(0);
 });

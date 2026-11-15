@@ -2,7 +2,8 @@ import { SHOP_SALES } from '../game/shopConfig';
 import { PASS_XP, addPassXp } from '../game/pass';
 import { Suspense, lazy, useEffect, useState, type CSSProperties } from 'react';
 
-const CasinoTab = lazy(() => import('./CasinoTab'));
+const loadCasino = () => import('./CasinoTab');
+const CasinoTab = lazy(loadCasino);
 import { play } from '../sound';
 import { ITEMS, PACKS, TOTW_PACK, activePacks, openStoredPack, isoWeek, oddsAtLeast, openMegaSuper, openPack, openTotwPack, packTier, rarity, teamOfTheWeek, type PackDef, type PackResult } from '../game/club';
 import { getClubState, setClubState, useClub } from '../clubStore';
@@ -25,6 +26,8 @@ const fmtCoins = (n: number) => n.toLocaleString('de-DE');
 
 /** Store: Packs mit Coins kaufen. Das erste Gold-Pack ist gratis. */
 export default function Store({ onBack, onCollection }: { onBack: () => void; onCollection: () => void }) {
+  // Casino im Hintergrund vorladen – sonst wartet der Reiter „Extras“ beim ersten Antippen aufs Nachladen.
+  useEffect(() => { void loadCasino(); }, []);
   const club = useClub();
   const [opening, setOpening] = useState<{ result: PackResult; name: string; theme?: string; art?: string; packId: string; free: boolean; n: number } | null>(null);
   const [dropOpen, setDropOpen] = useState<{ kind: DropKind; all?: boolean } | null>(null);
@@ -50,14 +53,20 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
   const [vault, setVault] = useState<PackResult | null>(null);
   const [jungle, setJungle] = useState<PackResult | null>(null);
   const [hallway, setHallway] = useState<PackResult | null>(null);
+  const [redeeming, setRedeeming] = useState(false);
+  // Erst sichtbar reagieren („Einlösen …“), dann im nächsten Bild rechnen und die Animation aufbauen.
   const redeem = () => {
-    if (!code.trim()) return;
-    const r = redeemCode(getClubState(), code);
-    if (!r.ok) { setCodeMsg('Diesen Code gibt es nicht.'); play('error'); return; }
-    setClubState(r.club);
-    setCode('');
-    setCodeMsg('');
-    if (r.theme === 'frost') setFrost(r.result); else if (r.theme === 'vault') setVault(r.result); else if (r.theme === 'jungle') setJungle(r.result); else if (r.theme === 'hallway') setHallway(r.result); else setMeteor(r.result);
+    if (!code.trim() || redeeming) return;
+    setRedeeming(true);
+    setTimeout(() => {
+      setRedeeming(false);
+      const r = redeemCode(getClubState(), code);
+      if (!r.ok) { setCodeMsg('Diesen Code gibt es nicht.'); play('error'); return; }
+      setClubState(r.club);
+      setCode('');
+      setCodeMsg('');
+      if (r.theme === 'frost') setFrost(r.result); else if (r.theme === 'vault') setVault(r.result); else if (r.theme === 'jungle') setJungle(r.result); else if (r.theme === 'hallway') setHallway(r.result); else setMeteor(r.result);
+    }, 16);
   };
   const [mega, setMega] = useState(false);
   const [superPack, setSuperPack] = useState<PackResult | null>(null);
@@ -170,7 +179,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
 
       <form className="code-redeem" onSubmit={(e) => { e.preventDefault(); redeem(); }}>
         <input value={code} onChange={(e) => { setCode(e.target.value); setCodeMsg(''); }} placeholder="Code eingeben" aria-label="Code eingeben" autoCapitalize="characters" autoComplete="off" spellCheck={false} maxLength={24} />
-        <button className="btn secondary" type="submit" disabled={!code.trim()}>Einlösen</button>
+        <button className="btn secondary" type="submit" disabled={!code.trim() || redeeming}>{redeeming ? 'Einlösen …' : 'Einlösen'}</button>
         {codeMsg && <p className="code-msg bad" role="status">{codeMsg}</p>}
       </form>
 
