@@ -157,7 +157,7 @@ export default function App() {
         <div className="screen-in" key={screen.name === 'game' ? 'game' : screen.name}>
       {screen.name === 'home' && (
         <Hub
-          onNews={() => setNews(UPDATES)}
+          onNews={() => { setNews(UPDATES); import('./data/updatesArchive').then((m) => setNews((cur) => (cur.length ? [...UPDATES, ...m.UPDATES_ARCHIVE] : cur))).catch(() => { /* ohne Archiv */ }); }}
           onNew={() => setScreen({ name: 'create' })}
           onLoad={load}
           onStore={() => setScreen({ name: 'store' })}

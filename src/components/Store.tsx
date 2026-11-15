@@ -1,6 +1,8 @@
 import { SHOP_SALES } from '../game/shopConfig';
 import { PASS_XP, addPassXp } from '../game/pass';
-import { useEffect, useState, type CSSProperties } from 'react';
+import { Suspense, lazy, useEffect, useState, type CSSProperties } from 'react';
+
+const CasinoTab = lazy(() => import('./CasinoTab'));
 import { play } from '../sound';
 import { ITEMS, PACKS, TOTW_PACK, activePacks, openStoredPack, isoWeek, oddsAtLeast, openMegaSuper, openPack, openTotwPack, packTier, rarity, teamOfTheWeek, type PackDef, type PackResult } from '../game/club';
 import { getClubState, setClubState, useClub } from '../clubStore';
@@ -8,7 +10,6 @@ import { motionReduced } from '../settings';
 import Confetti from './Confetti';
 import UtCard from './UtCard';
 import Icon, { Glyph } from './Icon';
-import CasinoTab from './CasinoTab';
 import MeteorReveal from './MeteorReveal';
 import FrostReveal from './FrostReveal';
 import VaultReveal from './VaultReveal';
@@ -266,7 +267,7 @@ export default function Store({ onBack, onCollection }: { onBack: () => void; on
         <div className="overlay casino-overlay" role="dialog" aria-modal="true" aria-label="Casino">
           <div className="overlay-inner">
             <header className="overlay-head"><button className="nav-back" onClick={() => setCasino(false)}>‹ Zurück zum Shop</button></header>
-            <CasinoTab />
+            <Suspense fallback={null}><CasinoTab /></Suspense>
           </div>
         </div>
       )}

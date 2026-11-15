@@ -6122,3 +6122,10 @@ button.mg-row:not(:disabled) { cursor: pointer; }
 .dtp span { font-size: .8rem; opacity: .75; }
 .dtp.on { border-color: #2f7cf6; background: rgba(47, 124, 246, .12); }
 .dtp em { position: absolute; top: 8px; right: 10px; font-style: normal; font-size: .7rem; font-weight: 700; color: #2f7cf6; text-transform: uppercase; }
+
+/* Leistungsmodus: keine Endlos-Animationen, kein Glas-Weichzeichner (der teuerste Effekt auf dem Handy). */
+.perf-lite *, .perf-lite *::before, .perf-lite *::after {
+  animation-iteration-count: 1 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}

@@ -25,6 +25,10 @@ export interface AppSettings {
   look?: 'aqua' | 'brawl' | 'neon';
   /** Einmalige Umstellung auf den Aqua-Look (November 2026). */
   lookV2?: boolean;
+  /** Leistungsmodus: weniger Dauer-Animationen und kein Glas-Weichzeichner. 'auto' = an, wenn das Gerät ruckelt. */
+  perf?: 'auto' | 'on' | 'off';
+  /** Ergebnis der automatischen Messung (true = Gerät ruckelt). */
+  perfAuto?: boolean;
 }
 
 const KEY = 'fc-manager-settings';
@@ -61,6 +65,7 @@ export function applySettings(s: AppSettings = current): void {
   root.classList.toggle('reduce-motion', !s.animations);
   root.classList.toggle('brawl', look === 'brawl');
   root.classList.toggle('want-landscape', !!s.landscape);
+  root.classList.toggle('perf-lite', perfActive(s));
   const now = new Date();
   root.classList.toggle('winter', now >= new Date(2026, 11, 1) && now <= new Date(2026, 11, 27, 23, 59, 59));
   root.classList.toggle('silvester', now >= new Date(2026, 11, 31) && now <= new Date(2027, 0, 1, 23, 59, 59));
@@ -90,6 +95,32 @@ export function useSettings(): AppSettings {
     },
     () => current,
   );
+}
+
+/** Ist der Leistungsmodus gerade an? */
+export const perfActive = (s: AppSettings = current) => s.perf === 'on' || (s.perf !== 'off' && !!s.perfAuto);
+
+/**
+ * Automatische Messung: Nach dem Start werden kurz die Bilder pro Sekunde gezählt. Unter 40 fps (Gerät ruckelt)
+ * schaltet sich der Leistungsmodus an, über 52 fps wieder aus. Nur bei „Auto“ und nur bei sichtbarem Tab.
+ */
+export function probePerformance(): void {
+  if (typeof window === 'undefined' || !window.requestAnimationFrame) return;
+  window.setTimeout(() => {
+    if (current.perf && current.perf !== 'auto') return;
+    if (document.hidden) return;
+    let frames = 0;
+    const start = performance.now();
+    const tick = (t: number) => {
+      if (document.hidden) return;
+      frames++;
+      if (t - start < 2500) { requestAnimationFrame(tick); return; }
+      const fps = (frames * 1000) / (t - start);
+      if (fps < 40 && !current.perfAuto) updateSettings({ perfAuto: true });
+      else if (fps > 52 && current.perfAuto) updateSettings({ perfAuto: false });
+    };
+    requestAnimationFrame(tick);
+  }, 2000);
 }
 
 /** Weniger Bewegung – per Systemeinstellung oder in den App-Einstellungen. */

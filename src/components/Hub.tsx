@@ -1,6 +1,4 @@
 import { SHOP_SALES } from '../game/shopConfig';
-import EraEvent from './EraEvent';
-import ManagerMode from './ManagerMode';
 import { loadManager } from '../game/manager';
 import JungleEvent, { Banana } from './JungleEvent';
 import { jungleReady } from '../game/jungle';
@@ -8,7 +6,14 @@ import { JUNGLE_PLAYERS, jungleCardId } from '../data/jungleCards';
 import { ERA_NAME, ERA_PLAYERS, eraCardId, eraToday } from '../data/eraCards';
 import { eraReady } from '../game/era';
 import { eraLive, jungleLive } from '../game/eraTime';
-import { Children, useRef, useState, type ReactNode } from 'react';
+import { Children, Suspense, lazy, useRef, useState, type ReactNode } from 'react';
+
+// Selten geöffnete Bildschirme erst bei Bedarf laden – das Hauptmenü startet schneller.
+const EraEvent = lazy(() => import('./EraEvent'));
+const ManagerMode = lazy(() => import('./ManagerMode'));
+const Backup = lazy(() => import('./Backup'));
+const AdventCalendar = lazy(() => import('./AdventCalendar'));
+const GloryRoad = lazy(() => import('./GloryRoad'));
 import { getClub } from '../data/leagues';
 import { collectionProgress, careerCard, creditCareer, eventActive, rewardPending, type PackResult } from '../game/club';
 import { PackOpening } from './Store';
@@ -16,14 +21,11 @@ import { currentClubId, seasonLabel } from '../game/player';
 import { deleteCareer, listCareers, saveCareer } from '../game/storage';
 import type { Career } from '../game/types';
 import { getClubState, setClubState, useClub } from '../clubStore';
-import Backup from './Backup';
 import Settings from './Settings';
 import UtCard from './UtCard';
 import Icon from './Icon';
 import { divName, divisionOf } from '../game/divisions';
-import AdventCalendar from './AdventCalendar';
 import ProfileScreen, { Emblem } from './ProfileScreen';
-import GloryRoad from './GloryRoad';
 import { ROAD, roadReady } from '../game/glory';
 import { nameFxOf, profileOf } from '../game/profile';
 import { canFullscreen, enterFullscreen, exitFullscreen, isFullscreen } from '../settings';
@@ -240,6 +242,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
           onClose={() => setSettings(false)}
         />
       )}
+      <Suspense fallback={null}>
       {backup && <Backup onClose={() => setBackup(false)} />}
       {manager && <ManagerMode onClose={() => setManager(false)} />}
       {jungle && <JungleEvent onClose={() => setJungle(false)} onCollection={() => { setJungle(false); onCollection(); }} />}
@@ -247,6 +250,7 @@ export default function Hub({ onNews, onNew, onLoad, onStore, onCollection, onTe
       {glory && <GloryRoad onClose={() => setGlory(false)} onStore={() => { setGlory(false); onStore(); }} />}
       {profile && <ProfileScreen careers={saves} onClose={() => setProfile(false)} />}
       {advent && <AdventCalendar onClose={() => setAdvent(false)} onCollection={() => { setAdvent(false); onCollection(); }} />}
+      </Suspense>
       {nyPack && <PackOpening name="Feuerwerks-Pack" theme="silvester" result={nyPack} onClose={() => setNyPack(null)} onCollection={() => { setNyPack(null); onCollection(); }} />}
     </main>
   );

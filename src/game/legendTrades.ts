@@ -227,6 +227,64 @@ export const MOMENTS: MomentSbc[] = [
       { label: 'Ikonen', count: 2, test: isIcon },
     ],
   },
+  // ----- Sommer 2014 (recherchiert 11/2026) -----
+  {
+    id: 'moment-klose',
+    reward: card('klose', 'Miroslav Klose', 'ST', 'Deutschland', 'Deutschland', 'WM 2014', 94, 'Tor Nr. 16'),
+    story: 'Belo Horizonte, 8. Juli 2014: Beim 7:1 gegen Brasilien trifft Klose zum 2:0 – sein 16. WM-Tor, Rekord vor Ronaldo (15).',
+    minAvg: 89, minEach: 86,
+    needs: [
+      { label: 'Bundesliga-Spieler', count: 4, test: league('Bundesliga') },
+      { label: 'Deutsche', count: 3, test: nation('Deutschland') },
+      { label: 'Stürmer ab 85', count: 2, test: pos('ST', 85) },
+      { label: 'Ikonen', count: 2, test: isIcon },
+    ],
+  },
+  {
+    id: 'moment-james',
+    reward: card('james', 'James Rodríguez', 'ZOM', 'Kolumbien', 'Kolumbien', 'WM 2014', 93, 'Torschützenkönig 2014'),
+    story: 'WM 2014: Sechs Tore in fünf Spielen, darunter der Volley gegen Uruguay – James wird Torschützenkönig vor Thomas Müller (5).',
+    minAvg: 88, minEach: 85,
+    needs: [
+      { label: 'LaLiga-Spieler', count: 3, test: league('LaLiga') },
+      { label: 'Offensive Mittelfeldspieler ab 85', count: 2, test: pos('ZOM', 85) },
+      { label: 'Kult-Helden', count: 2, test: isCult },
+      { label: 'Ikonen', count: 2, test: isIcon },
+    ],
+  },
+  {
+    id: 'moment-godin',
+    reward: card('godin', 'Diego Godín', 'IV', 'Uruguay', 'Atlético Madrid', 'LaLiga', 92, 'Meister im Camp Nou'),
+    story: '17. Mai 2014, letzter Spieltag im Camp Nou: Godín köpft nach Koke-Ecke zum 1:1 – Atlético ist zum ersten Mal seit 18 Jahren Meister.',
+    minAvg: 88, minEach: 85,
+    needs: [
+      { label: 'LaLiga-Spieler', count: 4, test: league('LaLiga') },
+      { label: 'Innenverteidiger ab 85', count: 3, test: pos('IV', 85) },
+      { label: 'Ikone', count: 1, test: isIcon },
+    ],
+  },
+  {
+    id: 'moment-suarez-31',
+    reward: card('suarez-31', 'Luis Suárez', 'ST', 'Uruguay', 'Liverpool FC', 'Premier League', 94, '31 Tore 13/14'),
+    story: 'Saison 2013/14: Fünf Spiele gesperrt – und trotzdem 31 Tore. Suárez wird Torschützenkönig, Liverpool trifft 101-mal.',
+    minAvg: 89, minEach: 86,
+    needs: [
+      { label: 'Premier-League-Spieler', count: 5, test: league('Premier League') },
+      { label: 'Stürmer ab 85', count: 2, test: pos('ST', 85) },
+      { label: 'Ikonen', count: 2, test: isIcon },
+    ],
+  },
+  {
+    id: 'moment-bale',
+    reward: card('bale', 'Gareth Bale', 'FL', 'Wales', 'Real Madrid', 'LaLiga', 93, 'La Décima'),
+    story: 'Lissabon, 24. Mai 2014: In der Verlängerung köpft Bale das 2:1 gegen Atlético – Real holt den zehnten Henkelpokal, am Ende 4:1.',
+    minAvg: 89, minEach: 86,
+    needs: [
+      { label: 'LaLiga-Spieler', count: 3, test: league('LaLiga') },
+      { label: 'Flügelspieler ab 86', count: 3, test: pos('FL', 86) },
+      { label: 'Ikonen', count: 2, test: isIcon },
+    ],
+  },
   {
     id: 'moment-aguero',
     reward: card('aguero', 'Sergio Agüero', 'ST', 'Argentinien', 'Manchester City', 'Premier League', 93, '93:20'),

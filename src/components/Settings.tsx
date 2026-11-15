@@ -98,6 +98,13 @@ export default function Settings({ career, onChange, onClose }: Props) {
               onPick={(theme) => set({ theme })}
             />
           )}
+          <Choice<'auto' | 'on' | 'off'>
+            label="Leistungsmodus"
+            value={app.perf ?? 'auto'}
+            options={[['auto', 'Auto'], ['on', 'An'], ['off', 'Aus']]}
+            onPick={(perf) => set({ perf })}
+            hint={`Weniger Dauer-Animationen und kein Glas-Weichzeichner – gegen Ruckeln. Auto schaltet ihn an, wenn dein Gerät ruckelt${(app.perf ?? 'auto') === 'auto' ? ` (gerade ${app.perfAuto ? 'an' : 'aus'})` : ''}.`}
+          />
           <Toggle label="Animationen" checked={app.animations} onToggle={() => set({ animations: !app.animations })} hint="Pack-Öffnung, Konfetti und Hochzählen." />
           <Toggle label="Im Querformat spielen" checked={!!app.landscape} onToggle={async () => {
             if (!app.landscape) { set({ landscape: true }); await lockLandscape(); } else { set({ landscape: false }); unlockOrientation(); }
