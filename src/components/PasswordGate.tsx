@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { motionReduced } from '../settings';
 
-// Startbildschirm: Beim Öffnen der Seite läuft 5 Sekunden ein Ladebildschirm (Titelbild + Ladebalken 0–100 %),
-// danach geht es ins Spiel. Das Spiel baut sich dahinter schon auf. Pro Tab nur einmal.
-// Die geheime Seite erreicht man über die Adresse …/#larp.
+// Startbildschirm: Beim Öffnen der Seite läuft kurz ein eigener Ladebildschirm (Flutlicht-Stadion, Wappen,
+// Ladebalken), danach geht es ins Spiel. Das Spiel baut sich dahinter schon auf. Pro Tab nur einmal.
 
 export const UNLOCK_KEY = 'fc-manager-unlocked';
-export const LOAD_MS = 5000;
+export const LOAD_MS = 2200;
 
 const seen = () => { try { return sessionStorage.getItem(UNLOCK_KEY) === '1'; } catch { return false; } };
 const remember = () => { try { sessionStorage.setItem(UNLOCK_KEY, '1'); } catch { /* ohne Speicher eben jedes Mal */ } };
@@ -27,10 +26,9 @@ export function loadProgress(t: number): number {
   return 1;
 }
 const STEPS: [number, string][] = [
-  [0, 'Inhalt wird geladen …'],
-  [25, 'Stadion wird aufgebaut …'],
-  [50, 'Spieler laufen sich warm …'],
-  [75, 'Karten werden gemischt …'],
+  [0, 'Flutlicht geht an …'],
+  [35, 'Spieler laufen sich warm …'],
+  [70, 'Aufstellung steht …'],
   [100, 'Anpfiff!'],
 ];
 const stepText = (pct: number) => [...STEPS].reverse().find(([at]) => pct >= at)![1];
@@ -73,15 +71,22 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className={`boot ${out ? 'out' : ''}`} role="progressbar" aria-label="Spiel wird geladen" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
-      <div className="boot-bg" aria-hidden="true" />
-      <img className="boot-art" src="/loading.webp" alt="Manager Simulator" width="941" height="1672" fetchPriority="high" decoding="async" />
-      <div className="boot-bottom">
-        <div className="boot-status">
-          <span key={stepText(pct)} className="boot-step">{stepText(pct)}</span>
-          <b className="boot-pct">{pct} %</b>
-        </div>
-        <div className="boot-bar"><span ref={bar} className="boot-fill" /><i className="boot-shine" aria-hidden="true" /></div>
+    <div className={`boot2 ${out ? 'out' : ''}`} role="progressbar" aria-label="Spiel wird geladen" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
+      <div className="boot2-lights" aria-hidden="true"><i className="l1" /><i className="l2" /></div>
+      <svg className="boot2-pitch" viewBox="0 0 400 300" aria-hidden="true">
+        <rect x="20" y="20" width="360" height="260" rx="6" /><line x1="200" y1="20" x2="200" y2="280" /><circle cx="200" cy="150" r="46" />
+        <rect x="20" y="95" width="56" height="110" /><rect x="324" y="95" width="56" height="110" />
+      </svg>
+      <div className="boot2-center">
+        <span className="boot2-crest" aria-hidden="true">
+          <svg viewBox="0 0 100 112"><path d="M50 4 94 28v56L50 108 6 84V28Z" /><circle cx="50" cy="56" r="20" /><path d="M50 36v8M50 68v8M30 56h8M62 56h8M50 44l9 6-3 10H44l-3-10Z" /></svg>
+        </span>
+        <h1 className="boot2-title">Manager<span>Sim</span></h1>
+        <p className="boot2-tag">Karriere · Team · Duelle</p>
+      </div>
+      <div className="boot2-bottom">
+        <div className="boot2-status"><span key={stepText(pct)}>{stepText(pct)}</span><b>{pct} %</b></div>
+        <div className="boot2-bar"><span ref={bar} /></div>
       </div>
     </div>
   );

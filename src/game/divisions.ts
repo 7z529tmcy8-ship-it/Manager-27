@@ -109,6 +109,19 @@ export function withOpponent(club: ClubState, rand: () => number = Math.random):
   return { ...club, division: { ...d, next: makeOpponent(d.div, rand) } };
 }
 
+/** Einstufung: die schwerste Division, deren Gegner höchstens so stark sind wie das Team minus 4 – so bleibt man Favorit, aber nicht gegen 50er-Teams. */
+export function placementFor(strength: number): number {
+  for (let div = TOP; div <= LOWEST; div++) if (divStrength(div) <= strength - 4) return div;
+  return LOWEST;
+}
+
+/** Direkt in eine schwerere Division einsteigen (nur nach oben). */
+export function placeDivision(club: ClubState, div: number, rand: () => number = Math.random): ClubState {
+  const d = divisionOf(club);
+  if (div >= d.div) return club;
+  return { ...club, division: { ...d, div, pts: 0, best: Math.min(d.best, div), next: makeOpponent(div, rand) } };
+}
+
 export type DivMove = 'up' | 'down' | null;
 
 /** Fortschritt nach einem Spiel: Auf- und Abstieg, Sicherheitsstufen, Champions als Obergrenze. */

@@ -3,7 +3,7 @@ import { getClubState, setClubState, useClub } from '../clubStore';
 import { rarity, type CollectCard } from '../game/club';
 import {
   FORMATIONS, FORMATION_ORDER, activeTeam, autoSquad, cardById, changeFormation, chemLinks, chemistry, fit, setSlot, slotsOf, swapSlots,
-  switchTeam, teamCards, teamRating, type DuelResult,
+  TEAM_NAMES, switchTeam, teamCards, teamRating, type DuelResult, type TeamKind,
 } from '../game/squad';
 import { motionReduced } from '../settings';
 import Icon from './Icon';
@@ -12,17 +12,24 @@ import UtCard from './UtCard';
 /** Team: deine Elf aus den Spielern deiner Karrieren (Auszeichnungen, Saison-Highlights, Karriere-Ende). */
 export default function TeamScreen({ onDuels }: { onDuels: () => void }) {
   const club = useClub();
-  // Es gibt nur noch das Karriere-Team – alte Spielstände einmal umstellen.
-  useEffect(() => { if (activeTeam(getClubState()) !== 'career') setClubState(switchTeam(getClubState(), 'career')); }, []);
+  const on = activeTeam(club);
   const cards = club.squad.map((id) => cardById(club, id));
   const chem = chemistry(cards, slotsOf(club));
   return (
     <main className="hub team-screen">
       <h1 className="ch-title">Team</h1>
+      <div className="segmented tm-switch" role="radiogroup" aria-label="Team wählen">
+        {(['main', 'career'] as TeamKind[]).map((k) => (
+          <button key={k} role="radio" aria-checked={on === k} className={on === k ? 'active' : ''} onClick={() => setClubState(switchTeam(getClubState(), k))}>
+            {TEAM_NAMES[k]} <small>{teamCards(club, k).length}</small>
+          </button>
+        ))}
+      </div>
+      <p className="tm-hint">{on === 'career' ? 'Spieler aus deinen Karrieren und SBC-Karten.' : 'Alle deine Karten – Packs, Events, SBCs.'}</p>
       <div className="team-stats">
         <div><small>Wertung</small><strong>{teamRating(cards) || '–'}</strong></div>
         <div><small>Chemie</small><strong>{chem.total}<em>/33</em></strong></div>
-        <div><small>Spieler</small><strong>{teamCards(club, 'career').length}</strong></div>
+        <div><small>Karten</small><strong>{teamCards(club).length}</strong></div>
       </div>
       <Squad />
       <button className="btn primary big tm-duels" onClick={onDuels}><Icon name="duel" size={20} /> Zu den Duellen</button>
@@ -106,7 +113,7 @@ function Squad() {
     return (
       <div className="hub-empty tm-empty">
         <b>Noch keine Spieler</b>
-        <p>Dein Team besteht aus den Spielern deiner Karrieren: Jede Auszeichnung, jedes Saison-Highlight und die Karte am Karriereende landet hier.</p>
+        <p>{activeTeam(club) === 'career' ? 'Das Karriere-Team besteht aus den Spielern deiner Karrieren: Jede Auszeichnung, jedes Saison-Highlight und die Karte am Karriereende landet hier.' : 'Im Haupt-Team spielen alle deine Karten.'}</p>
       </div>
     );
   }
@@ -206,7 +213,7 @@ function Picker({ slot, onClose }: { slot: number; onClose: () => void }) {
 
 // ---------- Duelle: Divisionen mit Taktik ----------
 
-export function DuelLive({ name, result, onClose, onShare }: { name: string; result: DuelResult; onClose: () => void; onShare?: () => void }) {
+export function DuelLive({ name, team = 'Dein Team', result, onClose, onShare }: { name: string; team?: string; result: DuelResult; onClose: () => void; onShare?: () => void }) {
   const [minute, setMinute] = useState(motionReduced() ? 90 : 0);
   useEffect(() => {
     if (minute >= 90) return;
@@ -221,7 +228,7 @@ export function DuelLive({ name, result, onClose, onShare }: { name: string; res
     <div className="pack-open" role="dialog" aria-modal="true" aria-label="Duell">
       <div className="duel-live">
         <small>{done ? 'Abpfiff' : `${minute}. Minute`}</small>
-        <div className="duel-score"><span>Karriere-Team</span><strong>{own} : {opp}</strong><span>{name}</span></div>
+        <div className="duel-score"><span>{team}</span><strong>{own} : {opp}</strong><span>{name}</span></div>
         <ul className="duel-goals">
           {shown.map((g, i) => <li key={i} className={g.own ? 'own' : 'opp'}>{g.minute}′ {g.own ? 'Tor für dich!' : 'Gegentor'}</li>)}
         </ul>

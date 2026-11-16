@@ -24,6 +24,7 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile 
   const [saves, setSaves] = useState(listCareers);
   const [settings, setSettings] = useState(false);
   const [backup, setBackup] = useState(false);
+  const [list, setList] = useState(false);
   const sorted = [...saves].sort((a, b) => b.updatedAt - a.updatedAt);
   const latest = sorted.find((c) => c.phase !== 'retired') ?? sorted[0];
   const pending = saves.find((c) => rewardPending(club, c));
@@ -69,25 +70,31 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile 
       )}
       <button className="btn primary big ch-new" onClick={onNew}><Icon name="plus" size={20} /> Neue Karriere</button>
 
-      {sorted.length > 0 && (
-        <section className="ch-saves" aria-label="Spielstände">
-          <h2 className="ch-h">Spielstände <small>{sorted.length}</small></h2>
-          <ul className="save-list">
-            {sorted.map((c) => (
-              <li key={c.id}>
-                <button className="save-main" onClick={() => onLoad(c)}>
-                  <span className="save-ovr">{c.player.ovr}</span>
-                  <span><strong>{c.player.name}</strong><small>{statusOf(c)}</small></span>
-                </button>
-                <button className="btn ghost small" onClick={() => remove(c)}>Löschen</button>
-              </li>
-            ))}
-          </ul>
-        </section>
+      {sorted.length > 1 && (
+        <button className="ch-row" onClick={() => setList(true)}><Icon name="folder" size={20} /><span><b>Spielstände</b><small>{sorted.length} Karrieren gespeichert</small></span><Icon name="arrow" size={18} /></button>
       )}
-      <button className="ch-row" onClick={() => setBackup(true)}><Icon name="cloud" size={18} /> Sichern & Laden <small>Spielstände exportieren und einspielen</small></button>
+      <button className="ch-row" onClick={() => setBackup(true)}><Icon name="cloud" size={20} /><span><b>Sichern & Laden</b><small>Spielstände exportieren und einspielen</small></span><Icon name="arrow" size={18} /></button>
       <p className="hub-foot">Private Fan-Seite ohne Verbindung zu EA SPORTS. Werte sind eigene Schätzungen.</p>
 
+      {list && (
+        <div className="overlay" role="dialog" aria-modal="true" aria-label="Spielstände">
+          <div className="overlay-inner">
+            <header className="overlay-head"><button className="nav-back" onClick={() => setList(false)}>‹ Zurück</button></header>
+            <h1 className="overlay-title">Spielstände</h1>
+            <ul className="save-list">
+              {sorted.map((c) => (
+                <li key={c.id}>
+                  <button className="save-main" onClick={() => onLoad(c)}>
+                    <span className="save-ovr">{c.player.ovr}</span>
+                    <span><strong>{c.player.name}</strong><small>{statusOf(c)}</small></span>
+                  </button>
+                  <button className="btn ghost small" onClick={() => remove(c)}>Löschen</button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
       <Suspense fallback={null}>
         {settings && (
           <Settings

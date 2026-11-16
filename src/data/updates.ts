@@ -29,6 +29,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-16-rivals-zurueck',
+    date: '16.11.2026',
+    title: 'Division Rivals ist zurück',
+    items: [
+      'Duelle sind wieder Division Rivals: Divisionen 10 bis 1, dann Elite und Champions – mit Aufstieg, Abstieg, Taktik, Scouting und täglicher Saison mit Rängen und Rivals-Karten.',
+      'Du wählst selbst: Haupt-Team (alle Karten) oder Karriere-Team (Karriere- und Momente-Karten). Der Gegner richtet sich nach deiner Division – kein Spiel mehr gegen 50er-Teams.',
+      'Siege geben deinem aktiven Karriere-Spieler XP (max. 250 pro Tag), die Tagessaison gibt zusätzlich einen XP-Bonus je nach Rang.',
+      'Neues Layout: Reiter Spielen / Divisionen / Saison oben, Anpfiff immer an derselben Stelle unten.',
+      'Neuer Ladebildschirm im Stadion-Look, und die Startseite zeigt nur noch deine aktuelle Karriere – alle Spielstände findest du unter „Spielstände“.',
+    ],
+  },
+  {
     id: '2026-11-16-neustart',
     date: '16.11.2026',
     title: 'Neustart: Karriere, Team, Duelle, Profil',

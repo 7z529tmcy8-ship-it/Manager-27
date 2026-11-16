@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { CARD_POOL, freshClub, type ClubState } from '../club';
 import { autoSquad } from '../squad';
 import {
@@ -94,4 +94,19 @@ it('Aufstiegsbonus gibt es nur beim ersten Erreichen einer Division', () => {
 
 it('Ohne volle Elf kein Duell', () => {
   expect(playDivisionDuel({ ...club(), squad: Array(11).fill(null) }, 'pressing')).toBeNull();
+});
+
+describe('Einstufung', () => {
+  it('stuft ein starkes Team in eine schwere Division ein und nie nach unten', async () => {
+    const { placementFor, placeDivision, divStrength, divisionOf, LOWEST } = await import('../divisions');
+    const { freshClub } = await import('../club');
+    const div = placementFor(96.7);
+    expect(divStrength(div)).toBeLessThanOrEqual(92.7);
+    expect(div).toBeLessThan(LOWEST);
+    expect(placementFor(50)).toBe(LOWEST);
+    const placed = placeDivision(freshClub(), div);
+    expect(divisionOf(placed).div).toBe(div);
+    expect(divisionOf(placed).next?.strength).toBeGreaterThan(80);
+    expect(placeDivision(placed, LOWEST)).toBe(placed);
+  });
 });

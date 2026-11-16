@@ -120,3 +120,14 @@ export function grantDuelXp(prev: Career, xp: number): Career {
   if (!xp || !prev.player.skills) return prev;
   return { ...prev, player: { ...prev.player, skills: { ...prev.player.skills, xp: prev.player.skills.xp + xp } }, updatedAt: Date.now() };
 }
+
+/** XP aus einem Duell gutschreiben (Tageslimit), Rückgabe: tatsächlich vergebene XP. */
+export function takeDuelXp(club: ClubState, want: number, now = new Date()): { club: ClubState; xp: number } {
+  const s = duelStateOf(club);
+  const xp = Math.min(xpLeftToday(club, now), Math.max(0, want));
+  const day = today(now);
+  return { club: { ...club, careerDuels: { ...s, xpDay: day, xpToday: (s.xpDay === day ? s.xpToday ?? 0 : 0) + xp } }, xp };
+}
+
+/** XP-Bonus für den Tagesrang der Duell-Saison (nicht gedeckelt). */
+export const RANK_XP: Record<string, number> = { Bronze: 0, Silber: 100, Gold: 200, Elite: 300, Weltklasse: 450, Legende: 600 };

@@ -155,10 +155,15 @@ const FLOWS = {
     await p.click('button:has-text("Auto-Aufstellung")', { timeout: 1500 }).catch(() => {}); await p.waitForTimeout(300);
   },
   duelle: async (p) => {
-    // Duelle: Anpfiff, Spiel laufen lassen, Ergebnis schließen
+    // Duelle (Division Rivals): Reiter durchschalten, Team wählen, Taktik, Anpfiff (falls eine volle Elf da ist)
     await nav(p, 'Duelle'); await p.waitForTimeout(450);
-    await p.click('.dp-kick', { timeout: 3000 }); await p.waitForTimeout(2600);
-    await p.click('.duel-live .btn.primary', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(400);
+    for (const t of ['Divisionen', 'Saison', 'Spielen']) { await p.click(`.dv2-tabs button:has-text("${t}")`, { timeout: 2000 }); await p.waitForTimeout(300); }
+    for (const i of [1, 0]) { await p.click(`.dv2-teams button >> nth=${i}`, { timeout: 2000 }); await p.waitForTimeout(250); }
+    if (await p.locator('.dv2-kick').count()) {
+      await p.click('.dv2-tactics button >> nth=1', { timeout: 2000 }); await p.waitForTimeout(200);
+      await p.click('.dv2-kick', { timeout: 3000 }); await p.waitForTimeout(2600);
+      await p.click('.duel-live .btn.primary', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(400);
+    }
   },
   profil: async (p) => {
     // Profil: Wappen und Farbe wechseln, runterscrollen

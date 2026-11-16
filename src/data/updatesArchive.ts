@@ -107,8 +107,6 @@ export const UPDATES_ARCHIVE: UpdateNote[] = [
     id: '2026-10-31-ladebildschirm',
     date: '31.10.2026',
     title: 'Das Spiel ist wieder offen – mit neuem Ladebildschirm',
-    image: '/loading.webp',
-    imageAlt: 'Manager Simulator',
     items: [
       'Das Entwicklungs-Update ist fertig: Kein Code mehr nötig, alle kommen direkt ins Spiel.',
       'Neuer Startbildschirm mit Titelbild und Ladebalken von 0 bis 100 %.',

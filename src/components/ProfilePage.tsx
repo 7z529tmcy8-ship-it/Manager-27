@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { getClubState, setClubState, useClub } from '../clubStore';
-import { STAGES, duelStateOf, ownRating } from '../game/careerDuels';
+import { divName, divisionOf } from '../game/divisions';
 import { EMBLEMS, NAME_MAX, PROFILE_COLORS, profileOf, setProfile } from '../game/profile';
-import { teamCards } from '../game/squad';
+import { cardById, slotsOf, teamCards, teamStrength } from '../game/squad';
 import { listCareers } from '../game/storage';
 import Icon from './Icon';
 
@@ -21,7 +21,9 @@ export default function ProfilePage() {
   const p = profileOf(club);
   const [name, setName] = useState(p.name);
   const careers = listCareers();
-  const d = duelStateOf(club);
+  const div = divisionOf(club);
+  const cards = club.squad.map((id) => cardById(club, id));
+  const rating = cards.filter(Boolean).length === 11 ? teamStrength(cards, slotsOf(club)).toFixed(1) : '–';
   const best = careers.reduce((m, c) => Math.max(m, ...c.history.map((r) => r.ovrEnd), c.player.ovr), 0);
   const seasons = careers.reduce((a, c) => a + c.history.length, 0);
   const goals = careers.reduce((a, c) => a + c.history.reduce((g, r) => g + r.goals, 0), 0);
@@ -34,11 +36,11 @@ export default function ProfilePage() {
     ['Beste Wertung', best || '–'],
     ['Tore', goals.toLocaleString('de-DE')],
     ['Titel', titles],
-    ['Spieler im Team', teamCards(club, 'career').length],
-    ['Team-Wertung', ownRating(club) || '–'],
-    ['Duelle S/U/N', `${d.w}/${d.d}/${d.l}`],
-    ['Höchste Duell-Stufe', STAGES[d.best - 1].name],
-    ['Finale gewonnen', d.titles ?? 0],
+    ['Karten im Karriere-Team', teamCards(club, 'career').length],
+    ['Aktive Elf', rating],
+    ['Duelle S/U/N', `${club.duels.w}/${club.duels.d}/${club.duels.l}`],
+    ['Division', divName(div.div)],
+    ['Beste Division', divName(div.best)],
   ];
 
   return (
