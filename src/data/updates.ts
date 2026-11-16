@@ -29,6 +29,19 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-16-skill-universum',
+    date: '16.11.2026',
+    title: 'Das Skill-Universum',
+    items: [
+      'Der Fähigkeitenbaum ist jetzt ein ganzes Universum auf einem Bildschirm: In der Mitte dein Spielertyp, vier Richtungen – Torgefahr, Kreativität, Athletik, Mentalität – mit 60 Knoten. Verschieben, zoomen, antippen – kein Runterscrollen mehr.',
+      'Mischen erlaubt: Ein Stürmer kann in die Kreativität gehen. Je weiter weg von deiner Heimat-Richtung, desto teurer.',
+      'Spielstile mit echten Effekten (max. 3 aktiv): Joker, Finesse-Schuss, Kapitän, Taktgeber, Eisenmann, Turbo, Mauer, Zauberpass.',
+      '8 Ultimative ganz außen, die im Spiel wirklich passieren: Hattrick-Jäger, Last-Minute-Held (dreht Spiele in der Nachspielzeit), Spielgestalter, Mr. Finale, Die Wand und mehr.',
+      'Meilensteine: Der äußere Bereich jeder Richtung öffnet sich erst durch Erfolge (z. B. 40 Karrieretore) – oder ab Level 25.',
+      'Baupläne speichern und laden, kostenlos umbauen einmal pro Saison. Alle bisher verteilten Punkte bekommst du zurück.',
+    ],
+  },
+  {
     id: '2026-11-16-rivals-zurueck',
     date: '16.11.2026',
     title: 'Division Rivals ist zurück',

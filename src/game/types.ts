@@ -168,6 +168,14 @@ export interface PlayerSkills {
   uses?: Record<string, number>;
   /** Meldung nach der letzten Pause, z. B. „+320 EP · Level 4“. */
   note?: string;
+  /** Ausgerüstete Spielstile (max. 3). */
+  styles?: string[];
+  /** Version des Baums (2 = Skill-Universum). */
+  v?: number;
+  /** Saison (Jahr), in der zuletzt kostenlos umgebaut wurde. */
+  respecYear?: number;
+  /** Gespeicherte Baupläne. */
+  plans?: { name: string; nodes: string[]; styles: string[] }[];
 }
 
 export type TrainingFocus = number | 'balanced' | 'rest';

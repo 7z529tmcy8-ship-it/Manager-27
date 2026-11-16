@@ -1,5 +1,6 @@
 import { compressToUTF16, decompressFromUTF16 } from 'lz-string';
 import type { Career } from './types';
+import { migrateSkills } from './skills';
 
 // Spielstände liegen nur im Browser (localStorage). Zugriff kann z. B. im privaten
 // Modus fehlschlagen, daher überall try/catch.
@@ -37,12 +38,13 @@ function load(): Career[] {
       for (const id of ids) {
         try {
           const c = unpack<Career>(localStorage.getItem(PREFIX + id));
-          if (c) cache.push(c);
+          if (c) { if (migrateSkills(c)) dirty.add(c.id); cache.push(c); }
         } catch { /* einzelner kaputter Spielstand – überspringen */ }
       }
     } else {
       // Erster Start nach dem Update: alte Liste übernehmen und ins neue Format umziehen
       const legacy = unpack<Career[]>(localStorage.getItem(LEGACY_KEY)) ?? [];
+      legacy.forEach((c) => migrateSkills(c));
       cache = legacy;
       if (legacy.length) {
         legacy.forEach((c) => dirty.add(c.id));

@@ -1,11 +1,15 @@
 import type { Career, PlayerState, Position, SeasonRecord } from './types';
 import type { HalfStats } from './season';
 
-// Spielertypen (Archetypen) und Fähigkeitenbaum: Erfahrungspunkte (EP) aus Spielen, Toren, Vorlagen,
-// guten Noten und Titeln bringen Level; jedes Level gibt einen Fähigkeitspunkt. Fähigkeiten wirken
-// direkt in der Simulation (mehr Tore, bessere Noten, weniger Verletzungen …).
+// Skill-Universum: ein runder Fähigkeitenbaum für alle Spielertypen. In der Mitte dein Typ, von dort
+// gehen vier Richtungen ab (Torgefahr, Kreativität, Athletik, Mentalität) – je drei Ringe und zwei
+// Ultimative ganz außen. Freischalten geht nur neben schon gelernten Knoten; Richtungen weit weg vom
+// eigenen Typ kosten mehr. Spielstile (max. 3 aktiv) und Ultimative haben echte Effekte im Spiel.
+// Erfahrungspunkte (EP) aus Spielen, Toren, Vorlagen, Noten und Titeln bringen Level – je Level ein Punkt.
 
 export type ArchetypeId = 'striker' | 'playmaker' | 'winger' | 'engine' | 'rock' | 'keeper';
+export type Dir = 'g' | 'c' | 'a' | 'm';
+export type NodeKind = 'stat' | 'star' | 'style' | 'ult';
 
 /** Wirkung der Fähigkeiten in der Simulation. Multiplikatoren starten bei 1, Zuschläge bei 0. */
 export interface SkillMods {
@@ -27,6 +31,20 @@ export interface SkillMods {
   growth: number;
   /** Leistungsabbau ab 30. */
   decline: number;
+  /** Torchance als Einwechselspieler (Joker). */
+  subGoal: number;
+  /** Torchance nach zwei eigenen Toren in einem Spiel (Hattrick-Jagd). */
+  hattrick: number;
+  /** Chance auf ein spätes Tor, wenn es remis steht oder knapp verloren ist. */
+  late: number;
+  /** So viel stärker spielt das eigene Team, wenn du auf dem Platz stehst. */
+  team: number;
+  /** Zusätzlich in Pokal, Europapokal und Finals. */
+  cupTeam: number;
+  /** So viel schwächer wird der Gegner im Angriff (Abwehrspieler und Torhüter). */
+  oppDown: number;
+  /** Höhere Chance, 90 Minuten durchzuspielen. */
+  fullGame: number;
 }
 
 export interface Skill {
@@ -34,18 +52,18 @@ export interface Skill {
   icon: string;
   name: string;
   text: string;
+  dir: Dir;
+  /** Ring 1 (innen) bis 3, Ring 4 = Ultimative ganz außen. */
+  ring: 1 | 2 | 3 | 4;
+  kind: NodeKind;
+  /** Grundkosten; dazu kommt der Aufschlag für Richtungen weit weg vom eigenen Typ (siehe costOf). */
   cost: number;
-  /** Stufe im Baum: 1–6 in den Ästen, 7 = Meisterstück. */
-  tier: 1 | 2 | 3 | 4 | 5 | 6 | 7;
-  /** Ast im Baum ('a' links, 'b' rechts); ab Stufe 2 braucht es die Fähigkeit davor im selben Ast. */
-  branch?: 'a' | 'b';
-  /** Ab Stufe 3 gabelt sich jeder Ast in zwei Zweige – man wählt einen davon (der andere wird gesperrt). */
-  twig?: 1 | 2;
-  /** Mehrstufige Fähigkeit (allgemeine Fähigkeiten): so oft kann sie gelernt werden, Wirkung pro Stufe. */
-  maxRank?: number;
   mods?: Partial<SkillMods>;
   /** Einmaliger Wertungsschub beim Freischalten. */
   ovr?: number;
+  /** Position im Universum (Mitte = 0/0, Ring-Radius 1 … 4). */
+  x: number;
+  y: number;
 }
 
 export interface Archetype {
@@ -54,137 +72,81 @@ export interface Archetype {
   name: string;
   text: string;
   positions: Position[];
-  /** Namen der beiden Äste. */
-  branches: [string, string];
-  /** Namen der Zweige ab Stufe 3: [[Ast a Zweig 1, Ast a Zweig 2], [Ast b Zweig 1, Ast b Zweig 2]]. */
-  twigs?: [[string, string], [string, string]];
-  skills: Skill[];
+  /** Heimat-Richtung: dort ist alles am günstigsten. */
+  home: Dir;
 }
 
-const RAW_ARCHETYPES: Archetype[] = [
-  {
-    id: 'striker', icon: '🎯', name: 'Torjäger', text: 'Lebt für Tore: Abschluss, Kopfball, eiskalt vor dem Kasten.',
-    positions: ['ST', 'FL', 'ZOM'],
-    branches: ['Abschluss', 'Strafraum'],
-    skills: [
-      { id: 'st_finish', icon: '🎯', name: 'Abschlussstärke', text: '+12 % Torchance', cost: 1, tier: 1, mods: { goal: 1.12 } },
-      { id: 'st_header', icon: '🗿', name: 'Kopfballungeheuer', text: '+8 % Torchance, +0,1 Note', cost: 1, tier: 1, mods: { goal: 1.08, rating: 0.1 } },
-      { id: 'st_poacher', icon: '🦊', name: 'Abstauber', text: '+10 % Torchance', cost: 2, tier: 2, mods: { goal: 1.1 } },
-      { id: 'st_clinical', icon: '🧊', name: 'Eiskalt', text: '+0,3 Note in Pokal, Europapokal und Finals', cost: 2, tier: 2, mods: { bigGame: 0.3 } },
-      { id: 'st_complete', icon: '⭐', name: 'Kompletter Stürmer', text: '+1 Gesamtwertung, +5 % Vorlagen', cost: 3, tier: 3, ovr: 1, mods: { assist: 1.05 } },
-      { id: 'st_legend', icon: '👑', name: 'Torjägerkanone', text: '+15 % Torchance', cost: 3, tier: 3, mods: { goal: 1.15 } },
-      { id: 'st_volley', icon: '💥', name: 'Volleykünstler', text: '+15 % Torchance, +0,15 Note', cost: 4, tier: 4, mods: { goal: 1.15, rating: 0.15 } },
-      { id: 'st_penalty', icon: '🥅', name: 'Elfmeterschütze', text: '+10 % Torchance, +0,4 Note in großen Spielen', cost: 4, tier: 4, mods: { goal: 1.1, bigGame: 0.4 } },
-      { id: 'st_world', icon: '🌍', name: 'Weltklasse-Stürmer', text: '+2 Gesamtwertung, +10 % Torchance', cost: 5, tier: 5, ovr: 2, mods: { goal: 1.1 } },
-      { id: 'st_box', icon: '📦', name: 'Strafraumkönig', text: '+20 % Torchance, +0,2 Note', cost: 5, tier: 5, mods: { goal: 1.2, rating: 0.2 } },
-      { id: 'st_master', icon: '👹', name: 'Killerinstinkt', text: '+25 % Torchance, +0,2 Note, +0,5 Note in großen Spielen, +2 Gesamtwertung', cost: 9, tier: 7, ovr: 2, mods: { goal: 1.25, rating: 0.2, bigGame: 0.5 } },
-    ],
-  },
-  {
-    id: 'playmaker', icon: '🎩', name: 'Spielmacher', text: 'Sieht Pässe, die sonst keiner sieht.',
-    positions: ['ZM', 'ZOM', 'FL', 'ZDM'],
-    branches: ['Regie', 'Standards & Pässe'],
-    skills: [
-      { id: 'pm_vision', icon: '👁️', name: 'Spielübersicht', text: '+12 % Vorlagen', cost: 1, tier: 1, mods: { assist: 1.12 } },
-      { id: 'pm_setpiece', icon: '🌀', name: 'Standardspezialist', text: '+6 % Tore, +6 % Vorlagen', cost: 1, tier: 1, mods: { goal: 1.06, assist: 1.06 } },
-      { id: 'pm_tempo', icon: '🎼', name: 'Taktgeber', text: '+0,15 Note, mehr Einsätze', cost: 2, tier: 2, mods: { rating: 0.15, selection: 0.5 } },
-      { id: 'pm_killer', icon: '🗡️', name: 'Tödlicher Pass', text: '+12 % Vorlagen', cost: 2, tier: 2, mods: { assist: 1.12 } },
-      { id: 'pm_maestro', icon: '⭐', name: 'Maestro', text: '+1 Gesamtwertung, +0,1 Note', cost: 3, tier: 3, ovr: 1, mods: { rating: 0.1 } },
-      { id: 'pm_bigstage', icon: '🎭', name: 'Große Bühne', text: '+0,4 Note in Pokal, Europapokal und Finals', cost: 3, tier: 3, mods: { bigGame: 0.4 } },
-      { id: 'pm_conductor', icon: '🎻', name: 'Dirigent', text: '+0,25 Note, mehr Einsätze', cost: 4, tier: 4, mods: { rating: 0.25, selection: 0.5 } },
-      { id: 'pm_freekick', icon: '🎯', name: 'Freistoßgott', text: '+12 % Tore, +12 % Vorlagen', cost: 4, tier: 4, mods: { goal: 1.12, assist: 1.12 } },
-      { id: 'pm_world', icon: '🌍', name: 'Weltklasse-Regisseur', text: '+2 Gesamtwertung, +0,1 Note', cost: 5, tier: 5, ovr: 2, mods: { rating: 0.1 } },
-      { id: 'pm_assistking', icon: '🅰️', name: 'Vorlagenkönig', text: '+25 % Vorlagen', cost: 5, tier: 5, mods: { assist: 1.25 } },
-      { id: 'pm_master', icon: '🧠', name: 'Genie', text: '+25 % Vorlagen, +10 % Tore, +0,3 Note, +2 Gesamtwertung', cost: 9, tier: 7, ovr: 2, mods: { assist: 1.25, goal: 1.1, rating: 0.3 } },
-    ],
-  },
-  {
-    id: 'winger', icon: '⚡', name: 'Flügelflitzer', text: 'Tempo, Tricks und Flanken.',
-    positions: ['FL', 'AV', 'ST', 'ZOM'],
-    branches: ['Tempo', 'Technik'],
-    skills: [
-      { id: 'wi_pace', icon: '💨', name: 'Turbo', text: '+6 % Tore, +6 % Vorlagen', cost: 1, tier: 1, mods: { goal: 1.06, assist: 1.06 } },
-      { id: 'wi_cross', icon: '🎯', name: 'Flankengott', text: '+12 % Vorlagen', cost: 1, tier: 1, mods: { assist: 1.12 } },
-      { id: 'wi_trick', icon: '🪄', name: 'Trickkiste', text: '+0,15 Note', cost: 2, tier: 2, mods: { rating: 0.15 } },
-      { id: 'wi_cutin', icon: '↩️', name: 'Nach innen ziehen', text: '+10 % Tore', cost: 2, tier: 2, mods: { goal: 1.1 } },
-      { id: 'wi_flair', icon: '⭐', name: 'Straßenfußballer', text: '+1 Gesamtwertung, +0,2 Note in großen Spielen', cost: 3, tier: 3, ovr: 1, mods: { bigGame: 0.2 } },
-      { id: 'wi_engine', icon: '🫀', name: 'Unermüdlich', text: '−20 % Verletzungsrisiko, mehr Einsätze', cost: 3, tier: 3, mods: { injury: 0.8, selection: 0.5 } },
-      { id: 'wi_rocket', icon: '🚀', name: 'Rakete', text: '+12 % Tore, +12 % Vorlagen', cost: 4, tier: 4, mods: { goal: 1.12, assist: 1.12 } },
-      { id: 'wi_skill', icon: '🎪', name: 'Skill-Moves', text: '+0,25 Note, +0,2 Note in großen Spielen', cost: 4, tier: 4, mods: { rating: 0.25, bigGame: 0.2 } },
-      { id: 'wi_world', icon: '🌍', name: 'Weltklasse-Flügel', text: '+2 Gesamtwertung, −15 % Verletzungsrisiko', cost: 5, tier: 5, ovr: 2, mods: { injury: 0.85 } },
-      { id: 'wi_magic', icon: '✨', name: 'Zauberfuß', text: '+15 % Tore, +15 % Vorlagen', cost: 5, tier: 5, mods: { goal: 1.15, assist: 1.15 } },
-      { id: 'wi_master', icon: '🌪️', name: 'Unaufhaltsam', text: '+15 % Tore, +20 % Vorlagen, +0,2 Note, +2 Gesamtwertung', cost: 9, tier: 7, ovr: 2, mods: { goal: 1.15, assist: 1.2, rating: 0.2 } },
-    ],
-  },
-  {
-    id: 'engine', icon: '🔋', name: 'Box-to-Box', text: 'Überall auf dem Platz: Zweikämpfe, Läufe, Tore.',
-    positions: ['ZM', 'ZDM', 'ZOM', 'AV'],
-    branches: ['Laufwunder', 'Zweikampf & Kopf'],
-    skills: [
-      { id: 'bb_stamina', icon: '🔋', name: 'Ausdauer', text: '−15 % Verletzungsrisiko', cost: 1, tier: 1, mods: { injury: 0.85 } },
-      { id: 'bb_tackle', icon: '🦵', name: 'Zweikampfmonster', text: '+0,15 Note', cost: 1, tier: 1, mods: { rating: 0.15 } },
-      { id: 'bb_late', icon: '🏃', name: 'Später Lauf', text: '+12 % Tore', cost: 2, tier: 2, mods: { goal: 1.12 } },
-      { id: 'bb_leader', icon: '🦁', name: 'Mentalitätsmonster', text: 'Deutlich mehr Einsätze, +0,1 Note', cost: 2, tier: 2, mods: { selection: 1, rating: 0.1 } },
-      { id: 'bb_complete', icon: '⭐', name: 'Kompletter Mittelfeldspieler', text: '+1 Gesamtwertung, +6 % Vorlagen', cost: 3, tier: 3, ovr: 1, mods: { assist: 1.06 } },
-      { id: 'bb_pro', icon: '🎯', name: 'Ewiger Motor', text: '−20 % Leistungsabbau ab 30', cost: 3, tier: 3, mods: { decline: 0.8 } },
-      { id: 'bb_lungs', icon: '🫁', name: 'Drei Lungen', text: '−20 % Verletzungsrisiko, −15 % Leistungsabbau ab 30', cost: 4, tier: 4, mods: { injury: 0.8, decline: 0.85 } },
-      { id: 'bb_captain', icon: '©️', name: 'Kapitän', text: '+0,25 Note, deutlich mehr Einsätze', cost: 4, tier: 4, mods: { rating: 0.25, selection: 1 } },
-      { id: 'bb_world', icon: '🌍', name: 'Weltklasse-Achter', text: '+2 Gesamtwertung, +10 % Tore', cost: 5, tier: 5, ovr: 2, mods: { goal: 1.1 } },
-      { id: 'bb_warrior', icon: '⚔️', name: 'Krieger', text: '+0,15 Note, +0,3 Note in großen Spielen', cost: 5, tier: 5, mods: { rating: 0.15, bigGame: 0.3 } },
-      { id: 'bb_master', icon: '♾️', name: 'Überall', text: '+0,3 Note, +12 % Tore, +12 % Vorlagen, −20 % Verletzungen, +2 Gesamtwertung', cost: 9, tier: 7, ovr: 2, mods: { rating: 0.3, goal: 1.12, assist: 1.12, injury: 0.8 } },
-    ],
-  },
-  {
-    id: 'rock', icon: '🧱', name: 'Abwehrchef', text: 'Hält hinten den Laden zusammen.',
-    positions: ['IV', 'AV', 'ZDM'],
-    branches: ['Verteidigen', 'Führung'],
-    skills: [
-      { id: 'ro_position', icon: '📐', name: 'Stellungsspiel', text: '+0,2 Note bei Spielen zu null', cost: 1, tier: 1, mods: { cleanSheet: 0.2 } },
-      { id: 'ro_air', icon: '🗿', name: 'Lufthoheit', text: '+0,1 Note, +10 % Tore (Standards)', cost: 1, tier: 1, mods: { rating: 0.1, goal: 1.1 } },
-      { id: 'ro_tackle', icon: '🛑', name: 'Grätschenkönig', text: '+0,15 Note', cost: 2, tier: 2, mods: { rating: 0.15 } },
-      { id: 'ro_boss', icon: '📣', name: 'Lautsprecher', text: 'Deutlich mehr Einsätze', cost: 2, tier: 2, mods: { selection: 1.2 } },
-      { id: 'ro_wall', icon: '⭐', name: 'Bollwerk', text: '+1 Gesamtwertung, +0,2 Note bei Spielen zu null', cost: 3, tier: 3, ovr: 1, mods: { cleanSheet: 0.2 } },
-      { id: 'ro_vet', icon: '🎯', name: 'Routinier', text: '−25 % Leistungsabbau ab 30', cost: 3, tier: 3, mods: { decline: 0.75 } },
-      { id: 'ro_reader', icon: '📖', name: 'Spielleser', text: '+0,1 Note, +0,3 Note bei Spielen zu null', cost: 4, tier: 4, mods: { rating: 0.1, cleanSheet: 0.3 } },
-      { id: 'ro_general', icon: '🎖️', name: 'Abwehrgeneral', text: '+0,2 Note, deutlich mehr Einsätze', cost: 4, tier: 4, mods: { rating: 0.2, selection: 1 } },
-      { id: 'ro_world', icon: '🌍', name: 'Weltklasse-Verteidiger', text: '+2 Gesamtwertung, +0,2 Note bei Spielen zu null', cost: 5, tier: 5, ovr: 2, mods: { cleanSheet: 0.2 } },
-      { id: 'ro_eternal', icon: '🗽', name: 'Unverwüstlich', text: '−30 % Leistungsabbau ab 30, −20 % Verletzungsrisiko', cost: 5, tier: 5, mods: { decline: 0.7, injury: 0.8 } },
-      { id: 'ro_master', icon: '🏰', name: 'Die Mauer', text: '+0,25 Note, +0,5 Note bei Spielen zu null, +0,3 Note in großen Spielen, +2 Gesamtwertung', cost: 9, tier: 7, ovr: 2, mods: { rating: 0.25, cleanSheet: 0.5, bigGame: 0.3 } },
-    ],
-  },
-  {
-    id: 'keeper', icon: '🧤', name: 'Torwand', text: 'Reflexe, Ausstrahlung und Nerven aus Stahl.',
-    positions: ['TW'],
-    branches: ['Reflexe', 'Ausstrahlung'],
-    skills: [
-      { id: 'kp_reflex', icon: '⚡', name: 'Katzenreflexe', text: '+0,15 Note', cost: 1, tier: 1, mods: { rating: 0.15 } },
-      { id: 'kp_box', icon: '✋', name: 'Strafraumbeherrschung', text: '+0,2 Note bei Spielen zu null', cost: 1, tier: 1, mods: { cleanSheet: 0.2 } },
-      { id: 'kp_pen', icon: '🧊', name: 'Elfmeterkiller', text: '+0,4 Note in Pokal, Europapokal und Finals', cost: 2, tier: 2, mods: { bigGame: 0.4 } },
-      { id: 'kp_sweeper', icon: '🧹', name: 'Mitspielender Torwart', text: '+0,1 Note, mehr Einsätze', cost: 2, tier: 2, mods: { rating: 0.1, selection: 0.8 } },
-      { id: 'kp_wall', icon: '⭐', name: 'Die Wand', text: '+1 Gesamtwertung', cost: 3, tier: 3, ovr: 1 },
-      { id: 'kp_old', icon: '🍷', name: 'Wie guter Wein', text: '−30 % Leistungsabbau ab 30', cost: 3, tier: 3, mods: { decline: 0.7 } },
-      { id: 'kp_cat', icon: '🐈', name: 'Katze', text: '+0,25 Note', cost: 4, tier: 4, mods: { rating: 0.25 } },
-      { id: 'kp_leader', icon: '📢', name: 'Organisator', text: '+0,3 Note bei Spielen zu null, mehr Einsätze', cost: 4, tier: 4, mods: { cleanSheet: 0.3, selection: 0.8 } },
-      { id: 'kp_world', icon: '🌍', name: 'Weltklasse-Keeper', text: '+2 Gesamtwertung, +0,1 Note', cost: 5, tier: 5, ovr: 2, mods: { rating: 0.1 } },
-      { id: 'kp_penhero', icon: '🧤', name: 'Elfmeterheld', text: '+0,5 Note in großen Spielen, +0,2 Note bei Spielen zu null', cost: 5, tier: 5, mods: { bigGame: 0.5, cleanSheet: 0.2 } },
-      { id: 'kp_master', icon: '🦸', name: 'Unbezwingbar', text: '+0,3 Note, +0,5 Note in großen Spielen, +0,3 Note bei Spielen zu null, +2 Gesamtwertung', cost: 9, tier: 7, ovr: 2, mods: { rating: 0.3, bigGame: 0.5, cleanSheet: 0.3 } },
-    ],
-  },
+export const DIRS: Dir[] = ['g', 'c', 'a', 'm'];
+export const DIR_NAME: Record<Dir, string> = { g: 'Torgefahr', c: 'Kreativität', a: 'Athletik', m: 'Mentalität' };
+export const DIR_ICON: Record<Dir, string> = { g: 'target', c: 'link', a: 'bolt', m: 'brain' };
+/** Winkel der Richtungen (Grad, 0 = rechts, im Uhrzeigersinn): Torgefahr oben. */
+const DIR_ANGLE: Record<Dir, number> = { g: -90, c: 0, a: 90, m: 180 };
+/** Abstand zweier Richtungen: 0 gleich, 1 Nachbar, 2 gegenüber. */
+export const dirDistance = (a: Dir, b: Dir) => { const d = Math.abs(DIRS.indexOf(a) - DIRS.indexOf(b)); return Math.min(d, 4 - d); };
+
+export const ARCHETYPES: Archetype[] = [
+  { id: 'striker', icon: 'target', name: 'Torjäger', text: 'Lebt für Tore: Abschluss, Kopfball, eiskalt vor dem Kasten.', positions: ['ST', 'FL', 'ZOM'], home: 'g' },
+  { id: 'playmaker', icon: 'eye', name: 'Spielmacher', text: 'Sieht Pässe, die sonst keiner sieht.', positions: ['ZM', 'ZOM', 'FL', 'ZDM'], home: 'c' },
+  { id: 'winger', icon: 'bolt', name: 'Flügelflitzer', text: 'Tempo, Tricks und Flanken.', positions: ['FL', 'AV', 'ST', 'ZOM'], home: 'c' },
+  { id: 'engine', icon: 'heart', name: 'Box-to-Box', text: 'Überall auf dem Platz: Zweikämpfe, Läufe, Tore.', positions: ['ZM', 'ZDM', 'ZOM', 'AV'], home: 'a' },
+  { id: 'rock', icon: 'shield', name: 'Abwehrchef', text: 'Hält hinten den Laden zusammen.', positions: ['IV', 'AV', 'ZDM'], home: 'm' },
+  { id: 'keeper', icon: 'pillars', name: 'Torwand', text: 'Reflexe, Ausstrahlung und Nerven aus Stahl.', positions: ['TW'], home: 'm' },
 ];
 
-export const MASTER_TIER = 7;
-export const isMaster = (s: Pick<Skill, 'tier'>) => s.tier === MASTER_TIER;
-/** Höchste Stufe in einem Zweig (vor dem Meisterstück). */
-export const TOP_TIER = 6;
-
-// ---------- Verlängerung und Verästelung ----------
-// Jeder Ast gabelt sich ab Stufe 3 in zwei Zweige; jeder Zweig geht bis Stufe 6.
-// Zweig 1 = die bisherigen Fähigkeiten (Stufe 3–5) + eine neue Stufe 6, Zweig 2 = komplett neu (Stufe 3–6).
 type M = Partial<SkillMods>;
-type X = [id: string, icon: string, name: string, mods: M, ovr?: number];
-interface Extension { twigs: [[string, string], [string, string]]; a1: X; a2: [X, X, X, X]; b1: X; b2: [X, X, X, X] }
+/** [id, Icon, Name, Wirkung, Art, Wertung] – je Richtung: Ring 1 (3), Ring 2 (5), Ring 3 (5), Ring 4 (2). */
+type Def = [id: string, icon: string, name: string, mods: M, kind?: NodeKind, ovr?: number];
+const TREE: Record<Dir, [Def[], Def[], Def[], Def[]]> = {
+  g: [
+    [['g1a', 'target', 'Abschluss', { goal: 1.06 }], ['g1b', 'ball', 'Kopfball', { goal: 1.04, rating: 0.05 }], ['g1c', 'boot', 'Schusskraft', { goal: 1.05 }]],
+    [['g2a', 'eye', 'Abstauber', { goal: 1.07 }], ['g2b', 'ball', 'Erster Kontakt', { goal: 1.04, assist: 1.03 }], ['g2c', 'spark', 'Finesse-Schuss', { goal: 1.08, rating: 0.1 }, 'style'],
+      ['g2d', 'target', 'Strafraumpräsenz', { goal: 1.06, rating: 0.05 }], ['g2e', 'flag', 'Elfmeterschütze', { goal: 1.05, bigGame: 0.15 }]],
+    [['g3a', 'snow', 'Eiskalt', { goal: 1.08, bigGame: 0.15 }], ['g3b', 'star', 'Weltklasse-Abschluss', { goal: 1.04 }, 'star', 1], ['g3c', 'rewind', 'Joker', { subGoal: 1.8, selection: 0.3 }, 'style'],
+      ['g3d', 'fire', 'Volley', { goal: 1.08, rating: 0.1 }], ['g3e', 'target', 'Torriecher', { goal: 1.1 }]],
+    [['g4a', 'crown', 'Hattrick-Jäger', { hattrick: 2.2, goal: 1.05 }, 'ult'], ['g4b', 'clock', 'Last-Minute-Held', { late: 0.1, bigGame: 0.1 }, 'ult']],
+  ],
+  c: [
+    [['c1a', 'link', 'Passgenauigkeit', { assist: 1.06 }], ['c1b', 'eye', 'Übersicht', { assist: 1.04, rating: 0.05 }], ['c1c', 'spark', 'Ballkontrolle', { rating: 0.08 }]],
+    [['c2a', 'wave', 'Flanken', { assist: 1.07 }], ['c2b', 'swap', 'Doppelpass', { assist: 1.04, goal: 1.03 }], ['c2c', 'spark', 'Zauberpass', { assist: 1.12, rating: 0.1 }, 'style'],
+      ['c2d', 'flag', 'Standards', { assist: 1.05, goal: 1.03 }], ['c2e', 'brain', 'Spielwitz', { rating: 0.1, assist: 1.03 }]],
+    [['c3a', 'bolt', 'Tödlicher Pass', { assist: 1.1 }], ['c3b', 'star', 'Weltklasse-Technik', { rating: 0.05 }, 'star', 1], ['c3c', 'music', 'Taktgeber', { team: 1.2, rating: 0.1 }, 'style'],
+      ['c3d', 'rise', 'Tempowechsel', { assist: 1.06, goal: 1.04 }], ['c3e', 'target', 'Freistoßkunst', { goal: 1.05, assist: 1.05, bigGame: 0.1 }]],
+    [['c4a', 'crown', 'Spielgestalter', { team: 2.5, assist: 1.06 }, 'ult'], ['c4b', 'spark', 'Traumpass', { assist: 1.3, rating: 0.1 }, 'ult']],
+  ],
+  a: [
+    [['a1a', 'heart', 'Ausdauer', { injury: 0.93, fullGame: 0.05 }], ['a1b', 'bolt', 'Antritt', { goal: 1.03, assist: 1.03 }], ['a1c', 'shield', 'Kraft', { rating: 0.05, injury: 0.95 }]],
+    [['a2a', 'plus', 'Regeneration', { injury: 0.9 }], ['a2b', 'evo', 'Extraschichten', { growth: 1.06 }], ['a2c', 'shield', 'Eisenmann', { injury: 0.7, fullGame: 0.2, selection: 0.4 }, 'style'],
+      ['a2d', 'rocket', 'Sprintstärke', { goal: 1.04, assist: 1.04 }], ['a2e', 'duel', 'Zweikampf', { rating: 0.08, cleanSheet: 0.1 }]],
+    [['a3a', 'sun', 'Profi-Lebensstil', { decline: 0.88 }], ['a3b', 'star', 'Athletik-Monster', { injury: 0.95 }, 'star', 1], ['a3c', 'rocket', 'Turbo', { goal: 1.06, assist: 1.06, rating: 0.1, fullGame: 0.1 }, 'style'],
+      ['a3d', 'rise', 'Talentschmiede', { growth: 1.08 }], ['a3e', 'infinity', 'Dauerläufer', { selection: 0.5, injury: 0.92 }]],
+    [['a4a', 'shield', 'Unzerstörbar', { injury: 0.45, fullGame: 0.25 }, 'ult'], ['a4b', 'clock', 'Ewige Jugend', { decline: 0.6, growth: 1.1 }, 'ult']],
+  ],
+  m: [
+    [['m1a', 'moon', 'Ruhe am Ball', { rating: 0.06 }], ['m1b', 'trophy', 'Siegeswille', { bigGame: 0.12 }], ['m1c', 'handshake', 'Trainerliebling', { selection: 0.5 }]],
+    [['m2a', 'tactics', 'Organisation', { cleanSheet: 0.15, rating: 0.04 }], ['m2b', 'brain', 'Mentaltrainer', { rating: 0.08, selection: 0.3 }], ['m2c', 'flag', 'Kapitän', { team: 1.5, selection: 0.5 }, 'style'],
+      ['m2d', 'heart', 'Nervenstark', { bigGame: 0.18 }], ['m2e', 'eye', 'Antizipation', { cleanSheet: 0.12, rating: 0.05 }]],
+    [['m3a', 'medal', 'Leader', { rating: 0.12, selection: 0.4 }], ['m3b', 'star', 'Weltklasse-Mentalität', { rating: 0.05 }, 'star', 1], ['m3c', 'pillars', 'Mauer', { oppDown: 1.5, cleanSheet: 0.2 }, 'style'],
+      ['m3d', 'stadium', 'Big-Game-Player', { bigGame: 0.25 }], ['m3e', 'target', 'Konzentration', { cleanSheet: 0.18, rating: 0.06 }]],
+    [['m4a', 'trophy', 'Mr. Finale', { cupTeam: 3, bigGame: 0.35 }, 'ult'], ['m4b', 'shield', 'Die Wand', { oppDown: 2.5, cleanSheet: 0.4 }, 'ult']],
+  ],
+};
 
-/** Text aus den Werten (für die neuen Fähigkeiten). */
+/** Besondere Wirkungen in Worten (für Spielstile und Ultimative). */
+const SPECIAL: Record<string, string> = {
+  g2c: 'Tore aus der Distanz – +8 % Torchance, +0,1 Note',
+  g3c: 'Als Einwechselspieler fast doppelt so torgefährlich, mehr Einsätze',
+  g4a: 'Nach zwei Toren in einem Spiel ist die Torchance mehr als doppelt so hoch – Hattricks werden gefeiert',
+  g4b: 'Steht es remis oder knapp gegen dich, triffst du öfter in der Nachspielzeit – das Ergebnis dreht sich',
+  c3c: 'Dein Team spielt stärker, solange du auf dem Platz stehst (+1,2 Stärke)',
+  c4a: 'Dein Team spielt deutlich stärker, solange du auf dem Platz stehst (+2,5 Stärke)',
+  a2c: '−30 % Verletzungsrisiko, öfter 90 Minuten, mehr Einsätze',
+  m2c: 'Du führst das Team: +1,5 Stärke, solange du spielst, mehr Einsätze',
+  m3c: 'Der Gegner trifft schwerer (−1,5 Angriff), +0,2 Note bei Spielen zu null',
+  m4a: 'In Pokal, Europapokal und Finals spielt dein Team +3 stärker, +0,35 Note',
+  m4b: 'Der Gegner trifft viel schwerer (−2,5 Angriff), +0,4 Note bei Spielen zu null',
+};
+
+/** Text aus den Werten. */
 export function describe(mods: M = {}, ovr = 0): string {
   const pct = (v: number) => `${v > 1 ? '+' : '−'}${Math.round(Math.abs(v - 1) * 100)} %`;
   const dec = (v: number) => `+${String(Math.round(v * 100) / 100).replace('.', ',')}`;
@@ -199,109 +161,114 @@ export function describe(mods: M = {}, ovr = 0): string {
   if (mods.injury) out.push(`${pct(mods.injury)} Verletzungsrisiko`);
   if (mods.decline) out.push(`${pct(mods.decline)} Abbau ab 30`);
   if (mods.growth) out.push(`${pct(mods.growth)} Entwicklung`);
+  if (mods.fullGame) out.push('öfter 90 Minuten');
   return out.join(', ');
 }
 
-const EXTENSIONS: Record<ArchetypeId, Extension> = {
-  striker: {
-    twigs: [['Allrounder', 'Distanzschütze'], ['Knipser', 'Zielspieler']],
-    a1: ['st_ballon', '🏆', 'Ballon-d’Or-Anwärter', { goal: 1.08, rating: 0.15 }, 1],
-    a2: [['st_long', '🎯', 'Fernschuss', { goal: 1.1 }], ['st_hammer', '🔨', 'Hammer', { goal: 1.1, rating: 0.1 }],
-      ['st_sunday', '🌈', 'Sonntagsschuss', { goal: 1.12, bigGame: 0.2 }], ['st_rocketfoot', '🚀', 'Raketenfuß', { goal: 1.15, rating: 0.15 }]],
-    b1: ['st_machine', '🏭', 'Torfabrik', { goal: 1.15, bigGame: 0.2 }],
-    b2: [['st_wall', '🧱', 'Wandspieler', { assist: 1.1, rating: 0.1 }], ['st_breaker', '🐂', 'Brecher', { goal: 1.08, selection: 0.5 }],
-      ['st_tower', '🗼', 'Turm in der Schlacht', { rating: 0.2, bigGame: 0.2 }], ['st_cult', '🔥', 'Kultstürmer', { goal: 1.1, assist: 1.1, selection: 0.5 }]],
-  },
-  playmaker: {
-    twigs: [['Taktgeber', 'Tempospiel'], ['Standards', 'Distanz']],
-    a1: ['pm_iq', '🧩', 'Spielintelligenz', { rating: 0.2 }, 1],
-    a2: [['pm_counter', '⚡', 'Konterpass', { assist: 1.1 }], ['pm_vertical', '⬆️', 'Vertikalpass', { assist: 1.08, goal: 1.05 }],
-      ['pm_switch', '🔄', 'Umschaltspieler', { assist: 1.12, rating: 0.1 }], ['pm_hub', '🕸️', 'Ballverteiler', { assist: 1.15, selection: 0.5 }]],
-    b1: ['pm_corner', '🚩', 'Ecken-Künstler', { assist: 1.12, goal: 1.06 }],
-    b2: [['pm_shot', '🎯', 'Weitschuss', { goal: 1.1 }], ['pm_chip', '🪶', 'Chipball', { goal: 1.06, assist: 1.06, rating: 0.1 }],
-      ['pm_monthly', '📺', 'Tor des Monats', { goal: 1.12, bigGame: 0.2 }], ['pm_oldten', '🔟', 'Zehner alter Schule', { goal: 1.1, assist: 1.1, rating: 0.1 }]],
-  },
-  winger: {
-    twigs: [['Explosiv', 'Ausdauer'], ['Zauber', 'Effizienz']],
-    a1: ['wi_sprint', '🏁', 'Sprintkönig', { goal: 1.1, assist: 1.1, injury: 0.9 }, 1],
-    a2: [['wi_shuttle', '🔁', 'Pendler', { selection: 0.5, rating: 0.1 }], ['wi_line', '📏', 'Linienläufer', { assist: 1.1, injury: 0.9 }],
-      ['wi_motor', '⚙️', 'Flügelmotor', { assist: 1.12, rating: 0.1 }], ['wi_marathon', '🏃', 'Dauerbrenner', { decline: 0.85, injury: 0.85 }]],
-    b1: ['wi_show', '🎆', 'Showtime', { rating: 0.2, bigGame: 0.3 }],
-    b2: [['wi_precise', '📍', 'Präziser Abschluss', { goal: 1.1 }], ['wi_farpost', '🥅', 'Zweiter Pfosten', { goal: 1.1, assist: 1.05 }],
-      ['wi_wingscorer', '🎯', 'Torjäger vom Flügel', { goal: 1.15 }], ['wi_inverted', '↪️', 'Inverser Flügel', { goal: 1.12, rating: 0.15 }]],
-  },
-  engine: {
-    twigs: [['Allrounder', 'Pressing'], ['Führung', 'Torgefahr']],
-    a1: ['bb_heart', '❤️', 'Herz des Teams', { rating: 0.15, selection: 0.8 }, 1],
-    a2: [['bb_press', '🐺', 'Gegenpresser', { rating: 0.1, injury: 0.95 }], ['bb_win', '🪝', 'Balleroberer', { rating: 0.15 }],
-      ['bb_pressmachine', '🏭', 'Pressingmaschine', { rating: 0.15, selection: 0.5 }], ['bb_hunter', '🎯', 'Jäger', { rating: 0.2, bigGame: 0.2 }]],
-    b1: ['bb_icon', '🏛️', 'Vereinsikone', { selection: 1, decline: 0.85 }],
-    b2: [['bb_crash', '💥', 'Box-Crasher', { goal: 1.1 }], ['bb_second', '🥈', 'Aus der zweiten Reihe', { goal: 1.1, assist: 1.05 }],
-      ['bb_midscorer', '⚽', 'Torjäger aus dem Mittelfeld', { goal: 1.12, rating: 0.1 }], ['bb_wave', '🌊', 'Zweite Welle', { goal: 1.15, bigGame: 0.2 }]],
-  },
-  rock: {
-    twigs: [['Ausputzer', 'Aufbau'], ['Erfahrung', 'Standards']],
-    a1: ['ro_impassable', '⛔', 'Unpassierbar', { cleanSheet: 0.3, rating: 0.1 }, 1],
-    a2: [['ro_opener', '🗝️', 'Spieleröffner', { assist: 1.1, rating: 0.05 }], ['ro_libero', '🧭', 'Libero', { assist: 1.1, rating: 0.1 }],
-      ['ro_vertical', '⬆️', 'Vertikalverteidiger', { assist: 1.12, goal: 1.05 }], ['ro_strategist', '♟️', 'Abwehrstratege', { rating: 0.2, selection: 0.5 }]],
-    b1: ['ro_captain', '©️', 'Ewiger Kapitän', { decline: 0.8, selection: 0.8 }],
-    b2: [['ro_headgoal', '🗿', 'Kopfballtor', { goal: 1.12 }], ['ro_corner', '🚩', 'Eckball-Monster', { goal: 1.12, rating: 0.1 }],
-      ['ro_scorer', '⚽', 'Torjäger-Verteidiger', { goal: 1.15 }], ['ro_air2', '🦅', 'Herr der Lüfte', { goal: 1.1, bigGame: 0.2, rating: 0.1 }]],
-  },
-  keeper: {
-    twigs: [['Reaktion', 'Mitspieler'], ['Präsenz', 'Elfmeter']],
-    a1: ['kp_dive', '🪽', 'Flugeinlage', { rating: 0.2, bigGame: 0.2 }, 1],
-    a2: [['kp_feet', '🦶', 'Ruhiger Fuß', { rating: 0.1, selection: 0.5 }], ['kp_throw', '🎳', 'Abwurf-Konter', { assist: 1.15, rating: 0.05 }],
-      ['kp_libero', '🧹', 'Libero-Keeper', { rating: 0.15, selection: 0.5 }], ['kp_assist', '🅰️', 'Torwart-Assist', { assist: 1.25, rating: 0.1 }]],
-    b1: ['kp_legend', '🏛️', 'Legende im Kasten', { decline: 0.8, cleanSheet: 0.2 }],
-    b2: [['kp_mind', '🧠', 'Psychospiel', { bigGame: 0.2 }], ['kp_read', '👃', 'Richtiger Riecher', { bigGame: 0.25, rating: 0.05 }],
-      ['kp_oracle', '🔮', 'Elfmeter-Orakel', { bigGame: 0.3, cleanSheet: 0.1 }], ['kp_shootout', '🦸', 'Shootout-Held', { bigGame: 0.4 }]],
-  },
+const RADIUS = [0, 1.15, 2.2, 3.25, 4.3];
+const SPREAD = [0, 26, 17, 17, 24];
+const BASE_COST = [0, 1, 2, 3, 6];
+
+/** Alle 60 Knoten mit Position. */
+export const NODES: Skill[] = DIRS.flatMap((dir) =>
+  TREE[dir].flatMap((ring, ri) => ring.map(([id, icon, name, mods, kind = 'stat', ovr], i) => {
+    const r = (ri + 1) as 1 | 2 | 3 | 4;
+    const ang = ((DIR_ANGLE[dir] + (i - (ring.length - 1) / 2) * SPREAD[r]) * Math.PI) / 180;
+    return {
+      id, icon, name, dir, ring: r, kind, mods, cost: BASE_COST[r],
+      text: SPECIAL[id] ?? describe(mods, ovr),
+      ...(ovr ? { ovr } : {}),
+      x: Math.round(Math.cos(ang) * RADIUS[r] * 1000) / 1000,
+      y: Math.round(Math.sin(ang) * RADIUS[r] * 1000) / 1000,
+    } satisfies Skill;
+  })),
+);
+const BY_ID = new Map(NODES.map((n) => [n.id, n]));
+export const nodeById = (id: string) => BY_ID.get(id);
+export const STYLE_SLOTS = 3;
+export const CORE = 'core';
+
+const angleOf = (n: Skill) => Math.atan2(n.y, n.x);
+const angDiff = (a: number, b: number) => { const d = Math.abs(a - b) % (2 * Math.PI); return d > Math.PI ? 2 * Math.PI - d : d; };
+
+/** Verbindungen: Mitte ↔ Ring 1; jeder Knoten ↔ nächster Knoten im Ring davor (bei Gleichstand beide);
+ * Ring 3 seitlich vernetzt; am Rand von Ring 2 und 3 Brücken zur Nachbar-Richtung – so kann man mischen. */
+export const EDGES: [string, string][] = (() => {
+  const out: [string, string][] = [];
+  for (const n of NODES) {
+    if (n.ring === 1) { out.push([CORE, n.id]); continue; }
+    const inner = NODES.filter((x) => x.dir === n.dir && x.ring === n.ring - 1);
+    const dists = inner.map((x) => angDiff(angleOf(x), angleOf(n)));
+    const min = Math.min(...dists);
+    inner.forEach((x, i) => { if (dists[i] <= min + 0.02) out.push([x.id, n.id]); });
+  }
+  // Ring 3 ist seitlich vernetzt: dort kann man innerhalb einer Richtung wandern.
+  for (const d of DIRS) {
+    const r3 = NODES.filter((n) => n.dir === d && n.ring === 3);
+    r3.slice(1).forEach((n, i) => out.push([r3[i].id, n.id]));
+  }
+  for (const ring of [2, 3] as const) {
+    DIRS.forEach((d, i) => {
+      const next = DIRS[(i + 1) % 4];
+      const a = NODES.filter((n) => n.dir === d && n.ring === ring);
+      const b = NODES.filter((n) => n.dir === next && n.ring === ring);
+      out.push([a[a.length - 1].id, b[0].id]);
+    });
+  }
+  return out;
+})();
+const NEIGHBORS = new Map<string, string[]>();
+for (const [a, b] of EDGES) {
+  NEIGHBORS.set(a, [...(NEIGHBORS.get(a) ?? []), b]);
+  NEIGHBORS.set(b, [...(NEIGHBORS.get(b) ?? []), a]);
+}
+export const neighborsOf = (id: string) => NEIGHBORS.get(id) ?? [];
+
+// ---------- Meilensteine: Der äußere Bereich jeder Richtung öffnet sich erst durch Erfolge ----------
+export const GATE_LEVEL = 25;
+type Totals = { goals: number; assists: number; apps: number; titles: number };
+export const MILESTONE: Record<Dir, { stat: keyof Totals; need: number; word: string }> = {
+  g: { stat: 'goals', need: 40, word: 'Karrieretore' },
+  c: { stat: 'assists', need: 30, word: 'Karrierevorlagen' },
+  a: { stat: 'apps', need: 120, word: 'Karriereeinsätze' },
+  m: { stat: 'titles', need: 2, word: 'Titel' },
 };
-const COST: Record<number, number> = { 3: 3, 4: 4, 5: 5, 6: 6 };
-const extSkill = ([id, icon, name, mods, ovr]: X, tier: 3 | 4 | 5 | 6, branch: 'a' | 'b', twig: 1 | 2): Skill =>
-  ({ id, icon, name, text: describe(mods, ovr), cost: COST[tier], tier, branch, twig, mods, ...(ovr ? { ovr } : {}) });
-
-// Äste zuordnen: In jeder Stufe ist die erste Fähigkeit im linken Ast (a), die zweite im rechten (b).
-// Bisherige Stufe 3–5 bilden jeweils Zweig 1; dazu kommen Zweig 2 und die neue Stufe 6.
-export const ARCHETYPES: Archetype[] = RAW_ARCHETYPES.map((a) => {
-  const ext = EXTENSIONS[a.id];
-  const old = a.skills.map((s): Skill => {
-    if (isMaster(s)) return s;
-    const branch = a.skills.filter((x) => x.tier === s.tier).indexOf(s) === 0 ? 'a' : 'b';
-    return s.tier >= 3 ? { ...s, branch, twig: 1 } : { ...s, branch };
-  });
-  const add = [
-    extSkill(ext.a1, 6, 'a', 1), extSkill(ext.b1, 6, 'b', 1),
-    ...ext.a2.map((x, i) => extSkill(x, (i + 3) as 3 | 4 | 5 | 6, 'a', 2)),
-    ...ext.b2.map((x, i) => extSkill(x, (i + 3) as 3 | 4 | 5 | 6, 'b', 2)),
-  ];
-  return { ...a, twigs: ext.twigs, skills: [...old, ...add] };
-});
-
-/** Für alle Spielertypen: Athletik und Einstellung – mehrstufig, Wirkung pro Stufe. */
-export const GENERAL_SKILLS: Skill[] = [
-  { id: 'gen_physio', icon: '🩺', name: 'Eigener Physio', text: '−10 % Verletzungsrisiko pro Stufe', cost: 1, tier: 1, maxRank: 3, mods: { injury: 0.9 } },
-  { id: 'gen_extra', icon: '🏋️', name: 'Extraschichten', text: '+6 % Entwicklung bis 29 pro Stufe', cost: 2, tier: 1, maxRank: 2, mods: { growth: 1.06 } },
-  { id: 'gen_mind', icon: '🧠', name: 'Mentaltrainer', text: '+0,05 Note und mehr Einsätze pro Stufe', cost: 1, tier: 1, maxRank: 3, mods: { rating: 0.05, selection: 0.3 } },
-];
-
-/** Meisterstück: ein Zweig komplett (bis Stufe 6) und der andere Ast mindestens bis Stufe 2. */
-export const MASTER_TOP = 6;
-export const MASTER_OTHER = 2;
+type CareerLike = Pick<Career, 'player'> & { history?: Pick<SeasonRecord, 'goals' | 'assists' | 'apps' | 'trophies'>[]; year?: number };
+export function careerTotals(c: CareerLike): Totals {
+  const h = c.history ?? [];
+  return {
+    goals: h.reduce((a, r) => a + r.goals, 0),
+    assists: h.reduce((a, r) => a + r.assists, 0),
+    apps: h.reduce((a, r) => a + r.apps, 0),
+    titles: h.reduce((a, r) => a + r.trophies.length, 0),
+  };
+}
+/** Meilenstein einer Richtung: Fortschritt und ob der äußere Bereich offen ist. */
+export function milestone(c: CareerLike, dir: Dir): { have: number; need: number; word: string; open: boolean } {
+  const m = MILESTONE[dir];
+  const have = careerTotals(c)[m.stat];
+  const lvl = c.player.skills ? levelInfo(c.player.skills.xp).level : 0;
+  return { have, need: m.need, word: m.word, open: have >= m.need || lvl >= GATE_LEVEL };
+}
 
 export const getArchetype = (id: ArchetypeId) => ARCHETYPES.find((a) => a.id === id)!;
-
 export function archetypesFor(position: Position): Archetype[] {
   return ARCHETYPES.filter((a) => a.positions.includes(position));
 }
-
-export function allSkills(p: Pick<PlayerState, 'skills'>): Skill[] {
-  return p.skills ? [...getArchetype(p.skills.archetype).skills, ...GENERAL_SKILLS] : [];
+/** Kosten eines Knotens für diesen Spielertyp: weiter weg von der Heimat = teurer. */
+export function costOf(p: Pick<PlayerState, 'skills'>, n: Pick<Skill, 'dir' | 'ring' | 'cost'>): number {
+  if (!p.skills) return n.cost;
+  const d = dirDistance(getArchetype(p.skills.archetype).home, n.dir);
+  return n.cost + (n.ring === 4 ? d * 2 : d);
 }
+/** Alle Knoten (für Kompatibilität). */
+export const allSkills = (p: Pick<PlayerState, 'skills'>): Skill[] => (p.skills ? NODES : []);
 
-const NEUTRAL: SkillMods = { goal: 1, assist: 1, rating: 0, cleanSheet: 0, bigGame: 0, selection: 0, injury: 1, growth: 1, decline: 1 };
-const MULT: (keyof SkillMods)[] = ['goal', 'assist', 'injury', 'growth', 'decline'];
+const NEUTRAL: SkillMods = {
+  goal: 1, assist: 1, rating: 0, cleanSheet: 0, bigGame: 0, selection: 0, injury: 1, growth: 1, decline: 1,
+  subGoal: 1, hattrick: 1, late: 0, team: 0, cupTeam: 0, oppDown: 0, fullGame: 0,
+};
+const MULT: (keyof SkillMods)[] = ['goal', 'assist', 'injury', 'growth', 'decline', 'subGoal', 'hattrick'];
 
 // ---------- Meisterung: Bronze → Silber → Gold → Prisma ----------
 // Fähigkeiten werden durch Benutzen besser: Jede zählt ihre Werte seit dem Freischalten
@@ -322,11 +289,12 @@ const USE: Record<UseStat, { word: string; steps: [number, number, number] }> = 
 /** Womit eine Fähigkeit trainiert wird – passend zu ihrer Wirkung. */
 export function useStat(s: Pick<Skill, 'mods'>): UseStat {
   const m = s.mods ?? {};
-  if (m.goal && m.assist) return 'ga';
-  if (m.goal) return 'goals';
+  const goal = m.goal || m.subGoal || m.hattrick || m.late;
+  if (goal && m.assist) return 'ga';
+  if (goal) return 'goals';
   if (m.assist) return 'assists';
-  if (m.cleanSheet) return 'cleanSheets';
-  if (m.bigGame) return 'trophies';
+  if (m.cleanSheet || m.oppDown) return 'cleanSheets';
+  if (m.bigGame || m.cupTeam) return 'trophies';
   return 'apps';
 }
 export const useWord = (stat: UseStat) => USE[stat].word;
@@ -343,14 +311,13 @@ export const usesOf = (p: Pick<PlayerState, 'skills'>, id: string) => p.skills?.
 export function trainSkills(career: Career, r: Pick<SeasonRecord, 'goals' | 'assists' | 'apps' | 'cleanSheets' | 'trophies'>): string[] {
   const sk = career.player.skills;
   if (!sk || !sk.unlocked.length) return [];
-  const all = allSkills(career.player);
   const gain: Record<UseStat, number> = {
     goals: r.goals, assists: r.assists, ga: r.goals + r.assists, apps: r.apps, cleanSheets: r.cleanSheets ?? 0, trophies: r.trophies.length,
   };
   const uses = { ...(sk.uses ?? {}) };
   const ups: string[] = [];
   for (const id of new Set(sk.unlocked)) {
-    const s = all.find((x) => x.id === id);
+    const s = BY_ID.get(id);
     if (!s) continue;
     const before = masteryOf(s, uses[id] ?? 0);
     uses[id] = (uses[id] ?? 0) + gain[useStat(s)];
@@ -361,14 +328,20 @@ export function trainSkills(career: Career, r: Pick<SeasonRecord, 'goals' | 'ass
   return ups;
 }
 
-/** Summe aller freigeschalteten Fähigkeiten (mit ihrer Meisterungs-Stufe). */
+/** Wirkt dieser Knoten gerade? Spielstile nur, wenn sie ausgerüstet sind. */
+export const isActive = (p: Pick<PlayerState, 'skills'>, id: string) => {
+  const s = BY_ID.get(id);
+  if (!s || !p.skills?.unlocked.includes(id)) return false;
+  return s.kind !== 'style' || (p.skills.styles ?? []).includes(id);
+};
+
+/** Summe aller aktiven Knoten (mit ihrer Meisterungs-Stufe). */
 export function skillMods(p: Pick<PlayerState, 'skills'>): SkillMods {
   const out = { ...NEUTRAL };
   if (!p.skills) return out;
-  const all = allSkills(p);
-  for (const id of p.skills.unlocked) {
-    const s = all.find((x) => x.id === id);
-    if (!s?.mods) continue;
+  for (const id of new Set(p.skills.unlocked)) {
+    const s = BY_ID.get(id);
+    if (!s?.mods || !isActive(p, id)) continue;
     const f = MASTERY_FACTOR[masteryOf(s, usesOf(p, id))];
     for (const [k, raw] of Object.entries(s.mods) as [keyof SkillMods, number][]) {
       const v = MULT.includes(k) ? 1 + (raw - 1) * f : raw * f;
@@ -378,6 +351,8 @@ export function skillMods(p: Pick<PlayerState, 'skills'>): SkillMods {
   // Viele Tor-/Vorlagen-Boni zusammen wirken abgeschwächt (sonst schießt ein Stürmer mit vollem Baum 80 Tore pro Saison).
   out.goal = softBoost(out.goal);
   out.assist = softBoost(out.assist);
+  out.injury = Math.max(0.3, out.injury);
+  out.late = Math.min(0.3, out.late);
   return out;
 }
 
@@ -402,8 +377,7 @@ export function levelInfo(xp: number): { level: number; into: number; need: numb
 /** Freie Fähigkeitspunkte: ein Punkt pro Level, abzüglich der ausgegebenen. */
 export function freePoints(p: Pick<PlayerState, 'skills'>): number {
   if (!p.skills) return 0;
-  const all = allSkills(p);
-  const spent = p.skills.unlocked.reduce((a, id) => a + (all.find((s) => s.id === id)?.cost ?? 0), 0);
+  const spent = p.skills.unlocked.reduce((a, id) => { const s = BY_ID.get(id); return a + (s ? costOf(p, s) : 0); }, 0);
   return levelInfo(p.skills.xp).level - spent;
 }
 
@@ -423,49 +397,50 @@ export function xpFor(s: XpStats, position: Position): number {
 export const xpForSeason = (r: SeasonRecord, position: Position) =>
   xpFor({ apps: r.apps, goals: r.goals, assists: r.assists, avgRating: r.avgRating, cleanSheets: r.cleanSheets, trophies: r.trophies.length }, position);
 
-/** Wie oft eine Fähigkeit schon gelernt wurde (mehrstufige Fähigkeiten zählen mehrfach). */
-export const rankOf = (p: Pick<PlayerState, 'skills'>, skillId: string) => (p.skills?.unlocked ?? []).filter((x) => x === skillId).length;
+/** Ist ein Knoten gelernt (0/1 – für Kompatibilität mit der alten Stufen-Anzeige). */
+export const rankOf = (p: Pick<PlayerState, 'skills'>, skillId: string) => (p.skills?.unlocked.includes(skillId) ? 1 : 0);
 
-/** Warum eine Fähigkeit (noch) nicht freigeschaltet werden kann – oder null, wenn es geht. */
-export function lockReason(p: Pick<PlayerState, 'skills'>, skillId: string): string | null {
-  const skills = p.skills;
-  if (!skills) return 'Kein Spielertyp';
-  const s = allSkills(p).find((x) => x.id === skillId);
+/** Liegt der Knoten neben etwas schon Gelerntem (oder an der Mitte)? */
+export const reachable = (p: Pick<PlayerState, 'skills'>, id: string) =>
+  neighborsOf(id).some((n) => n === CORE || (p.skills?.unlocked ?? []).includes(n));
+
+/** Warum ein Knoten (noch) nicht freigeschaltet werden kann – oder null, wenn es geht. */
+export function lockReason(c: CareerLike, skillId: string): string | null {
+  const p = c.player;
+  if (!p.skills) return 'Kein Spielertyp';
+  const s = BY_ID.get(skillId);
   if (!s) return 'Unbekannt';
-  if (rankOf(p, skillId) >= (s.maxRank ?? 1)) return 'Gelernt';
-  const own = getArchetype(skills.archetype).skills;
-  if (isMaster(s)) {
-    const depth = (b: 'a' | 'b') => Math.max(0, ...own.filter((x) => x.branch === b && skills.unlocked.includes(x.id)).map((x) => x.tier));
-    const [hi, lo] = [depth('a'), depth('b')].sort((x, y) => y - x);
-    if (hi < MASTER_TOP || lo < MASTER_OTHER) {
-      return `Braucht einen Zweig komplett (Stufe ${MASTER_TOP}) und im anderen Ast Stufe ${MASTER_OTHER}`;
-    }
-  } else if (s.branch && s.tier > 1) {
-    // Gabelung: Hat man im Ast schon den anderen Zweig gewählt, ist dieser gesperrt.
-    if (s.twig && own.some((x) => x.branch === s.branch && x.twig && x.twig !== s.twig && skills.unlocked.includes(x.id))) {
-      return 'Anderer Zweig gewählt';
-    }
-    const before = own.find((x) => x.branch === s.branch && x.tier === s.tier - 1 && (s.tier === 3 ? !x.twig : x.twig === s.twig));
-    if (before && !skills.unlocked.includes(before.id)) return `Braucht „${before.name}“`;
+  if (p.skills.unlocked.includes(skillId)) return 'Gelernt';
+  if (!reachable(p, skillId)) return 'Erst einen Nachbarknoten lernen';
+  if (s.ring >= 3) {
+    const m = milestone(c, s.dir);
+    if (!m.open) return `Meilenstein: ${m.need} ${m.word} (${m.have}) oder Level ${GATE_LEVEL}`;
   }
-  if (freePoints(p) < s.cost) return `${s.cost} FP nötig`;
+  const cost = costOf(p, s);
+  if (freePoints(p) < cost) return `${cost} FP nötig`;
   return null;
 }
 
-export const canUnlock = (p: Pick<PlayerState, 'skills'>, skillId: string) => lockReason(p, skillId) === null;
+export const canUnlock = (c: CareerLike, skillId: string) => lockReason(c, skillId) === null;
 
-/** Einmal pro Karriere: alle Punkte zurückbekommen und neu verteilen (Wertungsboni werden abgezogen). */
-export function respecSkills(prev: Career): Career {
-  const sk = prev.player.skills;
-  if (!sk || sk.respecUsed || !sk.unlocked.length) return prev;
-  const career: Career = structuredClone(prev);
+/** Kostenlos neu verteilen: einmal pro Saison (Wertungsboni werden abgezogen). */
+export const canRespec = (c: Pick<Career, 'player' | 'year'>) => !!c.player.skills && c.player.skills.respecYear !== c.year;
+
+function clearTree(career: Career): void {
   const p = career.player;
-  const all = allSkills(p);
-  const ovrBack = p.skills!.unlocked.reduce((a, id) => a + (p.skills!.gains?.[id] ?? all.find((s) => s.id === id)?.ovr ?? 0), 0);
+  const sk = p.skills!;
+  const ovrBack = sk.unlocked.reduce((a, id) => a + (sk.gains?.[id] ?? 0), 0);
   p.ovr = Math.max(40, p.ovr - ovrBack);
-  p.skills!.unlocked = [];
-  p.skills!.gains = {};
-  p.skills!.respecUsed = true;
+  sk.unlocked = [];
+  sk.styles = [];
+  sk.gains = {};
+}
+
+export function respecSkills(prev: Career): Career {
+  if (!canRespec(prev) || !prev.player.skills!.unlocked.length) return prev;
+  const career: Career = structuredClone(prev);
+  clearTree(career);
+  career.player.skills!.respecYear = career.year;
   career.updatedAt = Date.now();
   return career;
 }
@@ -484,25 +459,50 @@ export function bonusSummary(m: SkillMods): string[] {
   if (m.injury !== 1) out.push(`${pct(m.injury)} Verletzungsrisiko`);
   if (m.growth !== 1) out.push(`${pct(m.growth)} Entwicklung`);
   if (m.decline !== 1) out.push(`${pct(m.decline)} Abbau ab 30`);
+  if (m.team) out.push(`Team ${dec(m.team)} Stärke`);
+  if (m.cupTeam) out.push(`${dec(m.cupTeam)} Stärke in großen Spielen`);
+  if (m.oppDown) out.push(`Gegner −${m.oppDown.toFixed(1).replace('.', ',')} Angriff`);
+  if (m.subGoal !== 1) out.push(`Joker ${pct(m.subGoal)}`);
+  if (m.hattrick !== 1) out.push('Hattrick-Jagd');
+  if (m.late) out.push('Last-Minute-Tore');
+  if (m.fullGame) out.push('öfter 90 Minuten');
   return out;
 }
+
+/** Version des Fähigkeitenbaums – ältere Spielstände bekommen ihre Punkte zurück. */
+export const SKILL_VERSION = 2;
 
 export function chooseArchetype(prev: Career, id: ArchetypeId): Career {
   if (prev.player.skills) return prev;
   const career: Career = structuredClone(prev);
   // Bereits gespielte Saisons zählen rückwirkend.
   const xp = career.history.reduce((a, r) => a + xpForSeason(r, career.player.position), 0);
-  career.player.skills = { archetype: id, xp, unlocked: [], seasonXp: 0 };
+  career.player.skills = { archetype: id, xp, unlocked: [], seasonXp: 0, styles: [], v: SKILL_VERSION };
   career.updatedAt = Date.now();
   return career;
 }
 
+/** Alter Baum → Skill-Universum: alle Punkte zurück (Wertungsboni wieder ab). Ändert den Spielstand direkt; true = geändert. */
+export function migrateSkills(career: Career): boolean {
+  const sk = career?.player?.skills;
+  if (!sk || sk.v === SKILL_VERSION) return false;
+  const had = sk.unlocked.length > 0;
+  clearTree(career);
+  sk.uses = {};
+  sk.plans = [];
+  sk.v = SKILL_VERSION;
+  if (had) sk.note = 'Neuer Fähigkeitenbaum: das Skill-Universum! Alle Punkte sind zurück – verteile sie neu.';
+  return true;
+}
+
 export function unlockSkill(prev: Career, skillId: string): Career {
-  if (!canUnlock(prev.player, skillId)) return prev;
+  if (!canUnlock(prev, skillId)) return prev;
   const career: Career = structuredClone(prev);
   const p = career.player;
-  const s = allSkills(p).find((x) => x.id === skillId)!;
+  const s = BY_ID.get(skillId)!;
   p.skills!.unlocked.push(skillId);
+  // Neuer Spielstil wird direkt ausgerüstet, solange ein Platz frei ist.
+  if (s.kind === 'style' && (p.skills!.styles ?? []).length < STYLE_SLOTS) p.skills!.styles = [...(p.skills!.styles ?? []), skillId];
   if (s.ovr) {
     // Fähigkeiten heben die Wertung nur bis 94 – darüber zählt allein, was auf dem Platz passiert.
     const gained = Math.max(0, Math.min(s.ovr, 94 - p.ovr));
@@ -510,6 +510,42 @@ export function unlockSkill(prev: Career, skillId: string): Career {
     p.potential = Math.max(p.potential, p.ovr);
     p.skills!.gains = { ...(p.skills!.gains ?? {}), [skillId]: gained };
   }
+  career.updatedAt = Date.now();
+  return career;
+}
+
+/** Spielstil an- oder ablegen (max. 3 gleichzeitig). */
+export function toggleStyle(prev: Career, id: string): Career {
+  const sk = prev.player.skills;
+  const s = BY_ID.get(id);
+  if (!sk || s?.kind !== 'style' || !sk.unlocked.includes(id)) return prev;
+  const on = sk.styles ?? [];
+  if (!on.includes(id) && on.length >= STYLE_SLOTS) return prev;
+  const styles = on.includes(id) ? on.filter((x) => x !== id) : [...on, id];
+  return { ...prev, player: { ...prev.player, skills: { ...sk, styles } }, updatedAt: Date.now() };
+}
+
+// ---------- Baupläne ----------
+export const PLAN_SLOTS = 2;
+/** Aktuellen Baum als Bauplan speichern. */
+export function savePlan(prev: Career, slot: number, name: string): Career {
+  const sk = prev.player.skills;
+  if (!sk || slot < 0 || slot >= PLAN_SLOTS) return prev;
+  const plans = [...(sk.plans ?? [])];
+  plans[slot] = { name: name.trim().slice(0, 20) || `Bauplan ${slot + 1}`, nodes: [...sk.unlocked], styles: [...(sk.styles ?? [])] };
+  return { ...prev, player: { ...prev.player, skills: { ...sk, plans } }, updatedAt: Date.now() };
+}
+/** Bauplan laden: Baum leeren (zählt als Umbau dieser Saison) und so weit nachbauen, wie die Punkte reichen. */
+export function applyPlan(prev: Career, slot: number): Career {
+  const plan = prev.player.skills?.plans?.[slot];
+  if (!plan || !canRespec(prev)) return prev;
+  let career: Career = structuredClone(prev);
+  clearTree(career);
+  career.player.skills!.respecYear = career.year;
+  // Mehrere Durchgänge, falls die Reihenfolge im Plan nicht passt.
+  for (let pass = 0; pass < 3; pass++) for (const id of plan.nodes) career = unlockSkill(career, id);
+  const sk = career.player.skills!;
+  sk.styles = plan.styles.filter((id) => sk.unlocked.includes(id)).slice(0, STYLE_SLOTS);
   career.updatedAt = Date.now();
   return career;
 }

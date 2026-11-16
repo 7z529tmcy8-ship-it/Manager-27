@@ -166,7 +166,7 @@ function playerMatch(
     const startP = player.position === 'TW' ? sigmoid((selection + 1) / 1.2) : sigmoid((selection + 1.5) / 2.2);
     if (chance(startP)) {
       status = 'start';
-      minutes = chance(0.45 + clamp(rel * 0.05, -0.2, 0.4)) || player.position === 'TW' ? 90 : randInt(55, 85);
+      minutes = chance(0.45 + clamp(rel * 0.05, -0.2, 0.4) + mods.fullGame) || player.position === 'TW' ? 90 : randInt(55, 85);
     } else if (player.position !== 'TW' && chance(sigmoid((selection + 6) / 3) * 0.8)) {
       status = 'sub';
       minutes = randInt(8, 35);
@@ -189,10 +189,13 @@ function playerMatch(
   }
 
   const share = minutes / 90;
-  const boost = minutes > 0 ? (player.ovr - own) * 0.09 * share : 0;
-  const [gf, ga] = home
-    ? playMatch(own + boost, opp, goalsPerGame)
-    : playMatch(opp, own + boost, goalsPerGame).reverse() as [number, number];
+  // Spielstile wie Kapitän/Taktgeber machen das eigene Team stärker, Mauer/Die Wand den Gegner im Angriff schwächer.
+  const lead = minutes > 0 ? (mods.team + (competition !== 'Liga' ? mods.cupTeam : 0)) * share : 0;
+  const wall = minutes > 0 && DEFENSIVE.includes(player.position) ? mods.oppDown * share : 0;
+  const boost = minutes > 0 ? (player.ovr - own) * 0.09 * share + lead : 0;
+  let [gf, ga] = home
+    ? playMatch(own + boost + wall / 2, opp - wall / 2, goalsPerGame)
+    : playMatch(opp - wall / 2, own + boost + wall / 2, goalsPerGame).reverse() as [number, number];
 
   let goals = 0;
   let assists = 0;
@@ -205,11 +208,21 @@ function playerMatch(
     const pAssist = Math.min(0.3, ASSIST_SHARE[player.position] * mods.assist * am.assist * relFactor * share);
     // Bei Kantersiegen verteilen sich die Tore auf mehr Schultern.
     const spread = gf > 3 ? 3 / gf : 1;
+    const joker = status === 'sub' ? mods.subGoal : 1;
     for (let g = 0; g < gf; g++) {
+      // Hattrick-Jäger: nach zwei Toren wird es noch gefährlicher.
+      const hunt = goals >= 2 ? mods.hattrick : 1;
       // Mehr als vier eigene Tore in einem Spiel gibt es (fast) nie.
-      if (goals < 4 && chance(pGoal * spread)) goals++;
+      if (goals < 4 && chance(Math.min(0.6, pGoal * spread * joker * hunt))) goals++;
       else if (chance(pAssist / (1 - pGoal))) assists++;
     }
+    // Last-Minute-Held: Steht es remis oder knapp gegen dich und du bist am Ende auf dem Platz, kommt der späte Treffer.
+    if (mods.late > 0 && (minutes === 90 || status === 'sub') && gf <= ga && ga - gf <= 1 && chance(mods.late)) {
+      gf++;
+      goals++;
+      prog.notes.push(`90.+${randInt(1, 6)}: Last-Minute-Tor gegen ${getClub(opponentId).name} – ${gf > ga ? 'Sieg gedreht!' : 'Ausgleich!'}`);
+    }
+    if (goals >= 3 && mods.hattrick > 1) prog.notes.push(`Hattrick gegen ${getClub(opponentId).name}!`);
     let r = 6.5 + rel * 0.03 + (gf > ga ? 0.35 : gf < ga ? -0.35 : 0) + goals * 0.9 + assists * 0.6;
     r += mods.rating + am.rating + (competition !== 'Liga' ? mods.bigGame : 0);
     if (DEFENSIVE.includes(player.position)) {
