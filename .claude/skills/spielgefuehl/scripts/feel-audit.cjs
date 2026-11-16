@@ -145,138 +145,33 @@ const dept = async (page, label) => { const t = page.locator(`.shop-tab:has-text
 /** Die geprüften Abläufe. Neue Spielteile hier ergänzen (siehe SKILL.md). */
 const FLOWS = {
   navigation: async (p) => {
-    for (const label of ['Shop', 'Sammlung', 'Team', 'Duelle', 'Pass', 'Start']) { await nav(p, label); await p.waitForTimeout(450); }
+    // Die vier Bereiche der Reihe nach öffnen (Karriere · Team · Duelle · Profil)
+    for (const t of ['Team', 'Duelle', 'Profil', 'Karriere']) { await nav(p, t); await p.waitForTimeout(450); }
   },
-  store: async (p) => {
-    await nav(p, 'Shop'); await p.waitForTimeout(400);
-    for (const d of ['Packs', 'Drops', 'Ablage', 'Extras', 'Angebote', 'Packs']) { await dept(p, d); await p.waitForTimeout(250); }
-    await p.mouse.wheel(0, 900); await p.waitForTimeout(300); await p.mouse.wheel(0, -900);
-    if (!(await p.locator('.pack-card.p-gold').count())) return; // Verkauf aus
-    await p.click('.pack-card.p-gold button', { timeout: 3000 });
-    await p.waitForTimeout(1600);
-    await p.locator('.pack-skip').click({ timeout: 3000 }).catch(() => {});
-    await p.waitForTimeout(800);
-  },
-  drop: async (p) => {
-    // Ablage → einen Drop antippen bis offen → nächster → alle öffnen (Übersicht)
-    await nav(p, 'Shop'); await p.waitForTimeout(400);
-    await dept(p, 'Ablage'); await p.waitForTimeout(300);
-    await p.click('.stored-drop.normal button', { timeout: 3000 });
-    await p.waitForTimeout(500);
-    for (let i = 0; i < 8; i++) {
-      const gem = p.locator('.dx-drop');
-      if (!(await gem.count())) break;
-      await gem.click(); await p.waitForTimeout(380);
-    }
-    await p.waitForTimeout(700);
-    await p.click('.dx-actions .btn:has-text("Alle öffnen")', { timeout: 1500 }).catch(() => {});
-    await p.waitForTimeout(900);
-  },
-  ruhmesweg: async (p) => {
-    await p.click('.hub-glory', { timeout: 3000 }); await p.waitForTimeout(600);
-    await p.mouse.wheel(0, 1200); await p.waitForTimeout(400);
-  },
-  sammlung: async (p) => {
-    await tile(p, 'Sammlung'); await p.waitForTimeout(500);
-    await p.click('.cc-tile.ct-all', { timeout: 3000 }); await p.waitForTimeout(400);
-    await p.mouse.wheel(0, 1500); await p.waitForTimeout(500); await p.mouse.wheel(0, -1500);
-    await p.click('.cc-back', { timeout: 3000 }); await p.waitForTimeout(300);
-    await p.click('.cc-tile.ct-icon', { timeout: 3000 }); await p.waitForTimeout(400);
-  },
-  casino: async (p) => {
-    // Echter Spieler → Karriere → Vermögen → Casino: einmal Roulette drehen, dann (falls vorhanden) Elfmeter-Serie
-    await p.click('.hb-new', { timeout: 4000 }); await p.waitForTimeout(400);
-    await p.click('.tabs button:has-text("Echter")', { timeout: 3000 }); await p.waitForTimeout(300);
-    await p.click('.real-list button', { timeout: 3000 }); await p.waitForTimeout(800);
-    await p.click('.cs-life-btn:has-text("Vermögen")', { timeout: 3000 }); await p.waitForTimeout(400);
-    await p.click('.chip:has-text("Casino")', { timeout: 3000 }); await p.waitForTimeout(400);
-    await p.click('.casino .btn.primary', { timeout: 3000 }); await p.waitForTimeout(3000);
-    const pen = p.locator('.chip:has-text("Elfmeter")');
-    if (await pen.count()) {
-      await pen.click(); await p.waitForTimeout(300);
-      await p.click('.casino .btn.primary', { timeout: 3000 }); await p.waitForTimeout(400);
-      await p.click('.pz-corner >> nth=0', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(1600);
-    }
-  },
-  shopcasino: async (p) => {
-    // Shop → Casino: Sololauf (Abschließen nach 1 s)
-    await nav(p, 'Shop'); await p.waitForTimeout(400);
-    await dept(p, 'Extras'); await p.waitForTimeout(250);
-    await p.click('.casino-call', { timeout: 3000 }); await p.waitForTimeout(400);
-    await p.click('.cz-game:has-text("Sololauf")', { timeout: 3000 }); await p.waitForTimeout(300);
-    await p.click('.cz-solo .btn.primary', { timeout: 3000 }); await p.waitForTimeout(1000);
-    await p.click('.solo-cash', { timeout: 800 }).catch(() => {}); await p.waitForTimeout(800);
-  },
-  meteor: async (p) => {
-    // Shop → Code METEOR: Einschlag-Animation bis zur Belohnung
-    await nav(p, 'Shop'); await p.waitForTimeout(400);
-    await dept(p, 'Extras'); await p.waitForTimeout(250);
-    await p.fill('.code-redeem input', 'meteor', { timeout: 3000 });
-    await p.click('.code-redeem button'); await p.waitForTimeout(4200);
-    await p.click('.mt-actions .btn.primary', { timeout: 2000 }).catch(() => {});
-  },
-  frost: async (p) => {
-    // Shop → Extras → Code EISSTURM: Frost-Animation bis zu den Karten
-    await nav(p, 'Shop'); await p.waitForTimeout(400);
-    await dept(p, 'Extras'); await p.waitForTimeout(250);
-    await p.fill('.code-redeem input', 'eissturm', { timeout: 3000 });
-    await p.click('.code-redeem button'); await p.waitForTimeout(4000);
-    await p.click('.mt-actions .btn.primary', { timeout: 2000 }).catch(() => {});
-  },
-  profil: async (p) => {
-    // Profil → Anpassen → alle Reiter → Banner wählen → schließen
-    await p.click('.hub-profile', { timeout: 3000 }); await p.waitForTimeout(500);
-    await p.click('.pf-edit', { timeout: 3000 }); await p.waitForTimeout(350);
-    for (const t of ['Farbe', 'Banner', 'Titel', 'Wappen']) { await p.click(`.pf-tab:has-text("${t}")`); await p.waitForTimeout(250); }
-    await p.click('.pf-tab:has-text("Banner")'); await p.waitForTimeout(200);
-    await p.click('.pf-bn.bn-neon'); await p.waitForTimeout(200);
-    await p.click('.pf-x'); await p.waitForTimeout(400);
-    await p.mouse.wheel(0, 900); await p.waitForTimeout(400);
-  },
-  tresor: async (p) => {
-    // Shop → Extras → Code TRESOR: Tresor-Animation bis zu den Karten
-    await nav(p, 'Shop'); await p.waitForTimeout(400);
-    await dept(p, 'Extras'); await p.waitForTimeout(250);
-    await p.fill('.code-redeem input', 'tresor', { timeout: 3000 });
-    await p.click('.code-redeem button'); await p.waitForTimeout(4200);
-    await p.click('.mt-actions .btn.primary', { timeout: 2000 }).catch(() => {});
-  },
-  zeitreise: async (p) => {
-    // Hauptmenü → Zeitreise: Pfad scrollen (nur während des Events sichtbar)
-    const call = p.locator('.era-call');
-    if (!(await call.count())) return;
-    await call.click(); await p.waitForTimeout(500);
-    await p.mouse.wheel(0, 1600); await p.waitForTimeout(500); await p.mouse.wheel(0, -1600); await p.waitForTimeout(300);
+  team: async (p) => {
+    // Team: Formationen wechseln, Auto-Aufstellung (ohne Karriere-Karten: leerer Zustand)
+    await nav(p, 'Team'); await p.waitForTimeout(450);
+    for (const f of ['4-4-2', '3-5-2', '4-3-3']) { await p.click(`.formation-chips .chip:has-text("${f}")`, { timeout: 1500 }).catch(() => {}); await p.waitForTimeout(250); }
+    await p.click('button:has-text("Auto-Aufstellung")', { timeout: 1500 }).catch(() => {}); await p.waitForTimeout(300);
   },
   duelle: async (p) => {
-    // Duelle: alle Reiter durchgehen (ohne volle Elf zeigt „Spielen“ den Hinweis)
-    await nav(p, 'Duelle'); await p.waitForTimeout(400);
-    for (const t of ['Ligen', 'Saison', 'Modi', 'Spielen']) { await p.click(`.dl-tab:has-text("${t}")`, { timeout: 3000 }); await p.waitForTimeout(300); }
+    // Duelle: Anpfiff, Spiel laufen lassen, Ergebnis schließen
+    await nav(p, 'Duelle'); await p.waitForTimeout(450);
+    await p.click('.dp-kick', { timeout: 3000 }); await p.waitForTimeout(2600);
+    await p.click('.duel-live .btn.primary', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(400);
   },
-  hilo: async (p) => {
-    // Duelle → Höher oder Tiefer: drei Tipps
-    await nav(p, 'Duelle'); await p.waitForTimeout(400);
-    await p.click('.dl-tab:has-text("Modi")', { timeout: 3000 }); await p.waitForTimeout(250);
-    await p.click('.hl-call-btn', { timeout: 3000 }); await p.waitForTimeout(400);
-    for (let i = 0; i < 3; i++) { await p.click(i % 2 ? '.hilo-btn.lower' : '.hilo-btn.higher', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(1200); }
-  },
-  draft: async (p) => {
-    // Duelle → Draft: Kapitän, 11 Plätze füllen, eine Turnierrunde
-    await nav(p, 'Duelle'); await p.waitForTimeout(400);
-    await p.click('.dl-tab:has-text("Modi")', { timeout: 3000 }); await p.waitForTimeout(250);
-    await p.click('.draft-call', { timeout: 3000 }); await p.waitForTimeout(300);
-    await p.click('.dr-intro .btn.primary', { timeout: 3000 }); await p.waitForTimeout(500);
-    await p.click('.dr-picks .ucard >> nth=0', { timeout: 3000 }); await p.waitForTimeout(300);
-    for (let i = 0; i < 10; i++) {
-      await p.click('.dr-empty >> nth=0', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(350);
-      await p.click('.dr-sheet .ucard >> nth=0', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(200);
-    }
-    await p.click('.dr-dock .btn.primary', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(300);
-    await p.click('.dr-cup .btn.primary', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(1500);
+  profil: async (p) => {
+    // Profil: Wappen und Farbe wechseln, runterscrollen
+    await nav(p, 'Profil'); await p.waitForTimeout(450);
+    await p.click('.pp-pick button >> nth=2', { timeout: 2000 }); await p.waitForTimeout(200);
+    await p.click('.pp-pick.colors button >> nth=1', { timeout: 2000 }); await p.waitForTimeout(200);
+    await p.mouse.wheel(0, 900); await p.waitForTimeout(400);
   },
   karriere: async (p) => {
-    await p.click('.hb-new', { timeout: 4000 }); await p.waitForTimeout(600);
-    await p.mouse.wheel(0, 800); await p.waitForTimeout(300);
+    // Karriere: Neue Karriere öffnen und wieder zurück
+    await nav(p, 'Karriere'); await p.waitForTimeout(400);
+    await p.click('.ch-new', { timeout: 3000 }); await p.waitForTimeout(700);
+    await nav(p, 'Karriere'); await p.waitForTimeout(400);
   },
 };
 

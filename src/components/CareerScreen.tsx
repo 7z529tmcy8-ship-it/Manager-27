@@ -2,7 +2,6 @@ import ClubCrest from './ClubCrest';
 import Icon from './Icon';
 import { useEffect, useRef, useState } from 'react';
 import ScorerRace from './ScorerRace';
-import VicePanel from './VicePanel';
 import InvestPanel from './InvestPanel';
 import ClinicPanel from './ClinicPanel';
 import KitPanel from './KitPanel';
@@ -282,7 +281,6 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       {!needType && career.phase === 'window' && !career.nlzPending && choices.length > 0 && (
         <div className="cs-extras cs-extras-out">
           <ScorerRace career={career} />
-          <VicePanel career={career} onChange={onChange} />
         </div>
       )}
 
@@ -332,8 +330,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
                 </>
               )}
               <ScorerRace career={career} />
-              <VicePanel career={career} onChange={onChange} />
-            </div>
+                </div>
           )}
         </section>
       )}

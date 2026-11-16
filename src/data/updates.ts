@@ -29,6 +29,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-16-neustart',
+    date: '16.11.2026',
+    title: 'Neustart: Karriere, Team, Duelle, Profil',
+    items: [
+      'Das Spiel ist jetzt aufgeräumt: Es gibt nur noch vier Bereiche – Karriere, Team, Duelle und Profil. Shop, Packs, Sammlung, SBCs, Pass, Ruhmesweg, Events und Manager-Modus sind raus.',
+      'Team: Deine Elf besteht aus den Spielern deiner Karrieren – Auszeichnungen, Saison-Highlights und jede Karriere bringt am Ende ihre Karte mit.',
+      'Duelle komplett neu: Mit deinem Karriere-Team spielst du eine Liga-Leiter hoch – von der Kreisliga bis zum Finale gegen die Allstars der Legenden. Jeder Sieg gibt deinem aktiven Karriere-Spieler XP (Level = Fähigkeitspunkte).',
+      'Karriere kompakter: Casino, Laster und Geschenke-Ablage sind weg; Vermögen, Klinik, Kickgram, Look, Ausrüster und Position bleiben – in einer kompakten Leiste.',
+      'Deine Karrieren bleiben komplett erhalten.',
+    ],
+  },
+  {
     id: '2026-11-15-larp-v2',
     date: '15.11.2026',
     title: 'LARP 2.0: Old Money, Flex & Fit-Check',
@@ -201,7 +213,6 @@ export const UPDATES: UpdateNote[] = [
     id: '2026-11-05-the-hallway',
     date: '05.11.2026',
     title: 'The Hallway – das neue Roblox-Spiel',
-    pinned: true,
     image: '/news/the-hallway.webp',
     imageAlt: 'Eine Taube späht um die Ecke, im roten Flur steht eine Lampe',
     items: [
@@ -209,7 +220,6 @@ export const UPDATES: UpdateNote[] = [
       'Zum Start gibt es die Flur-Kiste: Drei Türen, hinter einer sitzt die Taube. Jede falsche Tür lässt die Lampen näher kommen.',
       'Mit dem Code freigeschaltet: Profil-Banner „Der Flur“ und Titel „Taubenfinder“.',
     ],
-    promo: { code: 'HALLWAY', text: 'Im Shop einlösen: Flur-Kiste mit 3 Topkarten (eine ab 88). Auch der Code TAUBE funktioniert.' },
   },
   {
     id: '2026-11-05-manager-kalender',
@@ -274,7 +284,6 @@ export const UPDATES: UpdateNote[] = [
       'Bananen sammeln (Duelle, Drops, Höher/Tiefer, Draft, Karriere) und den Expeditions-Pfad hochklettern: 30 Stufen, 6 Dschungel-Karten mit +4 – Mbappé, Haaland, van Dijk, Alisson, Pedri und Leão.',
       'Neue Enthüllung: Ein Frachtflieger wirft eine Kiste ab, sie kracht in den Dschungel und springt auf. Dazu Titel „Expeditionsleiter“ und Banner „Dschungel“.',
     ],
-    promo: { code: 'JUNGLECRASH', text: 'Im Shop einlösen: Absturz-Kiste mit Dschungel-Karte + 2 Topkarten.' },
   },
   {
     id: '2026-11-02-champions-rivals',

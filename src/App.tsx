@@ -1,23 +1,17 @@
 import { enterFullscreen, getSettings, lockLandscape } from './settings';
-import { PASS_XP, addPassXp } from './game/pass';
 import { autoStartMotion } from './tilt';
 import { cleanStorage, migrateSaves, onSaveStatus, storageBreakdown } from './game/storage';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import Hub from './components/Hub';
-import Store from './components/Store';
 import NavBar, { type NavTarget } from './components/NavBar';
+import CareerHome from './components/CareerHome';
 import { listCareers } from './game/storage';
 
 // Größere Bereiche erst laden, wenn man sie öffnet – das Hauptmenü startet dadurch schneller.
 const CreateCareer = lazy(() => import('./components/CreateCareer'));
 const CareerScreen = lazy(() => import('./components/CareerScreen'));
-const Achievements = lazy(() => import('./components/Achievements'));
-const Collection = lazy(() => import('./components/Collection'));
-const HallOfFame = lazy(() => import('./components/HallOfFame'));
-const Team = lazy(() => import('./components/Team'));
-const DuelsScreen = lazy(() => import('./components/Team').then((m) => ({ default: m.DuelsScreen })));
-const SbcScreen = lazy(() => import('./components/Team').then((m) => ({ default: m.SbcScreen })));
-const SeasonPass = lazy(() => import('./components/SeasonPass'));
+const TeamScreen = lazy(() => import('./components/TeamScreen'));
+const DuelsPage = lazy(() => import('./components/DuelsPage'));
+const ProfilePage = lazy(() => import('./components/ProfilePage'));
 import UpdateBanner, { unseenUpdates } from './components/UpdateBanner';
 import { UPDATES, type UpdateNote } from './data/updates';
 import { creditCareer, removeOwnCareerCards, rewardPending } from './game/club';
@@ -28,17 +22,13 @@ import { getClubState, setClubState, useClub } from './clubStore';
 import { installClickSound, play } from './sound';
 import Icon, { noEmoji } from './components/Icon';
 
+// Nur noch vier Bereiche: Karriere (Start), Team, Duelle, Profil.
 type Screen =
   | { name: 'home' }
-  | { name: 'store' }
-  | { name: 'collection' }
   | { name: 'team' }
   | { name: 'duels' }
-  | { name: 'sbc' }
+  | { name: 'profile' }
   | { name: 'create' }
-  | { name: 'fame' }
-  | { name: 'achievements' }
-  | { name: 'pass' }
   | { name: 'game'; career: Career };
 
 export default function App() {
@@ -57,14 +47,6 @@ export default function App() {
   useEffect(() => {
     const c = getClubState();
     if (!c.ownCardsRemoved) setClubState(removeOwnCareerCards(c, listCareers()));
-  }, []);
-
-  // Coin-Verbesserungen gibt es nicht mehr: einmalige Erstattung anzeigen und dauerhaft speichern.
-  useEffect(() => {
-    const c = getClubState();
-    if (!c.refundNotice) return;
-    setClubState({ ...c, refundNotice: undefined });
-    setToast(`Karten-Verbesserung per Coins gibt es nicht mehr – du bekommst ${c.refundNotice.toLocaleString('de-DE')} Coins zurück. Neu: Evolutions!`);
   }, []);
 
   // Sounds: Klick bei jedem Knopf, Münzen beim Verdienen, Kasse beim Ausgeben.
@@ -93,6 +75,14 @@ export default function App() {
     return () => window.removeEventListener('pointerdown', once);
   }, []);
   useEffect(() => { migrateSaves(); return onSaveStatus((ok) => setSaveFailed(!ok)); }, []);
+  // Die anderen Bereiche im Leerlauf vorladen – dann reagiert jeder Wechsel sofort.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      void import('./components/CreateCareer'); void import('./components/CareerScreen');
+      void import('./components/TeamScreen'); void import('./components/DuelsPage'); void import('./components/ProfilePage');
+    }, 800);
+    return () => clearTimeout(t);
+  }, []);
   const coins = useClub().coins;
   const lastCoins = useRef(coins);
   useEffect(() => {
@@ -109,8 +99,7 @@ export default function App() {
     // Neue Saisons bringen Coins für den Club.
     const res = creditCareer(getClubState(), career);
     // Still gutschreiben – keine Einblendung nach jeder Saison (der Kontostand zeigt es ohnehin).
-    if (res.gained > 0 || res.drops > 0 || res.meteor) setClubState(addPassXp(res.club, res.seasons * PASS_XP.careerSeason));
-    if (res.meteor) setToast('Meteor-Regen! 1000 Tore für Meteor Rush – ein Meteor-Drop liegt in deiner Ablage im Shop.');
+    if (res.gained > 0 || res.drops > 0 || res.meteor || res.icon) setClubState(res.club);
     // Karriere vorbei: Belohnungskarte wählen (Ikone oder Auszeichnung).
     if (rewardPending(getClubState(), career)) setReward(career);
     // Verborgene Abhängigkeit: Das ganze Geld ist weg – ohne Erklärung.
@@ -128,14 +117,8 @@ export default function App() {
   const [reward, setReward] = useState<Career | null>(null);
   const home = () => setScreen({ name: 'home' });
   const load = (career: Career) => setScreen({ name: 'game', career });
-  const go = (t: NavTarget) => {
-    if (t === 'career') {
-      const latest = listCareers()[0];
-      setScreen(latest ? { name: 'game', career: latest } : { name: 'create' });
-    } else setScreen({ name: t } as Screen);
-  };
-  const navActive: NavTarget | null = screen.name === 'home' || screen.name === 'team' || screen.name === 'duels' || screen.name === 'store' || screen.name === 'collection' || screen.name === 'pass'
-    ? screen.name : screen.name === 'create' ? 'career' : null;
+  const go = (t: NavTarget) => setScreen(t === 'career' ? { name: 'home' } : ({ name: t } as Screen));
+  const navActive: NavTarget | null = screen.name === 'home' || screen.name === 'create' ? 'career' : screen.name === 'team' || screen.name === 'duels' || screen.name === 'profile' ? screen.name : null;
   // In der laufenden Karriere hat das Spiel eigene Leisten – dort keine Hauptnavigation.
   const showNav = screen.name !== 'game';
 
@@ -149,36 +132,24 @@ export default function App() {
           <button className="rotate-hint-x" onClick={() => setHintClosed(true)} aria-label="Hinweis schließen"><Icon name="close" size={18} /></button>
         </div>
       )}
-      {news.length > 0 && <UpdateBanner notes={news} onClose={() => setNews([])} onStore={(code) => { setNews([]); try { if (code) sessionStorage.setItem('fc-code-prefill', code); } catch { /* egal */ } setScreen({ name: 'store' }); }} />}
+      {news.length > 0 && <UpdateBanner notes={news} onClose={() => setNews([])} onStore={() => setNews([])} />}
       {saveFailed && <SaveWarning onRetry={() => { if (screen.name === 'game') saveCareer(screen.career); }} />}
       {toast && <div className="coin-toast" role="status"><Icon name="coin" size={16} className="coin-ic" />{noEmoji(toast)}</div>}
-      {reward && <CareerReward career={reward} onDone={(msg) => { setToast(typeof msg === 'string' ? msg : 'Deine Karriere-Belohnung liegt in der Sammlung!'); setReward(null); }} />}
+      {reward && <CareerReward career={reward} onDone={(msg) => { setToast(typeof msg === 'string' ? msg : 'Neue Karte in deinem Team!'); setReward(null); }} />}
       <Suspense fallback={<ScreenSkeleton />}>
         <div className="screen-in" key={screen.name === 'game' ? 'game' : screen.name}>
       {screen.name === 'home' && (
-        <Hub
+        <CareerHome
           onNews={() => { setNews(UPDATES); import('./data/updatesArchive').then((m) => setNews((cur) => (cur.length ? [...UPDATES, ...m.UPDATES_ARCHIVE] : cur))).catch(() => { /* ohne Archiv */ }); }}
           onNew={() => setScreen({ name: 'create' })}
           onLoad={load}
-          onStore={() => setScreen({ name: 'store' })}
-          onCollection={() => setScreen({ name: 'collection' })}
-          onTeam={() => setScreen({ name: 'team' })}
-          onDuels={() => setScreen({ name: 'duels' })}
-          onSbc={() => setScreen({ name: 'sbc' })}
-          onFame={() => setScreen({ name: 'fame' })}
-          onAchievements={() => setScreen({ name: 'achievements' })}
-          onPass={() => setScreen({ name: 'pass' })}
           onReward={setReward}
+          onProfile={() => setScreen({ name: 'profile' })}
         />
       )}
-      {screen.name === 'store' && <Store onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
-      {screen.name === 'collection' && <Collection onBack={home} onStore={() => setScreen({ name: 'store' })} />}
-      {screen.name === 'team' && <Team onBack={home} onStore={() => setScreen({ name: 'store' })} />}
-      {screen.name === 'duels' && <DuelsScreen onBack={home} onTeam={() => setScreen({ name: 'team' })} />}
-      {screen.name === 'sbc' && <SbcScreen onBack={home} />}
-      {screen.name === 'achievements' && <Achievements onBack={home} />}
-      {screen.name === 'pass' && <SeasonPass onBack={home} onCollection={() => setScreen({ name: 'collection' })} />}
-      {screen.name === 'fame' && <HallOfFame onBack={home} onOpen={load} />}
+      {screen.name === 'team' && <TeamScreen onDuels={() => setScreen({ name: 'duels' })} />}
+      {screen.name === 'duels' && <DuelsPage onTeam={() => setScreen({ name: 'team' })} />}
+      {screen.name === 'profile' && <ProfilePage />}
       {screen.name === 'create' && <CreateCareer onCancel={home} onCreate={update} />}
       {screen.name === 'game' && (
         <CareerScreen career={screen.career} onChange={update} onExit={home} />

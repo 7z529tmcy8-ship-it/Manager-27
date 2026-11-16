@@ -132,6 +132,8 @@ export interface ClubState {
   megaSuperClaimed?: boolean;
   /** Gewählte Formation in „Mein Team“ (Standard 4-3-3). */
   formation?: import('./squad').FormationId;
+  /** Karriere-Duelle: Liga-Leiter, Bilanz, XP pro Tag. */
+  careerDuels?: import('./careerDuels').CareerDuelState;
   /** Welches Team gerade aktiv ist (Aufstellung, Duelle): Haupt-Team oder Karriere-Team. */
   activeTeam?: import('./squad').TeamKind;
   /** Das gerade nicht aktive Team (Aufstellung + Formation). */
@@ -686,6 +688,14 @@ const iconId = (career: Career) => `own-icon-${career.id}`;
  * Die eigene Ikonen-Karte nach dem Karriereende: Bestwert der Karriere plus Bonus für Titel,
  * Ballon d’Or, Legendenstatus und eine Heimkehr. Verein ist der, für den am meisten Spiele gemacht wurden.
  */
+/** Karriereende ohne Auszeichnung (oder selbst erstellter Spieler): die Karriere-Ikone kommt ins Team. */
+export function claimCareerIcon(club: ClubState, career: Career): { club: ClubState; card: CollectCard } | null {
+  if (!rewardPending(club, career)) return null;
+  const card = careerIcon(career);
+  const specials = club.specials.some((c) => c.id === card.id) ? club.specials : [...club.specials, card];
+  return { club: { ...club, specials, rewardChosen: { ...club.rewardChosen, [career.id]: card.id } }, card };
+}
+
 export function careerIcon(career: Career): CollectCard {
   const s = summarizeCareer(career);
   const p = career.player;

@@ -1,14 +1,11 @@
 import { useState } from 'react';
-import { CAREER_REWARD_TIERS, PACKS, careerRewardKind, careerRewardOptions, careerRewardTier, claimCareerReward, drawCareerReward, type PackResult } from '../game/club';
+import { careerRewardKind, careerRewardOptions, claimCareerIcon, drawCareerReward } from '../game/club';
 import UtCard from './UtCard';
 import type { CollectCard } from '../game/club';
 import { play } from '../sound';
 import type { Career } from '../game/types';
 import { getClubState, setClubState } from '../clubStore';
-import Icon from './Icon';
-import { PackOpening } from './Store';
 
-const fmt = (n: number) => n.toLocaleString('de-DE');
 
 /**
  * Karriereende. Echte Spieler, Ikonen und Kult-Helden mit Auszeichnung: eine Auszeichnungs-Karte wählen.
@@ -53,50 +50,26 @@ function AwardChoice({ career, onDone }: { career: Career; onDone: () => void })
   );
 }
 
-/** Packs je nach Bilanz. */
+/** Ohne Auszeichnung: Die Karriere-Ikone kommt ins Team. */
 function CareerPacks({ career, onDone }: { career: Career; onDone: (msg?: string) => void }) {
-  const { tier, score, next } = careerRewardTier(career);
-  const [opened, setOpened] = useState<PackResult | null>(null);
-  const packName = (id: string) => PACKS.find((p) => p.id === id)?.name ?? id;
-
-  const open = () => {
-    const res = claimCareerReward(getClubState(), career);
+  const [card, setCard] = useState<CollectCard | null>(null);
+  const take = () => {
+    const res = claimCareerIcon(getClubState(), career);
     if (!res) { onDone(); return; }
     setClubState(res.club);
-    setOpened(res.result);
+    setCard(res.card);
+    try { play('fanfare'); } catch { /* kein Ton */ }
   };
-
-  const store = () => {
-    const res = claimCareerReward(getClubState(), career, Math.random, true);
-    if (res) setClubState(res.club);
-    onDone(`${tier.packs.length} ${tier.packs.length === 1 ? 'Pack liegt' : 'Packs liegen'} in deiner Ablage im Shop.`);
-  };
-
-  if (opened) return <PackOpening name={tier.name} result={opened} onClose={() => onDone()} onCollection={() => onDone()} />;
-
   return (
     <div className="reward" role="dialog" aria-modal="true" aria-labelledby="reward-title">
-      <div className="reward-card career-packs">
+      <div className="reward-card">
         <span className="upd-badge">Karriereende · {career.player.name}</span>
-        <h2 id="reward-title">{tier.name}</h2>
-        <p className="muted">Deine Karriere bringt <b>{fmt(score)} Bilanz-Punkte</b> – dafür gibt es diese Packs:</p>
-        <ul className="cr-packs">
-          {tier.packs.map((id, i) => (
-            <li key={`${id}-${i}`} className={`cr-pack p-${id}`}><Icon name="pack" size={22} /><span>{packName(id)}</span></li>
-          ))}
-        </ul>
-        <ol className="cr-tiers" aria-label="Stufen">
-          {CAREER_REWARD_TIERS.map((t) => (
-            <li key={t.id} className={t.id === tier.id ? 'on' : score >= t.min ? 'done' : ''}>
-              <strong>{t.name.replace('-Karriere', '')}</strong><small>ab {fmt(t.min)}</small>
-            </li>
-          ))}
-        </ol>
-        {next && <p className="hint">Für die {next.name} hätten {fmt(next.min - score)} Punkte gefehlt. Punkte gibt es für Titel, Auszeichnungen, Bestwertung, Spiele, Tore und Legendenstatus.</p>}
-        <div className="pack-prompt-actions">
-          <button className="btn secondary big" onClick={store}><Icon name="folder" size={18} /> In die Ablage</button>
-          <button className="btn primary big" onClick={open}><Icon name="pack" size={18} /> Packs öffnen</button>
+        <h2 id="reward-title">{card ? card.label ?? 'Karriere-Ikone' : 'Deine Karriere-Karte'}</h2>
+        <p className="muted">{card ? 'Die Karte steht jetzt in deinem Team – stell sie in „Team“ auf und spiel Duelle mit ihr.' : 'Dein Spieler kommt als Karte in dein Team – mit seiner besten Wertung.'}</p>
+        <div className="reward-options">
+          {card ? <span className="reward-drawn"><UtCard card={card} size="md" shine /></span> : <span className="reward-back" aria-label="Verdeckte Karte"><i>?</i></span>}
         </div>
+        {card ? <button className="btn primary big" onClick={() => onDone('Neue Karte in deinem Team!')}>Weiter</button> : <button className="btn primary big" onClick={take}>Karte aufdecken</button>}
       </div>
     </div>
   );

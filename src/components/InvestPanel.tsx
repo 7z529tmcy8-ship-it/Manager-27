@@ -21,8 +21,6 @@ import {
 } from '../game/invest';
 import { clubLeagueId, clubStrength } from '../game/player';
 import type { Career } from '../game/types';
-import CasinoTab from './CasinoTab';
-import { GiftShelf } from './Gifts';
 import { PROJECTS, canBuild, projectOf, projectStatus, startProject } from '../game/projects';
 
 const fmt = (n: number) => Math.round(n).toLocaleString('de-DE');
@@ -31,7 +29,7 @@ const fmt = (n: number) => Math.round(n).toLocaleString('de-DE');
 export default function InvestPanel({ career, onChange, onClose }: { career: Career; onChange: (c: Career) => void; onClose: () => void }) {
   const club = useClub();
   const h = career.household;
-  const [tab, setTab] = useState<'home' | 'clubs' | 'casino'>('home');
+  const [tab, setTab] = useState<'home' | 'clubs'>('home');
   const [leagueId, setLeagueId] = useState('bl1');
   const [clubId, setClubId] = useState('');
   const report = h?.report;
@@ -60,7 +58,6 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
           <span className="hub-coins"><Icon name="coin" size={16} className="coin-ic" />{fmt(club.coins)}</span>
         </header>
         <h2 className="fam-title">Vermögen</h2>
-        <GiftShelf career={career} onChange={onChange} />
 
         <div className="inv-summary">
           <div><small>Wert</small><strong><Icon name="coin" size={16} className="coin-ic" />{fmt(portfolioValue(career))}</strong></div>
@@ -73,15 +70,13 @@ export default function InvestPanel({ career, onChange, onClose }: { career: Car
             {investNotes.map((n) => <span key={n}>{n}</span>)}
           </div>
         )}
-        {tab !== 'casino' && <p className="muted">Einnahmen werden am Ende jeder Saison (bzw. jedes Ruhestandsjahres) in deinen Club gezahlt. Beim Verkauf fallen {SELL_FEE * 100} % Gebühren an.</p>}
+        {<p className="muted">Einnahmen werden am Ende jeder Saison (bzw. jedes Ruhestandsjahres) in deinen Club gezahlt. Beim Verkauf fallen {SELL_FEE * 100} % Gebühren an.</p>}
 
         <div className="chips inv-tabs">
           <button className={`chip ${tab === 'home' ? 'active' : ''}`} onClick={() => setTab('home')}>Immobilien</button>
           <button className={`chip ${tab === 'clubs' ? 'active' : ''}`} onClick={() => setTab('clubs')}>Klub-Anteile</button>
-          <button className={`chip ${tab === 'casino' ? 'active' : ''}`} onClick={() => setTab('casino')}>Casino</button>
         </div>
 
-        {tab === 'casino' && <CasinoTab career={career} onChange={onChange} />}
         {tab === 'home' && (
           <ul className="inv-list">
             {PROPERTIES.map((p) => {
