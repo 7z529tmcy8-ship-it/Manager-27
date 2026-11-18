@@ -29,6 +29,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-18-neon-casino',
+    date: '18.11.2026',
+    title: 'Das Neon-Casino ist offen',
+    items: [
+      'Neu im Home-Menü: das Neon-Casino mit eigener Währung (Chips) – du startest mit 1.000 Chips, jeden Tag gibt es einen Bonus, der mit deiner Serie wächst.',
+      '8 Spiele: Stadion-Slots mit Freispielen, Elfmeter-Crash, Torwand-Plinko, Elfmeter-Minen, Roulette, Blackjack, Höher/Tiefer mit Spielerkarten und das Glücksrad (täglich gratis).',
+      'Progressiver Jackpot: wächst mit jedem Einsatz – wer ihn knackt, bekommt alles plus eine Ikonen-Karte. Dazu Big-, Mega- und Epic-Win-Shows.',
+      'VIP-Stufen von Bronze bis Diamant (höhere Einsätze, mehr Tagesbonus), drei Tagesaufgaben und ein Preis-Shop: Karten fürs Haupt-Team, XP für deine Karriere, exklusive Wappen und Farben.',
+      'Nur Spielgeld: Chips kann man nicht kaufen. Die Gewinnchancen stehen in jedem Spiel unter dem Info-Knopf.',
+    ],
+  },
+  {
     id: '2026-11-16-skill-universum',
     date: '16.11.2026',
     title: 'Das Skill-Universum',

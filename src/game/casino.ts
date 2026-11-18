@@ -1,0 +1,377 @@
+import { CARD_POOL, type ClubState, type CollectCard } from './club';
+import { seasonId } from './squad';
+
+// Neon-Casino: eigene Währung (Chips), acht Spiele, VIP-Stufen, Tagesbonus mit Serie, wachsender
+// Jackpot, Tagesaufgaben und ein Preis-Shop (Karten, XP, Profil-Extras). Nur Spielgeld.
+// Alle Spiele haben eine offen angezeigte Auszahlungsquote (RTP) knapp unter 100 %.
+
+export type GameId = 'slots' | 'crash' | 'plinko' | 'mines' | 'roulette' | 'blackjack' | 'hilo' | 'wheel';
+type Rand = () => number;
+
+export interface CasinoState {
+  chips: number;
+  /** Insgesamt gesetzt – bestimmt die VIP-Stufe. */
+  vipPts: number;
+  daily?: { day: string; streak: number };
+  /** Tag des Gratis-Drehs am Glücksrad. */
+  wheelDay?: string;
+  jackpot: number;
+  quests?: { day: string; progress: Record<string, number>; claimed: string[] };
+  stats: { bigWin: number; bestCrash: number; bestHilo: number; rounds: number; jackpots: number };
+  /** Gekaufte Extras (Wappen, Farben). */
+  owned?: string[];
+}
+
+export const START_CHIPS = 1_000;
+export const JACKPOT_SEED = 10_000;
+/** Anteil jedes Einsatzes, der in den Jackpot fließt. */
+export const JACKPOT_SHARE = 0.01;
+/** Auszahlungsquote der Spiele mit frei wählbarem Gewinnziel (Crash, Minen, Plinko, Höher/Tiefer). */
+export const RTP = 0.97;
+
+export const casinoOf = (club: Pick<ClubState, 'casino'>): CasinoState =>
+  club.casino ?? { chips: START_CHIPS, vipPts: 0, jackpot: JACKPOT_SEED, stats: { bigWin: 0, bestCrash: 0, bestHilo: 0, rounds: 0, jackpots: 0 } };
+const withCasino = (club: ClubState, f: (c: CasinoState) => CasinoState): ClubState => ({ ...club, casino: f(casinoOf(club)) });
+
+// ---------- VIP ----------
+export const VIP = [
+  { name: 'Bronze', min: 0, daily: 250, maxBet: 500, color: '#d08a4f' },
+  { name: 'Silber', min: 5_000, daily: 400, maxBet: 1_500, color: '#c9d4e3' },
+  { name: 'Gold', min: 25_000, daily: 650, maxBet: 5_000, color: '#ffd24a' },
+  { name: 'Platin', min: 100_000, daily: 1_000, maxBet: 20_000, color: '#7af0ff' },
+  { name: 'Diamant', min: 400_000, daily: 1_600, maxBet: 100_000, color: '#ff7ad9' },
+] as const;
+export const vipLevel = (pts: number) => VIP.reduce((lv, v, i) => (pts >= v.min ? i : lv), 0);
+export const vipOf = (club: Pick<ClubState, 'casino'>) => VIP[vipLevel(casinoOf(club).vipPts)];
+export const maxBet = (club: Pick<ClubState, 'casino'>) => vipOf(club).maxBet;
+
+// ---------- Tagesbonus mit Serie ----------
+const dayBefore = (day: string) => { const d = new Date(`${day}T12:00:00`); d.setDate(d.getDate() - 1); return seasonId(d); };
+export function dailyBonus(club: Pick<ClubState, 'casino'>, now = new Date()): { ready: boolean; amount: number; streak: number } {
+  const c = casinoOf(club);
+  const today = seasonId(now);
+  const streak = c.daily?.day === today ? c.daily.streak : c.daily?.day === dayBefore(today) ? c.daily.streak + 1 : 1;
+  const amount = Math.round(vipOf(club).daily * (1 + Math.min(streak - 1, 7) * 0.15));
+  return { ready: c.daily?.day !== today, amount, streak };
+}
+export function claimDaily(club: ClubState, now = new Date()): { club: ClubState; amount: number } {
+  const b = dailyBonus(club, now);
+  if (!b.ready) return { club, amount: 0 };
+  return { club: withCasino(club, (c) => ({ ...c, chips: c.chips + b.amount, daily: { day: seasonId(now), streak: b.streak } })), amount: b.amount };
+}
+
+// ---------- Einsatz und Auszahlung ----------
+export type BigWin = 'big' | 'mega' | 'epic' | null;
+export const bigWinOf = (bet: number, win: number): BigWin => {
+  if (bet <= 0 || win <= 0) return null;
+  const x = win / bet;
+  return x >= 50 ? 'epic' : x >= 20 ? 'mega' : x >= 8 ? 'big' : null;
+};
+/** Einsatz abbuchen (geht in VIP-Punkte und zu 1 % in den Jackpot). null = nicht genug Chips oder über dem Limit. */
+export function placeBet(club: ClubState, bet: number): ClubState | null {
+  const c = casinoOf(club);
+  if (!Number.isFinite(bet) || bet <= 0 || bet > c.chips || bet > maxBet(club)) return null;
+  return withCasino(club, (x) => ({ ...x, chips: x.chips - bet, vipPts: x.vipPts + bet, jackpot: x.jackpot + Math.round(bet * JACKPOT_SHARE) }));
+}
+/** Event für Aufgaben und Statistik. */
+export interface PlayEvent { game: GameId; bet: number; win: number; mult?: number; streak?: number; safe?: number; jackpot?: boolean }
+/** Gewinn gutschreiben, Statistik und Aufgaben fortschreiben. */
+export function payout(club: ClubState, ev: PlayEvent, now = new Date()): ClubState {
+  return withCasino(club, (c) => {
+    const stats = {
+      ...c.stats,
+      rounds: c.stats.rounds + 1,
+      bigWin: Math.max(c.stats.bigWin, ev.win - ev.bet),
+      bestCrash: ev.game === 'crash' && ev.win > 0 ? Math.max(c.stats.bestCrash, ev.mult ?? 0) : c.stats.bestCrash,
+      bestHilo: ev.game === 'hilo' ? Math.max(c.stats.bestHilo, ev.streak ?? 0) : c.stats.bestHilo,
+      jackpots: c.stats.jackpots + (ev.jackpot ? 1 : 0),
+    };
+    return { ...c, chips: c.chips + Math.max(0, Math.round(ev.win)), stats, quests: trackQuests(c, ev, now) };
+  });
+}
+/** Jackpot leeren (wird ausgezahlt) und neu befüllen. */
+export function takeJackpot(club: ClubState): { club: ClubState; amount: number } {
+  const amount = casinoOf(club).jackpot;
+  return { club: withCasino(club, (c) => ({ ...c, jackpot: JACKPOT_SEED })), amount };
+}
+
+// ---------- 1. Stadion-Slots ----------
+export type Sym = 'ball' | 'boot' | 'shirt' | 'whistle' | 'star' | 'crown' | 'trophy' | 'coin';
+const WEIGHTS: [Sym, number][] = [['ball', 28], ['boot', 24], ['shirt', 20], ['whistle', 15], ['star', 9], ['crown', 3], ['trophy', 4], ['coin', 3]];
+const W_TOTAL = WEIGHTS.reduce((a, [, w]) => a + w, 0);
+/** Linien-Auszahlung (× Linieneinsatz = Einsatz/10) für 3, 4, 5 gleiche von links. Krone ist Joker. */
+export const PAYTABLE: Partial<Record<Sym, [number, number, number]>> = {
+  ball: [2, 5, 15], boot: [3, 8, 25], shirt: [4, 12, 40], whistle: [6, 20, 75], star: [12, 50, 200], crown: [20, 100, 500],
+};
+/** Gleichmäßiger Faktor auf alle Linien, so eingestellt, dass die Slots ~95 % zurückzahlen. */
+export const SLOT_SCALE = 2.44;
+export const LINES: number[][] = [
+  [1, 1, 1, 1, 1], [0, 0, 0, 0, 0], [2, 2, 2, 2, 2], [0, 1, 2, 1, 0], [2, 1, 0, 1, 2],
+  [0, 0, 1, 2, 2], [2, 2, 1, 0, 0], [1, 0, 0, 0, 1], [1, 2, 2, 2, 1], [1, 0, 1, 2, 1],
+];
+export const FREE_SPINS: Record<number, number> = { 3: 8, 4: 12, 5: 20 };
+const pickSym = (rand: Rand): Sym => { let r = rand() * W_TOTAL; for (const [s, w] of WEIGHTS) { r -= w; if (r < 0) return s; } return 'ball'; };
+/** Walzen: 5 Spalten × 3 Reihen. */
+export const spinGrid = (rand: Rand = Math.random): Sym[][] => Array.from({ length: 5 }, () => Array.from({ length: 3 }, () => pickSym(rand)));
+
+export interface LineWin { line: number; sym: Sym; count: number; win: number }
+export function evalGrid(grid: Sym[][], bet: number): { lines: LineWin[]; win: number; scatters: number; coins: number } {
+  const lineBet = bet / 10;
+  const lines: LineWin[] = [];
+  LINES.forEach((rows, li) => {
+    const syms = rows.map((r, reel) => grid[reel][r]);
+    const base = syms.find((s) => s !== 'crown') ?? 'crown';
+    if (!PAYTABLE[base]) return;
+    let count = 0;
+    for (const s of syms) { if (s === base || s === 'crown') count++; else break; }
+    if (count >= 3) lines.push({ line: li, sym: base, count, win: Math.round(lineBet * PAYTABLE[base]![count - 3] * SLOT_SCALE) });
+  });
+  const flat = grid.flat();
+  return { lines, win: lines.reduce((a, l) => a + l.win, 0), scatters: flat.filter((s) => s === 'trophy').length, coins: flat.filter((s) => s === 'coin').length };
+}
+/** Münzen irgendwo: 3 → 3× Einsatz, 4 → 20×, 5+ → Jackpot. */
+export const COIN_PAY: Record<number, number> = { 3: 3, 4: 20 };
+export interface SlotResult { grid: Sym[][]; lines: LineWin[]; win: number; free: { grid: Sym[][]; win: number }[]; jackpot: boolean }
+export function playSlots(bet: number, rand: Rand = Math.random): SlotResult {
+  const grid = spinGrid(rand);
+  const e = evalGrid(grid, bet);
+  let win = e.win + (COIN_PAY[e.coins] ?? 0) * bet;
+  const free: SlotResult['free'] = [];
+  const n = FREE_SPINS[Math.min(5, e.scatters)] ?? 0;
+  for (let i = 0; i < n; i++) {
+    const g = spinGrid(rand);
+    const f = evalGrid(g, bet);
+    free.push({ grid: g, win: f.win });
+    win += f.win;
+  }
+  return { grid, lines: e.lines, win, free, jackpot: e.coins >= 5 };
+}
+
+// ---------- 2. Elfmeter-Crash ----------
+/** Bei welchem Multiplikator der Torwart hält: P(Ball fliegt mindestens bis m) = 0,97 / m. */
+export function crashPoint(rand: Rand = Math.random): number {
+  const u = rand();
+  return Math.max(1, Math.floor((RTP / (1 - u)) * 100) / 100);
+}
+/** Multiplikator nach t Sekunden Flug. */
+export const crashAt = (t: number) => Math.floor(Math.exp(0.11 * t) * 100) / 100;
+
+// ---------- 3. Torwand-Plinko ----------
+export const PLINKO_ROWS = 12;
+export type Risk = 'low' | 'mid' | 'high';
+const RAW_PLINKO: Record<Risk, number[]> = {
+  low: [11, 3, 1.6, 1.4, 1.1, 1, 0.5, 1, 1.1, 1.4, 1.6, 3, 11],
+  mid: [33, 11, 4, 2, 1.1, 0.6, 0.3, 0.6, 1.1, 2, 4, 11, 33],
+  high: [170, 24, 8.1, 2, 0.7, 0.2, 0.2, 0.2, 0.7, 2, 8.1, 24, 170],
+};
+const binom = (n: number, k: number): number => (k === 0 || k === n ? 1 : binom(n - 1, k - 1) + binom(n - 1, k));
+export const PLINKO_P = Array.from({ length: PLINKO_ROWS + 1 }, (_, k) => binom(PLINKO_ROWS, k) / 2 ** PLINKO_ROWS);
+/** Fächer-Multiplikatoren, auf 97 % Auszahlung skaliert. */
+export const PLINKO: Record<Risk, number[]> = Object.fromEntries((Object.keys(RAW_PLINKO) as Risk[]).map((r) => {
+  const ev = RAW_PLINKO[r].reduce((a, m, k) => a + m * PLINKO_P[k], 0);
+  return [r, RAW_PLINKO[r].map((m) => Math.floor(((m * RTP) / ev) * 100) / 100)];
+})) as Record<Risk, number[]>;
+/** Weg des Balls: je Reihe links (0) oder rechts (1); Fach = Anzahl Rechts. */
+export function dropBall(rand: Rand = Math.random): { path: number[]; slot: number } {
+  const path = Array.from({ length: PLINKO_ROWS }, () => (rand() < 0.5 ? 0 : 1));
+  return { path, slot: path.reduce<number>((a, b) => a + b, 0) };
+}
+
+// ---------- 4. Elfmeter-Minen ----------
+export const MINE_FIELDS = 25;
+export function placeMines(count: number, rand: Rand = Math.random): number[] {
+  const all = Array.from({ length: MINE_FIELDS }, (_, i) => i);
+  for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [all[i], all[j]] = [all[j], all[i]]; }
+  return all.slice(0, count).sort((a, b) => a - b);
+}
+/** Multiplikator nach k Toren (sicheren Feldern) bei m Paraden. */
+export function minesMult(mines: number, safe: number): number {
+  let m = RTP;
+  for (let i = 0; i < safe; i++) m *= (MINE_FIELDS - i) / (MINE_FIELDS - mines - i);
+  return Math.floor(m * 100) / 100;
+}
+
+// ---------- 5. Roulette (europäisch, Rückennummern 0–36) ----------
+export const RED = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+export const WHEEL_ORDER = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
+export type RouletteBet = 'red' | 'black' | 'even' | 'odd' | 'low' | 'high' | 'd1' | 'd2' | 'd3' | `n${number}`;
+export const ROULETTE_LABEL: Record<string, string> = { red: 'Rot', black: 'Schwarz', even: 'Gerade', odd: 'Ungerade', low: '1–18', high: '19–36', d1: '1–12', d2: '13–24', d3: '25–36' };
+export const spinRoulette = (rand: Rand = Math.random) => Math.floor(rand() * 37);
+/** Auszahlung inkl. Einsatz (0 = verloren). */
+export function rouletteReturn(bet: RouletteBet, amount: number, n: number): number {
+  if (bet.startsWith('n')) return Number(bet.slice(1)) === n ? amount * 36 : 0;
+  if (n === 0) return 0;
+  const hit = bet === 'red' ? RED.includes(n) : bet === 'black' ? !RED.includes(n) : bet === 'even' ? n % 2 === 0 : bet === 'odd' ? n % 2 === 1
+    : bet === 'low' ? n <= 18 : bet === 'high' ? n >= 19 : bet === 'd1' ? n <= 12 : bet === 'd2' ? n >= 13 && n <= 24 : n >= 25;
+  return hit ? amount * (bet.startsWith('d') ? 3 : 2) : 0;
+}
+
+// ---------- 6. Blackjack (Dealer steht ab 17, Blackjack zahlt 3:2, Verdoppeln) ----------
+export interface BjCard { rank: number; suit: 0 | 1 | 2 | 3 }
+export const RANK_NAME = (r: number) => (r === 1 ? 'A' : r === 11 ? 'B' : r === 12 ? 'D' : r === 13 ? 'K' : String(r));
+export function shoe(rand: Rand = Math.random): BjCard[] {
+  const deck: BjCard[] = [];
+  for (let d = 0; d < 4; d++) for (let s = 0; s < 4; s++) for (let r = 1; r <= 13; r++) deck.push({ rank: r, suit: s as BjCard['suit'] });
+  for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+  return deck;
+}
+export function handValue(cards: BjCard[]): { total: number; soft: boolean } {
+  let total = 0;
+  let aces = 0;
+  for (const c of cards) { total += Math.min(10, c.rank); if (c.rank === 1) aces++; }
+  const soft = aces > 0 && total + 10 <= 21;
+  return { total: soft ? total + 10 : total, soft };
+}
+export const isBlackjack = (cards: BjCard[]) => cards.length === 2 && handValue(cards).total === 21;
+export function dealerPlay(dealer: BjCard[], deck: BjCard[]): BjCard[] {
+  const out = [...dealer];
+  while (handValue(out).total < 17) out.push(deck.pop()!);
+  return out;
+}
+/** Auszahlung inkl. Einsatz. */
+export function bjReturn(player: BjCard[], dealer: BjCard[], bet: number): { ret: number; outcome: 'bj' | 'win' | 'push' | 'lose' } {
+  const p = handValue(player).total;
+  const d = handValue(dealer).total;
+  if (isBlackjack(player) && !isBlackjack(dealer)) return { ret: bet * 2.5, outcome: 'bj' };
+  if (p > 21) return { ret: 0, outcome: 'lose' };
+  if (isBlackjack(dealer) && !isBlackjack(player)) return { ret: 0, outcome: 'lose' };
+  if (d > 21 || p > d) return { ret: bet * 2, outcome: 'win' };
+  if (p === d) return { ret: bet, outcome: 'push' };
+  return { ret: 0, outcome: 'lose' };
+}
+
+// ---------- 7. Höher oder tiefer (mit Spielerkarten) ----------
+const HILO_POOL = CARD_POOL.filter((c) => c.ovr >= 60 && c.ovr <= 99);
+export const hiloCard = (rand: Rand = Math.random): CollectCard => HILO_POOL[Math.floor(rand() * HILO_POOL.length)];
+/** Chance, dass die nächste Karte höher (bzw. tiefer) ist – Gleichstand zählt als verloren. */
+export function hiloOdds(ovr: number): { higher: number; lower: number } {
+  const n = HILO_POOL.length;
+  return { higher: HILO_POOL.filter((c) => c.ovr > ovr).length / n, lower: HILO_POOL.filter((c) => c.ovr < ovr).length / n };
+}
+/** Faktor für einen richtigen Tipp mit Trefferchance p. */
+export const hiloFactor = (p: number) => (p <= 0 ? 0 : Math.max(1.01, Math.floor((RTP / p) * 100) / 100));
+
+// ---------- 8. Glücksrad ----------
+export type WheelPrize = { kind: 'chips'; amount: number } | { kind: 'xp'; amount: number } | { kind: 'card'; tier: ShopCardTier } | { kind: 'jackpot' };
+export const WHEEL: { prize: WheelPrize; label: string; weight: number }[] = [
+  { prize: { kind: 'chips', amount: 100 }, label: '100', weight: 24 },
+  { prize: { kind: 'chips', amount: 250 }, label: '250', weight: 20 },
+  { prize: { kind: 'xp', amount: 50 }, label: '50 XP', weight: 14 },
+  { prize: { kind: 'chips', amount: 500 }, label: '500', weight: 14 },
+  { prize: { kind: 'chips', amount: 1000 }, label: '1.000', weight: 9 },
+  { prize: { kind: 'card', tier: 'gold' }, label: 'Karte', weight: 7 },
+  { prize: { kind: 'xp', amount: 150 }, label: '150 XP', weight: 6 },
+  { prize: { kind: 'chips', amount: 2500 }, label: '2.500', weight: 4 },
+  { prize: { kind: 'card', tier: 'top' }, label: 'Top-Karte', weight: 1.6 },
+  { prize: { kind: 'chips', amount: 10000 }, label: '10.000', weight: 1 },
+  { prize: { kind: 'jackpot' }, label: 'JACKPOT', weight: 0.4 },
+];
+/** Extra-Dreh kostet so viel, wenn der Gratis-Dreh heute schon weg ist. */
+export const WHEEL_COST = 600;
+export const wheelFree = (club: Pick<ClubState, 'casino'>, now = new Date()) => casinoOf(club).wheelDay !== seasonId(now);
+export function spinWheel(rand: Rand = Math.random): number {
+  const total = WHEEL.reduce((a, w) => a + w.weight, 0);
+  let r = rand() * total;
+  for (let i = 0; i < WHEEL.length; i++) { r -= WHEEL[i].weight; if (r < 0) return i; }
+  return 0;
+}
+export const markWheel = (club: ClubState, now = new Date()): ClubState => withCasino(club, (c) => ({ ...c, wheelDay: seasonId(now) }));
+
+// ---------- Tagesaufgaben ----------
+export interface Quest { id: string; text: string; goal: number; reward: number; count: (e: PlayEvent) => number; best?: boolean }
+export const QUESTS: Quest[] = [
+  { id: 'slots10', text: '10× an den Stadion-Slots drehen', goal: 10, reward: 400, count: (e) => (e.game === 'slots' ? 1 : 0) },
+  { id: 'crash3', text: 'Beim Crash bei mindestens 3× kassieren', goal: 1, reward: 600, count: (e) => (e.game === 'crash' && e.win > 0 && (e.mult ?? 0) >= 3 ? 1 : 0) },
+  { id: 'bj3', text: '3 Blackjack-Hände gewinnen', goal: 3, reward: 500, count: (e) => (e.game === 'blackjack' && e.win > e.bet ? 1 : 0) },
+  { id: 'mines5', text: 'Minen: 5 Tore in einer Runde', goal: 5, reward: 600, best: true, count: (e) => (e.game === 'mines' ? e.safe ?? 0 : 0) },
+  { id: 'plinko20', text: '20 Plinko-Bälle fallen lassen', goal: 20, reward: 400, count: (e) => (e.game === 'plinko' ? 1 : 0) },
+  { id: 'roulette5', text: '5 Runden Roulette spielen', goal: 5, reward: 350, count: (e) => (e.game === 'roulette' ? 1 : 0) },
+  { id: 'hilo4', text: 'Höher/Tiefer: Serie von 4', goal: 4, reward: 600, best: true, count: (e) => (e.game === 'hilo' ? e.streak ?? 0 : 0) },
+  { id: 'big', text: 'Einen Big Win landen (8× Einsatz)', goal: 1, reward: 800, count: (e) => (bigWinOf(e.bet, e.win) ? 1 : 0) },
+];
+/** Drei Aufgaben pro Tag, für alle gleich (aus dem Datum). */
+export function questsFor(day: string): Quest[] {
+  let h = 0;
+  for (const ch of day) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const idx = QUESTS.map((_, i) => i);
+  const out: Quest[] = [];
+  while (out.length < 3) { h = (h * 1103515245 + 12345) >>> 0; out.push(QUESTS[idx.splice(h % idx.length, 1)[0]]); }
+  return out;
+}
+function trackQuests(c: CasinoState, e: PlayEvent, now: Date): CasinoState['quests'] {
+  const day = seasonId(now);
+  const q = c.quests?.day === day ? c.quests : { day, progress: {}, claimed: [] };
+  const progress = { ...q.progress };
+  for (const quest of questsFor(day)) {
+    const n = quest.count(e);
+    if (!n) continue;
+    progress[quest.id] = quest.best ? Math.max(progress[quest.id] ?? 0, n) : (progress[quest.id] ?? 0) + n;
+  }
+  return { ...q, progress };
+}
+export function questList(club: Pick<ClubState, 'casino'>, now = new Date()) {
+  const day = seasonId(now);
+  const q = casinoOf(club).quests;
+  const cur = q?.day === day ? q : { day, progress: {} as Record<string, number>, claimed: [] as string[] };
+  return questsFor(day).map((quest) => ({ quest, have: Math.min(quest.goal, cur.progress[quest.id] ?? 0), claimed: cur.claimed.includes(quest.id) }));
+}
+export function claimQuest(club: ClubState, id: string, now = new Date()): ClubState {
+  const item = questList(club, now).find((x) => x.quest.id === id);
+  if (!item || item.claimed || item.have < item.quest.goal) return club;
+  return withCasino(club, (c) => ({
+    ...c, chips: c.chips + item.quest.reward,
+    quests: { day: seasonId(now), progress: c.quests?.day === seasonId(now) ? c.quests.progress : {}, claimed: [...(c.quests?.day === seasonId(now) ? c.quests.claimed : []), id] },
+  }));
+}
+
+// ---------- Preis-Shop ----------
+export type ShopCardTier = 'gold' | 'top' | 'icon';
+const TIER_RANGE: Record<ShopCardTier, (c: CollectCard) => boolean> = {
+  gold: (c) => c.ovr >= 80 && c.ovr <= 86 && c.variant !== 'icon',
+  top: (c) => c.ovr >= 87 && c.ovr <= 91,
+  icon: (c) => c.variant === 'icon' || c.ovr >= 92,
+};
+export function randomCard(tier: ShopCardTier, rand: Rand = Math.random): CollectCard {
+  const list = CARD_POOL.filter((c) => !c.id.startsWith('own-') && TIER_RANGE[tier](c));
+  return list[Math.floor(rand() * list.length)];
+}
+export const addCard = (club: ClubState, card: CollectCard): ClubState => ({ ...club, cards: { ...club.cards, [card.id]: (club.cards[card.id] ?? 0) + 1 } });
+
+export type ShopItem =
+  | { id: string; kind: 'card'; tier: ShopCardTier; name: string; text: string; price: number }
+  | { id: string; kind: 'xp'; amount: number; name: string; text: string; price: number }
+  | { id: string; kind: 'emblem' | 'color'; value: string; name: string; text: string; price: number; minVip?: number };
+export const SHOP: ShopItem[] = [
+  { id: 'card-gold', kind: 'card', tier: 'gold', name: 'Gold-Karte', text: 'Zufällig, Wertung 80–86 – direkt ins Haupt-Team', price: 3_000 },
+  { id: 'card-top', kind: 'card', tier: 'top', name: 'Top-Karte', text: 'Zufällig, Wertung 87–91', price: 12_000 },
+  { id: 'card-icon', kind: 'card', tier: 'icon', name: 'Ikonen-Karte', text: 'Eine Ikone oder ein 92er+', price: 40_000 },
+  { id: 'xp-100', kind: 'xp', amount: 100, name: '100 XP', text: 'Für deinen aktiven Karriere-Spieler', price: 2_500 },
+  { id: 'xp-300', kind: 'xp', amount: 300, name: '300 XP', text: 'Für deinen aktiven Karriere-Spieler', price: 6_500 },
+  { id: 'em-dice', kind: 'emblem', value: 'dice', name: 'Wappen „Würfel“', text: 'Exklusiv aus dem Casino', price: 8_000 },
+  { id: 'em-coin', kind: 'emblem', value: 'coin', name: 'Wappen „Jackpot“', text: 'Exklusiv aus dem Casino', price: 15_000, minVip: 2 },
+  { id: 'em-key', kind: 'emblem', value: 'key', name: 'Wappen „High Roller“', text: 'Nur ab VIP Platin', price: 50_000, minVip: 3 },
+  { id: 'col-champ', kind: 'color', value: '#e8c36a', name: 'Farbe Champagner', text: 'Exklusive Profilfarbe', price: 5_000 },
+  { id: 'col-neon', kind: 'color', value: '#ff5e3a', name: 'Farbe Roulette-Rot', text: 'Exklusive Profilfarbe', price: 5_000 },
+];
+export const CASINO_EMBLEMS = SHOP.filter((s) => s.kind === 'emblem').map((s) => (s as { value: string }).value);
+export const CASINO_COLORS = SHOP.filter((s) => s.kind === 'color').map((s) => (s as { value: string }).value);
+export const ownsExtra = (club: Pick<ClubState, 'casino'>, value: string) => (casinoOf(club).owned ?? []).includes(value);
+
+/** Kaufen. Karten landen direkt im Haupt-Team-Bestand; XP vergibt die Oberfläche an die aktive Karriere. */
+export function buy(club: ClubState, id: string, rand: Rand = Math.random): { club: ClubState; card?: CollectCard; xp?: number } | null {
+  const item = SHOP.find((s) => s.id === id);
+  const c = casinoOf(club);
+  if (!item || c.chips < item.price) return null;
+  if ((item.kind === 'emblem' || item.kind === 'color') && ((c.owned ?? []).includes(item.value) || vipLevel(c.vipPts) < (item.minVip ?? 0))) return null;
+  let next = withCasino(club, (x) => ({ ...x, chips: x.chips - item.price, owned: item.kind === 'emblem' || item.kind === 'color' ? [...(x.owned ?? []), item.value] : x.owned }));
+  if (item.kind === 'card') { const card = randomCard(item.tier, rand); next = addCard(next, card); return { club: next, card }; }
+  if (item.kind === 'xp') return { club: next, xp: item.amount };
+  return { club: next };
+}
+
+/** Fester Preis (z. B. Extra-Dreh am Glücksrad) – ohne Einsatz-Limit, zählt für VIP. */
+export function spend(club: ClubState, amount: number): ClubState | null {
+  const c = casinoOf(club);
+  if (amount <= 0 || c.chips < amount) return null;
+  return withCasino(club, (x) => ({ ...x, chips: x.chips - amount, vipPts: x.vipPts + amount }));
+}

@@ -12,6 +12,7 @@ const CareerScreen = lazy(() => import('./components/CareerScreen'));
 const TeamScreen = lazy(() => import('./components/TeamScreen'));
 const DuelsPage = lazy(() => import('./components/DuelsPage'));
 const ProfilePage = lazy(() => import('./components/ProfilePage'));
+const CasinoPage = lazy(() => import('./components/casino/CasinoPage'));
 import UpdateBanner, { unseenUpdates } from './components/UpdateBanner';
 import { UPDATES, type UpdateNote } from './data/updates';
 import { creditCareer, removeOwnCareerCards, rewardPending } from './game/club';
@@ -28,6 +29,7 @@ type Screen =
   | { name: 'team' }
   | { name: 'duels' }
   | { name: 'profile' }
+  | { name: 'casino' }
   | { name: 'create' }
   | { name: 'game'; career: Career };
 
@@ -145,11 +147,13 @@ export default function App() {
           onLoad={load}
           onReward={setReward}
           onProfile={() => setScreen({ name: 'profile' })}
+          onCasino={() => setScreen({ name: 'casino' })}
         />
       )}
       {screen.name === 'team' && <TeamScreen onDuels={() => setScreen({ name: 'duels' })} />}
       {screen.name === 'duels' && <DuelsPage onTeam={() => setScreen({ name: 'team' })} />}
       {screen.name === 'profile' && <ProfilePage />}
+      {screen.name === 'casino' && <CasinoPage onExit={home} />}
       {screen.name === 'create' && <CreateCareer onCancel={home} onCreate={update} />}
       {screen.name === 'game' && (
         <CareerScreen career={screen.career} onChange={update} onExit={home} />

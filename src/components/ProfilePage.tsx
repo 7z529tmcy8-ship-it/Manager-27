@@ -5,6 +5,7 @@ import { EMBLEMS, NAME_MAX, PROFILE_COLORS, profileOf, setProfile } from '../gam
 import { cardById, slotsOf, teamCards, teamStrength } from '../game/squad';
 import { listCareers } from '../game/storage';
 import Icon from './Icon';
+import { CASINO_COLORS, CASINO_EMBLEMS, casinoOf, ownsExtra, vipOf } from '../game/casino';
 
 /** Wappen-Abzeichen: Sechseck in der Profilfarbe mit Linien-Icon (keine Gesichter). */
 export function Emblem({ emblem, color, size = 44 }: { emblem: string; color: string; size?: number }) {
@@ -41,6 +42,8 @@ export default function ProfilePage() {
     ['Duelle S/U/N', `${club.duels.w}/${club.duels.d}/${club.duels.l}`],
     ['Division', divName(div.div)],
     ['Beste Division', divName(div.best)],
+    ['Casino-VIP', vipOf(club).name],
+    ['Größter Casino-Gewinn', casinoOf(club).stats.bigWin.toLocaleString('de-DE')],
   ];
 
   return (
@@ -57,7 +60,7 @@ export default function ProfilePage() {
 
       <h2 className="ch-h">Wappen</h2>
       <div className="pp-pick" role="radiogroup" aria-label="Wappen">
-        {EMBLEMS.map((e) => (
+        {[...EMBLEMS, ...CASINO_EMBLEMS.filter((e) => ownsExtra(club, e))].map((e) => (
           <button key={e} role="radio" aria-checked={p.emblem === e} className={p.emblem === e ? 'on' : ''} onClick={() => save({ emblem: e })}>
             <Emblem emblem={e} color={p.color} size={40} />
           </button>
@@ -65,7 +68,7 @@ export default function ProfilePage() {
       </div>
       <h2 className="ch-h">Farbe</h2>
       <div className="pp-pick colors" role="radiogroup" aria-label="Farbe">
-        {PROFILE_COLORS.map((c) => (
+        {[...PROFILE_COLORS, ...CASINO_COLORS.filter((c) => ownsExtra(club, c))].map((c) => (
           <button key={c} role="radio" aria-checked={p.color === c} aria-label={c} className={p.color === c ? 'on' : ''} style={{ background: c }} onClick={() => save({ color: c })}>
             {p.color === c && <Icon name="check" size={18} />}
           </button>

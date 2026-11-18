@@ -8,6 +8,7 @@ import type { Career } from '../game/types';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import Icon from './Icon';
 import { Emblem } from './ProfilePage';
+import { casinoOf, dailyBonus } from '../game/casino';
 
 const Settings = lazy(() => import('./Settings'));
 const Backup = lazy(() => import('./Backup'));
@@ -16,8 +17,8 @@ const statusOf = (c: Career) =>
   c.phase === 'retired' ? `Karriere beendet · ${c.history.length} ${c.history.length === 1 ? 'Saison' : 'Saisons'}` : `${getClub(currentClubId(c.player)).name} · ${seasonLabel(c.year)} · ${c.player.age} Jahre`;
 
 /** Startseite = Karriere: weiterspielen, neue Karriere, alle Spielstände. */
-export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile }: {
-  onNew: () => void; onLoad: (c: Career) => void; onNews: () => void; onReward: (c: Career) => void; onProfile: () => void;
+export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile, onCasino }: {
+  onNew: () => void; onLoad: (c: Career) => void; onNews: () => void; onReward: (c: Career) => void; onProfile: () => void; onCasino: () => void;
 }) {
   const club = useClub();
   const me = profileOf(club);
@@ -69,6 +70,18 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile 
         </div>
       )}
       <button className="btn primary big ch-new" onClick={onNew}><Icon name="plus" size={20} /> Neue Karriere</button>
+
+      <button className="ch-casino" onClick={onCasino} aria-label="Neon-Casino öffnen">
+        <span className="ch-casino-lights" aria-hidden="true" />
+        <span className="ch-casino-ic"><Icon name="dice" size={28} /></span>
+        <span className="ch-casino-text">
+          <small>Neon-Casino</small>
+          <b>{casinoOf(club).chips.toLocaleString('de-DE')} Chips</b>
+          <span>Jackpot {casinoOf(club).jackpot.toLocaleString('de-DE')}</span>
+        </span>
+        {dailyBonus(club).ready && <em className="ch-casino-badge">Bonus bereit</em>}
+        <Icon name="arrow" size={22} />
+      </button>
 
       {sorted.length > 1 && (
         <button className="ch-row" onClick={() => setList(true)}><Icon name="folder" size={20} /><span><b>Spielstände</b><small>{sorted.length} Karrieren gespeichert</small></span><Icon name="arrow" size={18} /></button>

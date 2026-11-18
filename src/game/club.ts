@@ -148,6 +148,8 @@ export interface ClubState {
   /** Duell-Saison: Punkte je Saison (z. B. '2026-10' → 340) und abgeholte Saison-Belohnungen. */
   duelSeasons?: Record<string, number>;
   duelSeasonClaimed?: string[];
+  /** Neon-Casino: Chips, VIP, Jackpot, Aufgaben, Statistik. */
+  casino?: import('./casino').CasinoState;
 }
 
 export const START_COINS = 3000;
