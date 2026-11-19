@@ -5,7 +5,7 @@ import {
 } from '../../game/casino';
 import { motionReduced } from '../../settings';
 import Icon from '../Icon';
-import { BetPicker, GameFrame, bet, buzz, fmt, fx, settle, sfx, shake, useBet } from './shared';
+import { BetPicker, GameFrame, bet, buzz, fmt, fx, settle, sfx, useBet } from './shared';
 import { playStep } from '../../sound';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -185,7 +185,7 @@ export function Crash({ onClose }: { onClose: () => void }) {
         setMult(r.crash);
         setPhase('done');
         setHistory((h) => [r.crash, ...h].slice(0, 12));
-        if (!r.cashed) { settle({ game: 'crash', bet: r.stake, win: 0, mult: r.crash }); sfx('boom'); shake(r.crash > 2); buzz(120); }
+        if (!r.cashed) { settle({ game: 'crash', bet: r.stake, win: 0, mult: r.crash }); sfx('whistle'); }
         return;
       }
       // Spannung: bei jedem halben Multiplikator ein höherer Ton
@@ -217,7 +217,7 @@ export function Crash({ onClose }: { onClose: () => void }) {
         </svg>
         <div className="cz-mult">
           <b>{fx(mult)}×</b>
-          <small>{phase === 'idle' ? 'Bereit zum Schuss' : crashed ? (cashed ? `Kassiert bei ${fx(cashed)}× · Torwart hielt bei ${fx(mult)}×` : 'Gehalten!') : cashed ? `Kassiert bei ${fx(cashed)}×` : 'Fliegt …'}</small>
+          <small>{phase === 'idle' ? 'Bereit zum Schuss' : crashed ? (cashed ? `Kassiert bei ${fx(cashed)}× · Torwart hielt bei ${fx(mult)}×` : 'Gehalten – nächster Schuss!') : cashed ? `Kassiert bei ${fx(cashed)}×` : 'Fliegt …'}</small>
         </div>
       </div>
       <div className="cz-history">{history.map((h, i) => <span key={i} className={h >= 2 ? 'hi' : 'lo'}>{fx(h)}×</span>)}</div>
@@ -258,7 +258,7 @@ export function Mines({ onClose }: { onClose: () => void }) {
     if (round.mines.includes(i)) {
       setRound({ ...round, open: [...round.open, i], over: 'lost' });
       settle({ game: 'mines', bet: round.stake, win: 0, safe });
-      sfx('boom'); shake(true); buzz([80, 40, 160]);
+      sfx('whistle');
       return;
     }
     const open = [...round.open, i];
@@ -292,7 +292,7 @@ export function Mines({ onClose }: { onClose: () => void }) {
         })}
       </div>
       <div className={`cz-result ${round ? 'on' : ''}`}>
-        {round?.over === 'lost' ? <><b className="down">Parade!</b><small>Nach {safe} Tor{safe === 1 ? '' : 'en'}</small></>
+        {round?.over === 'lost' ? <><b className="pink">Parade!</b><small>Nächster Anstoß wartet</small></>
           : round?.over === 'cashed' ? <><b>+{fmt(round.stake * mult)}</b><small>{fx(mult)}× kassiert</small></>
           : round ? <><b>{fx(mult)}×</b><small>Nächstes Tor: {fx(nextMult)}×</small></> : <small>Wähle, wie viele Felder der Torwart hält</small>}
       </div>

@@ -78,7 +78,7 @@ export function Roulette({ onClose }: { onClose: () => void }) {
         <div className="cz-wheel-center">{res ? <b className={colorOf(res.n)}>{res.n}</b> : <Icon name="ball" size={26} />}</div>
       </div>
       <div className="cz-history">{last.map((n, i) => <span key={i} className={`rn ${colorOf(n)}`}>{n}</span>)}</div>
-      <div className={`cz-result ${res ? 'on' : ''}`}>{res ? (res.win ? <><b>+{fmt(res.win)}</b><small>Nummer {res.n}</small></> : <><b className="down">{res.n}</b><small>Diesmal nichts</small></>) : <small>Setz deine Chips – Einsatz gesamt {fmt(total)}</small>}</div>
+      <div className={`cz-result ${res ? 'on' : ''}`}>{res ? (res.win ? <><b>+{fmt(res.win)}</b><small>Nummer {res.n}</small></> : <><b className="pink">{res.n}</b><small>Nächste Runde – setz neu!</small></>) : <small>Setz deine Chips – Einsatz gesamt {fmt(total)}</small>}</div>
       <div className="cz-table">
         <button className={`num z ${bets.n0 ? 'has' : ''}`} onClick={() => add('n0')}>0{bets.n0 ? <em>{fmt(bets.n0)}</em> : null}</button>
         <div className="nums">
@@ -133,7 +133,7 @@ export function Blackjack({ onClose }: { onClose: () => void }) {
     }
     const r = bjReturn(p, d, b);
     settle({ game: 'blackjack', bet: b, win: r.ret });
-    setMsg({ text: { bj: 'Blackjack!', win: 'Gewonnen!', push: 'Unentschieden', lose: handValue(p).total > 21 ? 'Überkauft' : 'Bank gewinnt' }[r.outcome], win: r.ret });
+    setMsg({ text: { bj: 'Blackjack!', win: 'Gewonnen!', push: 'Unentschieden', lose: handValue(p).total > 21 ? 'Über 21 – nächste Hand!' : 'Nächste Hand!' }[r.outcome], win: r.ret });
     setPhase('done');
   };
   const deal = async () => {
@@ -148,7 +148,7 @@ export function Blackjack({ onClose }: { onClose: () => void }) {
   const hit = async () => {
     const p = [...player, draw()];
     setPlayer(p); sfx('tap');
-    if (handValue(p).total > 21) { buzz(80); sfx('boom'); await finish(p, dealer, cur); }
+    if (handValue(p).total > 21) { await finish(p, dealer, cur); }
   };
   const double = async () => {
     if (player.length !== 2 || !bet(cur)) return;

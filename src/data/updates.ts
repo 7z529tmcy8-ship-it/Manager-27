@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-19-casino-party',
+    date: '19.11.2026',
+    title: 'Casino: mehr Farbe, mehr Party, iPad-fit',
+    items: [
+      'iPad: Casino und alle Spiele lassen sich jetzt scrollen, Plinko passt im Querformat komplett auf den Bildschirm (Brett links, Steuerung rechts).',
+      'Party bei jedem Gewinn: Konfetti in Neonfarben und Farbblitz – je größer der Treffer, desto mehr.',
+      'Bunter: Regenbogen-Rahmen um die Spiele, schillerndes Logo, glänzender Jackpot, Pfosten leuchten bei Plinko in allen Farben.',
+      'Plinko zeigt jetzt deinen besten Treffer, deinen Top-Gewinn und deine Treffer-Serie.',
+    ],
+  },
+  {
     id: '2026-11-19-plinko-2',
     date: '19.11.2026',
     title: 'Torwand-Plinko 2.0',

@@ -5,15 +5,16 @@ import {
 import { motionReduced } from '../../settings';
 import { playStep } from '../../sound';
 import Icon from '../Icon';
-import { BetPicker, GameFrame, bet, buzz, fmt, settle, sfx, shake, useBet } from './shared';
+import { BetPicker, GameFrame, bet, buzz, celebrate, fmt, settle, sfx, shake, useBet } from './shared';
 
 const RISK_NAME: Record<Risk, string> = { low: 'Niedrig', mid: 'Mittel', high: 'Hoch', extreme: 'Extrem' };
 const AUTO_COUNTS = [10, 25, 50, 100];
 const MAX_BALLS = 40;
+const PEG_COLORS = ['#ff3fb4', '#3ff0ff', '#ffd24a', '#39ff88', '#a35cff', '#ff7a59'];
 
 type Ball = { id: number; path: number[]; slot: number; gold: boolean; stake: number; mult: number; start: number; durs: number[]; ends: number[]; peak: boolean; hitRow: number };
 type Pop = { slot: number; at: number; text: string; color: string };
-type Session = { balls: number; net: number; best: number; line: number[] };
+type Session = { best: number; bigWin: number; streak: number; bestStreak: number };
 
 /** Farbe eines Fachs nach Multiplikator: kalt in der Mitte, heiß am Rand. */
 function binColor(m: number): string {
@@ -38,7 +39,7 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
   const [auto, setAuto] = useState<{ left: number; total: number } | null>(null);
   const [autoN, setAutoN] = useState(25);
   const [hist, setHist] = useState<{ id: number; m: number; gold: boolean }[]>([]);
-  const [sess, setSess] = useState<Session>({ balls: 0, net: 0, best: 0, line: [0] });
+  const [sess, setSess] = useState<Session>({ best: 0, bigWin: 0, streak: 0, bestStreak: 0 });
 
   const table = plinkoTable(rows, risk);
   const wrap = useRef<HTMLDivElement>(null);
@@ -59,7 +60,8 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
     const el = wrap.current; const cv = canvas.current;
     if (!el || !cv) return;
     const ro = new ResizeObserver(() => {
-      const w = el.clientWidth; const h = Math.round(Math.min(w * 0.98, window.innerHeight * 0.5));
+      const w = el.clientWidth; const wide = window.innerWidth >= 900 && window.innerWidth > window.innerHeight;
+      const h = Math.round(Math.max(240, Math.min(w * 0.98, wide ? window.innerHeight - 150 : window.innerHeight * 0.52)));
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       cv.width = w * dpr; cv.height = h * dpr; cv.style.height = `${h}px`;
       geo.current = { w, h, dpr };
@@ -125,8 +127,9 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
         const glow = f !== undefined ? Math.max(0, 1 - (now - f) / 260) : 0;
         ctx.beginPath();
         ctx.arc(pegX(r, j), pegY(r), pegR + glow * 2.2, 0, Math.PI * 2);
-        ctx.fillStyle = glow > 0 ? `rgba(255, ${210 + glow * 45}, ${120 + glow * 100}, ${0.75 + glow * 0.25})` : 'rgba(210, 222, 255, .7)';
-        if (glow > 0) { ctx.shadowColor = '#ffd24a'; ctx.shadowBlur = 12 * glow; }
+        const hue = PEG_COLORS[(r + j) % PEG_COLORS.length];
+        ctx.fillStyle = glow > 0 ? hue : 'rgba(210, 222, 255, .7)';
+        if (glow > 0) { ctx.shadowColor = hue; ctx.shadowBlur = 16 * glow; }
         ctx.fill();
         ctx.shadowBlur = 0;
       }
@@ -211,10 +214,12 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
     if (mult >= 50) shake(true);
     else if (mult >= 10) buzz([30, 40, 30]);
     settle({ game: 'plinko', bet: b.stake, win, mult }, { quiet: true });
-    setHist((hs) => [{ id: b.id, m: mult, gold: b.gold }, ...hs].slice(0, 6));
+    // Verlauf zeigt nur Treffer ab 1× – kein Frust-Ticker.
+    if (mult >= 1) setHist((hs) => [{ id: b.id, m: mult, gold: b.gold }, ...hs].slice(0, 6));
+    if (mult >= 2) celebrate(mult);
     setSess((s) => {
-      const net = s.net + win - b.stake;
-      return { balls: s.balls + 1, net, best: Math.max(s.best, mult), line: [...s.line, net].slice(-80) };
+      const streak = mult >= 1 ? s.streak + 1 : 0;
+      return { best: Math.max(s.best, mult), bigWin: Math.max(s.bigWin, win), streak, bestStreak: Math.max(s.bestStreak, streak) };
     });
   };
 
@@ -223,17 +228,15 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
   const busy = inFlight > 0 || !!auto;
   const p = plinkoP(rows);
   const top = table[0];
-  const lo = Math.min(...sess.line); const hi = Math.max(...sess.line, 1);
-  const spark = sess.line.map((v, i) => `${(i / Math.max(1, sess.line.length - 1)) * 100},${28 - ((v - lo) / Math.max(1, hi - lo)) * 26}`).join(' ');
 
   return (
     <GameFrame title="Torwand-Plinko" onClose={onClose} className="cz-plinko2"
       odds={`${rows} Reihen, Risiko ${RISK_NAME[risk]}: ${table.map(multText).join(' · ')}×. Chance aufs Randfach: 1 zu ${fmt(1 / p[0] / 2)}. ${Math.round(GOLD_CHANCE * 100)} % aller Bälle sind Goldbälle und zahlen doppelt. Auszahlungsquote inkl. Goldball ca. 96 %. Höchstgewinn pro Ball 1 Mio. Chips.`}>
+      <div className="pk-left">
       <div className="pk-hud">
-        <span><small>Bälle</small><b>{sess.balls}</b></span>
-        <span><small>Sitzung</small><b className={sess.net > 0 ? 'up' : sess.net < 0 ? 'down' : ''}>{sess.net > 0 ? '+' : ''}{fmt(sess.net)}</b></span>
         <span><small>Bester</small><b className="gold">{sess.best ? `${multText(sess.best)}×` : '–'}</b></span>
-        <svg className={`pk-spark ${sess.net >= 0 ? 'up' : 'down'}`} viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points={spark} /></svg>
+        <span><small>Top-Gewinn</small><b className="up">{sess.bigWin ? `+${fmt(sess.bigWin)}` : '–'}</b></span>
+        <span className={sess.streak >= 3 ? 'hot' : ''}><small>Serie</small><b className="pink">{sess.streak}{sess.streak >= 3 && <Icon name="fire" size={16} />}</b></span>
       </div>
       <div className="pk-board" ref={wrap}>
         <canvas ref={canvas} className="pk-canvas" aria-label={`Plinko-Brett mit ${rows} Reihen`} />
@@ -242,6 +245,8 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
           {hist.map((x) => <li key={x.id} style={{ background: x.gold ? '#ffd24a' : binColor(x.m) }} className={x.gold ? 'gold' : ''}>{multText(x.m)}×</li>)}
         </ul>
       </div>
+      </div>
+      <div className="pk-right">
       <div className="pk-row">
         <div className="cz-chipsel" role="radiogroup" aria-label="Reihen">
           <small>Reihen</small>
@@ -271,6 +276,7 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
           </div>
         </>
       )}
+      </div>
     </GameFrame>
   );
 }

@@ -155,7 +155,7 @@ function Conference({ fixtures, legs, stake, sim, round, onDone }: { fixtures: F
     setClubState(finishRound(getClubState(), { round, legs, stake, odds: slipOdds(legs), win, cashed: cash ?? undefined }));
   };
   // Abpfiff abrechnen
-  useEffect(() => { if (done && !cashed) { if (!won) { sfx('boom'); shake(); } finish(null); } }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (done && !cashed) { if (won) shake(true); finish(null); } }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
   // Wer vorher rausgeht, bekommt das Endergebnis (kein Trick möglich)
   useEffect(() => () => { if (!settled.current) finish(null); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -196,14 +196,14 @@ function Conference({ fixtures, legs, stake, sim, round, onDone }: { fixtures: F
         {done || cashed ? (
           <>
             <div className={`cz-result on`}>
-              {cashed ? <><b>+{fmt(cashed)}</b><small>Cash-out genommen</small></> : won ? <><b>+{fmt(payout)}</b><small>Schein gewonnen!</small></> : <><b className="down">Verloren</b><small>{states.filter((s) => s === 'won').length}/{legs.length} Tipps richtig</small></>}
+              {cashed ? <><b>+{fmt(cashed)}</b><small>Cash-out genommen</small></> : won ? <><b>+{fmt(payout)}</b><small>Schein gewonnen!</small></> : <><b className="pink">So knapp!</b><small>{states.filter((s) => s === 'won').length} von {legs.length} Tipps richtig – der nächste Spieltag wartet</small></>}
             </div>
             {done ? <button className="cz-cta" onClick={onDone}>Nächster Spieltag</button> : <button className="cz-sub" onClick={() => setSpeed(6)}>Spiele zu Ende schauen</button>}
           </>
         ) : (
           <>
             <small>Möglicher Gewinn {fmt(payout)} · Quote {fx(slipOdds(legs))}</small>
-            <button className="cz-cta cash" disabled={!value} onClick={cashOut}>{lostAny ? 'Ein Tipp ist schon weg' : `Cash-out · ${fmt(value)}`}</button>
+            <button className="cz-cta cash" disabled={!value} onClick={cashOut}>{lostAny ? 'Weiter mitfiebern …' : `Cash-out · ${fmt(value)}`}</button>
           </>
         )}
       </div>
@@ -263,7 +263,7 @@ function Slips() {
       {h.map((s, i) => (
         <li key={i} className={s.win > 0 ? 'won' : 'lost'}>
           <span><b>Spieltag {s.round}</b><small>{s.legs.length === 1 ? 'Einzelwette' : `Kombi · ${s.legs.length} Tipps`} · Quote {fx(s.odds)}</small></span>
-          <em>{s.win > 0 ? `+${fmt(s.win)}${s.cashed ? ' (Cash-out)' : ''}` : `−${fmt(s.stake)}`}</em>
+          <em>{s.win > 0 ? `+${fmt(s.win)}${s.cashed ? ' (Cash-out)' : ''}` : 'Nächstes Mal'}</em>
         </li>
       ))}
     </ul>

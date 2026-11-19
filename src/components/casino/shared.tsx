@@ -19,11 +19,14 @@ export const onWinShow = (f: (w: WinShow) => void) => { listeners.add(f); return
 export const showWin = (w: WinShow) => listeners.forEach((f) => f(w));
 
 /** Effekte für den Spielrahmen: Münzen fliegen zum Kontostand, der Bildschirm wackelt. */
-type Fx = { kind: 'coins'; n: number } | { kind: 'shake'; hard?: boolean };
+type Fx = { kind: 'coins'; n: number } | { kind: 'shake'; hard?: boolean } | { kind: 'party'; power: number };
 const fxListeners = new Set<(e: Fx) => void>();
 const emitFx = (e: Fx) => fxListeners.forEach((f) => f(e));
 export const flyCoins = (n: number) => emitFx({ kind: 'coins', n });
 export const shake = (hard = false) => emitFx({ kind: 'shake', hard });
+/** Konfetti + Farbblitz – je höher der Multiplikator, desto mehr. */
+export const celebrate = (mult: number) => emitFx({ kind: 'party', power: Math.min(3, mult >= 20 ? 3 : mult >= 5 ? 2 : 1) });
+const PARTY = ['#ff3fb4', '#3ff0ff', '#ffd24a', '#39ff88', '#a35cff', '#ff7a59', '#ffffff'];
 
 /** Chip-Kasse öffnen (vom Casino-Bildschirm angezeigt). */
 const bankListeners = new Set<() => void>();
@@ -71,6 +74,7 @@ export function settle(ev: PlayEvent, opts: { quiet?: boolean } = {}): void {
   if (big) { shake(true); flyCoins(24); showWin({ kind: big, amount: win, bet: ev.bet }); return; }
   if (win > ev.bet) {
     const x = win / Math.max(1, ev.bet);
+    if (x >= 1.5) celebrate(x);
     flyCoins(Math.min(18, Math.round(4 + x * 2)));
     sfx(x >= 3 ? 'cash' : 'coin');
     buzz(x >= 3 ? [20, 30, 20] : 25);
@@ -140,6 +144,7 @@ export function GameFrame({ title, odds, onClose, children, className = '' }: { 
   const chips = useCountUp(real);
   const [info, setInfo] = useState(false);
   const [coins, setCoins] = useState<{ id: number; n: number } | null>(null);
+  const [party, setParty] = useState<{ id: number; power: number } | null>(null);
   const [shaking, setShaking] = useState<'' | 'shake' | 'shake hard'>('');
   const [bump, setBump] = useState(0);
   const prev = useRef(real);
@@ -147,6 +152,7 @@ export function GameFrame({ title, odds, onClose, children, className = '' }: { 
   useEffect(() => {
     const f = (e: Fx) => {
       if (e.kind === 'coins') setCoins({ id: Date.now(), n: e.n });
+      else if (e.kind === 'party') { const id = Date.now(); setParty({ id, power: e.power }); setTimeout(() => setParty((p) => (p?.id === id ? null : p)), 1300); }
       else { setShaking(e.hard ? 'shake hard' : 'shake'); setTimeout(() => setShaking(''), e.hard ? 650 : 380); }
     };
     fxListeners.add(f);
@@ -160,6 +166,16 @@ export function GameFrame({ title, odds, onClose, children, className = '' }: { 
         <button className="cz-round" onClick={() => setInfo((x) => !x)} aria-label="Gewinnchancen"><Icon name="info" size={20} /></button>
         <button key={bump} className={`cz-chips ${bump ? 'bump' : ''}`} onClick={openBank} aria-label="Chip-Kasse öffnen"><Icon name="coin" size={16} />{fmt(chips)}<Icon name="plus" size={14} /></button>
       </header>
+      {party && (
+        <div key={party.id} className={`cz-party p${party.power}`} aria-hidden="true">
+          <i className="cz-flash" />
+          {Array.from({ length: 14 * party.power }, (_, i) => {
+            const a = (i / (14 * party.power)) * Math.PI * 2;
+            const d = 110 + (i % 5) * 38 * party.power;
+            return <b key={i} style={{ background: PARTY[i % PARTY.length], '--x': `${Math.cos(a) * d}px`, '--y': `${Math.sin(a) * d - 60}px`, '--r': `${(i * 67) % 360}deg`, animationDelay: `${(i % 4) * 25}ms` } as React.CSSProperties} />;
+          })}
+        </div>
+      )}
       {coins && (
         <div key={coins.id} className="cz-fly" aria-hidden="true" onAnimationEnd={(e) => { if ((e.target as HTMLElement).dataset.last) setCoins(null); }}>
           {Array.from({ length: coins.n }, (_, i) => (

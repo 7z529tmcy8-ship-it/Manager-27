@@ -2289,7 +2289,7 @@ table.stats { width: 100%; border-collapse: collapse; font-size: .88rem; font-va
 /* ---------- Wartungsseite im neuen Look ---------- */
 
 /* Vollbild-Ebenen (Pack-Öffnung, Overlays, Live-Spiel) liegen über allem: Navigation dann ausblenden */
-.app:has(.screen-in :is([aria-modal="true"], .pack-open, .mega-open, .moment, .live, .story, .life-pop, .net-lost)) .navbar { display: none; }
+.app:has(.screen-in :is([aria-modal="true"], .pack-open, .mega-open, .moment, .live, .story, .life-pop, .net-lost, .cz)) .navbar { display: none; }
 
 /* ---------- Duelle: Divisionen und Taktik ---------- */
 .tactics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -4521,3 +4521,70 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .pk-auto button.go { display: grid; place-items: center; align-content: center; gap: 0; line-height: 1.05; }
 .pk-auto button.go b { font-family: 'Rajdhani', system-ui, sans-serif; font-size: 1.05rem; text-transform: uppercase; }
 .pk-auto button.go small { font-size: .68rem; font-weight: 800; opacity: .75; }
+
+/* ---------- Casino scrollt mit der Seite ----------
+   Im Vollbild-Modus (Handy/Tablet) lassen sich feste Ebenen mit eigenem Scrollbereich nicht scrollen.
+   Deshalb liegen Casino-Hub und Spiele im normalen Seitenfluss; nur der Hintergrund steht fest. */
+:root.in-casino, :root.in-casino body { background: #090318; }
+.cz { position: relative; inset: auto; z-index: auto; height: auto; min-height: 100vh; min-height: 100dvh; overflow: visible; isolation: isolate; background: none; }
+.cz::after { content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background: radial-gradient(90% 55% at 50% -5%, #4a1a8f 0%, transparent 70%), radial-gradient(60% 40% at 100% 100%, rgba(255, 63, 180, .18), transparent 70%), linear-gradient(180deg, #120630 0%, #090318 60%, #05020e 100%); }
+.cz::before { position: fixed; z-index: -1; }
+.cz-scroll { height: auto; overflow: visible; }
+.cz-top { position: sticky; top: 0; z-index: 6; margin: calc(-10px - env(safe-area-inset-top)) -16px 0; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; background: rgba(18, 6, 48, .82); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.cz-game { position: relative; inset: auto; z-index: auto; height: auto; min-height: 100vh; min-height: 100dvh; overflow: visible; background: none; animation: cz-in .22s ease-out; }
+.cz-game-top { position: sticky; top: 0; z-index: 6; background: rgba(18, 6, 48, .85); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.cz-game-body { flex: none; overflow: visible; }
+.cz-slip, .cz-conf-foot { bottom: 0; }
+/* Casino über die volle Bildschirmbreite (bricht aus dem App-Rand aus) */
+:root.in-casino .app, :root.in-casino .app.has-nav { max-width: none; margin: 0; padding: 0 !important; }
+:root.in-casino .screen-in { margin: 0; padding: 0; }
+.cz { width: auto; margin: 0; }
+.cz-game-top { margin: 0; }
+
+/* ---------- Casino: mehr Farbe, mehr Party ---------- */
+.cz .pink { color: var(--pink) !important; text-shadow: 0 0 14px rgba(255, 63, 180, .6); }
+.cz-party { position: fixed; left: 50%; top: 45%; z-index: 885; pointer-events: none; }
+.cz-party b { position: absolute; left: 0; top: 0; width: 10px; height: 14px; border-radius: 2px; animation: cz-confetti 1.2s cubic-bezier(.15, .7, .3, 1) both; }
+.cz-party.p2 b { width: 12px; height: 16px; } .cz-party.p3 b { width: 14px; height: 18px; animation-duration: 1.3s; }
+@keyframes cz-confetti {
+  0% { transform: translate(-50%, -50%) scale(.3) rotate(0); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y) + 160px)) rotate(calc(var(--r) + 540deg)) scale(1); opacity: 0; }
+}
+.cz-flash { position: fixed; inset: 0; background: radial-gradient(circle at 50% 45%, rgba(255, 210, 74, .35), rgba(255, 63, 180, .18) 40%, transparent 70%); animation: cz-flash .7s ease-out both; }
+.cz-party.p3 .cz-flash { background: radial-gradient(circle at 50% 45%, rgba(122, 240, 255, .45), rgba(255, 122, 217, .3) 40%, transparent 75%); }
+@keyframes cz-flash { from { opacity: 1; } to { opacity: 0; } }
+/* Kacheln mit laufendem Regenbogen-Rand */
+.cz-tile::before { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 2px; pointer-events: none;
+  background: conic-gradient(from var(--spin, 0deg), #ff3fb4, #ffd24a, #39ff88, #3ff0ff, #a35cff, #ff3fb4);
+  -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: .55; animation: cz-lights 5s linear infinite; }
+.cz-tile:nth-child(2n)::before { animation-duration: 6.5s; animation-direction: reverse; }
+.cz-tile:hover::before, .cz-tile:active::before { opacity: 1; }
+.cz-logo { background: linear-gradient(90deg, #ff3fb4, #ffd24a, #39ff88, #3ff0ff, #a35cff, #ff3fb4); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(0 0 10px rgba(255, 63, 180, .6)); animation: cz-holo 6s linear infinite; }
+.cz-logo span { color: transparent; text-shadow: none; }
+.cz-jackpot b { background: linear-gradient(90deg, #ffd24a, #fff3b0, #ff9d00, #ffd24a); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: cz-holo 3s linear infinite; }
+.cz::before { background: radial-gradient(30% 25% at 20% 30%, rgba(255, 63, 180, .28), transparent 70%), radial-gradient(28% 22% at 80% 60%, rgba(63, 240, 255, .22), transparent 70%), radial-gradient(25% 20% at 50% 90%, rgba(57, 255, 136, .14), transparent 70%), radial-gradient(22% 18% at 85% 15%, rgba(255, 210, 74, .16), transparent 70%); animation-duration: 9s; }
+/* Verluste neutral statt rot */
+.cz-sky.lost .cz-curve { stroke: var(--pink) !important; filter: drop-shadow(0 0 6px var(--pink)); }
+.cz-sky.lost .cz-mult b { color: var(--pink) !important; }
+.cz-sky.lost { animation: none; }
+.cz-live li.lost { border-color: rgba(255,255,255,.12); background: rgba(255,255,255,.04); opacity: .7; }
+.cz-live li.lost .p { color: rgba(255,255,255,.5); }
+.cz-slips li.lost { border-left-color: rgba(255,255,255,.2); }
+.cz-slips li.lost em { color: rgba(255,255,255,.55); }
+.cz-history .lo { background: rgba(255,255,255,.08); color: rgba(255,255,255,.7); }
+.cz-cell.save { background: radial-gradient(circle, rgba(255, 63, 180, .5), rgba(255, 63, 180, .12)); border-color: var(--pink); }
+.cz-goal.lost { border-color: var(--pink); }
+
+/* ---------- Plinko: HUD positiv, iPad quer zweispaltig ---------- */
+.pk-hud { grid-template-columns: repeat(3, 1fr); }
+.pk-hud b.pink { color: var(--pink); display: inline-flex; align-items: center; gap: 3px; }
+.pk-hud span.hot { animation: cz-pulse 1s ease-in-out infinite; }
+.pk-hud span.hot b { text-shadow: 0 0 12px var(--pink); }
+.pk-left, .pk-right { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+@media (min-width: 900px) and (orientation: landscape) {
+  .cz-plinko2 .cz-game-body { max-width: 1180px; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(320px, 1fr); align-items: start; gap: 16px; }
+  .cz-plinko2 .pk-right { position: sticky; top: 72px; }
+}

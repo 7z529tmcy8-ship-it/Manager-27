@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../../clubStore';
 import { CHIP_PACKS, REFILL, SHOP, VIP, buy, buyChips, casinoOf, claimDaily, claimQuest, claimRefill, dailyBonus, ownsExtra, questList, refillState, vipLevel } from '../../game/casino';
 import { betsOf, resolveCareerBets } from '../../game/bets';
@@ -52,13 +52,22 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
     setClubState(r.club);
     const won = r.results.filter((x) => x.win > x.bet.stake);
     if (won.length) { sfx('cash'); setToast(`Karriere-Wette gewonnen: +${fmt(won.reduce((a, x) => a + x.win, 0))}`); }
-    else setToast(`${r.results.length} Karriere-Wette${r.results.length > 1 ? 'n' : ''} ausgewertet – diesmal nichts`);
   }, []);
   const recent = c.recent ?? [];
   const round = betsOf(club).round;
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 2400); return () => clearTimeout(t); }, [toast]);
   const quests = questList(club);
   const Game = game ? Games[game] : null;
+  // Casino scrollt mit der Seite (feste Ebenen mit eigenem Scrollbereich scrollen im iPad-Vollbild nicht).
+  const hubY = useRef(0);
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.add('in-casino');
+    window.scrollTo(0, 0);
+    return () => { root.classList.remove('in-casino'); window.scrollTo(0, 0); };
+  }, []);
+  const openGame = (g: Playable) => { hubY.current = window.scrollY; setGame(g); window.scrollTo(0, 0); };
+  const closeGame = () => { setGame(null); requestAnimationFrame(() => window.scrollTo(0, hubY.current)); };
 
   const claim = () => {
     const r = claimDaily(getClubState());
@@ -70,7 +79,7 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
 
   return (
     <div className="cz" role="dialog" aria-label="Neon-Casino">
-      <div className="cz-scroll">
+      {!Game && <div className="cz-scroll">
         <header className="cz-top">
           <button className="cz-round" onClick={onExit} aria-label="Zurück zum Home-Menü"><Icon name="arrow" size={20} /></button>
           <h1 className="cz-logo">Neon<span>Casino</span></h1>
@@ -91,7 +100,7 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
           </div>
         )}
 
-        <button className="cz-hero" onClick={() => { sfx('tap'); setGame('bets'); }}>
+        <button className="cz-hero" onClick={() => { sfx('tap'); openGame('bets'); }}>
           <span className="cz-hero-bg" aria-hidden="true" />
           <span className="cz-hero-tag"><span className="cz-live-dot" /> Live · Spieltag {round}</span>
           <b>Sportwetten</b>
@@ -115,7 +124,7 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
 
         <div className="cz-grid">
           {TILES.map((t) => (
-            <button key={t.id} className={`cz-tile h-${t.hue}`} onClick={() => { sfx('tap'); setGame(t.id); }}>
+            <button key={t.id} className={`cz-tile h-${t.hue}`} onClick={() => { sfx('tap'); openGame(t.id); }}>
               {t.hot && <em className="cz-hot">Heiß</em>}
               <span className="cz-tile-ic"><Icon name={t.icon} size={30} /></span>
               <b>{t.name}</b>
@@ -142,11 +151,11 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
           <Icon name="bag" size={22} /><span><b>Preis-Shop</b><small>Karten fürs Team, XP für deine Karriere, exklusive Wappen</small></span><Icon name="arrow" size={20} />
         </button>
         <p className="cz-foot">Nur Spielgeld – Chips gibt es gegen Spiel-Coins in der Chip-Kasse, nicht für echtes Geld. Die Gewinnchancen stehen in jedem Spiel unter <Icon name="info" size={14} />.</p>
-      </div>
+      </div>}
 
       {toast && <div className="cz-toast" role="status">{toast}</div>}
       {shop && <Shop onClose={() => setShop(false)} onDone={setToast} />}
-      {Game && <Suspense fallback={<div className="cz-game cz-loading" />}><Game onClose={() => setGame(null)} /></Suspense>}
+      {Game && <Suspense fallback={<div className="cz-game cz-loading" />}><Game onClose={closeGame} /></Suspense>}
       {bank && <Bank onClose={() => setBank(false)} onDone={setToast} />}
       {win && <BigWinShow w={win} onClose={() => setWin(null)} />}
     </div>
