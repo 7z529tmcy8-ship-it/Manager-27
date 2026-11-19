@@ -20,7 +20,7 @@ import { creditCareer, removeOwnCareerCards, rewardPending } from './game/club';
 import CareerReward from './components/CareerReward';
 import { saveCareer } from './game/storage';
 import type { Career } from './game/types';
-import { getClubState, setClubState, useClub } from './clubStore';
+import { getClubState, setClubState, trackDailyGoal, useClub } from './clubStore';
 import { installClickSound, play } from './sound';
 import Icon, { noEmoji } from './components/Icon';
 
@@ -116,6 +116,7 @@ export default function App() {
       career = { ...career, drainPending: 0, squandered: (career.squandered ?? 0) + lost };
     }
     setSaveFailed(!saveCareer(career));
+    trackDailyGoal('career');
     setScreen({ name: 'game', career });
   };
   const [reward, setReward] = useState<Career | null>(null);
@@ -151,6 +152,8 @@ export default function App() {
           onProfile={() => setScreen({ name: 'profile' })}
           onCasino={() => setScreen({ name: 'casino' })}
           onShop={() => setScreen({ name: 'shop' })}
+          onDuels={() => setScreen({ name: 'duels' })}
+          onCollection={() => setScreen({ name: 'team', tab: 'collection' })}
         />
       )}
       {screen.name === 'team' && <TeamScreen key={screen.tab ?? 'x'} tab={screen.tab} onDuels={() => setScreen({ name: 'duels' })} onShop={() => setScreen({ name: 'shop' })} onCasino={() => setScreen({ name: 'casino' })} />}

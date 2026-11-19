@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { getClubState, setClubState, useClub } from '../clubStore';
+import { getClubState, setClubState, trackDailyGoal, useClub } from '../clubStore';
 import { DUEL_XP_PER_DAY, RANK_XP, duelXp, grantDuelXp, takeDuelXp, xpLeftToday, xpTarget } from '../game/careerDuels';
 import {
   CHAMPIONS, ELITE, LOWEST, PROMOTE_AT, SAFE_DIVISIONS, STYLE_LABEL, TACTIC_TEXT, TOP, divLevel, divName, divStrength, divisionOf, placeDivision, placementFor, playDivisionDuel,
@@ -105,6 +105,7 @@ function Play({ onTeam, onShop, onLeagues }: { onTeam: () => void; onShop: () =>
     if (!res) return;
     const won = takeDuelXp(res.club, target ? duelXp(Math.min(10, res.level), res.result.outcome) : 0);
     setClubState(won.club);
+    if (res.result.outcome === 'win') trackDailyGoal('duel');
     const g = giveXp(won.xp);
     sfx('whistle');
     const tacticNote = res.edge > 0 ? `${STYLE_LABEL[tactic]} hat gegen ${STYLE_LABEL[res.opponent.style]} gewirkt (+${res.edge})`

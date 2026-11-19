@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { getClubState, setClubState, useClub } from '../../clubStore';
+import { getClubState, setClubState, trackDailyGoal, useClub } from '../../clubStore';
 import { grantDuelXp, xpTarget } from '../../game/careerDuels';
 import { addCard, bigWinOf, casinoOf, maxBet, payout, placeBet, randomCard, takeJackpot, type BigWin, type PlayEvent } from '../../game/casino';
 import type { CollectCard } from '../../game/club';
@@ -63,6 +63,7 @@ export function settle(ev: PlayEvent, opts: { quiet?: boolean } = {}): void {
     win += j.amount;
   }
   setClubState(club);
+  if (ev.bet > 0) trackDailyGoal('casino');
   // Leise (z. B. Plinko-Dauerfeuer): große Show erst ab 50×, darunter nur Ton und Beben.
   const big = opts.quiet ? (bigWinOf(ev.bet, win) === 'epic' ? 'epic' : null) : bigWinOf(ev.bet, win);
   if (opts.quiet && !big && !ev.jackpot) {

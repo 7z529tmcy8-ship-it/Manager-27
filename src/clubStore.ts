@@ -44,3 +44,9 @@ export function useClub(): ClubState {
     () => current,
   );
 }
+
+/** Tagesziel-Fortschritt zählen (Karriere, Duelle, Packs, Casino). */
+export function trackDailyGoal(id: import('./game/daily').DailyId, n = 1): void {
+  // Lazy-frei: daily.ts ist klein und hängt nur an club/casino/squad.
+  void import('./game/daily').then((m) => setClubState(m.trackDaily(getClubState(), id, n)));
+}

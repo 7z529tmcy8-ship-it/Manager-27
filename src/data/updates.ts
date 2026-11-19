@@ -29,6 +29,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-21-premium-look',
+    date: '21.11.2026',
+    title: 'Neuer Look: dunkles Premium-Design und ein echtes Hauptmenü',
+    items: [
+      'Hauptmenü wie bei großen Fußball-Games: deine Karriere groß oben, darunter die Modi Duelle, Shop, Sammlung und Casino – mit Hinweisen, wo gerade etwas wartet.',
+      'Tagesziele: Spiel in der Karriere weiter, gewinne 2 Duelle, öffne 1 Pack und spiele 5 Casino-Runden. Jedes Ziel zahlt Coins oder Chips, alle zusammen ein Gold-Pack.',
+      'Neue Karten: schlankere Sammelkarten-Form mit Trikot-Bild, auch auf kleinen Karten. Keine Gesichter mehr auf Karten, eigene Bilder füllen jetzt die ganze obere Karte.',
+      'Nichts ist mehr zu breit: Sammlung und Startseite passen aufs Handy, auf dem iPad bleibt alles eine übersichtliche Spalte.',
+      'Shop wie ein Spiele-Store: große Pack-Kacheln in eigenen Farben. Der dunkle Look ist jetzt Standard – „Hell“ und „Bunt“ gibt es weiter in den Einstellungen.',
+    ],
+  },
+  {
     id: '2026-11-20-sammlung-shop',
     date: '20.11.2026',
     title: 'Sammlung & Shop sind zurück – alles hängt zusammen',

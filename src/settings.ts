@@ -25,6 +25,8 @@ export interface AppSettings {
   look?: 'aqua' | 'brawl' | 'neon';
   /** Einmalige Umstellung auf den Aqua-Look (November 2026). */
   lookV2?: boolean;
+  /** Einmalige Umstellung auf den dunklen Premium-Look (Ende November 2026). */
+  lookV3?: boolean;
   /** Leistungsmodus: weniger Dauer-Animationen und kein Glas-Weichzeichner. 'auto' = an, wenn das Gerät ruckelt. */
   perf?: 'auto' | 'on' | 'off';
   /** Ergebnis der automatischen Messung (true = Gerät ruckelt). */
@@ -32,7 +34,7 @@ export interface AppSettings {
 }
 
 const KEY = 'fc-manager-settings';
-const DEFAULTS: AppSettings = { theme: 'arena', look: 'aqua', lookV2: true, animations: true, casino: true, sound: true, volume: 0.6, landscape: false, fullscreen: true, orientationV2: true };
+const DEFAULTS: AppSettings = { theme: 'arena', look: 'neon', lookV2: true, lookV3: true, animations: true, casino: true, sound: true, volume: 0.6, landscape: false, fullscreen: true, orientationV2: true };
 
 function load(): AppSettings {
   try {
@@ -43,6 +45,8 @@ function load(): AppSettings {
     if (!saved.orientationV2) { saved.landscape = false; saved.orientationV2 = true; }
     // Neuer Standard-Look: alle einmal auf Aqua umstellen (danach frei wählbar).
     if (!saved.lookV2) { saved.look = 'aqua'; saved.lookV2 = true; }
+    // Dunkler Premium-Look als neuer Standard: alle einmal umstellen (danach frei wählbar).
+    if (!saved.lookV3) { saved.look = 'neon'; saved.theme = 'arena'; saved.lookV3 = true; }
     return { ...DEFAULTS, ...saved };
   } catch {
     return DEFAULTS;
@@ -55,7 +59,7 @@ const listeners = new Set<() => void>();
 /** Design und Animationen auf die Seite anwenden. */
 export function applySettings(s: AppSettings = current): void {
   const root = document.documentElement;
-  const look = s.look ?? 'aqua';
+  const look = s.look ?? 'neon';
   // Aqua ist ein heller Look, Bunt baut auf der Arena auf; nur bei Neon gilt die Design-Wahl.
   if (look === 'aqua') root.dataset.theme = 'light';
   else if (look === 'brawl') root.dataset.theme = 'arena';

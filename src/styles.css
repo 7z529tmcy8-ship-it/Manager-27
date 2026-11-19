@@ -4739,3 +4739,197 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .ch-welcome > span:nth-child(2) { flex: 1; display: grid; gap: 2px; } .ch-welcome small { opacity: .9; font-size: .8rem; }
 .ch-welcome-ic { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 16px; background: rgba(255,255,255,.22); }
 .ch-welcome em { padding: 8px 14px; border-radius: 12px; background: #fff; color: #9d174d; font-style: normal; font-weight: 900; }
+
+/* =====================================================================
+   PREMIUM v3 (Nov 2026): ein Look für alles – dunkel, satt, FC-Mobile-Hauptmenü,
+   schlanke Karten, schmale Spalte auf dem iPad. Steht absichtlich am Ende.
+   ===================================================================== */
+
+/* ---- Breite: Inhalte bleiben eine gut lesbare Spalte, auch auf iPad/Desktop ---- */
+.hub { max-width: 760px; }
+.hub.ch3 { max-width: 720px; }
+.hub, .hub * { min-width: 0; }
+.col, .col * { min-width: 0; }
+
+/* ---- Karten: neue Schild-Form, schlanker, Trikot auch auf kleinen Karten ---- */
+.ucard {
+  aspect-ratio: 100 / 146;
+  clip-path: polygon(0 5%, 9% 0, 37% 0, 50% 2.6%, 63% 0, 91% 0, 100% 5%, 100% 85%, 93% 92%, 50% 100%, 7% 92%, 0 85%);
+}
+.ucard::before { clip-path: polygon(0 5%, 9% 0, 37% 0, 50% 2.6%, 63% 0, 91% 0, 100% 5%, 100% 85%, 93% 92%, 50% 100%, 7% 92%, 0 85%); inset: 4px; }
+.ucard.xs { width: 60px; }
+.ucard.sm { width: 96px; padding: 8px 6px 8px; }
+.ucard.md, .ucard:not(.xs):not(.sm):not(.lg) { width: 150px; }
+.ucard.lg { width: 220px; }
+/* Bild-Bereich: rechts neben Wertung/Position, wie bei echten Sammelkarten */
+.ucard-art { margin: 7% 0 0 22%; width: 60%; border-radius: 0; background: none; box-shadow: none; aspect-ratio: 1; }
+.ucard.sm .ucard-art { margin: 10% 0 0 26%; width: 58%; }
+.ucard.sm .ucard-name { margin-top: 2px; margin-bottom: 0; font-size: .72rem; line-height: 1.1; }
+.ucard.sm .ucard-badge { display: none; }
+.ucard.sm .ucard-name::after { content: ''; display: block; width: 46%; height: 1px; margin: 5px auto 0; background: color-mix(in srgb, var(--ink) 35%, transparent); }
+.ucard-jersey { width: 92%; opacity: .9; }
+.ucard-jersey .j-body { fill: color-mix(in srgb, var(--ink) 10%, transparent); stroke-width: 2; }
+/* Eigenes Bild: füllt die obere Karte und läuft weich nach unten aus */
+.ucard-art.photo { position: absolute; inset: 0 0 auto 0; margin: 0; width: 100%; height: 62%; aspect-ratio: auto; overflow: hidden; z-index: 0;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0 55%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0 55%, transparent 100%); }
+.ucard-art.photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; display: block; border-radius: 0; filter: saturate(1.05) contrast(1.05); }
+.ucard:has(.ucard-art.photo) .ucard-top { z-index: 2; text-shadow: 0 1px 4px rgba(0, 0, 0, .55); }
+.ucard:has(.ucard-art.photo) .ucard-badge { margin-top: 62%; position: relative; z-index: 1; }
+.ucard.sm:has(.ucard-art.photo) .ucard-name { margin-top: 64%; }
+.ucard:has(.ucard-art.photo) .ucard-name { position: relative; z-index: 1; }
+
+/* ---- Hauptmenü (FC-Mobile-Stil) ---- */
+.ch3 { display: flex; flex-direction: column; gap: 14px; }
+.ch3 .ch-top { gap: 8px; }
+.ch3 .ch-profile { padding: 3px 14px 3px 3px; }
+.ch3 .ch-profile > span { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; }
+.ch3 .ch-profile small { font-size: .7rem; font-weight: 700; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.ch-wallet { display: inline-flex; gap: 6px; margin-left: auto; }
+.ch3 .ch-coins, .ch-chips { margin: 0; height: 36px; padding: 0 11px; font-size: .9rem; }
+.ch-chips { display: inline-flex; align-items: center; gap: 5px; border-radius: 99px; border: 1px solid rgba(255, 47, 209, .45); background: rgba(255, 47, 209, .14); color: inherit; font: inherit; font-weight: 800; font-variant-numeric: tabular-nums; cursor: pointer; }
+.ch-chips svg { color: #ff5fe0; }
+@media (max-width: 430px) {
+  .ch3 .ch-top { gap: 6px; }
+  .ch3 .ch-profile { padding-right: 10px; gap: 8px; flex: 0 1 auto; }
+  .ch3 .ch-profile strong { max-width: 74px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; font-size: .9rem; }
+  .ch3 .ch-top .hub-icon { width: 36px; height: 36px; }
+  .ch3 .ch-news { display: none !important; }
+  .ch3 .ch-coins, .ch-chips { padding: 0 9px; font-size: .82rem; gap: 4px; height: 34px; }
+}
+
+.ch3-hero { position: relative; overflow: hidden; border-radius: 24px; padding: 22px 20px 18px; min-height: 196px; display: grid; grid-template-columns: 1fr auto; grid-template-rows: 1fr auto; gap: 14px 12px; isolation: isolate;
+  background: linear-gradient(135deg, #1a2a8a 0%, #2b1170 55%, #120a36 100%); border: 1px solid rgba(160, 190, 255, .22);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .12) inset, 0 18px 40px rgba(20, 10, 80, .55); color: #fff; }
+.ch3-hero-bg { position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(60% 80% at 100% 0%, rgba(25, 240, 255, .35), transparent 60%),
+    radial-gradient(50% 70% at 0% 100%, rgba(255, 47, 209, .25), transparent 60%),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, .05) 0 2px, transparent 2px 22px); }
+.ch3-hero-bg::after { content: ''; position: absolute; left: -10%; right: -10%; bottom: -55%; height: 90%; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .12); }
+.ch3-hero-text { display: flex; flex-direction: column; gap: 4px; align-self: center; }
+.ch3-hero-text small { font-size: .74rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #8ff7ff; }
+.ch3-hero-text b { font-family: var(--display); font-size: clamp(1.6rem, 6vw, 2.2rem); line-height: 1.02; text-transform: uppercase; letter-spacing: .02em; }
+.ch3-hero-text span { color: rgba(235, 240, 255, .78); font-size: .9rem; }
+.ch3-hero-ovr { grid-column: 2; grid-row: 1; align-self: center; width: 76px; aspect-ratio: 100 / 120; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #2a1c00;
+  background: linear-gradient(160deg, #fff1b8, #d9a63c 60%, #a8741c); clip-path: polygon(0 8%, 14% 0, 86% 0, 100% 8%, 100% 80%, 50% 100%, 0 80%); filter: drop-shadow(0 6px 14px rgba(255, 200, 80, .45)); }
+.ch3-hero-ovr b { font-family: var(--display); font-size: 2.1rem; line-height: 1; margin-top: -8px; }
+.ch3-hero-ovr small { font-weight: 900; font-size: .75rem; letter-spacing: .08em; }
+.ch3-hero > .ch3-hero-text:first-child + .ch3-hero-btns, .ch3-hero > .ch3-hero-text:first-of-type:last-of-type { grid-column: 1 / -1; }
+.ch3-hero-btns { grid-column: 1 / -1; display: flex; gap: 10px; }
+.ch3-play { flex: 1; min-height: 54px; font-size: 1.1rem; }
+.ch3-new { width: 54px; min-height: 54px; padding: 0; display: grid; place-items: center; flex: none; }
+.ch3-hero .ch3-hero-text:only-of-type { grid-column: 1 / -1; }
+
+.ch3-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ch3-mode { --mc: #19f0ff; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-height: 128px; padding: 14px; border-radius: 20px; text-align: left; color: var(--text); cursor: pointer; font: inherit;
+  border: 1px solid color-mix(in srgb, var(--mc) 30%, transparent);
+  background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--mc) 26%, transparent), transparent 60%), linear-gradient(180deg, #151b45, #0d1130);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .06) inset, 0 10px 24px rgba(0, 0, 0, .4); transition: transform .15s ease-out, border-color .15s; }
+.ch3-mode:active { transform: scale(.97); }
+.ch3-mode:hover { border-color: color-mix(in srgb, var(--mc) 65%, transparent); }
+.ch3-mode::after { content: ''; position: absolute; right: -18px; bottom: -18px; width: 86px; height: 86px; border-radius: 50%; border: 10px solid color-mix(in srgb, var(--mc) 10%, transparent); pointer-events: none; }
+.ch3-mode.m-duel { --mc: #19f0ff; }
+.ch3-mode.m-shop { --mc: #ffd76a; }
+.ch3-mode.m-col { --mc: #39ff88; }
+.ch3-mode.m-casino { --mc: #ff2fd1; }
+.ch3-mode-ic { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; margin-bottom: auto; color: var(--mc); background: color-mix(in srgb, var(--mc) 16%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mc) 35%, transparent); }
+.ch3-mode b { font-family: var(--display); font-size: 1.3rem; text-transform: uppercase; letter-spacing: .03em; line-height: 1; margin-top: 10px; }
+.ch3-mode small { font-size: .78rem; color: var(--muted); line-height: 1.25; }
+.ch3-badge { position: absolute; top: 12px; right: 12px; font-style: normal; font-size: .68rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; background: var(--mc); color: #120a20; animation: ch3-pulse 1.6s ease-in-out infinite; }
+@keyframes ch3-pulse { 50% { transform: scale(1.08); } }
+:root.reduce-motion .ch3-badge { animation: none; }
+.ch3-bar { display: block; width: 100%; height: 5px; border-radius: 99px; background: rgba(255, 255, 255, .1); overflow: hidden; margin-top: 6px; }
+.ch3-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--mc, #19f0ff), #fff); }
+
+.ch3-goals { border-radius: 20px; padding: 14px; background: linear-gradient(180deg, #131942, #0c1030); border: 1px solid rgba(160, 190, 255, .16); box-shadow: 0 10px 24px rgba(0, 0, 0, .35); }
+.ch3-goals > header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.ch3-goals > header b { display: inline-flex; align-items: center; gap: 6px; font-family: var(--display); font-size: 1.15rem; text-transform: uppercase; letter-spacing: .04em; }
+.ch3-goals > header b svg { color: #ffd76a; }
+.ch3-goals > header small { color: var(--muted); font-size: .76rem; }
+.ch3-goals ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.ch3-goals li button { width: 100%; display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 14px; border: 1px solid transparent; background: rgba(255, 255, 255, .04); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.ch3-goals li button:active { transform: scale(.985); }
+.ch3-goal-ic { width: 32px; height: 32px; flex: none; border-radius: 10px; display: grid; place-items: center; background: rgba(25, 240, 255, .12); color: #19f0ff; }
+.ch3-goal-text { flex: 1; display: flex; flex-direction: column; }
+.ch3-goal-text b { font-size: .88rem; font-weight: 700; }
+.ch3-goal-text .ch3-bar { --mc: #19f0ff; height: 4px; margin-top: 5px; }
+.ch3-goal-rw { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: .82rem; font-variant-numeric: tabular-nums; color: #ffd76a; }
+.ch3-goals li.done button { border-color: rgba(57, 255, 136, .45); background: rgba(57, 255, 136, .08); }
+.ch3-goals li.done .ch3-goal-ic { background: #39ff88; color: #04210f; }
+.ch3-goals li.claimed button { opacity: .45; cursor: default; }
+.ch3-goals li.claimed .ch3-goal-ic { background: rgba(57, 255, 136, .2); color: #39ff88; }
+.ch3-claim { width: 100%; margin-top: 10px; min-height: 48px; }
+.ch3-claim.gold { background: linear-gradient(135deg, #ffe58a, #e3a92b) !important; color: #2a1a00 !important; box-shadow: 0 0 22px rgba(255, 210, 90, .45) !important; }
+.ch3-goals-done { margin: 10px 0 0; text-align: center; color: #39ff88; font-weight: 700; font-size: .88rem; }
+.ch3-more { display: flex; flex-direction: column; gap: 8px; }
+.ch3 .hub-foot { margin-top: 4px; }
+.ch-news-row { display: none !important; }
+@media (max-width: 430px) { .ch-news-row { display: flex !important; } }
+
+/* iPad/Desktop: Held + Ziele nebeneinander */
+@media (min-width: 900px) {
+  .hub.ch3 { max-width: 980px; display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; align-items: start; }
+  .ch3 > .ch-top, .ch3 > .reward-call, .ch3 > .ch-welcome, .ch3 > .hub-foot { grid-column: 1 / -1; }
+  .ch3-hero { grid-column: 1; min-height: 240px; }
+  .ch3-modes { grid-column: 1; }
+  .ch3-goals { grid-column: 2; grid-row: 2; }
+  .ch3-more { grid-column: 2; grid-row: 3; align-self: start; }
+}
+
+/* ---- Sammlung: nichts ragt mehr über den Rand ---- */
+.col-grid { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)) !important; gap: 14px 8px !important; justify-items: center; }
+.col-item { display: flex; justify-content: center; width: 100%; }
+.col-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.col-claim { white-space: normal !important; height: auto !important; min-height: 46px; line-height: 1.2; width: 100%; }
+.col-tiers { display: flex; flex-wrap: wrap; gap: 6px; }
+.col-search { width: 100%; box-sizing: border-box; }
+.col-show { width: 100%; }
+@media (min-width: 700px) { .col-grid { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)) !important; } .col-grid .ucard.sm { width: 104px; } }
+
+/* ---- Dunkler Look: Flächen aus einem Guss ---- */
+:root[data-theme="arena"] :is(.sh-pack, .sh-earn li, .col-art, .ch-row, .tm-tabs) { background: linear-gradient(180deg, #141a44, #0d1132); border: 1px solid rgba(160, 190, 255, .16); }
+:root[data-theme="arena"] .ch-title { font-family: var(--display); text-transform: uppercase; letter-spacing: .03em; }
+/* Karten-Feinschliff: Bild ohne Kasten, kleine Karten gefüllt */
+:root[data-theme] .ucard .ucard-art:not(.photo) { background: radial-gradient(closest-side, color-mix(in srgb, var(--ink) 16%, transparent), transparent) !important; box-shadow: none !important; border-radius: 0 !important; }
+.ucard.sm .ucard-art { margin: 9% 0 0 24%; width: 70%; }
+.ucard.sm .ucard-name { margin-top: auto; margin-bottom: 21%; font-size: .74rem; }
+.ucard.sm .ucard-name::after { margin-top: 4px; }
+.ucard-jersey .j-body { fill: color-mix(in srgb, var(--ink) 18%, transparent); stroke: color-mix(in srgb, var(--ink) 80%, transparent); }
+.ucard-jersey text { font-size: 24px; }
+.ucard.xs .ucard-name { margin-bottom: 20%; }
+
+/* ---- Shop wie ein Spiele-Store: Pack-Kacheln mit großem Pack-Bild ---- */
+.sh .sh-free.ready { animation: none; box-shadow: 0 10px 26px rgba(14, 165, 233, .28); }
+.sh-packs { grid-template-columns: repeat(auto-fill, minmax(156px, 1fr)); gap: 12px; }
+.sh-pack { --pc1: #94a3b8; --pc2: #334155; flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; text-align: center; border-radius: 20px; }
+.sh-pack.p-gold, .sh-pack.p-megagold { --pc1: #ffe08a; --pc2: #b7791f; }
+.sh-pack.p-premium { --pc1: #c084fc; --pc2: #5b21b6; }
+.sh-pack.p-ultimate { --pc1: #f472b6; --pc2: #0e7490; }
+.sh-pack .sh-pack-ic { width: 100%; height: auto; aspect-ratio: 4 / 4.6; border-radius: 14px; color: rgba(255, 255, 255, .92);
+  background: radial-gradient(80% 50% at 50% 0%, rgba(255, 255, 255, .45), transparent 70%), repeating-linear-gradient(120deg, rgba(255, 255, 255, .07) 0 4px, transparent 4px 14px), linear-gradient(165deg, var(--pc1), var(--pc2)) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25), inset 0 -30px 40px rgba(0, 0, 0, .25), 0 10px 22px rgba(0, 0, 0, .45) !important; animation: none !important;
+  clip-path: polygon(0 4%, 6% 0, 94% 0, 100% 4%, 100% 96%, 94% 100%, 6% 100%, 0 96%); }
+.sh-pack .sh-pack-ic svg { width: 46%; height: auto; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .35)); }
+.sh-pack .sh-pack-ic b { right: 8px; bottom: 8px; border: 0; background: rgba(0, 0, 0, .55); }
+.sh-pack .sh-pack-ic::after { content: ''; position: absolute; left: 10%; right: 10%; top: 9%; height: 2px; background: rgba(255, 255, 255, .55); border-radius: 2px; }
+.sh-pack-text b { font-family: var(--display); font-size: 1.15rem; text-transform: uppercase; letter-spacing: .03em; }
+.sh-pack .btn { width: 100%; justify-content: center; min-height: 44px; }
+.sh-totw-cards { gap: 8px; padding: 4px 2px 6px; }
+.sh-totw-cards .ucard.xs { width: 62px; }
+.sh-pack .btn { margin-top: auto; }
+.sh-pack.p-mystery { --pc1: #22d3ee; --pc2: #7c3aed; }
+.sh-pack.p-germany { --pc1: #3f3f46; --pc2: #b91c1c; }
+.sh-pack.p-bundesliga { --pc1: #ef4444; --pc2: #7f1d1d; }
+.sh-pack.p-wonder { --pc1: #a7c4ff; --pc2: #1e3a8a; }
+.sh-pack.p-cult { --pc1: #14b8a6; --pc2: #3b0764; }
+.sh-pack.p-debut { --pc1: #5eead4; --pc2: #115e59; }
+.sh-pack.p-comeback { --pc1: #4ade80; --pc2: #0f172a; }
+.sh-pack.p-flashback { --pc1: #fcd9a5; --pc2: #9a3412; }
+.sh-pack.p-worldstar { --pc1: #93c5fd; --pc2: #1e1b4b; }
+.sh-pack.p-icon, .sh-pack.p-goat { --pc1: #fffaf0; --pc2: #b08d4a; }
+.sh-pack.p-icon .sh-pack-ic, .sh-pack.p-goat .sh-pack-ic { color: #3a2a10; }
+.sh-pack.p-gala { --pc1: #f6d77a; --pc2: #111; }
+.sh-pack.p-winter { --pc1: #e0f2fe; --pc2: #0369a1; }
+.sh-pack.p-silvester { --pc1: #fde047; --pc2: #7e22ce; }
+.ch3 .ch-profile small { white-space: nowrap; }
+.ch3 .ch-profile > :first-child { flex: none; }

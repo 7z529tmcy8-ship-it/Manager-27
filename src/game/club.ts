@@ -150,6 +150,8 @@ export interface ClubState {
   duelSeasonClaimed?: string[];
   /** Sammlung: abgeholte Meilensteine (Anzahl Karten). */
   collectClaimed?: number[];
+  /** Tagesziele: Fortschritt des heutigen Tages. */
+  daily?: import('./daily').DailyState;
   /** Tag des letzten Gratis-Packs (JJJJ-MM-TT). */
   freePackDay?: string;
   /** Neon-Casino: Chips, VIP, Jackpot, Aufgaben, Statistik. */

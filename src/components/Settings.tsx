@@ -86,8 +86,8 @@ export default function Settings({ career, onChange, onClose }: Props) {
           <h2>Dieses Gerät</h2>
           <Choice<'aqua' | 'brawl' | 'neon'>
             label="Look"
-            value={app.look ?? 'aqua'}
-            options={[['aqua', 'Aqua'], ['brawl', 'Bunt'], ['neon', 'Neon']]}
+            value={app.look ?? 'neon'}
+            options={[['neon', 'Premium'], ['aqua', 'Hell'], ['brawl', 'Bunt']]}
             onPick={(look) => set({ look })}
           />
           {app.look === 'neon' && (

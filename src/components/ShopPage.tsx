@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getClubState, setClubState, useClub } from '../clubStore';
+import { getClubState, setClubState, trackDailyGoal, useClub } from '../clubStore';
 import { TOTW_PACK, activePacks, oddsAtLeast, openPack, openTotwPack, teamOfTheWeek, type PackResult } from '../game/club';
 import { claimFreePack, freePackReady, milestoneState } from '../game/collection';
 import Icon from './Icon';
@@ -23,18 +23,21 @@ export default function ShopPage({ onCollection, onCasino, onDuels }: { onCollec
     if (!r) { setErr(`Für das ${name} fehlen dir noch Coins.`); return; }
     setErr(null);
     setClubState(r.club);
+    trackDailyGoal('pack');
     setOpen({ name, result: r.result });
   };
   const buyTotw = () => {
     const r = openTotwPack(getClubState());
     if (!r) { setErr('Für das Pack der Woche fehlen dir noch Coins.'); return; }
     setClubState(r.club);
+    trackDailyGoal('pack');
     setOpen({ name: TOTW_PACK.name, result: r.result });
   };
   const freeOpen = () => {
     const r = claimFreePack(getClubState());
     if (!r) return;
     setClubState(r.club);
+    trackDailyGoal('pack');
     setOpen({ name: 'Gratis-Pack', result: r.result });
   };
 
