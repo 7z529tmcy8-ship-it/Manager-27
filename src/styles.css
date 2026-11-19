@@ -4964,3 +4964,8 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
   background: radial-gradient(80% 45% at 50% 0%, rgba(255, 255, 255, .5), transparent 70%), repeating-linear-gradient(120deg, rgba(255, 255, 255, .08) 0 4px, transparent 4px 14px), linear-gradient(165deg, #ffe08a, #b7791f); box-shadow: none; filter: drop-shadow(0 20px 40px rgba(0, 0, 0, .55)); color: #2a1a00; }
 .po-pack-body b { font-family: var(--display); font-size: 1.3rem; text-transform: uppercase; letter-spacing: .03em; }
 .po-title { font-family: var(--display); text-transform: uppercase; letter-spacing: .04em; font-size: 1.5rem; }
+/* Tipp-Flächen und Rückmeldung im Hauptmenü */
+.ch3 .ch-coins, .ch-chips { height: 40px !important; transition: transform .12s ease-out, filter .15s; }
+.ch3 .ch-coins:active, .ch-chips:active { transform: scale(.94); }
+.ch3 .ch-top .hub-icon { width: 40px !important; height: 40px !important; }
+.ch3-goals li button { transition: transform .12s ease-out, background .15s, border-color .15s; }

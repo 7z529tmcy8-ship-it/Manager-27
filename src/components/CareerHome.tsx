@@ -107,13 +107,13 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile,
             </span>
             <div className="ch3-hero-btns">
               <button className="btn primary big ch3-play" onClick={() => onLoad(latest)}><Icon name="ball" size={20} /> {latest.phase === 'retired' ? 'Ansehen' : 'Weiterspielen'}</button>
-              <button className="btn secondary ch3-new" onClick={onNew} aria-label="Neue Karriere"><Icon name="plus" size={20} /></button>
+              <button className="btn secondary ch3-new ch-new" onClick={onNew} aria-label="Neue Karriere"><Icon name="plus" size={20} /></button>
             </div>
           </>
         ) : (
           <>
             <span className="ch3-hero-text"><small>Spielerkarriere</small><b>Vom Talent zur Legende</b><span>Jede Saison bringt Coins für Packs, Duelle und Casino.</span></span>
-            <div className="ch3-hero-btns"><button className="btn primary big ch3-play" onClick={onNew}><Icon name="plus" size={20} /> Karriere starten</button></div>
+            <div className="ch3-hero-btns"><button className="btn primary big ch3-play ch-new" onClick={onNew}><Icon name="plus" size={20} /> Karriere starten</button></div>
           </>
         )}
       </section>
