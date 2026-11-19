@@ -29,6 +29,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-19-plinko-2',
+    date: '19.11.2026',
+    title: 'Torwand-Plinko 2.0',
+    items: [
+      'Plinko komplett neu: 8 bis 16 Reihen und vier Risikostufen – mit „Extrem“ und 16 Reihen geht es bis über 10.000×.',
+      'Goldbälle: 3 % aller Bälle leuchten golden und zahlen doppelt.',
+      'Zeitlupe: Fliegt ein Ball auf einen großen Treffer zu, wird es in den letzten Reihen langsam – mit steigendem Ton.',
+      'Pfosten leuchten bei jedem Kontakt, Fächer springen, Gewinne steigen als Zahl auf. Bis zu 40 Bälle gleichzeitig.',
+      'Auto-Modus mit 10, 25, 50 oder 100 Bällen, Turbo, Verlauf deiner letzten Treffer und Sitzungs-Statistik mit Gewinnkurve.',
+    ],
+  },
+  {
     id: '2026-11-19-chip-kasse',
     date: '19.11.2026',
     title: 'Chip-Kasse im Casino',

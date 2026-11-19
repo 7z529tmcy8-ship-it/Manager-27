@@ -10,7 +10,7 @@ import { buzz, fmt, giveXp, onOpenBank, onWinShow, openBank, sfx, useCountUp, ty
 const Games = {
   slots: lazy(() => import('./games1').then((m) => ({ default: m.Slots }))),
   crash: lazy(() => import('./games1').then((m) => ({ default: m.Crash }))),
-  plinko: lazy(() => import('./games1').then((m) => ({ default: m.Plinko }))),
+  plinko: lazy(() => import('./plinko')),
   mines: lazy(() => import('./games1').then((m) => ({ default: m.Mines }))),
   roulette: lazy(() => import('./games2').then((m) => ({ default: m.Roulette }))),
   blackjack: lazy(() => import('./games2').then((m) => ({ default: m.Blackjack }))),
@@ -22,7 +22,7 @@ const GAME_NAME: Record<string, string> = { slots: 'Slots', crash: 'Crash', plin
 const TILES: { id: Playable; name: string; sub: string; icon: string; hue: string; hot?: boolean }[] = [
   { id: 'slots', name: 'Stadion-Slots', sub: '10 Linien · Freispiele', icon: 'star', hue: 'gold', hot: true },
   { id: 'crash', name: 'Elfmeter-Crash', sub: 'Kassier, bevor er hält', icon: 'rocket', hue: 'pink', hot: true },
-  { id: 'plinko', name: 'Torwand-Plinko', sub: 'Bis 165×', icon: 'ball', hue: 'cyan' },
+  { id: 'plinko', name: 'Torwand-Plinko', sub: 'Bis 10.000× · Goldbälle', icon: 'ball', hue: 'cyan', hot: true },
   { id: 'mines', name: 'Elfmeter-Minen', sub: 'Tor oder Parade', icon: 'target', hue: 'green' },
   { id: 'roulette', name: 'Roulette', sub: 'Rückennummern 0–36', icon: 'dice', hue: 'red' },
   { id: 'blackjack', name: 'Blackjack', sub: 'Blackjack zahlt 3:2', icon: 'cards', hue: 'violet' },

@@ -166,24 +166,54 @@ export function crashPoint(rand: Rand = Math.random): number {
 export const crashAt = (t: number) => Math.floor(Math.exp(0.11 * t) * 100) / 100;
 
 // ---------- 3. Torwand-Plinko ----------
+// Wählbar: 8–16 Reihen und vier Risikostufen. Mehr Reihen = breitere Streuung und höhere Spitzen am Rand.
+// Goldball: 3 % aller Bälle zahlen doppelt – ist in die Tabellen eingerechnet (Auszahlungsquote bleibt ~96 %).
+export const PLINKO_ROWS_OPTIONS = [8, 10, 12, 14, 16] as const;
 export const PLINKO_ROWS = 12;
-export type Risk = 'low' | 'mid' | 'high';
-const RAW_PLINKO: Record<Risk, number[]> = {
-  low: [11, 3, 1.6, 1.4, 1.1, 1, 0.5, 1, 1.1, 1.4, 1.6, 3, 11],
-  mid: [33, 11, 4, 2, 1.1, 0.6, 0.3, 0.6, 1.1, 2, 4, 11, 33],
-  high: [170, 24, 8.1, 2, 0.7, 0.2, 0.2, 0.2, 0.7, 2, 8.1, 24, 170],
+export type Risk = 'low' | 'mid' | 'high' | 'extreme';
+export const RISKS: Risk[] = ['low', 'mid', 'high', 'extreme'];
+export const GOLD_CHANCE = 0.03;
+export const GOLD_MULT = 2;
+/** Höchstgewinn pro Ball. */
+export const PLINKO_MAX_WIN = 1_000_000;
+/** Auszahlung eines Balls (inkl. Goldball, gedeckelt). */
+export const plinkoWin = (stake: number, mult: number, gold: boolean) => Math.min(PLINKO_MAX_WIN, Math.floor(stake * mult * (gold ? GOLD_MULT : 1)));
+/** Form der Tabellen: Mitte (min), Rand (max bei n Reihen); dazwischen exponentiell, zum Rand immer steiler (q). */
+const SHAPE: Record<Risk, { min: number; max: (n: number) => number; q: number }> = {
+  low: { min: 0.5, max: (n) => 5.6 + (n - 8) * 1.3, q: 1.4 },
+  mid: { min: 0.3, max: (n) => 13 * 1.32 ** (n - 8), q: 1.7 },
+  high: { min: 0.2, max: (n) => 29 * 1.58 ** (n - 8), q: 2.2 },
+  extreme: { min: 0.1, max: (n) => 60 * 1.75 ** (n - 8), q: 2.8 },
 };
-const binom = (n: number, k: number): number => (k === 0 || k === n ? 1 : binom(n - 1, k - 1) + binom(n - 1, k));
-export const PLINKO_P = Array.from({ length: PLINKO_ROWS + 1 }, (_, k) => binom(PLINKO_ROWS, k) / 2 ** PLINKO_ROWS);
-/** Fächer-Multiplikatoren, auf 97 % Auszahlung skaliert. */
-export const PLINKO: Record<Risk, number[]> = Object.fromEntries((Object.keys(RAW_PLINKO) as Risk[]).map((r) => {
-  const ev = RAW_PLINKO[r].reduce((a, m, k) => a + m * PLINKO_P[k], 0);
-  return [r, RAW_PLINKO[r].map((m) => Math.floor(((m * RTP) / ev) * 100) / 100)];
-})) as Record<Risk, number[]>;
-/** Weg des Balls: je Reihe links (0) oder rechts (1); Fach = Anzahl Rechts. */
-export function dropBall(rand: Rand = Math.random): { path: number[]; slot: number } {
-  const path = Array.from({ length: PLINKO_ROWS }, () => (rand() < 0.5 ? 0 : 1));
-  return { path, slot: path.reduce<number>((a, b) => a + b, 0) };
+const binom = (n: number, k: number): number => { let r = 1; for (let i = 1; i <= k; i++) r = (r * (n - k + i)) / i; return r; };
+const pCache = new Map<number, number[]>();
+/** Wahrscheinlichkeit je Fach bei n Reihen. */
+export function plinkoP(rows: number): number[] {
+  if (!pCache.has(rows)) pCache.set(rows, Array.from({ length: rows + 1 }, (_, k) => binom(rows, k) / 2 ** rows));
+  return pCache.get(rows)!;
+}
+const tCache = new Map<string, number[]>();
+/** Multiplikatoren je Fach, so skaliert, dass inkl. Goldball ~96 % zurückfließen. */
+export function plinkoTable(rows: number, risk: Risk): number[] {
+  const key = `${rows}-${risk}`;
+  if (tCache.has(key)) return tCache.get(key)!;
+  const sh = SHAPE[risk];
+  const half = rows / 2;
+  const raw = Array.from({ length: rows + 1 }, (_, k) => sh.min * Math.exp(Math.log(sh.max(rows) / sh.min) * (Math.abs(k - half) / half) ** sh.q));
+  const p = plinkoP(rows);
+  const ev = raw.reduce((a, m, k) => a + m * p[k], 0);
+  const target = RTP / (1 + GOLD_CHANCE * (GOLD_MULT - 1));
+  const out = raw.map((m) => { const v = (m * target) / ev; return v >= 10 ? Math.floor(v) : Math.floor(v * 100) / 100; });
+  tCache.set(key, out);
+  return out;
+}
+/** Alte Schnittstelle (12 Reihen). */
+export const PLINKO_P = plinkoP(PLINKO_ROWS);
+export const PLINKO = Object.fromEntries(RISKS.map((r) => [r, plinkoTable(PLINKO_ROWS, r)])) as Record<Risk, number[]>;
+/** Weg des Balls: je Reihe links (0) oder rechts (1); Fach = Anzahl Rechts. Goldball zahlt doppelt. */
+export function dropBall(rand: Rand = Math.random, rows: number = PLINKO_ROWS): { path: number[]; slot: number; gold: boolean } {
+  const path = Array.from({ length: rows }, () => (rand() < 0.5 ? 0 : 1));
+  return { path, slot: path.reduce<number>((a, b) => a + b, 0), gold: rand() < GOLD_CHANCE };
 }
 
 // ---------- 4. Elfmeter-Minen ----------
@@ -283,6 +313,7 @@ export const QUESTS: Quest[] = [
   { id: 'bj3', text: '3 Blackjack-Hände gewinnen', goal: 3, reward: 500, count: (e) => (e.game === 'blackjack' && e.win > e.bet ? 1 : 0) },
   { id: 'mines5', text: 'Minen: 5 Tore in einer Runde', goal: 5, reward: 600, best: true, count: (e) => (e.game === 'mines' ? e.safe ?? 0 : 0) },
   { id: 'plinko20', text: '20 Plinko-Bälle fallen lassen', goal: 20, reward: 400, count: (e) => (e.game === 'plinko' ? 1 : 0) },
+  { id: 'plinko10x', text: 'Plinko: einen 10×-Treffer landen', goal: 1, reward: 700, count: (e) => (e.game === 'plinko' && (e.mult ?? 0) >= 10 ? 1 : 0) },
   { id: 'roulette5', text: '5 Runden Roulette spielen', goal: 5, reward: 350, count: (e) => (e.game === 'roulette' ? 1 : 0) },
   { id: 'bet3', text: '3 Wettscheine spielen', goal: 3, reward: 500, count: (e) => (e.game === 'bets' ? 1 : 0) },
   { id: 'kombi4', text: 'Kombi mit 4+ Tipps gewinnen', goal: 1, reward: 900, count: (e) => (e.game === 'bets' && (e.legs ?? 0) >= 4 && e.win > 0 ? 1 : 0) },

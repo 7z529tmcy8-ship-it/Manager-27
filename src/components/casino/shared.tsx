@@ -49,7 +49,7 @@ export function bet(amount: number): boolean {
 }
 
 /** Runde abrechnen: Gewinn gutschreiben, Ton, Vibration, bei Big Win die große Show. */
-export function settle(ev: PlayEvent): void {
+export function settle(ev: PlayEvent, opts: { quiet?: boolean } = {}): void {
   let club = payout(getClubState(), ev);
   let win = ev.win;
   let card: CollectCard | undefined;
@@ -60,7 +60,13 @@ export function settle(ev: PlayEvent): void {
     win += j.amount;
   }
   setClubState(club);
-  const big = bigWinOf(ev.bet, win);
+  // Leise (z. B. Plinko-Dauerfeuer): große Show erst ab 50×, darunter nur Ton und Beben.
+  const big = opts.quiet ? (bigWinOf(ev.bet, win) === 'epic' ? 'epic' : null) : bigWinOf(ev.bet, win);
+  if (opts.quiet && !big && !ev.jackpot) {
+    const x = win / Math.max(1, ev.bet);
+    if (x >= 10) { sfx('revealRare'); shake(); buzz([30, 40, 30]); } else if (x >= 3) sfx('cash'); else if (x > 1) sfx('coin');
+    return;
+  }
   if (ev.jackpot) { sfx('jackpot'); shake(true); showWin({ kind: 'jackpot', amount: win, card }); return; }
   if (big) { shake(true); flyCoins(24); showWin({ kind: big, amount: win, bet: ev.bet }); return; }
   if (win > ev.bet) {

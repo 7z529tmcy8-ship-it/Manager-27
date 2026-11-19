@@ -41,11 +41,8 @@ it('Spielregeln: Crash, Minen, Plinko, Roulette, Blackjack', () => {
   expect(minesMult(3, 0)).toBeCloseTo(RTP, 2);
   expect(minesMult(3, 1)).toBeCloseTo(Math.floor(RTP * 25 / 22 * 100) / 100, 2);
   expect(placeMines(5, seq(0.1, 0.5, 0.9, 0.3))).toHaveLength(5);
-  for (const r of Object.values(PLINKO)) {
-    const ev = r.reduce((a, m, k) => a + m * PLINKO_P[k], 0);
-    expect(ev).toBeGreaterThan(0.94);
-    expect(ev).toBeLessThan(0.99);
-  }
+  expect(PLINKO.mid).toHaveLength(13);
+  expect(PLINKO_P.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 6);
   expect(rouletteReturn('red', 100, 1)).toBe(200);
   expect(rouletteReturn('red', 100, 0)).toBe(0);
   expect(rouletteReturn('n17', 10, 17)).toBe(360);
@@ -117,4 +114,23 @@ it('Chip-Kasse: Coins tauschen mit Bonus, Gratis-Nachschub nur wenn pleite und a
   const again: ClubState = { ...r, casino: { ...casinoOf(r), chips: 0 } };
   expect(refillState(again, 1_000 + 60_000).ready).toBe(false);
   expect(claimRefill(again, 1_000 + REFILL_MS)).not.toBeNull();
+});
+
+it('Plinko: alle Reihen/Risiken zahlen inkl. Goldball 94–98 % zurück, Rand ist der Peak, Gewinn gedeckelt', async () => {
+  const { PLINKO_ROWS_OPTIONS, RISKS, plinkoTable, plinkoP, GOLD_CHANCE, GOLD_MULT, dropBall, plinkoWin, PLINKO_MAX_WIN } = await import('../casino');
+  for (const n of PLINKO_ROWS_OPTIONS) for (const r of RISKS) {
+    const t = plinkoTable(n, r);
+    expect(t).toHaveLength(n + 1);
+    expect(t[0]).toBe(t[n]);
+    expect(Math.max(...t)).toBe(t[0]);
+    const ev = t.reduce((a, m, k) => a + m * plinkoP(n)[k], 0) * (1 + GOLD_CHANCE * (GOLD_MULT - 1));
+    expect(ev).toBeGreaterThan(0.94);
+    expect(ev).toBeLessThan(0.98);
+  }
+  expect(plinkoTable(16, 'extreme')[0]).toBeGreaterThan(5000);
+  const d = dropBall(() => 0.7, 16);
+  expect(d.path).toHaveLength(16);
+  expect(d.slot).toBe(16);
+  expect(plinkoWin(100, 3, true)).toBe(600);
+  expect(plinkoWin(100_000, 10_000, true)).toBe(PLINKO_MAX_WIN);
 });

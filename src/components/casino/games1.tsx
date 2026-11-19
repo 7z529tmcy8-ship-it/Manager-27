@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  FREE_SPINS, LINES, MINE_FIELDS, PAYTABLE, PLINKO, PLINKO_ROWS, SLOT_SCALE, crashAt, crashPoint, dropBall, minesMult, placeMines, playSlots, spinGrid,
-  type Risk, type SlotResult, type Sym,
+  FREE_SPINS, LINES, MINE_FIELDS, PAYTABLE, SLOT_SCALE, crashAt, crashPoint, minesMult, placeMines, playSlots, spinGrid,
+  type SlotResult, type Sym,
 } from '../../game/casino';
 import { motionReduced } from '../../settings';
 import Icon from '../Icon';
@@ -231,92 +231,6 @@ export function Crash({ onClose }: { onClose: () => void }) {
         {phase === 'fly' && !cashed
           ? <button className="cz-cta cash" onClick={() => cash(mult)}>Kassieren · {fmt(stake * mult)}</button>
           : <button className="cz-cta" disabled={phase === 'fly'} onClick={start}>{phase === 'fly' ? 'Fliegt …' : 'Schießen'}</button>}
-      </div>
-    </GameFrame>
-  );
-}
-
-// ---------------------------------------------------------------- Plinko
-const RISK_NAME: Record<Risk, string> = { low: 'Niedrig', mid: 'Mittel', high: 'Hoch' };
-type Ball = { id: number; path: number[]; start: number; slot: number; stake: number; risk: Risk };
-const STEP_MS = 95;
-
-export function Plinko({ onClose }: { onClose: () => void }) {
-  const [stake, setStake] = useBet('plinko', 20);
-  const [risk, setRisk] = useState<Risk>('mid');
-  const [balls, setBalls] = useState<Ball[]>([]);
-  const [now, setNow] = useState(0);
-  const [hit, setHit] = useState<{ slot: number; at: number } | null>(null);
-  const seq = useRef(0);
-  const raf = useRef(0);
-  const lastTick = useRef(0);
-  useEffect(() => {
-    if (!balls.length) return;
-    const tick = (t: number) => {
-      setNow(t);
-      if (t - lastTick.current > 55 && balls.some((b) => (t - b.start) / STEP_MS < PLINKO_ROWS)) { lastTick.current = t; sfx('tick'); }
-      const doneNow = balls.filter((b) => t - b.start >= (PLINKO_ROWS + 1) * STEP_MS);
-      if (doneNow.length) {
-        for (const b of doneNow) {
-          const m = PLINKO[b.risk][b.slot];
-          settle({ game: 'plinko', bet: b.stake, win: Math.floor(b.stake * m), mult: m });
-          setHit({ slot: b.slot, at: t });
-        }
-        setBalls((bs) => bs.filter((b) => !doneNow.includes(b)));
-        return;
-      }
-      raf.current = requestAnimationFrame(tick);
-    };
-    raf.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf.current);
-  }, [balls]);
-
-  const drop = () => {
-    if (!bet(stake)) return;
-    const d = dropBall();
-    setBalls((bs) => [...bs, { id: seq.current++, path: d.path, slot: d.slot, start: performance.now(), stake, risk }]);
-  };
-  const W = 300; const top = 18; const gap = 15.5;
-  const xAt = (row: number, rights: number) => W / 2 + (rights - row / 2) * (W / (PLINKO_ROWS + 2));
-  const posOf = (b: Ball) => {
-    const t = Math.max(0, (now - b.start) / STEP_MS);
-    const row = Math.min(PLINKO_ROWS, Math.floor(t));
-    const k = Math.min(1, t - row);
-    const r0 = b.path.slice(0, row).reduce((a, x) => a + x, 0);
-    const r1 = r0 + (row < PLINKO_ROWS ? b.path[row] : 0);
-    const x = xAt(row, r0) + (xAt(row + 1, r1) - xAt(row, r0)) * k;
-    const y = top + (row + k) * gap - Math.sin(k * Math.PI) * 5;
-    return { x, y };
-  };
-  const mults = PLINKO[risk];
-  return (
-    <GameFrame title="Torwand-Plinko" onClose={onClose} className="cz-plinko"
-      odds={`Der Ball fällt durch 12 Reihen, jedes Mal 50:50 links oder rechts. Fächer (${RISK_NAME[risk]}): ${mults.map(fx).join(' · ')}×. Auszahlungsquote ca. 96 %.`}>
-      <svg className="cz-board" viewBox={`0 0 ${W} ${top + (PLINKO_ROWS + 1) * gap + 26}`} aria-hidden="true">
-        {Array.from({ length: PLINKO_ROWS }, (_, row) => Array.from({ length: row + 3 }, (_, i) => (
-          <circle key={`${row}-${i}`} className="cz-peg" cx={xAt(row + 1, i) - (W / (PLINKO_ROWS + 2)) / 2} cy={top + (row + 1) * gap - gap / 2} r="2.2" />
-        )))}
-        {mults.map((m, i) => {
-          const x = xAt(PLINKO_ROWS, i);
-          const w = W / (PLINKO_ROWS + 2) - 2;
-          const on = hit && hit.slot === i && now - hit.at < 400;
-          return (
-            <g key={i} className={`cz-bin ${m >= 5 ? 'hot' : m >= 1 ? 'mid' : 'cold'} ${on ? 'on' : ''}`}>
-              <rect x={x - w / 2} y={top + PLINKO_ROWS * gap + 6} width={w} height={20} rx={4} />
-              <text x={x} y={top + PLINKO_ROWS * gap + 19.5}>{m >= 100 ? Math.round(m) : m >= 10 ? m.toFixed(0) : String(m).replace('.', ',')}</text>
-            </g>
-          );
-        })}
-        {balls.map((b) => { const p = posOf(b); return <circle key={b.id} className="cz-pball" cx={p.x} cy={p.y} r="4.6" />; })}
-      </svg>
-      <div className="cz-chipsel" role="radiogroup" aria-label="Risiko">
-        <small>Risiko</small>
-        {(Object.keys(RISK_NAME) as Risk[]).map((r) => <button key={r} className={risk === r ? 'on' : ''} disabled={balls.length > 0} onClick={() => setRisk(r)}>{RISK_NAME[r]}</button>)}
-      </div>
-      <BetPicker value={stake} onChange={setStake} />
-      <div className="cz-actions">
-        <button className="cz-cta" onClick={drop}>Ball fallen lassen</button>
-        <button className="cz-sub" onClick={() => { for (let i = 0; i < 10; i++) setTimeout(drop, i * 220); }}>Auto ×10</button>
       </div>
     </GameFrame>
   );
