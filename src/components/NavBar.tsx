@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import Icon, { type IconName } from './Icon';
 
-export type NavTarget = 'career' | 'team' | 'duels' | 'profile';
+export type NavTarget = 'career' | 'team' | 'shop' | 'duels' | 'profile';
 
 const ITEMS: { id: NavTarget; icon: IconName; label: string }[] = [
   { id: 'career', icon: 'ball', label: 'Karriere' },
   { id: 'team', icon: 'tactics', label: 'Team' },
+  { id: 'shop', icon: 'pack', label: 'Shop' },
   { id: 'duels', icon: 'duel', label: 'Duelle' },
   { id: 'profile', icon: 'shield', label: 'Profil' },
 ];

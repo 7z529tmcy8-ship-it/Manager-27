@@ -1,3 +1,4 @@
+import { useCardArt } from '../cardArt';
 import { useEffect, useRef } from 'react';
 import { getSettings, motionReduced } from '../settings';
 import { onTilt } from '../tilt';
@@ -85,6 +86,7 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick,
   const big = size === 'md' || size === 'lg';
   const Tag = onClick ? 'button' : 'div';
   const emblem = EMBLEM[card.variant];
+  const art = useCardArt(card.id);
   return (
     <Tag
       ref={tiltRef as never}
@@ -102,8 +104,8 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick,
         <span className="ucard-flag" aria-hidden="true">{flagOf(card.nation)}</span>
       </div>
       {big && (
-        <div className={`ucard-art ${card.avatar ? 'face' : ''}`} aria-hidden="true">
-          {card.avatar ? <AvatarFace avatar={card.avatar} size={size === 'lg' ? 104 : 72} /> : <Jersey text={initials(card.name)} />}
+        <div className={`ucard-art ${card.avatar ? 'face' : ''} ${art ? 'photo' : ''}`} aria-hidden="true">
+          {art ? <img src={art} alt="" draggable={false} /> : card.avatar ? <AvatarFace avatar={card.avatar} size={size === 'lg' ? 104 : 72} /> : <Jersey text={initials(card.name)} />}
         </div>
       )}
       {big && <div className="ucard-badge">{VARIANT_LABEL[card.variant] ?? (card.variant === 'gold' ? 'Gold' : 'Silber')}</div>}

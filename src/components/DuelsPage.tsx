@@ -4,12 +4,12 @@ import { getClubState, setClubState, useClub } from '../clubStore';
 import { DUEL_XP_PER_DAY, RANK_XP, duelXp, grantDuelXp, takeDuelXp, xpLeftToday, xpTarget } from '../game/careerDuels';
 import {
   CHAMPIONS, ELITE, LOWEST, PROMOTE_AT, SAFE_DIVISIONS, STYLE_LABEL, TACTIC_TEXT, TOP, divLevel, divName, divStrength, divisionOf, placeDivision, placementFor, playDivisionDuel,
-  resolveTactic, squadFit, withOpponent, type Tactic, type TacticChoice,
+  resolveTactic, squadFit, withOpponent, divReward, type Tactic, type TacticChoice,
 } from '../game/divisions';
 import { claimDuelSeason } from '../game/rivals';
 import { levelInfo } from '../game/skills';
 import {
-  SEASON_RANKS, TEAM_NAMES, activeTeam, cardById, nextRank, seasonHoursLeft, seasonId, seasonName, seasonPoints, seasonRank, slotsOf, switchTeam,
+  SEASON_RANKS, TEAM_NAMES, activeTeam, autoSquad, teamCards, cardById, nextRank, seasonHoursLeft, seasonId, seasonName, seasonPoints, seasonRank, slotsOf, switchTeam,
   teamStrength, unclaimedSeasons, type DuelResult, type SeasonRank, type TeamKind,
 } from '../game/squad';
 import { listCareers, saveCareer } from '../game/storage';
@@ -37,7 +37,7 @@ function giveXp(xp: number): { who?: string; levelUp: boolean } {
 }
 
 /** Duelle im Division-Rivals-Stil: Divisionen mit Auf-/Abstieg, Taktik, Tages-Saison mit Rivals – Belohnung: XP für die Karriere. */
-export default function DuelsPage({ onTeam }: { onTeam: () => void }) {
+export default function DuelsPage({ onTeam, onShop }: { onTeam: () => void; onShop: () => void }) {
   const [tab, setTab] = useState<Tab>(() => { try { return (sessionStorage.getItem('fc-duel-tab') as Tab) || 'play'; } catch { return 'play'; } });
   const pick = (t: Tab) => { setTab(t); try { sessionStorage.setItem('fc-duel-tab', t); } catch { /* egal */ } };
   const open = unclaimedSeasons(useClub()).length;
@@ -52,7 +52,7 @@ export default function DuelsPage({ onTeam }: { onTeam: () => void }) {
           </button>
         ))}
       </nav>
-      {tab === 'play' && <Play onTeam={onTeam} onLeagues={() => pick('leagues')} />}
+      {tab === 'play' && <Play onTeam={onTeam} onShop={onShop} onLeagues={() => pick('leagues')} />}
       {tab === 'leagues' && <Leagues />}
       {tab === 'season' && <Season />}
     </main>
@@ -84,7 +84,7 @@ function TeamPick() {
   );
 }
 
-function Play({ onTeam, onLeagues }: { onTeam: () => void; onLeagues: () => void }) {
+function Play({ onTeam, onShop, onLeagues }: { onTeam: () => void; onShop: () => void; onLeagues: () => void }) {
   const club = useClub();
   const choice: TacticChoice = club.duelTactic ?? 'ausgewogen';
   const cards = club.squad.map((id) => cardById(club, id));
@@ -112,7 +112,7 @@ function Play({ onTeam, onLeagues }: { onTeam: () => void; onLeagues: () => void
       : `Taktik neutral – ${res.opponent.name} spielte ${STYLE_LABEL[res.opponent.style]}`;
     const move = res.move === 'up' ? `Aufstieg in ${divName(divisionOf(won.club).div)}!` : res.move === 'down' ? `Abstieg in ${divName(divisionOf(won.club).div)}` : undefined;
     const xpNote = won.xp ? `+${won.xp} XP für ${g.who}${g.levelUp ? ' – Level aufgestiegen, neuer Fähigkeitspunkt!' : ''}` : undefined;
-    setLive({ name: res.opponent.name, team: TEAM_NAMES[activeTeam(won.club)], result: { ...res.result, coins: 0, trophies: undefined, drop: false, tactic: [xpNote, tacticNote].filter(Boolean).join(' · '), division: move } });
+    setLive({ name: res.opponent.name, team: TEAM_NAMES[activeTeam(won.club)], result: { ...res.result, trophies: undefined, drop: false, tactic: [xpNote, tacticNote].filter(Boolean).join(' · '), division: move } });
   };
 
   const odds = opp ? strength - opp.strength : 0;
@@ -144,7 +144,12 @@ function Play({ onTeam, onLeagues }: { onTeam: () => void; onLeagues: () => void
       {!full ? (
         <section className="dv2-card dv2-empty">
           <p>Für Duelle brauchst du eine vollständige Elf (11 Spieler) im {TEAM_NAMES[activeTeam(club)]}.</p>
-          <button className="btn primary big" onClick={onTeam}>Zur Aufstellung</button>
+          {teamCards(club).length >= 11 ? (
+            <button className="btn primary big" onClick={() => setClubState({ ...getClubState(), squad: autoSquad(getClubState()) })}>Automatisch aufstellen</button>
+          ) : (
+            <button className="btn primary big" onClick={onShop}>{teamCards(club).length} von 11 Spielern – Packs im Shop</button>
+          )}
+          <button className="btn secondary" onClick={onTeam}>Zur Aufstellung</button>
         </section>
       ) : opp && (
         <section className="dv2-card" aria-label="Nächster Gegner">
@@ -207,7 +212,7 @@ function Leagues() {
               <b>{divName(x)}{SAFE_DIVISIONS.includes(x) && <Icon name="shield" size={14} />}</b>
               <small>Gegner ~{divStrength(x)} · Saison-Punkte ×{divLevel(x)}</small>
             </span>
-            <span className="lg-pay"><b>+{duelXp(Math.min(10, divLevel(x)), 'win')} XP</b><small>{x === d.div ? 'Du bist hier' : 'pro Sieg'}</small></span>
+            <span className="lg-pay"><b>+{divReward(x).toLocaleString('de-DE')} Coins</b><small>+{duelXp(Math.min(10, divLevel(x)), 'win')} XP {x === d.div ? '· Du bist hier' : 'pro Sieg'}</small></span>
           </li>
         ))}
       </ol>

@@ -148,6 +148,10 @@ export interface ClubState {
   /** Duell-Saison: Punkte je Saison (z. B. '2026-10' → 340) und abgeholte Saison-Belohnungen. */
   duelSeasons?: Record<string, number>;
   duelSeasonClaimed?: string[];
+  /** Sammlung: abgeholte Meilensteine (Anzahl Karten). */
+  collectClaimed?: number[];
+  /** Tag des letzten Gratis-Packs (JJJJ-MM-TT). */
+  freePackDay?: string;
   /** Neon-Casino: Chips, VIP, Jackpot, Aufgaben, Statistik. */
   casino?: import('./casino').CasinoState;
 }

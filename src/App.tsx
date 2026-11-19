@@ -13,6 +13,7 @@ const TeamScreen = lazy(() => import('./components/TeamScreen'));
 const DuelsPage = lazy(() => import('./components/DuelsPage'));
 const ProfilePage = lazy(() => import('./components/ProfilePage'));
 const CasinoPage = lazy(() => import('./components/casino/CasinoPage'));
+const ShopPage = lazy(() => import('./components/ShopPage'));
 import UpdateBanner, { unseenUpdates } from './components/UpdateBanner';
 import { UPDATES, type UpdateNote } from './data/updates';
 import { creditCareer, removeOwnCareerCards, rewardPending } from './game/club';
@@ -26,7 +27,8 @@ import Icon, { noEmoji } from './components/Icon';
 // Nur noch vier Bereiche: Karriere (Start), Team, Duelle, Profil.
 type Screen =
   | { name: 'home' }
-  | { name: 'team' }
+  | { name: 'team'; tab?: 'squad' | 'collection' }
+  | { name: 'shop' }
   | { name: 'duels' }
   | { name: 'profile' }
   | { name: 'casino' }
@@ -120,7 +122,7 @@ export default function App() {
   const home = () => setScreen({ name: 'home' });
   const load = (career: Career) => setScreen({ name: 'game', career });
   const go = (t: NavTarget) => setScreen(t === 'career' ? { name: 'home' } : ({ name: t } as Screen));
-  const navActive: NavTarget | null = screen.name === 'home' || screen.name === 'create' ? 'career' : screen.name === 'team' || screen.name === 'duels' || screen.name === 'profile' ? screen.name : null;
+  const navActive: NavTarget | null = screen.name === 'home' || screen.name === 'create' ? 'career' : screen.name === 'team' || screen.name === 'shop' || screen.name === 'duels' || screen.name === 'profile' ? screen.name : null;
   // In der laufenden Karriere hat das Spiel eigene Leisten – dort keine Hauptnavigation.
   const showNav = screen.name !== 'game';
 
@@ -148,10 +150,12 @@ export default function App() {
           onReward={setReward}
           onProfile={() => setScreen({ name: 'profile' })}
           onCasino={() => setScreen({ name: 'casino' })}
+          onShop={() => setScreen({ name: 'shop' })}
         />
       )}
-      {screen.name === 'team' && <TeamScreen onDuels={() => setScreen({ name: 'duels' })} />}
-      {screen.name === 'duels' && <DuelsPage onTeam={() => setScreen({ name: 'team' })} />}
+      {screen.name === 'team' && <TeamScreen key={screen.tab ?? 'x'} tab={screen.tab} onDuels={() => setScreen({ name: 'duels' })} onShop={() => setScreen({ name: 'shop' })} onCasino={() => setScreen({ name: 'casino' })} />}
+      {screen.name === 'shop' && <ShopPage onCollection={() => setScreen({ name: 'team', tab: 'collection' })} onCasino={() => setScreen({ name: 'casino' })} onDuels={() => setScreen({ name: 'duels' })} />}
+      {screen.name === 'duels' && <DuelsPage onTeam={() => setScreen({ name: 'team', tab: 'squad' })} onShop={() => setScreen({ name: 'shop' })} />}
       {screen.name === 'profile' && <ProfilePage />}
       {screen.name === 'casino' && <CasinoPage onExit={home} />}
       {screen.name === 'create' && <CreateCareer onCancel={home} onCreate={update} />}

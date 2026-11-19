@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../../clubStore';
-import { CHIP_PACKS, REFILL, SHOP, VIP, buy, buyChips, casinoOf, claimDaily, claimQuest, claimRefill, dailyBonus, ownsExtra, questList, refillState, vipLevel } from '../../game/casino';
+import { CASHOUT_MIN, CASHOUT_RATE, CHIP_PACKS, REFILL, SHOP, VIP, buy, buyChips, cashOutChips, casinoOf, claimDaily, claimQuest, claimRefill, dailyBonus, ownsExtra, questList, refillState, vipLevel } from '../../game/casino';
 import { betsOf, resolveCareerBets } from '../../game/bets';
 import { listCareers } from '../../game/storage';
 import Icon from '../Icon';
@@ -114,6 +114,7 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
             <b>{VIP[lv].name}</b>
             <span className="cz-bar"><i style={{ width: `${next ? Math.min(100, ((c.vipPts - VIP[lv].min) / (next.min - VIP[lv].min)) * 100) : 100}%` }} /></span>
             <small>{next ? `${fmt(next.min - c.vipPts)} Einsatz bis ${next.name}` : 'Höchste Stufe'} · max. {fmt(VIP[lv].maxBet)}</small>
+            <small className="cz-vip-perk">{lv >= 3 ? `Eigene Kartenbilder: ${lv >= 4 ? 10 : 3} Plätze` : 'Ab Platin: eigene Bilder für deine Karten'}</small>
           </section>
           <button className={`cz-daily ${daily.ready ? 'ready' : ''}`} onClick={claim} disabled={!daily.ready}>
             <Icon name="gift" size={22} />
@@ -248,6 +249,16 @@ function Bank({ onClose, onDone }: { onClose: () => void; onDone: (msg: string) 
   const c = casinoOf(club);
   const refill = refillState(club);
   const coins = useCountUp(club.coins);
+  const [out, setOut] = useState(0);
+  const maxOut = Math.floor(c.chips / CASHOUT_RATE) * CASHOUT_RATE;
+  const cash = (n: number) => {
+    const next = cashOutChips(getClubState(), n);
+    if (!next) { sfx('error'); return; }
+    setClubState(next);
+    sfx('cash'); buzz([20, 40, 20]);
+    onDone(`+${fmt(n / CASHOUT_RATE)} Coins für den Shop`);
+    setOut(0);
+  };
   const take = (i: number) => {
     const next = buyChips(getClubState(), i);
     if (!next) { sfx('error'); return; }
@@ -279,6 +290,17 @@ function Bank({ onClose, onDone }: { onClose: () => void; onDone: (msg: string) 
             <span><b>{refill.ready ? `${fmt(REFILL)} Gratis-Chips` : 'Gratis-Nachschub'}</b><small>{refill.ready ? 'Pleite? Hier gibt’s Nachschub – alle 3 Stunden' : `Wieder verfügbar in ${h ? `${h} Std. ` : ''}${m} Min.`}</small></span>
           </button>
         )}
+        <section className="cz-cashout">
+          <b><Icon name="pack" size={18} /> Chips → Coins</b>
+          <small>Gewinne in Coins tauschen ({CASHOUT_RATE} Chips = 1 Coin) – für Packs im Shop und dein Team.</small>
+          <div className="cz-cashout-row">
+            {[0.25, 0.5, 1].map((f) => {
+              const n = Math.floor((maxOut * f) / CASHOUT_RATE) * CASHOUT_RATE;
+              return <button key={f} className={out === n && n ? 'on' : ''} disabled={n < CASHOUT_MIN} onClick={() => setOut(n)}>{f === 1 ? 'Alles' : `${f * 100} %`}</button>;
+            })}
+          </div>
+          <button className="cz-cashout-go" disabled={out < CASHOUT_MIN} onClick={() => cash(out)}>{out >= CASHOUT_MIN ? `${fmt(out)} Chips → ${fmt(out / CASHOUT_RATE)} Coins` : `Ab ${fmt(CASHOUT_MIN)} Chips`}</button>
+        </section>
         <ul className="cz-packs">
           {CHIP_PACKS.map((p, i) => (
             <li key={i} className={'best' in p && p.best ? 'best' : ''}>

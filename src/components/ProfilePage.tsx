@@ -4,6 +4,7 @@ import { divName, divisionOf } from '../game/divisions';
 import { EMBLEMS, NAME_MAX, PROFILE_COLORS, profileOf, setProfile } from '../game/profile';
 import { cardById, slotsOf, teamCards, teamStrength } from '../game/squad';
 import { listCareers } from '../game/storage';
+import { collectionProgress } from '../game/club';
 import Icon from './Icon';
 import { CASINO_COLORS, CASINO_EMBLEMS, casinoOf, ownsExtra, vipOf } from '../game/casino';
 
@@ -37,6 +38,8 @@ export default function ProfilePage() {
     ['Beste Wertung', best || '–'],
     ['Tore', goals.toLocaleString('de-DE')],
     ['Titel', titles],
+    ['Sammlung', `${collectionProgress(club).have} / ${collectionProgress(club).total}`],
+    ['Coins', club.coins.toLocaleString('de-DE')],
     ['Karten im Karriere-Team', teamCards(club, 'career').length],
     ['Aktive Elf', rating],
     ['Duelle S/U/N', `${club.duels.w}/${club.duels.d}/${club.duels.l}`],

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { rarity, type CollectCard } from '../game/club';
 import {
@@ -9,15 +9,24 @@ import { motionReduced } from '../settings';
 import Icon from './Icon';
 import UtCard from './UtCard';
 
+const Collection = lazy(() => import('./Collection'));
+
 /** Team: deine Elf aus den Spielern deiner Karrieren (Auszeichnungen, Saison-Highlights, Karriere-Ende). */
-export default function TeamScreen({ onDuels }: { onDuels: () => void }) {
+export default function TeamScreen({ onDuels, onShop, onCasino, tab: startTab }: { onDuels: () => void; onShop: () => void; onCasino: () => void; tab?: 'squad' | 'collection' }) {
   const club = useClub();
   const on = activeTeam(club);
   const cards = club.squad.map((id) => cardById(club, id));
   const chem = chemistry(cards, slotsOf(club));
+  const [tab, setTabState] = useState<'squad' | 'collection'>(() => { if (startTab) return startTab; try { return (sessionStorage.getItem('fc-team-tab') as 'squad' | 'collection') || 'squad'; } catch { return 'squad'; } });
+  const setTab = (t: 'squad' | 'collection') => { setTabState(t); try { sessionStorage.setItem('fc-team-tab', t); } catch { /* egal */ } };
   return (
     <main className="hub team-screen">
       <h1 className="ch-title">Team</h1>
+      <nav className="tm-tabs" role="tablist" aria-label="Team-Bereiche">
+        <button role="tab" aria-selected={tab === 'squad'} className={tab === 'squad' ? 'on' : ''} onClick={() => setTab('squad')}><Icon name="tactics" size={18} />Aufstellung</button>
+        <button role="tab" aria-selected={tab === 'collection'} className={tab === 'collection' ? 'on' : ''} onClick={() => setTab('collection')}><Icon name="cards" size={18} />Sammlung</button>
+      </nav>
+      {tab === 'collection' ? <Suspense fallback={null}><Collection onShop={onShop} onCasino={onCasino} /></Suspense> : <>
       <div className="segmented tm-switch" role="radiogroup" aria-label="Team wählen">
         {(['main', 'career'] as TeamKind[]).map((k) => (
           <button key={k} role="radio" aria-checked={on === k} className={on === k ? 'active' : ''} onClick={() => setClubState(switchTeam(getClubState(), k))}>
@@ -33,6 +42,7 @@ export default function TeamScreen({ onDuels }: { onDuels: () => void }) {
       </div>
       <Squad />
       <button className="btn primary big tm-duels" onClick={onDuels}><Icon name="duel" size={20} /> Zu den Duellen</button>
+      </>}
     </main>
   );
 }

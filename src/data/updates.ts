@@ -29,6 +29,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-20-sammlung-shop',
+    date: '20.11.2026',
+    title: 'Sammlung & Shop sind zurück – alles hängt zusammen',
+    items: [
+      'Shop (neu in der Leiste unten): Packs für Coins, jeden Tag ein Gratis-Pack und das Pack der Woche. Pack öffnen mit Wackeln, Aufreißen und Aufdecken – die beste Karte kommt zuletzt.',
+      'Sammlung (im Team): alle Karten des Spiels mit Fortschritt, Filtern und Suche. Doppelte verkaufen bringt Coins, Meilensteine (25, 50, 100 … Karten) geben Coins UND Casino-Chips.',
+      'Neu im Spiel? Das Willkommens-Pack schenkt dir eine komplette Start-Elf – direkt aufgestellt, sofort bereit für die Duelle.',
+      'Eigene Kartenbilder: Ab VIP Platin im Casino gibst du bis zu 3 deiner Karten ein eigenes Foto (Diamant: 10).',
+      'Der Kreislauf: Karriere und Duelle bringen Coins → Packs im Shop → stärkeres Team → höhere Divisionen → mehr Coins. Im Casino tauschst du Coins in Chips und Gewinne zurück in Coins (2:1).',
+    ],
+  },
+  {
     id: '2026-11-19-plinko-fever',
     date: '19.11.2026',
     title: 'Plinko: Fever-Modus',

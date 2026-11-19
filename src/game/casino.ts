@@ -433,3 +433,13 @@ export function claimRefill(club: ClubState, now = Date.now()): ClubState | null
   if (!refillState(club, now).ready) return null;
   return withCasino(club, (c) => ({ ...c, chips: c.chips + REFILL, refillAt: now }));
 }
+
+/** Chips zurück in Coins tauschen (2 Chips = 1 Coin, ab 1.000 Chips) – so landen Casino-Gewinne im Shop und im Team. */
+export const CASHOUT_RATE = 2;
+export const CASHOUT_MIN = 1_000;
+export function cashOutChips(club: ClubState, chips: number): ClubState | null {
+  const c = casinoOf(club);
+  const n = Math.floor(chips / CASHOUT_RATE) * CASHOUT_RATE;
+  if (n < CASHOUT_MIN || n > c.chips) return null;
+  return { ...club, coins: club.coins + n / CASHOUT_RATE, casino: { ...c, chips: c.chips - n } };
+}
