@@ -5,7 +5,8 @@ import { getSettings } from './settings';
 
 export type SoundId =
   | 'tap' | 'coin' | 'spend' | 'whistle' | 'packShake' | 'packRip' | 'reveal' | 'revealRare' | 'walkout' | 'walkStep'
-  | 'unlock' | 'levelUp' | 'fanfare' | 'transfer' | 'rise' | 'fall' | 'notify' | 'error';
+  | 'unlock' | 'levelUp' | 'fanfare' | 'transfer' | 'rise' | 'fall' | 'notify' | 'error'
+  | 'tick' | 'goal' | 'cash' | 'boom' | 'jackpot';
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -171,7 +172,46 @@ const SOUNDS: Record<SoundId, (c: AudioContext) => void> = {
     tone(c, C6, 0.45, { type: 'sine', gain: 0.12, at: 0.1 });
   },
   error: (c) => tone(c, 140, 0.18, { type: 'square', gain: 0.06 }),
+  // Casino: kurzer Tick (Walzen, Rad, Plinko-Pfosten)
+  tick: (c) => tone(c, 2400 + Math.random() * 600, 0.03, { type: 'square', gain: 0.035 }),
+  // Tor: Publikum jubelt auf, tiefer Schlag
+  goal: (c) => {
+    hiss(c, 1.6, { freq: 1100, q: 0.45, gain: 0.32, attack: 0.08 });
+    hiss(c, 1.2, { freq: 2600, q: 0.9, gain: 0.1, attack: 0.1 });
+    tone(c, 80, 0.4, { type: 'sine', gain: 0.4, to: 45 });
+  },
+  // Kasse: zwei helle Glocken + Münzrascheln
+  cash: (c) => {
+    tone(c, 2093, 0.25, { type: 'triangle', gain: 0.12 });
+    tone(c, 2637, 0.5, { type: 'triangle', gain: 0.12, at: 0.08 });
+    for (let i = 0; i < 5; i++) tone(c, 3000 + i * 300, 0.05, { type: 'square', gain: 0.03, at: 0.12 + i * 0.04 });
+  },
+  // Verloren / Crash: dumpfer Schlag mit Rauschen
+  boom: (c) => {
+    tone(c, 110, 0.6, { type: 'sine', gain: 0.5, to: 35 });
+    hiss(c, 0.7, { freq: 900, to: 120, gain: 0.3, q: 0.6, type: 'lowpass' });
+  },
+  // Jackpot: Glockenkaskade + Fanfaren-Akkord + Jubel
+  jackpot: (c) => {
+    for (let i = 0; i < 14; i++) tone(c, [C6, E6, G5 * 2][i % 3] * (1 + (i % 4) * 0.01), 0.3, { type: 'triangle', gain: 0.08, at: i * 0.07 });
+    chord(c, [C4, E4, G4, C5], 2.2, { type: 'sawtooth', gain: 0.04, at: 0.9, attack: 0.08 });
+    hiss(c, 3, { freq: 1100, q: 0.4, gain: 0.28, at: 0.6, attack: 0.4 });
+  },
 };
+
+/** Ton in steigender Höhe (Spannung): Stufe 0, 1, 2 … – je höher, desto heller. */
+export function playStep(step: number): void {
+  if (!getSettings().sound) return;
+  const c = audio();
+  if (!c) return;
+  try {
+    const f = 440 * 2 ** (Math.min(step, 24) / 12);
+    tone(c, f, 0.18, { type: 'triangle', gain: 0.11 });
+    tone(c, f * 2, 0.12, { type: 'sine', gain: 0.05, at: 0.02 });
+  } catch {
+    // egal
+  }
+}
 
 /** Sound abspielen – nur wenn Sounds in den Einstellungen an sind. Fehler werden still ignoriert. */
 export function play(id: SoundId): void {

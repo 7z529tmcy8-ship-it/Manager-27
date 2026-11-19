@@ -5,7 +5,8 @@ import { seasonId } from './squad';
 // Jackpot, Tagesaufgaben und ein Preis-Shop (Karten, XP, Profil-Extras). Nur Spielgeld.
 // Alle Spiele haben eine offen angezeigte Auszahlungsquote (RTP) knapp unter 100 %.
 
-export type GameId = 'slots' | 'crash' | 'plinko' | 'mines' | 'roulette' | 'blackjack' | 'hilo' | 'wheel';
+export type GameId = 'slots' | 'crash' | 'plinko' | 'mines' | 'roulette' | 'blackjack' | 'hilo' | 'wheel' | 'bets';
+/** Höher/Tiefer gibt es nicht mehr – 'hilo' bleibt nur für alte Statistiken im Typ. */
 type Rand = () => number;
 
 export interface CasinoState {
@@ -20,6 +21,10 @@ export interface CasinoState {
   stats: { bigWin: number; bestCrash: number; bestHilo: number; rounds: number; jackpots: number };
   /** Gekaufte Extras (Wappen, Farben). */
   owned?: string[];
+  /** Sportwetten: Spieltag, Archiv, offene Karriere-Wetten. */
+  bets?: import('./bets').BetState;
+  /** Letzte große Gewinne (für das Laufband im Casino). */
+  recent?: { game: GameId; win: number; mult: number }[];
 }
 
 export const START_CHIPS = 1_000;
@@ -74,7 +79,7 @@ export function placeBet(club: ClubState, bet: number): ClubState | null {
   return withCasino(club, (x) => ({ ...x, chips: x.chips - bet, vipPts: x.vipPts + bet, jackpot: x.jackpot + Math.round(bet * JACKPOT_SHARE) }));
 }
 /** Event für Aufgaben und Statistik. */
-export interface PlayEvent { game: GameId; bet: number; win: number; mult?: number; streak?: number; safe?: number; jackpot?: boolean }
+export interface PlayEvent { game: GameId; bet: number; win: number; mult?: number; streak?: number; safe?: number; jackpot?: boolean; legs?: number }
 /** Gewinn gutschreiben, Statistik und Aufgaben fortschreiben. */
 export function payout(club: ClubState, ev: PlayEvent, now = new Date()): ClubState {
   return withCasino(club, (c) => {
@@ -86,7 +91,9 @@ export function payout(club: ClubState, ev: PlayEvent, now = new Date()): ClubSt
       bestHilo: ev.game === 'hilo' ? Math.max(c.stats.bestHilo, ev.streak ?? 0) : c.stats.bestHilo,
       jackpots: c.stats.jackpots + (ev.jackpot ? 1 : 0),
     };
-    return { ...c, chips: c.chips + Math.max(0, Math.round(ev.win)), stats, quests: trackQuests(c, ev, now) };
+    const recent = ev.bet > 0 && ev.win >= ev.bet * 2 && ev.win >= 100
+      ? [{ game: ev.game, win: Math.round(ev.win), mult: Math.round((ev.win / ev.bet) * 100) / 100 }, ...(c.recent ?? [])].slice(0, 12) : c.recent;
+    return { ...c, chips: c.chips + Math.max(0, Math.round(ev.win)), stats, quests: trackQuests(c, ev, now), recent };
   });
 }
 /** Jackpot leeren (wird ausgezahlt) und neu befüllen. */
@@ -240,17 +247,6 @@ export function bjReturn(player: BjCard[], dealer: BjCard[], bet: number): { ret
   return { ret: 0, outcome: 'lose' };
 }
 
-// ---------- 7. Höher oder tiefer (mit Spielerkarten) ----------
-const HILO_POOL = CARD_POOL.filter((c) => c.ovr >= 60 && c.ovr <= 99);
-export const hiloCard = (rand: Rand = Math.random): CollectCard => HILO_POOL[Math.floor(rand() * HILO_POOL.length)];
-/** Chance, dass die nächste Karte höher (bzw. tiefer) ist – Gleichstand zählt als verloren. */
-export function hiloOdds(ovr: number): { higher: number; lower: number } {
-  const n = HILO_POOL.length;
-  return { higher: HILO_POOL.filter((c) => c.ovr > ovr).length / n, lower: HILO_POOL.filter((c) => c.ovr < ovr).length / n };
-}
-/** Faktor für einen richtigen Tipp mit Trefferchance p. */
-export const hiloFactor = (p: number) => (p <= 0 ? 0 : Math.max(1.01, Math.floor((RTP / p) * 100) / 100));
-
 // ---------- 8. Glücksrad ----------
 export type WheelPrize = { kind: 'chips'; amount: number } | { kind: 'xp'; amount: number } | { kind: 'card'; tier: ShopCardTier } | { kind: 'jackpot' };
 export const WHEEL: { prize: WheelPrize; label: string; weight: number }[] = [
@@ -286,7 +282,8 @@ export const QUESTS: Quest[] = [
   { id: 'mines5', text: 'Minen: 5 Tore in einer Runde', goal: 5, reward: 600, best: true, count: (e) => (e.game === 'mines' ? e.safe ?? 0 : 0) },
   { id: 'plinko20', text: '20 Plinko-Bälle fallen lassen', goal: 20, reward: 400, count: (e) => (e.game === 'plinko' ? 1 : 0) },
   { id: 'roulette5', text: '5 Runden Roulette spielen', goal: 5, reward: 350, count: (e) => (e.game === 'roulette' ? 1 : 0) },
-  { id: 'hilo4', text: 'Höher/Tiefer: Serie von 4', goal: 4, reward: 600, best: true, count: (e) => (e.game === 'hilo' ? e.streak ?? 0 : 0) },
+  { id: 'bet3', text: '3 Wettscheine spielen', goal: 3, reward: 500, count: (e) => (e.game === 'bets' ? 1 : 0) },
+  { id: 'kombi4', text: 'Kombi mit 4+ Tipps gewinnen', goal: 1, reward: 900, count: (e) => (e.game === 'bets' && (e.legs ?? 0) >= 4 && e.win > 0 ? 1 : 0) },
   { id: 'big', text: 'Einen Big Win landen (8× Einsatz)', goal: 1, reward: 800, count: (e) => (bigWinOf(e.bet, e.win) ? 1 : 0) },
 ];
 /** Drei Aufgaben pro Tag, für alle gleich (aus dem Datum). */

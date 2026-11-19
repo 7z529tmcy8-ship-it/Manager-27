@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { freshClub, type ClubState } from '../club';
 import {
   JACKPOT_SEED, PLINKO, PLINKO_P, RTP, SHOP, START_CHIPS, VIP, bigWinOf, bjReturn, buy, casinoOf, claimDaily, claimQuest, crashPoint, dailyBonus,
-  evalGrid, handValue, hiloFactor, hiloOdds, minesMult, payout, placeBet, placeMines, questList, rouletteReturn, takeJackpot, vipLevel, type BjCard, type Sym,
+  evalGrid, handValue, minesMult, payout, placeBet, placeMines, questList, rouletteReturn, takeJackpot, vipLevel, type BjCard, type Sym,
 } from '../casino';
 
 const day = (s: string) => new Date(`${s}T12:00:00`);
@@ -35,7 +35,7 @@ it('Tagesbonus: einmal am Tag, Serie steigt, Lücke setzt zurück', () => {
   expect(dailyBonus(c, day('2026-11-14')).streak).toBe(1);
 });
 
-it('Spielregeln: Crash, Minen, Plinko, Roulette, Blackjack, Höher/Tiefer', () => {
+it('Spielregeln: Crash, Minen, Plinko, Roulette, Blackjack', () => {
   expect(crashPoint(() => 0)).toBe(1); // 0,97 → sofort gehalten
   expect(crashPoint(() => 0.9)).toBeCloseTo(9.7, 1);
   expect(minesMult(3, 0)).toBeCloseTo(RTP, 2);
@@ -56,9 +56,6 @@ it('Spielregeln: Crash, Minen, Plinko, Roulette, Blackjack, Höher/Tiefer', () =
   expect(bjReturn([c(1), c(12)], [c(10), c(9)], 100)).toEqual({ ret: 250, outcome: 'bj' });
   expect(bjReturn([c(10), c(9)], [c(10), c(9)], 100).outcome).toBe('push');
   expect(bjReturn([c(10), c(9), c(5)], [c(10), c(7)], 100).ret).toBe(0);
-  const odds = hiloOdds(75);
-  expect(odds.higher + odds.lower).toBeLessThanOrEqual(1);
-  expect(hiloFactor(0.5)).toBeCloseTo(1.94, 2);
 });
 
 it('Slots: Linien von links, Krone als Joker', () => {
@@ -86,7 +83,8 @@ it('Aufgaben, Big Win, Shop', () => {
     ...Array.from({ length: 5 }, () => ({ game: 'roulette' as const, bet: 10, win: 0 })),
     ...Array.from({ length: 3 }, () => ({ game: 'blackjack' as const, bet: 10, win: 20 })),
     { game: 'crash' as const, bet: 10, win: 40, mult: 4 }, { game: 'mines' as const, bet: 10, win: 30, safe: 6 },
-    { game: 'hilo' as const, bet: 10, win: 50, streak: 5 }, { game: 'slots' as const, bet: 10, win: 200 },
+    { game: 'slots' as const, bet: 10, win: 200 },
+    ...Array.from({ length: 3 }, () => ({ game: 'bets' as const, bet: 10, win: 50, legs: 5 })),
   ];
   for (const e of evs) c = payout(c, e, now);
   const done = questList(c, now);

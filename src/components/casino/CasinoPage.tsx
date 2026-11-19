@@ -1,6 +1,8 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../../clubStore';
-import { SHOP, VIP, buy, casinoOf, claimDaily, claimQuest, dailyBonus, ownsExtra, questList, vipLevel, type GameId } from '../../game/casino';
+import { SHOP, VIP, buy, casinoOf, claimDaily, claimQuest, dailyBonus, ownsExtra, questList, vipLevel } from '../../game/casino';
+import { betsOf, resolveCareerBets } from '../../game/bets';
+import { listCareers } from '../../game/storage';
 import Icon from '../Icon';
 import UtCard from '../UtCard';
 import { buzz, fmt, giveXp, onWinShow, sfx, useCountUp, type WinShow } from './shared';
@@ -12,17 +14,18 @@ const Games = {
   mines: lazy(() => import('./games1').then((m) => ({ default: m.Mines }))),
   roulette: lazy(() => import('./games2').then((m) => ({ default: m.Roulette }))),
   blackjack: lazy(() => import('./games2').then((m) => ({ default: m.Blackjack }))),
-  hilo: lazy(() => import('./games2').then((m) => ({ default: m.Hilo }))),
   wheel: lazy(() => import('./games2').then((m) => ({ default: m.Wheel }))),
+  bets: lazy(() => import('./Sportsbook')),
 };
-const TILES: { id: GameId; name: string; sub: string; icon: string; hue: string }[] = [
-  { id: 'slots', name: 'Stadion-Slots', sub: '10 Linien · Freispiele', icon: 'star', hue: 'gold' },
-  { id: 'crash', name: 'Elfmeter-Crash', sub: 'Kassier, bevor er hält', icon: 'rocket', hue: 'pink' },
+type Playable = keyof typeof Games;
+const GAME_NAME: Record<string, string> = { slots: 'Slots', crash: 'Crash', plinko: 'Plinko', mines: 'Minen', roulette: 'Roulette', blackjack: 'Blackjack', wheel: 'Glücksrad', bets: 'Sportwetten' };
+const TILES: { id: Playable; name: string; sub: string; icon: string; hue: string; hot?: boolean }[] = [
+  { id: 'slots', name: 'Stadion-Slots', sub: '10 Linien · Freispiele', icon: 'star', hue: 'gold', hot: true },
+  { id: 'crash', name: 'Elfmeter-Crash', sub: 'Kassier, bevor er hält', icon: 'rocket', hue: 'pink', hot: true },
   { id: 'plinko', name: 'Torwand-Plinko', sub: 'Bis 165×', icon: 'ball', hue: 'cyan' },
   { id: 'mines', name: 'Elfmeter-Minen', sub: 'Tor oder Parade', icon: 'target', hue: 'green' },
   { id: 'roulette', name: 'Roulette', sub: 'Rückennummern 0–36', icon: 'dice', hue: 'red' },
   { id: 'blackjack', name: 'Blackjack', sub: 'Blackjack zahlt 3:2', icon: 'cards', hue: 'violet' },
-  { id: 'hilo', name: 'Höher / Tiefer', sub: 'Mit Spielerkarten', icon: 'swap', hue: 'cyan' },
   { id: 'wheel', name: 'Glücksrad', sub: 'Täglich gratis', icon: 'spark', hue: 'gold' },
 ];
 
@@ -35,11 +38,22 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
   const lv = vipLevel(c.vipPts);
   const next = VIP[lv + 1];
   const daily = dailyBonus(club);
-  const [game, setGame] = useState<GameId | null>(null);
+  const [game, setGame] = useState<Playable | null>(null);
   const [shop, setShop] = useState(false);
   const [win, setWin] = useState<WinShow | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   useEffect(() => onWinShow(setWin), []);
+  // Karriere-Wetten auswerten, deren Saison inzwischen gespielt ist
+  useEffect(() => {
+    const r = resolveCareerBets(getClubState(), listCareers());
+    if (!r.results.length) return;
+    setClubState(r.club);
+    const won = r.results.filter((x) => x.win > x.bet.stake);
+    if (won.length) { sfx('cash'); setToast(`Karriere-Wette gewonnen: +${fmt(won.reduce((a, x) => a + x.win, 0))}`); }
+    else setToast(`${r.results.length} Karriere-Wette${r.results.length > 1 ? 'n' : ''} ausgewertet – diesmal nichts`);
+  }, []);
+  const recent = c.recent ?? [];
+  const round = betsOf(club).round;
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 2400); return () => clearTimeout(t); }, [toast]);
   const quests = questList(club);
   const Game = game ? Games[game] : null;
@@ -67,6 +81,22 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
           <span>5 Jackpot-Münzen an den Slots oder das Glücksrad – dazu eine Ikonen-Karte</span>
         </section>
 
+        {recent.length > 0 && (
+          <div className="cz-ticker" aria-label="Deine letzten Gewinne">
+            <div style={{ animationDuration: `${Math.max(12, recent.length * 4)}s` }}>
+              {[...recent, ...recent].map((r, i) => <span key={i}><Icon name="spark" size={14} />{GAME_NAME[r.game] ?? r.game} <b>+{fmt(r.win)}</b> <small>{r.mult.toFixed(1).replace('.', ',')}×</small></span>)}
+            </div>
+          </div>
+        )}
+
+        <button className="cz-hero" onClick={() => { sfx('tap'); setGame('bets'); }}>
+          <span className="cz-hero-bg" aria-hidden="true" />
+          <span className="cz-hero-tag"><span className="cz-live-dot" /> Live · Spieltag {round}</span>
+          <b>Sportwetten</b>
+          <span>Bundesliga, Premier League, LaLiga & Co. · Kombi-Boost bis +50 % · Cash-out · Wetten auf deine Karriere</span>
+          <em>Jetzt tippen <Icon name="arrow" size={18} /></em>
+        </button>
+
         <div className="cz-row2">
           <section className="cz-vip" style={{ '--vc': VIP[lv].color } as React.CSSProperties}>
             <small>VIP</small>
@@ -84,6 +114,7 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
         <div className="cz-grid">
           {TILES.map((t) => (
             <button key={t.id} className={`cz-tile h-${t.hue}`} onClick={() => { sfx('tap'); setGame(t.id); }}>
+              {t.hot && <em className="cz-hot">Heiß</em>}
               <span className="cz-tile-ic"><Icon name={t.icon} size={30} /></span>
               <b>{t.name}</b>
               <small>{t.sub}</small>
@@ -121,22 +152,30 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
 
 const WIN_TITLE: Record<NonNullable<WinShow['kind']>, string> = { big: 'Big Win', mega: 'Mega Win', epic: 'Epic Win', jackpot: 'Jackpot' };
 
-/** Vollbild-Show für große Gewinne: Titel, hochzählender Betrag, Münzregen. */
+/** Vollbild-Show für große Gewinne: Titel schaukelt sich hoch (Big → Mega → Epic), Betrag zählt mit Ticken, Münzregen. */
 function BigWinShow({ w, onClose }: { w: WinShow; onClose: () => void }) {
-  const amount = useCountUp(w.amount, w.kind === 'jackpot' ? 2600 : 1600);
+  const dur = w.kind === 'jackpot' ? 3200 : w.kind === 'epic' ? 2800 : w.kind === 'mega' ? 2200 : 1500;
+  const amount = useCountUp(w.amount, dur);
+  const x = w.bet ? amount / w.bet : 0;
+  const kind: NonNullable<WinShow['kind']> = w.kind === 'jackpot' ? 'jackpot' : x >= 50 ? 'epic' : x >= 20 ? 'mega' : 'big';
   useEffect(() => {
-    sfx('fanfare'); sfx('coin'); buzz([40, 60, 40, 60, 120]);
-    const t = setTimeout(onClose, w.kind === 'jackpot' ? 6500 : 4200);
-    return () => clearTimeout(t);
-  }, [w, onClose]);
+    sfx('fanfare'); buzz([40, 60, 40, 60, 120]);
+    const ticks = setInterval(() => sfx('tick'), 70);
+    const stopTicks = setTimeout(() => { clearInterval(ticks); sfx('cash'); }, dur);
+    const t = setTimeout(onClose, dur + 2600);
+    return () => { clearInterval(ticks); clearTimeout(stopTicks); clearTimeout(t); };
+  }, [w, onClose, dur]);
+  useEffect(() => { if (kind !== 'big' && kind !== 'jackpot') { sfx('revealRare'); buzz(60); } }, [kind]);
   return (
-    <div className={`cz-win k-${w.kind}`} role="dialog" aria-label={WIN_TITLE[w.kind!]} onClick={onClose}>
+    <div className={`cz-win k-${kind}`} role="dialog" aria-label={WIN_TITLE[kind]} onClick={onClose}>
+      <div className="cz-rays" aria-hidden="true" />
       <div className="cz-rain" aria-hidden="true">
-        {Array.from({ length: 36 }, (_, i) => <i key={i} style={{ left: `${(i * 37) % 100}%`, animationDelay: `${(i % 12) * 0.12}s`, animationDuration: `${1.6 + (i % 5) * 0.3}s` }}><Icon name="coin" size={18 + (i % 3) * 6} /></i>)}
+        {Array.from({ length: kind === 'big' ? 24 : 44 }, (_, i) => <i key={i} style={{ left: `${(i * 37) % 100}%`, animationDelay: `${(i % 12) * 0.12}s`, animationDuration: `${1.4 + (i % 5) * 0.3}s` }}><Icon name="coin" size={18 + (i % 3) * 6} /></i>)}
       </div>
       <div className="cz-win-inner">
-        <h2>{WIN_TITLE[w.kind!]}</h2>
+        <h2 key={kind}>{WIN_TITLE[kind]}</h2>
         <b><Icon name="coin" size={34} />{fmt(amount)}</b>
+        {w.bet ? <span className="cz-win-x">{(amount / w.bet).toFixed(1).replace('.', ',')}× Einsatz</span> : null}
         {w.card && <div className="cz-win-card"><UtCard card={w.card} size="md" shine /></div>}
         {w.card && <p>Ikonen-Karte für dein Haupt-Team!</p>}
         <small>Tippen zum Weiterspielen</small>

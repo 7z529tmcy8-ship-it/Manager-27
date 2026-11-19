@@ -1,17 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../../clubStore';
 import {
-  RANK_NAME, RED, ROULETTE_LABEL, WHEEL, WHEEL_COST, WHEEL_ORDER, addCard, bjReturn, casinoOf, dealerPlay, handValue, hiloCard, hiloFactor, hiloOdds,
+  RANK_NAME, RED, ROULETTE_LABEL, WHEEL, WHEEL_COST, WHEEL_ORDER, addCard, bjReturn, casinoOf, dealerPlay, handValue,
   isBlackjack, markWheel, maxBet, payout, randomCard, rouletteReturn, shoe, spend, spinRoulette, spinWheel, takeJackpot, wheelFree,
   type BjCard, type RouletteBet,
 } from '../../game/casino';
-import type { CollectCard } from '../../game/club';
 import { motionReduced } from '../../settings';
 import Icon from '../Icon';
-import UtCard from '../UtCard';
-import { BetPicker, GameFrame, bet, buzz, fmt, fx, giveXp, settle, sfx, showWin, useBet } from './shared';
+import { BetPicker, GameFrame, bet, buzz, fmt, giveXp, settle, sfx, showWin, useBet } from './shared';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/** Ticken wie beim echten Rad: erst schnell, dann immer langsamer bis zum Stillstand. */
+function tickDown(totalMs: number): () => void {
+  const ids: number[] = [];
+  let t = 0; let gap = 45;
+  while (t < totalMs - 120) { ids.push(window.setTimeout(() => sfx('tick'), t)); t += gap; gap *= 1.075; }
+  return () => ids.forEach((id) => clearTimeout(id));
+}
 
 // ---------------------------------------------------------------- Roulette
 const OUTSIDE: RouletteBet[][] = [['d1', 'd2', 'd3'], ['low', 'even', 'red', 'black', 'odd', 'high']];
@@ -41,8 +46,9 @@ export function Roulette({ onClose }: { onClose: () => void }) {
     const idx = WHEEL_ORDER.indexOf(n);
     const target = 360 * 6 - idx * SEG - SEG / 2 + (Math.random() - 0.5) * SEG * 0.6;
     setRot((r) => r - (r % 360) + target);
-    sfx('packShake');
+    const stop = motionReduced() ? () => {} : tickDown(4200);
     await wait(motionReduced() ? 300 : 4200);
+    stop();
     const win = Object.entries(bets).reduce((a, [b, amt]) => a + rouletteReturn(b as RouletteBet, amt, n), 0);
     settle({ game: 'roulette', bet: total, win });
     setRes({ n, win });
@@ -142,7 +148,7 @@ export function Blackjack({ onClose }: { onClose: () => void }) {
   const hit = async () => {
     const p = [...player, draw()];
     setPlayer(p); sfx('tap');
-    if (handValue(p).total > 21) { buzz(80); await finish(p, dealer, cur); }
+    if (handValue(p).total > 21) { buzz(80); sfx('boom'); await finish(p, dealer, cur); }
   };
   const double = async () => {
     if (player.length !== 2 || !bet(cur)) return;
@@ -176,68 +182,6 @@ export function Blackjack({ onClose }: { onClose: () => void }) {
   );
 }
 
-// ---------------------------------------------------------------- Höher / Tiefer
-export function Hilo({ onClose }: { onClose: () => void }) {
-  const [stake, setStake] = useBet('hilo', 50);
-  const [card, setCard] = useState<CollectCard>(() => hiloCard());
-  const [next, setNext] = useState<CollectCard | null>(null);
-  const [run, setRun] = useState<{ pot: number; stake: number; streak: number } | null>(null);
-  const [lost, setLost] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const odds = hiloOdds(card.ovr);
-  const fHi = hiloFactor(odds.higher);
-  const fLo = hiloFactor(odds.lower);
-
-  const start = () => { if (run || !bet(stake)) return; setRun({ pot: stake, stake, streak: 0 }); setLost(false); };
-  const guess = async (up: boolean) => {
-    if (!run || busy) return;
-    const p = up ? odds.higher : odds.lower;
-    if (p <= 0) return;
-    setBusy(true);
-    const n = hiloCard();
-    setNext(n);
-    sfx('reveal');
-    await wait(motionReduced() ? 150 : 650);
-    const ok = up ? n.ovr > card.ovr : n.ovr < card.ovr;
-    setCard(n); setNext(null); setBusy(false);
-    if (!ok) {
-      settle({ game: 'hilo', bet: run.stake, win: 0, streak: run.streak });
-      setRun(null); setLost(true); sfx('fall'); buzz(120);
-      return;
-    }
-    sfx('rise'); buzz(15);
-    setRun({ ...run, pot: Math.floor(run.pot * (up ? fHi : fLo)), streak: run.streak + 1 });
-  };
-  const cash = () => {
-    if (!run || !run.streak) return;
-    settle({ game: 'hilo', bet: run.stake, win: run.pot, streak: run.streak });
-    setRun(null);
-  };
-  return (
-    <GameFrame title="Höher / Tiefer" onClose={onClose} className="cz-hilo"
-      odds={`Ist die nächste Spielerkarte höher oder tiefer bewertet? Gleich zählt als verloren. Faktoren werden aus der echten Chance berechnet (Auszahlungsquote 97 %). Jetzt: höher ${Math.round(odds.higher * 100)} % → ${fx(fHi)}×, tiefer ${Math.round(odds.lower * 100)} % → ${fx(fLo)}×.`}>
-      <div className="cz-hilo-stage">
-        <div className={`cz-flip ${next ? 'go' : ''}`}><UtCard card={next ?? card} size="lg" shine /></div>
-      </div>
-      <div className={`cz-result ${run || lost ? 'on' : ''}`}>
-        {run ? <><b>{fmt(run.pot)}</b><small>Serie {run.streak} · Topf</small></> : lost ? <><b className="down">Daneben</b><small>Neue Runde?</small></> : <small>Setz ein und tippe höher oder tiefer</small>}
-      </div>
-      {run ? (
-        <div className="cz-actions">
-          <button className="cz-cta" disabled={busy || odds.higher <= 0} onClick={() => guess(true)}><Icon name="rise" size={18} /> Höher · {fx(fHi)}×</button>
-          <button className="cz-cta alt" disabled={busy || odds.lower <= 0} onClick={() => guess(false)}><Icon name="rise" size={18} className="flipv" /> Tiefer · {fx(fLo)}×</button>
-          <button className="cz-sub cash" disabled={busy || !run.streak} onClick={cash}>Kassieren</button>
-        </div>
-      ) : (
-        <>
-          <BetPicker value={stake} onChange={setStake} />
-          <div className="cz-actions"><button className="cz-cta" onClick={start}>Starten</button></div>
-        </>
-      )}
-    </GameFrame>
-  );
-}
-
 // ---------------------------------------------------------------- Glücksrad
 const W_TOTAL = WHEEL.reduce((a, w) => a + w.weight, 0);
 const W_COLORS = ['#3b2a8f', '#ff3fb4', '#2a6fdb', '#7a3cff', '#ffd24a', '#19c39a', '#ff7a59', '#3ff0ff', '#ff5e3a', '#e8c36a', '#ffffff'];
@@ -262,8 +206,9 @@ export function Wheel({ onClose }: { onClose: () => void }) {
     const s = segs[i];
     const at = s.from + (s.to - s.from) * (0.2 + Math.random() * 0.6);
     setRot((r) => r - (r % 360) + 360 * 7 - at);
-    sfx('packShake');
+    const stop = motionReduced() ? () => {} : tickDown(5200);
     await wait(motionReduced() ? 300 : 5200);
+    stop();
     const p = WHEEL[i].prize;
     const cost = free ? 0 : WHEEL_COST;
     if (p.kind === 'chips') { settle({ game: 'wheel', bet: cost, win: p.amount }); setPrize(`+${fmt(p.amount)} Chips`); }
@@ -292,7 +237,7 @@ export function Wheel({ onClose }: { onClose: () => void }) {
           })}
           <circle r="18" className="hub" />
         </svg>
-        <span className="cz-pointer" aria-hidden="true" />
+        <span className={`cz-pointer ${spinning ? 'wobble' : ''}`} aria-hidden="true" />
       </div>
       <div className={`cz-result ${prize ? 'on' : ''}`}>{prize ? <b>{prize}</b> : <small>{free ? 'Dein Gratis-Dreh für heute wartet' : `Extra-Dreh: ${fmt(WHEEL_COST)} Chips`}</small>}</div>
       <div className="cz-actions"><button className="cz-cta" disabled={spinning} onClick={spin}>{spinning ? 'Dreht …' : free ? 'Gratis drehen' : `Drehen · ${fmt(WHEEL_COST)}`}</button></div>

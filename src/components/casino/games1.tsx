@@ -5,7 +5,8 @@ import {
 } from '../../game/casino';
 import { motionReduced } from '../../settings';
 import Icon from '../Icon';
-import { BetPicker, GameFrame, bet, buzz, fmt, fx, settle, sfx, useBet } from './shared';
+import { BetPicker, GameFrame, bet, buzz, fmt, fx, settle, sfx, shake, useBet } from './shared';
+import { playStep } from '../../sound';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -19,10 +20,13 @@ export function Slots({ onClose }: { onClose: () => void }) {
   const [strips, setStrips] = useState<Sym[][] | null>(null);
   const [rolling, setRolling] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [lines, setLines] = useState<number[]>([]);
+  const [lines, setLines] = useState<{ line: number; count: number }[]>([]);
   const [shown, setShown] = useState<{ win: number; text: string } | null>(null);
   const [free, setFree] = useState<{ left: number; total: number } | null>(null);
   const [auto, setAuto] = useState(0);
+  const [turbo, setTurbo] = useState(false);
+  const [durs, setDurs] = useState<number[]>([0, 0, 0, 0, 0]);
+  const [tease, setTease] = useState<number[]>([]);
   const alive = useRef(true);
   useEffect(() => () => { alive.current = false; }, []);
   const fast = motionReduced();
@@ -30,14 +34,31 @@ export function Slots({ onClose }: { onClose: () => void }) {
   /** Walzen drehen lassen bis zum Ergebnis (jede Walze stoppt etwas später). */
   const roll = async (target: Sym[][], quick = false) => {
     setLines([]);
-    setStrips(target.map((col) => [...Array.from({ length: 14 }, () => spinGrid()[0][0]), ...col]));
+    // Vorfreude: Liegen schon 2 Pokale (Freispiele) oder 3 Münzen (Jackpot-Nähe) in den ersten Walzen, drehen die letzten länger.
+    const teaseFrom = [2, 3].find((r) => target.slice(0, r + 1).flat().filter((x) => x === 'trophy').length >= 2 || target.slice(0, r + 1).flat().filter((x) => x === 'coin').length >= 3);
+    const fastMode = fast || turbo;
+    const base = fastMode ? 260 : quick ? 650 : 1000;
+    const step = fastMode ? 70 : quick ? 120 : 220;
+    const d = target.map((_, i) => base + i * step + (teaseFrom !== undefined && i > teaseFrom && !fastMode ? (i - teaseFrom) * 900 : 0));
+    const t = teaseFrom !== undefined && !fastMode ? target.map((_, i) => i).filter((i) => i > teaseFrom) : [];
+    setDurs(d);
+    setTease(t);
+    setStrips(target.map((col, i) => [...Array.from({ length: 14 + Math.round(d[i] / 120) }, () => spinGrid()[0][0]), ...col]));
     setRolling(false);
     await wait(30);
     setRolling(true);
     sfx('packShake');
-    const dur = fast ? 200 : quick ? 650 : 1000;
-    for (let i = 0; i < 5; i++) { await wait(i === 0 ? dur : (quick ? 120 : 220)); sfx('tap'); }
-    await wait(250);
+    const ticker = setInterval(() => sfx('tick'), 75);
+    let prev = 0;
+    for (let i = 0; i < 5; i++) {
+      await wait(d[i] - prev);
+      prev = d[i];
+      sfx('tap');
+      if (t.includes(i + 1)) playStep(6 + i * 3);
+    }
+    clearInterval(ticker);
+    await wait(180);
+    setTease([]);
     if (!alive.current) return;
     setGrid(target);
     setStrips(null);
@@ -51,7 +72,7 @@ export function Slots({ onClose }: { onClose: () => void }) {
     const r: SlotResult = playSlots(stake);
     await roll(r.grid);
     if (!alive.current) return false;
-    setLines(r.lines.map((l) => l.line));
+    setLines(r.lines.map((l) => ({ line: l.line, count: l.count })));
     let total = r.win - r.free.reduce((a, f) => a + f.win, 0);
     if (total > 0) setShown({ win: total, text: r.lines.length ? `${r.lines.length} Linie${r.lines.length > 1 ? 'n' : ''}` : 'Münzen' });
     if (r.free.length) {
@@ -84,17 +105,17 @@ export function Slots({ onClose }: { onClose: () => void }) {
     return () => clearTimeout(t);
   }, [auto, busy]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const lineCells = new Set(lines.flatMap((li) => LINES[li].map((r, reel) => `${reel}-${r}`)));
+  const lineCells = new Set(lines.flatMap((l) => LINES[l.line].slice(0, l.count).map((r, reel) => `${reel}-${r}`)));
   const pays = (Object.entries(PAYTABLE) as [Sym, [number, number, number]][]).map(([s, p]) => `${s === 'crown' ? 'Krone (Joker)' : s}: ${p.map((x) => fx((x * SLOT_SCALE) / 10)).join(' / ')}× Einsatz`).join(' · ');
   return (
     <GameFrame title="Stadion-Slots" onClose={onClose} className="cz-slots"
       odds={`Auszahlungsquote ca. 95 %. 10 Linien von links, 3/4/5 gleiche: ${pays}. 3+ Pokale = ${FREE_SPINS[3]}/${FREE_SPINS[4]}/${FREE_SPINS[5]} Freispiele. Münzen irgendwo: 3 = 3×, 4 = 20×, 5 = Jackpot.`}>
       <div className={`cz-reels ${free ? 'free' : ''}`}>
         {grid.map((col, reel) => (
-          <div key={reel} className="cz-reel" style={{ height: CELL * 3 }}>
+          <div key={reel} className={`cz-reel ${tease.includes(reel) ? 'tease' : ''}`} style={{ height: CELL * 3 }}>
             <div className="cz-strip" style={strips ? {
               transform: rolling ? `translateY(${-(strips[reel].length - 3) * CELL}px)` : 'translateY(0)',
-              transition: rolling ? `transform ${(fast ? 200 : free ? 650 : 1000) + reel * (free ? 120 : 220)}ms cubic-bezier(.2, .9, .25, 1.06)` : 'none',
+              transition: rolling ? `transform ${durs[reel]}ms cubic-bezier(.2, .9, .25, 1.06)` : 'none',
             } : undefined}>
               {(strips ? strips[reel] : col).map((s, i) => (
                 <span key={i} className={`cz-sym s-${s} ${!strips && lineCells.has(`${reel}-${i}`) ? 'hit' : ''}`} style={{ height: CELL }}>
@@ -104,6 +125,11 @@ export function Slots({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         ))}
+        {lines.length > 0 && !strips && (
+          <svg className="cz-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            {lines.map((l, k) => <polyline key={l.line} style={{ animationDelay: `${k * 120}ms` }} points={LINES[l.line].slice(0, l.count).map((r, reel) => `${(reel + 0.5) * 20},${(r + 0.5) * 33.3}`).join(' ')} />)}
+          </svg>
+        )}
         {free && <div className="cz-free-banner">Freispiele · noch {free.left}</div>}
       </div>
       <div className={`cz-result ${shown ? 'on' : ''}`}>{shown ? <><b>+{fmt(shown.win)}</b><small>{shown.text}</small></> : <small>Krone ist Joker · 3 Pokale = Freispiele</small>}</div>
@@ -111,6 +137,7 @@ export function Slots({ onClose }: { onClose: () => void }) {
       <div className="cz-actions">
         <button className="cz-cta" disabled={busy || auto > 0} onClick={() => spin()}>Drehen</button>
         <button className={`cz-sub ${auto ? 'on' : ''}`} onClick={() => setAuto(auto ? 0 : 10)}>{auto ? `Stopp (${auto})` : 'Auto ×10'}</button>
+        <button className={`cz-sub sq ${turbo ? 'on' : ''}`} onClick={() => setTurbo(!turbo)} aria-pressed={turbo} aria-label="Turbo"><Icon name="bolt" size={20} /></button>
       </div>
     </GameFrame>
   );
@@ -127,9 +154,16 @@ export function Crash({ onClose }: { onClose: () => void }) {
   const [cashed, setCashed] = useState<number | null>(null);
   const [history, setHistory] = useState<number[]>([]);
   const [pts, setPts] = useState<[number, number][]>([]);
-  const run = useRef<{ crash: number; start: number; cashed: number | null; stake: number } | null>(null);
+  const run = useRef<{ crash: number; start: number; cashed: number | null; stake: number; lastStep: number } | null>(null);
   const raf = useRef(0);
+  const [rounds, setRounds] = useState(0);
   useEffect(() => () => cancelAnimationFrame(raf.current), []);
+  // Auto-Runden: nach dem Ende automatisch neu schießen
+  useEffect(() => {
+    if (phase !== 'done' || rounds <= 0) return;
+    const t = setTimeout(() => { setRounds((r) => r - 1); start(); }, 1300);
+    return () => clearTimeout(t);
+  }, [phase, rounds]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cash = (m: number) => {
     const r = run.current;
@@ -141,7 +175,7 @@ export function Crash({ onClose }: { onClose: () => void }) {
   const start = () => {
     if (phase === 'fly' || !bet(stake)) return;
     const crash = crashPoint();
-    run.current = { crash, start: performance.now(), cashed: null, stake };
+    run.current = { crash, start: performance.now(), cashed: null, stake, lastStep: 0 };
     setCashed(null); setPhase('fly'); setPts([]); sfx('whistle');
     const tick = (t: number) => {
       const r = run.current!;
@@ -151,9 +185,12 @@ export function Crash({ onClose }: { onClose: () => void }) {
         setMult(r.crash);
         setPhase('done');
         setHistory((h) => [r.crash, ...h].slice(0, 12));
-        if (!r.cashed) { settle({ game: 'crash', bet: r.stake, win: 0, mult: r.crash }); sfx('fall'); buzz(120); }
+        if (!r.cashed) { settle({ game: 'crash', bet: r.stake, win: 0, mult: r.crash }); sfx('boom'); shake(r.crash > 2); buzz(120); }
         return;
       }
+      // Spannung: bei jedem halben Multiplikator ein höherer Ton
+      const stepNow = Math.floor((m - 1) * 2);
+      if (stepNow > r.lastStep) { r.lastStep = stepNow; if (!r.cashed) playStep(stepNow); }
       setMult(m);
       setPts((p) => (p.length && sec - p[p.length - 1][0] < 0.08 ? p : [...p, [sec, m]]));
       if (!r.cashed && auto > 0 && m >= auto) cash(auto);
@@ -168,10 +205,12 @@ export function Crash({ onClose }: { onClose: () => void }) {
   const path = pts.map(([t, m], i) => `${i ? 'L' : 'M'} ${(t / maxT) * 300} ${190 - ((m - 1) / (maxM - 1)) * 180}`).join(' ');
   const last = pts[pts.length - 1];
   const crashed = phase === 'done';
+  const tier = mult >= 10 ? 'c4' : mult >= 5 ? 'c3' : mult >= 2 ? 'c2' : 'c1';
   return (
     <GameFrame title="Elfmeter-Crash" onClose={onClose} className="cz-crash"
       odds="Der Ball fliegt, der Multiplikator steigt. Die Chance, dass er mindestens bis m kommt, ist 97 % ÷ m (z. B. 2× in 48,5 %, 10× in 9,7 %). Auszahlungsquote 97 %.">
-      <div className={`cz-sky ${crashed ? (cashed ? 'won' : 'lost') : ''}`}>
+      <div className={`cz-sky ${tier} ${phase === 'fly' ? 'flying' : ''} ${crashed ? (cashed ? 'won' : 'lost') : ''}`} style={{ '--spd': `${Math.max(0.25, 3 / mult)}s` } as React.CSSProperties}>
+        <span className="cz-stars" aria-hidden="true" />
         <svg viewBox="0 0 300 200" preserveAspectRatio="none" aria-hidden="true">
           <path d={path} className="cz-curve" />
           {last && <circle cx={(last[0] / maxT) * 300} cy={190 - ((last[1] - 1) / (maxM - 1)) * 180} r="5" className="cz-ballpt" />}
@@ -188,6 +227,7 @@ export function Crash({ onClose }: { onClose: () => void }) {
       </div>
       <BetPicker value={stake} onChange={setStake} disabled={phase === 'fly'} />
       <div className="cz-actions">
+        <button className={`cz-sub ${rounds ? 'on' : ''}`} onClick={() => setRounds(rounds ? 0 : 10)}>{rounds ? `Stopp (${rounds})` : 'Auto ×10'}</button>
         {phase === 'fly' && !cashed
           ? <button className="cz-cta cash" onClick={() => cash(mult)}>Kassieren · {fmt(stake * mult)}</button>
           : <button className="cz-cta" disabled={phase === 'fly'} onClick={start}>{phase === 'fly' ? 'Fliegt …' : 'Schießen'}</button>}
@@ -209,10 +249,12 @@ export function Plinko({ onClose }: { onClose: () => void }) {
   const [hit, setHit] = useState<{ slot: number; at: number } | null>(null);
   const seq = useRef(0);
   const raf = useRef(0);
+  const lastTick = useRef(0);
   useEffect(() => {
     if (!balls.length) return;
     const tick = (t: number) => {
       setNow(t);
+      if (t - lastTick.current > 55 && balls.some((b) => (t - b.start) / STEP_MS < PLINKO_ROWS)) { lastTick.current = t; sfx('tick'); }
       const doneNow = balls.filter((b) => t - b.start >= (PLINKO_ROWS + 1) * STEP_MS);
       if (doneNow.length) {
         for (const b of doneNow) {
@@ -230,7 +272,7 @@ export function Plinko({ onClose }: { onClose: () => void }) {
   }, [balls]);
 
   const drop = () => {
-    if (balls.length >= 8 || !bet(stake)) return;
+    if (!bet(stake)) return;
     const d = dropBall();
     setBalls((bs) => [...bs, { id: seq.current++, path: d.path, slot: d.slot, start: performance.now(), stake, risk }]);
   };
@@ -272,7 +314,10 @@ export function Plinko({ onClose }: { onClose: () => void }) {
         {(Object.keys(RISK_NAME) as Risk[]).map((r) => <button key={r} className={risk === r ? 'on' : ''} disabled={balls.length > 0} onClick={() => setRisk(r)}>{RISK_NAME[r]}</button>)}
       </div>
       <BetPicker value={stake} onChange={setStake} />
-      <div className="cz-actions"><button className="cz-cta" onClick={drop}>Ball fallen lassen</button></div>
+      <div className="cz-actions">
+        <button className="cz-cta" onClick={drop}>Ball fallen lassen</button>
+        <button className="cz-sub" onClick={() => { for (let i = 0; i < 10; i++) setTimeout(drop, i * 220); }}>Auto ×10</button>
+      </div>
     </GameFrame>
   );
 }
@@ -299,11 +344,11 @@ export function Mines({ onClose }: { onClose: () => void }) {
     if (round.mines.includes(i)) {
       setRound({ ...round, open: [...round.open, i], over: 'lost' });
       settle({ game: 'mines', bet: round.stake, win: 0, safe });
-      sfx('fall'); buzz(150);
+      sfx('boom'); shake(true); buzz([80, 40, 160]);
       return;
     }
     const open = [...round.open, i];
-    sfx('coin'); buzz(15);
+    playStep(safe * 2); buzz(15);
     const s = safe + 1;
     if (s === MINE_FIELDS - count) {
       setRound({ ...round, open, over: 'cashed' });
@@ -326,7 +371,7 @@ export function Mines({ onClose }: { onClose: () => void }) {
           const mine = round?.mines.includes(i);
           const reveal = opened || (round?.over && mine);
           return (
-            <button key={i} className={`cz-cell ${reveal ? (mine ? 'save' : 'goal') : ''} ${opened ? 'picked' : ''}`} disabled={!playing || opened} onClick={() => pick(i)} aria-label={reveal ? (mine ? 'Parade' : 'Tor') : `Feld ${i + 1}`}>
+            <button key={i} className={`cz-cell ${reveal ? (mine ? 'save' : 'goal') : ''} ${opened ? 'picked' : ''}`} style={{ animationDelay: round?.over && mine && !opened ? `${(i % 7) * 70}ms` : undefined }} disabled={!playing || opened} onClick={() => pick(i)} aria-label={reveal ? (mine ? 'Parade' : 'Tor') : `Feld ${i + 1}`}>
               {reveal && <Icon name={mine ? 'shield' : 'ball'} size={22} />}
             </button>
           );
@@ -337,6 +382,11 @@ export function Mines({ onClose }: { onClose: () => void }) {
           : round?.over === 'cashed' ? <><b>+{fmt(round.stake * mult)}</b><small>{fx(mult)}× kassiert</small></>
           : round ? <><b>{fx(mult)}×</b><small>Nächstes Tor: {fx(nextMult)}×</small></> : <small>Wähle, wie viele Felder der Torwart hält</small>}
       </div>
+      {playing && (
+        <div className="cz-ladder" aria-label="Nächste Multiplikatoren">
+          {Array.from({ length: Math.min(6, MINE_FIELDS - count - safe) }, (_, k) => <span key={k} className={k === 0 ? 'next' : ''}>{fx(minesMult(count, safe + 1 + k))}×</span>)}
+        </div>
+      )}
       <div className="cz-chipsel" role="radiogroup" aria-label="Paraden">
         <small>Paraden</small>
         {MINE_CHOICES.map((n) => <button key={n} className={count === n ? 'on' : ''} disabled={playing} onClick={() => setCount(n)}>{n}</button>)}

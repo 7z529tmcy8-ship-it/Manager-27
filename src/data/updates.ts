@@ -29,6 +29,19 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-19-casino-2',
+    date: '19.11.2026',
+    title: 'Casino 2.0: Sportwetten & mehr Action',
+    items: [
+      'Neu: Sportwetten! Jeder Spieltag bringt 10 Spiele aus Bundesliga, Premier League, LaLiga & Co. Tippe Sieg, Remis, Tore oder „Beide treffen“ – einzeln oder als Kombi mit bis zu +50 % Boost.',
+      'Live-Konferenz: Alle Spiele laufen gleichzeitig, Tore mit Jubel, deine Tipps leuchten grün oder rot – und mit Cash-out kannst du jederzeit aussteigen.',
+      'Wetten auf deine Karriere: Trifft dein Spieler 15+ Mal? Holt er einen Titel? Zum Saisonstart setzen, nach der Saison kassieren.',
+      'Mehr Action in allen Spielen: Münzen fliegen auf deinen Kontostand, Bildschirm-Beben bei großen Gewinnen, Slots mit Vorfreude-Walzen, Gewinnlinien und Turbo, Crash mit Sternenflug und Auto-Runden, Minen mit Multiplikator-Leiter, tickende Räder.',
+      'Big Wins schaukeln sich hoch: Big → Mega → Epic, während der Betrag hochzählt. Dazu ein Laufband mit deinen letzten großen Gewinnen.',
+      'Höher/Tiefer ist raus.',
+    ],
+  },
+  {
     id: '2026-11-18-neon-casino',
     date: '18.11.2026',
     title: 'Das Neon-Casino ist offen',
