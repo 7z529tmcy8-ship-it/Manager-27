@@ -25,6 +25,11 @@ const emitFx = (e: Fx) => fxListeners.forEach((f) => f(e));
 export const flyCoins = (n: number) => emitFx({ kind: 'coins', n });
 export const shake = (hard = false) => emitFx({ kind: 'shake', hard });
 
+/** Chip-Kasse öffnen (vom Casino-Bildschirm angezeigt). */
+const bankListeners = new Set<() => void>();
+export const onOpenBank = (f: () => void) => { bankListeners.add(f); return () => { bankListeners.delete(f); }; };
+export const openBank = () => bankListeners.forEach((f) => f());
+
 /** XP an den aktiven Karriere-Spieler. */
 export function giveXp(xp: number): string | null {
   const t = xpTarget(listCareers());
@@ -35,8 +40,9 @@ export function giveXp(xp: number): string | null {
 
 /** Einsatz abbuchen; false = geht nicht (zu wenig Chips oder über dem Limit). */
 export function bet(amount: number): boolean {
-  const next = placeBet(getClubState(), amount);
-  if (!next) { sfx('error'); return false; }
+  const club = getClubState();
+  const next = placeBet(club, amount);
+  if (!next) { sfx('error'); if (casinoOf(club).chips < amount) openBank(); return false; }
   setClubState(next);
   sfx('spend');
   return true;
@@ -146,7 +152,7 @@ export function GameFrame({ title, odds, onClose, children, className = '' }: { 
         <button className="cz-round" onClick={onClose} aria-label="Zurück zum Casino"><Icon name="arrow" size={20} /></button>
         <b>{title}</b>
         <button className="cz-round" onClick={() => setInfo((x) => !x)} aria-label="Gewinnchancen"><Icon name="info" size={20} /></button>
-        <span key={bump} className={`cz-chips ${bump ? 'bump' : ''}`}><Icon name="coin" size={16} />{fmt(chips)}</span>
+        <button key={bump} className={`cz-chips ${bump ? 'bump' : ''}`} onClick={openBank} aria-label="Chip-Kasse öffnen"><Icon name="coin" size={16} />{fmt(chips)}<Icon name="plus" size={14} /></button>
       </header>
       {coins && (
         <div key={coins.id} className="cz-fly" aria-hidden="true" onAnimationEnd={(e) => { if ((e.target as HTMLElement).dataset.last) setCoins(null); }}>

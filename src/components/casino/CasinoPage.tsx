@@ -1,11 +1,11 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../../clubStore';
-import { SHOP, VIP, buy, casinoOf, claimDaily, claimQuest, dailyBonus, ownsExtra, questList, vipLevel } from '../../game/casino';
+import { CHIP_PACKS, REFILL, SHOP, VIP, buy, buyChips, casinoOf, claimDaily, claimQuest, claimRefill, dailyBonus, ownsExtra, questList, refillState, vipLevel } from '../../game/casino';
 import { betsOf, resolveCareerBets } from '../../game/bets';
 import { listCareers } from '../../game/storage';
 import Icon from '../Icon';
 import UtCard from '../UtCard';
-import { buzz, fmt, giveXp, onWinShow, sfx, useCountUp, type WinShow } from './shared';
+import { buzz, fmt, giveXp, onOpenBank, onWinShow, openBank, sfx, useCountUp, type WinShow } from './shared';
 
 const Games = {
   slots: lazy(() => import('./games1').then((m) => ({ default: m.Slots }))),
@@ -43,6 +43,8 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
   const [win, setWin] = useState<WinShow | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   useEffect(() => onWinShow(setWin), []);
+  const [bank, setBank] = useState(false);
+  useEffect(() => onOpenBank(() => setBank(true)), []);
   // Karriere-Wetten auswerten, deren Saison inzwischen gespielt ist
   useEffect(() => {
     const r = resolveCareerBets(getClubState(), listCareers());
@@ -72,7 +74,7 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
         <header className="cz-top">
           <button className="cz-round" onClick={onExit} aria-label="Zurück zum Home-Menü"><Icon name="arrow" size={20} /></button>
           <h1 className="cz-logo">Neon<span>Casino</span></h1>
-          <span className="cz-chips big"><Icon name="coin" size={18} />{fmt(chips)}</span>
+          <button className="cz-chips big" onClick={openBank} aria-label="Chip-Kasse öffnen"><Icon name="coin" size={18} />{fmt(chips)}<Icon name="plus" size={16} /></button>
         </header>
 
         <section className="cz-jackpot" aria-label="Jackpot">
@@ -139,12 +141,13 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
         <button className="cz-shop-btn" onClick={() => setShop(true)}>
           <Icon name="bag" size={22} /><span><b>Preis-Shop</b><small>Karten fürs Team, XP für deine Karriere, exklusive Wappen</small></span><Icon name="arrow" size={20} />
         </button>
-        <p className="cz-foot">Nur Spielgeld – Chips lassen sich nicht kaufen und nicht auszahlen. Die Gewinnchancen stehen in jedem Spiel unter <Icon name="info" size={14} />.</p>
+        <p className="cz-foot">Nur Spielgeld – Chips gibt es gegen Spiel-Coins in der Chip-Kasse, nicht für echtes Geld. Die Gewinnchancen stehen in jedem Spiel unter <Icon name="info" size={14} />.</p>
       </div>
 
       {toast && <div className="cz-toast" role="status">{toast}</div>}
       {shop && <Shop onClose={() => setShop(false)} onDone={setToast} />}
       {Game && <Suspense fallback={<div className="cz-game cz-loading" />}><Game onClose={() => setGame(null)} /></Suspense>}
+      {bank && <Bank onClose={() => setBank(false)} onDone={setToast} />}
       {win && <BigWinShow w={win} onClose={() => setWin(null)} />}
     </div>
   );
@@ -229,3 +232,56 @@ function Shop({ onClose, onDone }: { onClose: () => void; onDone: (msg: string) 
   );
 }
 const s_note = <p className="cz-foot">Karten kommen in deinen Bestand und sind im Haupt-Team spielbar.</p>;
+
+/** Chip-Kasse: Spiel-Coins in Chips tauschen (mit Bonus) und Gratis-Nachschub, wenn man pleite ist. */
+function Bank({ onClose, onDone }: { onClose: () => void; onDone: (msg: string) => void }) {
+  const club = useClub();
+  const c = casinoOf(club);
+  const refill = refillState(club);
+  const coins = useCountUp(club.coins);
+  const take = (i: number) => {
+    const next = buyChips(getClubState(), i);
+    if (!next) { sfx('error'); return; }
+    setClubState(next);
+    sfx('cash'); buzz([20, 40, 20]);
+    onDone(`+${fmt(CHIP_PACKS[i].chips)} Chips`);
+  };
+  const free = () => {
+    const next = claimRefill(getClubState());
+    if (!next) return;
+    setClubState(next);
+    sfx('cash'); buzz(30);
+    onDone(`+${fmt(REFILL)} Gratis-Chips`);
+  };
+  const h = Math.floor(refill.waitMs / 3_600_000);
+  const m = Math.ceil((refill.waitMs % 3_600_000) / 60_000);
+  return (
+    <div className="cz-sheet cz-bank" role="dialog" aria-label="Chip-Kasse">
+      <div className="cz-sheet-inner">
+        <header><b>Chip-Kasse</b><button className="cz-round" onClick={onClose} aria-label="Schließen"><Icon name="close" size={18} /></button></header>
+        <div className="cz-bank-bal">
+          <span><small>Deine Coins</small><b><Icon name="coin" size={18} />{fmt(coins)}</b></span>
+          <Icon name="arrow" size={22} />
+          <span><small>Chips</small><b className="gold"><Icon name="coin" size={18} />{fmt(c.chips)}</b></span>
+        </div>
+        {refill.broke && (
+          <button className={`cz-refill ${refill.ready ? 'ready' : ''}`} disabled={!refill.ready} onClick={free}>
+            <Icon name="gift" size={24} />
+            <span><b>{refill.ready ? `${fmt(REFILL)} Gratis-Chips` : 'Gratis-Nachschub'}</b><small>{refill.ready ? 'Pleite? Hier gibt’s Nachschub – alle 3 Stunden' : `Wieder verfügbar in ${h ? `${h} Std. ` : ''}${m} Min.`}</small></span>
+          </button>
+        )}
+        <ul className="cz-packs">
+          {CHIP_PACKS.map((p, i) => (
+            <li key={i} className={'best' in p && p.best ? 'best' : ''}>
+              {'tag' in p && <em>{p.tag}</em>}
+              <span className="cz-pack-ic"><Icon name="coin" size={22 + i * 3} /></span>
+              <b>{fmt(p.chips)} Chips</b>
+              <button disabled={club.coins < p.coins} onClick={() => take(i)}><Icon name="coin" size={14} />{fmt(p.coins)} Coins</button>
+            </li>
+          ))}
+        </ul>
+        <p className="cz-foot">Coins verdienst du mit Karriere-Saisons, Duell-Siegen und deinem Vermögen. Echtes Geld gibt es hier nicht.</p>
+      </div>
+    </div>
+  );
+}

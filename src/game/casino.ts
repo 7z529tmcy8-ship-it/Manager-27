@@ -25,6 +25,8 @@ export interface CasinoState {
   bets?: import('./bets').BetState;
   /** Letzte große Gewinne (für das Laufband im Casino). */
   recent?: { game: GameId; win: number; mult: number }[];
+  /** Zeitpunkt des letzten Gratis-Nachschubs (ms). */
+  refillAt?: number;
 }
 
 export const START_CHIPS = 1_000;
@@ -371,4 +373,32 @@ export function spend(club: ClubState, amount: number): ClubState | null {
   const c = casinoOf(club);
   if (amount <= 0 || c.chips < amount) return null;
   return withCasino(club, (x) => ({ ...x, chips: x.chips - amount, vipPts: x.vipPts + amount }));
+}
+
+// ---------- Chip-Kasse: Spiel-Coins in Chips tauschen, Gratis-Nachschub wenn pleite ----------
+export const CHIP_PACKS = [
+  { coins: 1_000, chips: 1_000 },
+  { coins: 5_000, chips: 5_500, tag: '+10 %' },
+  { coins: 25_000, chips: 30_000, tag: '+20 %' },
+  { coins: 100_000, chips: 130_000, tag: '+30 %', best: true },
+] as const;
+/** Coins gegen Chips tauschen. null = nicht genug Coins. */
+export function buyChips(club: ClubState, pack: number): ClubState | null {
+  const p = CHIP_PACKS[pack];
+  if (!p || club.coins < p.coins) return null;
+  return withCasino({ ...club, coins: club.coins - p.coins }, (c) => ({ ...c, chips: c.chips + p.chips }));
+}
+export const REFILL = 1_000;
+export const REFILL_MIN = 100;
+export const REFILL_MS = 3 * 60 * 60 * 1000;
+/** Gratis-Nachschub: unter 100 Chips alle 3 Stunden 1.000 Chips. */
+export function refillState(club: Pick<ClubState, 'casino'>, now = Date.now()): { broke: boolean; ready: boolean; waitMs: number } {
+  const c = casinoOf(club);
+  const broke = c.chips < REFILL_MIN;
+  const waitMs = c.refillAt ? Math.max(0, c.refillAt + REFILL_MS - now) : 0;
+  return { broke, ready: broke && waitMs === 0, waitMs };
+}
+export function claimRefill(club: ClubState, now = Date.now()): ClubState | null {
+  if (!refillState(club, now).ready) return null;
+  return withCasino(club, (c) => ({ ...c, chips: c.chips + REFILL, refillAt: now }));
 }

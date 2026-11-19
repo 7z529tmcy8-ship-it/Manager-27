@@ -102,3 +102,19 @@ it('Aufgaben, Big Win, Shop', () => {
   expect(buy(c, 'em-key')).toBeNull(); // erst ab Platin
   expect(SHOP.length).toBeGreaterThan(5);
 });
+
+it('Chip-Kasse: Coins tauschen mit Bonus, Gratis-Nachschub nur wenn pleite und alle 3 Stunden', async () => {
+  const { CHIP_PACKS, buyChips, claimRefill, refillState, REFILL_MS } = await import('../casino');
+  let c: ClubState = { ...freshClub(), coins: 30_000 };
+  expect(buyChips(c, 3)).toBeNull();
+  c = buyChips(c, 2)!;
+  expect(c.coins).toBe(5_000);
+  expect(casinoOf(c).chips).toBe(START_CHIPS + CHIP_PACKS[2].chips);
+  expect(claimRefill(c, 1_000)).toBeNull(); // nicht pleite
+  const broke: ClubState = { ...c, casino: { ...casinoOf(c), chips: 20 } };
+  const r = claimRefill(broke, 1_000)!;
+  expect(casinoOf(r).chips).toBe(1_020);
+  const again: ClubState = { ...r, casino: { ...casinoOf(r), chips: 0 } };
+  expect(refillState(again, 1_000 + 60_000).ready).toBe(false);
+  expect(claimRefill(again, 1_000 + REFILL_MS)).not.toBeNull();
+});

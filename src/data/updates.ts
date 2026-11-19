@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-19-chip-kasse',
+    date: '19.11.2026',
+    title: 'Chip-Kasse im Casino',
+    items: [
+      'Keine Chips mehr? Tippe im Casino auf deinen Chip-Stand: In der neuen Chip-Kasse tauschst du deine Spiel-Coins in Chips – große Pakete mit bis zu +30 % Bonus.',
+      'Pleite-Hilfe: Unter 100 Chips gibt es alle 3 Stunden 1.000 Gratis-Chips.',
+      'Reicht dein Guthaben für einen Einsatz nicht, öffnet sich die Kasse automatisch.',
+    ],
+  },
+  {
     id: '2026-11-19-casino-2',
     date: '19.11.2026',
     title: 'Casino 2.0: Sportwetten & mehr Action',
