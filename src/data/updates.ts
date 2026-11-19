@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-19-plinko-fever',
+    date: '19.11.2026',
+    title: 'Plinko: Fever-Modus',
+    items: [
+      'Treffer-Serie füllt das Fever-Meter – ab 5 Treffern in Folge bricht das FEVER aus: Regenbogen-Bälle, leuchtendes Brett, Combo-Anzeige.',
+      'Funkenregen an jedem Pfosten und Feuerwerk im Fach, Bälle ziehen bunte Schweife hinter sich her.',
+      'Große Treffer lassen das Brett aufblitzen, Combo-Zähler poppen mitten im Brett auf.',
+    ],
+  },
+  {
     id: '2026-11-19-casino-party',
     date: '19.11.2026',
     title: 'Casino: mehr Farbe, mehr Party, iPad-fit',

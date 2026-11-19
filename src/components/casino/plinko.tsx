@@ -12,9 +12,11 @@ const AUTO_COUNTS = [10, 25, 50, 100];
 const MAX_BALLS = 40;
 const PEG_COLORS = ['#ff3fb4', '#3ff0ff', '#ffd24a', '#39ff88', '#a35cff', '#ff7a59'];
 
-type Ball = { id: number; path: number[]; slot: number; gold: boolean; stake: number; mult: number; start: number; durs: number[]; ends: number[]; peak: boolean; hitRow: number };
+type Ball = { id: number; path: number[]; slot: number; gold: boolean; stake: number; mult: number; start: number; durs: number[]; ends: number[]; peak: boolean; hitRow: number; trail: { x: number; y: number }[] };
+type Spark = { x: number; y: number; vx: number; vy: number; born: number; life: number; color: string; size: number };
+const FEVER_AT = 5;
 type Pop = { slot: number; at: number; text: string; color: string };
-type Session = { best: number; bigWin: number; streak: number; bestStreak: number };
+type Session = { best: number; streak: number };
 
 /** Farbe eines Fachs nach Multiplikator: kalt in der Mitte, heiß am Rand. */
 function binColor(m: number): string {
@@ -39,7 +41,12 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
   const [auto, setAuto] = useState<{ left: number; total: number } | null>(null);
   const [autoN, setAutoN] = useState(25);
   const [hist, setHist] = useState<{ id: number; m: number; gold: boolean }[]>([]);
-  const [sess, setSess] = useState<Session>({ best: 0, bigWin: 0, streak: 0, bestStreak: 0 });
+  const [sess, setSess] = useState<Session>({ best: 0, streak: 0 });
+  const [combo, setCombo] = useState<{ id: number; n: number } | null>(null);
+  const [boom, setBoom] = useState(0);
+  const sparks = useRef<Spark[]>([]);
+  const fever = useRef(false);
+  fever.current = sess.streak >= FEVER_AT;
 
   const table = plinkoTable(rows, risk);
   const wrap = useRef<HTMLDivElement>(null);
@@ -82,7 +89,7 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
     // Zeitlupe: Steht ein großer Treffer fest, werden die letzten 4 Reihen langsam (es ist ehrlich – das Ergebnis steht schon).
     const durs = Array.from({ length: n + 1 }, (_, i) => (i === 0 ? base * 1.4 : base) * (peak && !fast && i > n - 4 ? 2.6 : 1));
     const ends = durs.reduce<number[]>((a, x) => [...a, (a[a.length - 1] ?? 0) + x], []);
-    balls.current.push({ id: seq.current++, path: d.path, slot: d.slot, gold: d.gold, stake: st, mult, start: performance.now(), durs, ends, peak, hitRow: -1 });
+    balls.current.push({ id: seq.current++, path: d.path, slot: d.slot, gold: d.gold, stake: st, mult, start: performance.now(), durs, ends, peak, hitRow: -1, trail: [] });
     setInFlight(balls.current.length);
     if (d.gold) sfx('unlock');
     return true;
@@ -126,7 +133,7 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
         const f = flashes.current.get(`${r}-${j}`);
         const glow = f !== undefined ? Math.max(0, 1 - (now - f) / 260) : 0;
         ctx.beginPath();
-        ctx.arc(pegX(r, j), pegY(r), pegR + glow * 2.2, 0, Math.PI * 2);
+        ctx.arc(pegX(r, j), pegY(r), pegR + glow * (fever.current ? 3.4 : 2.2), 0, Math.PI * 2);
         const hue = PEG_COLORS[(r + j) % PEG_COLORS.length];
         ctx.fillStyle = glow > 0 ? hue : 'rgba(210, 222, 255, .7)';
         if (glow > 0) { ctx.shadowColor = hue; ctx.shadowBlur = 16 * glow; }
@@ -157,7 +164,17 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
       for (const b of balls.current) {
         const el = now - b.start;
         const seg = b.ends.findIndex((e) => el < e);
-        if (seg === -1) { landed.push(b); continue; }
+        if (seg === -1) {
+          landed.push(b);
+          const m = b.mult * (b.gold ? GOLD_MULT : 1);
+          const cnt = m >= 1 ? Math.min(60, 10 + Math.round(m * 3)) : 4;
+          for (let i = 0; i < cnt; i++) {
+            const a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.4;
+            const v = 2 + Math.random() * (m >= 5 ? 7 : 4);
+            sparks.current.push({ x: posX(n, b.slot), y: binY, vx: Math.cos(a) * v, vy: Math.sin(a) * v, born: now, life: 500 + Math.random() * 500, color: b.gold ? '#ffd24a' : PEG_COLORS[i % PEG_COLORS.length], size: 1.5 + Math.random() * (m >= 5 ? 3 : 2) });
+          }
+          continue;
+        }
         const u = (el - (seg ? b.ends[seg - 1] : 0)) / b.durs[seg];
         const kBefore = b.path.slice(0, Math.max(0, seg - 1)).reduce((a, x) => a + x, 0);
         let x: number; let y: number;
@@ -174,6 +191,7 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
           if (b.hitRow < r0) {
             b.hitRow = r0;
             flashes.current.set(`${r0}-${kBefore + 1}`, now);
+            for (let i = 0; i < (fever.current ? 4 : 2); i++) sparks.current.push({ x: pegX(r0, kBefore + 1), y: pegY(r0), vx: (Math.random() - 0.5) * 3, vy: -Math.random() * 2.5, born: now, life: 300 + Math.random() * 200, color: PEG_COLORS[(r0 + i) % PEG_COLORS.length], size: 1.2 + Math.random() * 1.3 });
             if (now - lastTick.current > 28) { lastTick.current = now; sfx('tick'); }
             if (b.peak && r0 >= n - 4) playStep((r0 - (n - 4)) * 3 + 6);
           }
@@ -182,17 +200,37 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
           ctx.beginPath(); ctx.arc(x, y, ballR * 2.6, 0, Math.PI * 2);
           ctx.fillStyle = 'rgba(255, 63, 180, .18)'; ctx.fill();
         }
-        drawBall(ctx, x, y, ballR, b.gold);
+        b.trail.push({ x, y });
+        if (b.trail.length > 9) b.trail.shift();
+        b.trail.forEach((t, i) => {
+          const k = (i + 1) / b.trail.length;
+          ctx.beginPath(); ctx.arc(t.x, t.y, ballR * k * 0.9, 0, Math.PI * 2);
+          ctx.fillStyle = fever.current ? `hsla(${(now / 4 + i * 30) % 360}, 100%, 60%, ${k * 0.55})` : b.gold ? `rgba(255, 210, 74, ${k * 0.5})` : `hsla(${(b.id * 47) % 360}, 100%, 65%, ${k * 0.4})`;
+          ctx.fill();
+        });
+        drawBall(ctx, x, y, ballR, b.gold, fever.current ? `hsl(${(now / 3) % 360}, 100%, 62%)` : undefined);
       }
+      // Funken
+      sparks.current = sparks.current.filter((sp) => now - sp.born < sp.life);
+      for (const sp of sparks.current) {
+        sp.x += sp.vx; sp.y += sp.vy; sp.vy += 0.22; sp.vx *= 0.98;
+        ctx.globalAlpha = 1 - (now - sp.born) / sp.life;
+        ctx.fillStyle = sp.color;
+        ctx.beginPath(); ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
       // Schwebende Gewinne
       pops.current = pops.current.filter((p) => now - p.at < 1000);
       for (const p of pops.current) {
         const a = (now - p.at) / 1000;
         ctx.globalAlpha = 1 - a;
         ctx.fillStyle = p.color;
-        ctx.font = `900 ${14 + (p.text.length > 6 ? 0 : 2)}px system-ui, sans-serif`;
+        const big = p.text.length <= 6 ? 20 : 15;
+        ctx.font = `900 ${big + Math.sin(a * Math.PI) * 6}px system-ui, sans-serif`;
+        ctx.shadowColor = p.color; ctx.shadowBlur = 12;
         ctx.textAlign = 'center';
-        ctx.fillText(p.text, posX(n, p.slot), binY - 12 - a * 34);
+        ctx.fillText(p.text, posX(n, p.slot), binY - 14 - a * 50);
+        ctx.shadowBlur = 0;
         ctx.globalAlpha = 1;
       }
       if (landed.length) {
@@ -210,7 +248,8 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
     const mult = b.mult * (b.gold ? GOLD_MULT : 1);
     const win = plinkoWin(b.stake, b.mult, b.gold);
     binHits.current.set(b.slot, now);
-    if (mult >= 1 || b.gold) pops.current.push({ slot: b.slot, at: now, text: `${b.gold ? 'GOLD ' : ''}${multText(mult)}×`, color: b.gold ? '#ffd24a' : mult >= 1 ? '#7dffb2' : '#ff8fa3' });
+    if (mult >= 1 || b.gold) pops.current.push({ slot: b.slot, at: now, text: `${b.gold ? 'GOLD ' : ''}${multText(mult)}×`, color: b.gold ? '#ffd24a' : binColor(mult) === '#26315e' ? '#7dffb2' : mult >= 5 ? '#ffd24a' : '#7dffb2' });
+    if (mult >= 5) { setBoom(now); setTimeout(() => setBoom((v) => (v === now ? 0 : v)), 480); }
     if (mult >= 50) shake(true);
     else if (mult >= 10) buzz([30, 40, 30]);
     settle({ game: 'plinko', bet: b.stake, win, mult }, { quiet: true });
@@ -218,8 +257,13 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
     if (mult >= 1) setHist((hs) => [{ id: b.id, m: mult, gold: b.gold }, ...hs].slice(0, 6));
     if (mult >= 2) celebrate(mult);
     setSess((s) => {
-      const streak = mult >= 1 ? s.streak + 1 : 0;
-      return { best: Math.max(s.best, mult), bigWin: Math.max(s.bigWin, win), streak, bestStreak: Math.max(s.bestStreak, streak) };
+      const streak = mult >= 1 ? s.streak + 1 : s.streak >= FEVER_AT ? s.streak - 2 : 0;
+      if (mult >= 1 && streak >= 2) {
+        setCombo({ id: now, n: streak });
+        if (streak === FEVER_AT) { sfx('levelUp'); buzz([30, 30, 30, 30, 60]); }
+        else playStep(Math.min(14, streak * 2));
+      }
+      return { best: Math.max(s.best, mult), streak };
     });
   };
 
@@ -233,14 +277,15 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
     <GameFrame title="Torwand-Plinko" onClose={onClose} className="cz-plinko2"
       odds={`${rows} Reihen, Risiko ${RISK_NAME[risk]}: ${table.map(multText).join(' · ')}×. Chance aufs Randfach: 1 zu ${fmt(1 / p[0] / 2)}. ${Math.round(GOLD_CHANCE * 100)} % aller Bälle sind Goldbälle und zahlen doppelt. Auszahlungsquote inkl. Goldball ca. 96 %. Höchstgewinn pro Ball 1 Mio. Chips.`}>
       <div className="pk-left">
-      <div className="pk-hud">
-        <span><small>Bester</small><b className="gold">{sess.best ? `${multText(sess.best)}×` : '–'}</b></span>
-        <span><small>Top-Gewinn</small><b className="up">{sess.bigWin ? `+${fmt(sess.bigWin)}` : '–'}</b></span>
-        <span className={sess.streak >= 3 ? 'hot' : ''}><small>Serie</small><b className="pink">{sess.streak}{sess.streak >= 3 && <Icon name="fire" size={16} />}</b></span>
+      <div className={`pk-hud ${sess.streak >= FEVER_AT ? 'fever' : ''}`}>
+        <span className="pk-fever-label"><Icon name="fire" size={18} />{sess.streak >= FEVER_AT ? 'FEVER!' : 'Fever'}</span>
+        <span className="pk-fever" aria-label={`Treffer-Serie ${sess.streak}`}><i style={{ width: `${Math.min(100, (sess.streak / FEVER_AT) * 100)}%` }} /></span>
+        <span className="pk-best"><small>Bester</small><b>{sess.best ? `${multText(sess.best)}×` : '–'}</b></span>
       </div>
-      <div className="pk-board" ref={wrap}>
+      <div className={`pk-board ${sess.streak >= FEVER_AT ? 'fever' : ''} ${boom ? 'boom' : ''}`} ref={wrap}>
         <canvas ref={canvas} className="pk-canvas" aria-label={`Plinko-Brett mit ${rows} Reihen`} />
         <span className="pk-top">bis <b>{fmt(top)}×</b></span>
+        {combo && <span key={combo.id} className={`pk-combo ${combo.n >= FEVER_AT ? 'fever' : ''}`}>{combo.n >= FEVER_AT ? `FEVER ×${combo.n}` : `COMBO ×${combo.n}`}</span>}
         <ul className="pk-hist" aria-label="Letzte Treffer">
           {hist.map((x) => <li key={x.id} style={{ background: x.gold ? '#ffd24a' : binColor(x.m) }} className={x.gold ? 'gold' : ''}>{multText(x.m)}×</li>)}
         </ul>
@@ -272,7 +317,7 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
           <div className="pk-auto">
             <small>Auto</small>
             {AUTO_COUNTS.map((n) => <button key={n} className={autoN === n ? 'on' : ''} onClick={() => setAutoN(n)}>{n}</button>)}
-            <button className="go" onClick={() => setAuto({ left: autoN, total: autoN })}><b>Start</b><small>{fmt(autoN * stake)}</small></button>
+            <button className="go" onClick={() => setAuto({ left: autoN, total: autoN })}><b>Start</b><small>Auto</small></button>
           </div>
         </>
       )}
@@ -288,12 +333,12 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 }
 
 /** Ball als kleiner Fußball – Goldbälle leuchten. */
-function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, gold: boolean) {
+function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, gold: boolean, tint?: string) {
   ctx.save();
-  ctx.shadowColor = gold ? '#ffd24a' : 'rgba(255,255,255,.8)';
+  ctx.shadowColor = tint ?? (gold ? '#ffd24a' : 'rgba(255,255,255,.8)');
   ctx.shadowBlur = gold ? 14 : 6;
   ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fillStyle = gold ? '#ffd24a' : '#ffffff';
+  ctx.fillStyle = tint ?? (gold ? '#ffd24a' : '#ffffff');
   ctx.fill();
   ctx.shadowBlur = 0;
   // Fünfeck in der Mitte

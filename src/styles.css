@@ -4588,3 +4588,23 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
   .cz-plinko2 .cz-game-body { max-width: 1180px; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(320px, 1fr); align-items: start; gap: 16px; }
   .cz-plinko2 .pk-right { position: sticky; top: 72px; }
 }
+
+/* ---------- Plinko: Fever, Combo, Funken ---------- */
+.pk-hud { grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; }
+.pk-fever-label { display: inline-flex !important; grid-auto-flow: column; align-items: center; gap: 5px; font-family: 'Rajdhani', system-ui, sans-serif; font-weight: 700; font-size: 1.05rem; text-transform: uppercase; color: #ff9d5c; }
+.pk-fever { height: 12px; border-radius: 99px; background: rgba(255,255,255,.1); overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+.pk-fever i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #ffd24a, #ff7a59, #ff3fb4); box-shadow: 0 0 12px rgba(255, 122, 89, .8); transition: width .3s cubic-bezier(.2, 1.4, .4, 1); }
+.pk-best { text-align: right; }
+.pk-best b { color: var(--gold); text-shadow: 0 0 10px rgba(255, 210, 74, .6); }
+.pk-hud.fever { background: linear-gradient(90deg, rgba(255, 63, 180, .25), rgba(255, 210, 74, .2), rgba(63, 240, 255, .25)); background-size: 200% 100%; animation: cz-holo 2s linear infinite; }
+.pk-hud.fever .pk-fever-label { color: #fff; text-shadow: 0 0 12px #ff3fb4; animation: cz-pulse .6s ease-in-out infinite; }
+.pk-hud.fever .pk-fever i { background: linear-gradient(90deg, #ff3fb4, #ffd24a, #39ff88, #3ff0ff, #a35cff); background-size: 200% 100%; animation: cz-holo 1s linear infinite; }
+.pk-board.fever { border-color: transparent; box-shadow: 0 0 0 2px #ff3fb4, 0 0 30px rgba(255, 63, 180, .55), 0 0 60px rgba(63, 240, 255, .3); animation: pk-fever 1.6s linear infinite; }
+@keyframes pk-fever { 0% { box-shadow: 0 0 0 2px #ff3fb4, 0 0 34px rgba(255, 63, 180, .6); } 33% { box-shadow: 0 0 0 2px #ffd24a, 0 0 34px rgba(255, 210, 74, .6); } 66% { box-shadow: 0 0 0 2px #3ff0ff, 0 0 34px rgba(63, 240, 255, .6); } 100% { box-shadow: 0 0 0 2px #ff3fb4, 0 0 34px rgba(255, 63, 180, .6); } }
+.pk-board.boom { animation: pk-boom .45s ease-out; }
+@keyframes pk-boom { 0% { transform: scale(1); filter: brightness(1.8) saturate(1.5); } 30% { transform: scale(1.015); } 100% { transform: none; filter: none; } }
+.pk-combo { position: absolute; left: 50%; top: 34%; transform: translateX(-50%); pointer-events: none; font-family: 'Rajdhani', system-ui, sans-serif; font-weight: 700; font-size: clamp(1.8rem, 9vw, 3rem); letter-spacing: .04em; white-space: nowrap;
+  background: linear-gradient(90deg, #ffd24a, #ff7a59, #ff3fb4); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 14px rgba(255, 63, 180, .8)); animation: pk-combo .9s cubic-bezier(.2, 1.6, .4, 1) both; }
+.pk-combo.fever { background-image: linear-gradient(90deg, #ff3fb4, #ffd24a, #39ff88, #3ff0ff, #a35cff); background-size: 200% 100%; font-size: clamp(2.2rem, 11vw, 3.6rem); }
+@keyframes pk-combo { 0% { transform: translateX(-50%) scale(.3) rotate(-8deg); opacity: 0; } 25% { transform: translateX(-50%) scale(1.15) rotate(2deg); opacity: 1; } 70% { transform: translateX(-50%) scale(1); opacity: 1; } 100% { transform: translateX(-50%) translateY(-30px) scale(.9); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .pk-board.fever, .pk-board.boom, .pk-combo, .pk-hud.fever, .pk-hud.fever * { animation: none !important; } }
