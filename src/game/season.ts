@@ -414,22 +414,37 @@ export const isNationalTitle = (t: string) => /^(Weltmeisterschaft|Europameister
 // Viele U21-Einsätze helfen später bei der Nominierung für die A-Nationalmannschaft.
 export const YOUTH_TEAMS: { team: YouthTeam; maxAge: number; below: number }[] = [
   { team: 'U21', maxAge: 21, below: 9 },
+  { team: 'U20', maxAge: 20, below: 11 },
   { team: 'U19', maxAge: 19, below: 13 },
+  { team: 'U18', maxAge: 18, below: 14 },
   { team: 'U17', maxAge: 17, below: 16 },
+  { team: 'U16', maxAge: 16, below: 17 },
 ];
+/** Reihenfolge jung → alt (für die Anzeige). */
+export const YOUTH_ORDER: YouthTeam[] = ['U16', 'U17', 'U18', 'U19', 'U20', 'U21'];
 
-/** Turnier der U-Mannschaft in diesem Sommer (Europäer: EM; sonst WM in ungeraden Jahren). */
+/** Turnier der U-Mannschaft in diesem Sommer: U17-/U19-EM (Europa), U17-WM, U20-WM in ungeraden Jahren, U21-EM alle zwei Jahre. */
 function youthTournament(team: YouthTeam, nation: string, summer: number): string | null {
-  if (EUROPEAN.includes(nation)) return team === 'U21' ? (summer % 2 === 1 ? `U21-EM ${summer}` : null) : `${team}-EM ${summer}`;
-  if (team === 'U19' && summer % 2 === 1) return `U20-WM ${summer}`;
-  if (team === 'U17') return `U17-WM ${summer}`;
-  return null;
+  const eu = EUROPEAN.includes(nation);
+  if (team === 'U21') return eu && summer % 2 === 1 ? `U21-EM ${summer}` : null;
+  if (team === 'U20') return summer % 2 === 1 ? `U20-WM ${summer}` : null;
+  if (team === 'U19') return eu ? `U19-EM ${summer}` : null;
+  if (team === 'U17') return eu ? `U17-EM ${summer}` : `U17-WM ${summer}`;
+  return null; // U16 und U18 spielen nur Länderspiele und Turniere ohne Titel
 }
 
-/** Für welche U-Mannschaft reicht es? Die älteste mögliche, für die Alter und Stärke passen. */
+/**
+ * Für welche U-Mannschaft reicht es? Normal spielt man im eigenen Jahrgang (jüngste Mannschaft, für die das Alter passt);
+ * nur wer deutlich über dem Niveau liegt, spielt eine oder zwei Altersklassen höher – wie im echten Fußball.
+ */
 export function youthTeamFor(age: number, level: number, seniorCallUp: number): YouthTeam | null {
-  for (const t of YOUTH_TEAMS) if (age <= t.maxAge && level >= seniorCallUp - t.below) return t.team;
-  return null;
+  const fits = YOUTH_TEAMS.filter((t) => age <= t.maxAge).sort((a, b) => a.maxAge - b.maxAge);
+  if (!fits.length) return null;
+  const own = fits[0];
+  if (level < seniorCallUp - own.below) return null;
+  let pick = own;
+  for (const t of fits.slice(1, 3)) if (level >= seniorCallUp - t.below + 3) pick = t;
+  return pick.team;
 }
 
 function tournamentName(nation: string, summer: number): string | null {
@@ -666,7 +681,15 @@ export function computeNational(career: Career, prog: SeasonProgress): NationalS
     if (player.ovr >= nation.callUp - 1) notes.push(`${rival.name} ist in der Nationalelf auf deiner Position gesetzt.`);
   }
   // Der Bundestrainer kennt dich aus der U21: viele U21-Einsätze machen den Sprung leichter.
-  if ((player.youthCaps?.U21 ?? 0) >= 5) callUp -= 1;
+  const u21 = player.youthCaps?.U21 ?? 0;
+  if (u21 >= 15) callUp -= 2; else if (u21 >= 5) callUp -= 1;
+  // Realistisch: Junge Spieler kommen erst mit Profi-Spielpraxis und ein paar Jahren Reife in die A-Elf.
+  // Nur absolute Ausnahmetalente (deutlich über dem Niveau) springen schon mit 17–19 hoch.
+  const AGE_HURDLE: Record<number, number> = { 15: 9, 16: 8, 17: 6, 18: 5, 19: 4, 20: 3, 21: 2, 22: 1 };
+  callUp += AGE_HURDLE[player.age] ?? 0;
+  const proApps = halfStats(prog.matches).apps;
+  if (player.nlz) callUp += 5; // Aus dem NLZ heraus fast nie
+  else if (proApps < 12) callUp += 2; // Ohne Stammplatz im Verein kein Anruf
   const form = nationalForm(halfStats(prog.matches));
   const level = player.ovr + form;
   let caps = 0;
@@ -697,6 +720,8 @@ export function computeNational(career: Career, prog: SeasonProgress): NationalS
         ];
         notes.push(`Mit ${player.nation} bei der ${name}: Gruppenphase überstanden – jetzt K.-o.-Runde.`);
       } else notes.push(`Mit ${player.nation} bei der ${name} in der Gruppenphase ausgeschieden.`);
+    } else if (caps === 0 && player.age <= 22 && level >= callUp - 3) {
+      notes.push(`Der Nationaltrainer hat dich auf dem Zettel – noch ist die ${player.age <= 21 ? 'U21' : 'Perspektive'} dein Weg. Mit Stammplatz und Form kommt der Anruf.`);
     } else if (name && level >= callUp - 3 && caps === 0) {
       notes.push(`Nicht für die ${name} nominiert – ${form < 0 ? 'zu wenig Form und Spielpraxis' : 'die Konkurrenz war stärker'}.`);
     }

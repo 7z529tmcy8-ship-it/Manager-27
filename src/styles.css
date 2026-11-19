@@ -5071,3 +5071,22 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .cs-next span { display: flex; flex-direction: column; padding: 7px 8px; border-radius: 12px; background: rgba(255, 255, 255, .05); font-size: .8rem; font-weight: 700; line-height: 1.2; overflow: hidden; }
 .cs-next span em { font-style: normal; font-size: .62rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: #19f0ff; }
 .cs-next span.away em { color: #ff9f43; }
+/* NLZ-Leiter und Weg in die Nationalelf */
+.cs-ladder { list-style: none; margin: 0 0 10px; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; counter-reset: none; }
+.cs-ladder li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .7rem; font-weight: 800; color: var(--muted, #8f99c6); }
+.cs-ladder li i { width: 100%; height: 6px; border-radius: 99px; background: rgba(255, 255, 255, .1); }
+.cs-ladder li.done i { background: #39ff88; }
+.cs-ladder li.done { color: #39ff88; }
+.cs-ladder li.now i { background: linear-gradient(90deg, #39ff88, #19f0ff); box-shadow: 0 0 10px rgba(25, 240, 255, .6); }
+.cs-ladder li.now { color: #fff; }
+.cs-natpath { margin: 10px 0 0; padding: 10px 12px; border-radius: 16px; background: rgba(255, 255, 255, .04); border: 1px solid rgba(160, 190, 255, .16); }
+.cs-natpath > small { display: block; font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted, #a9b2dc); margin-bottom: 8px; }
+.cs-natpath ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cs-natpath li { display: flex; flex-direction: column; align-items: center; padding: 6px 2px; border-radius: 10px; background: rgba(255, 255, 255, .04); }
+.cs-natpath li b { font-size: .66rem; font-weight: 900; color: var(--muted, #8f99c6); }
+.cs-natpath li em { font-style: normal; font-family: var(--display); font-size: 1.15rem; line-height: 1.1; color: rgba(255, 255, 255, .35); }
+.cs-natpath li.done { background: rgba(57, 255, 136, .1); }
+.cs-natpath li.done b { color: #39ff88; } .cs-natpath li.done em { color: #fff; }
+.cs-natpath li.a { background: rgba(255, 215, 106, .08); }
+.cs-natpath li.a.done { background: rgba(255, 215, 106, .2); } .cs-natpath li.a.done b { color: #ffd76a; }
+.cs-natpath-hint { display: block; margin-top: 8px; font-size: .76rem; color: var(--muted, #a9b2dc); line-height: 1.35; }

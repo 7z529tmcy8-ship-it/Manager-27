@@ -4,11 +4,12 @@ import { createCareer } from '../career';
 import { applyChoice, seasonChoices, simulateToBreak } from '../simple';
 import { isNationalTitle, youthTeamFor } from '../season';
 
-it('U-Mannschaft nach Alter und Stärke: Talente spielen schon in einer älteren U-Mannschaft', () => {
+it('U-Mannschaft nach Alter und Stärke: normal im eigenen Jahrgang, starke Talente ein bis zwei Klassen höher', () => {
   // Deutschland: A-Elf ab 81
-  expect(youthTeamFor(16, 66, 81)).toBe('U17');
-  expect(youthTeamFor(16, 69, 81)).toBe('U19');
-  expect(youthTeamFor(17, 73, 81)).toBe('U21');
+  expect(youthTeamFor(16, 66, 81)).toBe('U16');
+  expect(youthTeamFor(16, 69, 81)).toBe('U17');
+  expect(youthTeamFor(17, 73, 81)).toBe('U19');
+  expect(youthTeamFor(17, 90, 81)).toBe('U19'); // höchstens zwei Klassen höher
   expect(youthTeamFor(19, 70, 81)).toBe('U19');
   expect(youthTeamFor(22, 80, 81)).toBeNull(); // zu alt
   expect(youthTeamFor(18, 60, 81)).toBeNull(); // zu schwach

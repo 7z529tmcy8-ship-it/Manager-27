@@ -23,7 +23,8 @@ it('Junge Talente starten im NLZ (U15/U17/U19/U23), fertige Spieler bei den Prof
   expect(getLeague(getClub(currentClubId(talent(14, 52).player)).leagueId).name).toBe('U15-Junioren-Liga A');
   // Bayern hat im Spiel keine zweite Mannschaft – dafür eine U23.
   expect(talent(20).player.nlz?.team).toBe('U23');
-  expect(talent(22).player.nlz).toBeUndefined();
+  expect(talent(22).player.nlz?.team).toBe('U23'); // U23 geht bis 22
+  expect(talent(23).player.nlz).toBeUndefined();
   expect(talent(17, 84).player.nlz).toBeUndefined();
   // Ohne NLZ (z. B. MLS) startet man direkt bei den Profis.
   expect(createCareer({ name: 'X', nation: 'USA', position: 'ST', age: 17, ovr: 60, potential: 80, clubId: slugify('Inter Miami CF') }).player.nlz).toBeUndefined();
@@ -65,7 +66,11 @@ it('Langsamer hoch: aus U15/U17 nur Stufe für Stufe, direkt zu den Profis nur a
   c.player.ovr = 74; // stark, aber kein Ausnahmetalent (Bayern 85)
   expect(nlzSeasonEnd(c, record(good))).toBe('up'); // zu alt für die U15: Pflicht, keine Frage
   expect(c.player.nlz?.team).toBe('U17');
-  c.player.ovr = 82; // Ausnahmetalent: der Spieler wird gefragt
+  c.player.ovr = 82; // Ausnahmetalent – aber mit 15 noch zu jung für die Profis
+  nlzSeasonEnd(c, record(good));
+  expect(c.nlzPending?.kind).not.toBe('pros'); // höchstens eine Stufe hoch (U19)
+  c = { ...c, nlzPending: null };
+  c.player.age = 16; // mit 16 wird der Spieler gefragt
   expect(nlzSeasonEnd(c, record(good))).toBe('offer');
   expect(c.nlzPending?.kind).toBe('pros');
   expect(c.player.nlz?.team).toBe('U17');

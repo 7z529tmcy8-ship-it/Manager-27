@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-21-nlz-real',
+    date: '21.11.2026',
+    title: 'NLZ und Nationalmannschaft: realistischer und länger',
+    items: [
+      'Länger im NLZ: Die U23 geht jetzt bis 22, und zu den Profis wirst du erst hochgezogen, wenn du wirklich nah dran bist. Direkt aus der U15/U17 zu den Profis schafft es nur ein Ausnahmetalent – und frühestens mit 16.',
+      'Alle U-Nationalmannschaften: U16, U17, U18, U19, U20 und U21. Normal spielst du in deinem Jahrgang, nur starke Talente eine oder zwei Klassen höher. Turniere: U17-EM/WM, U19-EM, U20-WM und U21-EM.',
+      'Die A-Nationalmannschaft kommt später – wie im echten Fußball: Junge Spieler brauchen deutlich mehr Wertung, aus dem NLZ heraus beruft der Nationaltrainer fast nie, und ohne Stammplatz im Verein klingelt das Telefon nicht. Viele U21-Spiele helfen.',
+      'Neu in der Karriere: Die NLZ-Leiter zeigt, wo du stehst (U15 → U17 → U19 → U23 → Profis), und „Weg in die Nationalelf“ zählt deine Einsätze von der U16 bis zur A-Elf.',
+    ],
+  },
+  {
     id: '2026-11-21-live-simulation',
     date: '21.11.2026',
     title: 'Karriere: Live-Simulation Spiel für Spiel',

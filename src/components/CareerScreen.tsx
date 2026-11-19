@@ -13,7 +13,7 @@ import MomentOverlay from './MomentOverlay';
 import LiveMatch from './LiveMatch';
 import SimShow, { GoalBars } from './SimShow';
 import { evaluateGoals } from '../game/goals';
-import { sortTable, upcomingFixtures } from '../game/season';
+import { YOUTH_ORDER, sortTable, upcomingFixtures } from '../game/season';
 import { replayOf, type Replay } from '../game/simReplay';
 import { advanceFinal, autoFinal } from '../game/final';
 import { autoPlayFinal, keyMatchFor, playFinalStep, setKeyMatch, startKeyMatch } from '../game/career';
@@ -209,6 +209,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         </div>
       </header>
       {!retired && <NlzBar career={career} onChange={onChange} />}
+      {!retired && <NationalPath career={career} />}
 
       {/* Familie und Vermögen */}
       <div className="cs-life">
@@ -398,7 +399,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           <div key={k} className={`cs-row cs-future f${k}`} aria-hidden="true"><span className="cs-agebox">{p.age + k}</span></div>
         ))}
 
-        {(full || career.history.length <= COLLAPSED) && (['U17', 'U19', 'U21'] as const).filter((t) => (p.youthCaps?.[t] ?? 0) > 0).map((t) => (
+        {(full || career.history.length <= COLLAPSED) && YOUTH_ORDER.filter((t) => (p.youthCaps?.[t] ?? 0) > 0).map((t) => (
           <div key={t} className="cs-row cs-nation youth" role="row">
             <span className="cs-flag">{flagOf(p.nation)}</span>
             <span className="cs-clubcell">{p.nation} {t}<small>Nachwuchs-Nationalmannschaft</small></span>
@@ -562,6 +563,12 @@ function NlzBar({ career, onChange }: { career: Career; onChange: (c: Career) =>
   const pct = Math.max(0, Math.min(100, ((ovr - (target - 15)) / 15) * 100));
   return (
     <div className="cs-nlz" aria-label="Nachwuchsleistungszentrum">
+      <ol className="cs-ladder" aria-label="Weg durchs NLZ">
+        {(['U15', 'U17', 'U19', 'U23', 'Profis'] as const).map((t, k, all) => {
+          const cur = all.indexOf(st.team as never);
+          return <li key={t} className={k < cur ? 'done' : k === cur ? 'now' : ''}><i />{t}</li>;
+        })}
+      </ol>
       <div className="cs-nlz-head">
         <span className="cs-nlz-tag">NLZ · {st.team}</span>
         <div className="cs-nlz-main">
@@ -648,6 +655,25 @@ function SeasonPanel({ career }: { career: Career }) {
         </div>
       )}
       {results.length > 0 && <GoalBars goals={results} title="Ziele des Trainers" />}
+    </div>
+  );
+}
+
+/** Weg in die Nationalmannschaft: U16 → U21 → A-Elf, mit Einsätzen je Stufe. */
+function NationalPath({ career }: { career: Career }) {
+  const p = career.player;
+  const yc = p.youthCaps ?? {};
+  const any = YOUTH_ORDER.some((t) => (yc[t] ?? 0) > 0);
+  if (!any && p.age > 21 && !p.caps) return null;
+  if (p.caps >= 10 && p.age > 23) return null;
+  return (
+    <div className="cs-natpath" aria-label="Weg in die Nationalmannschaft">
+      <small>{flagOf(p.nation)} Weg in die Nationalelf</small>
+      <ol>
+        {YOUTH_ORDER.map((t) => <li key={t} className={(yc[t] ?? 0) > 0 ? 'done' : ''}><b>{t}</b><em>{yc[t] ?? 0}</em></li>)}
+        <li className={`a ${p.caps > 0 ? 'done' : ''}`}><b>A-Elf</b><em>{p.caps}</em></li>
+      </ol>
+      {!p.caps && <span className="cs-natpath-hint">{p.age <= 19 ? 'Die A-Elf ist noch weit weg – überzeug in den U-Teams.' : p.nlz ? 'Aus dem NLZ heraus beruft der Nationaltrainer fast nie – erst Stammspieler bei den Profis werden.' : 'Stammplatz, starke Noten und viele U21-Spiele bringen dich in die A-Elf.'}</span>}
     </div>
   );
 }

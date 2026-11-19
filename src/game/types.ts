@@ -808,7 +808,7 @@ export interface PendingFinal {
   round?: string;
 }
 
-export type YouthTeam = 'U17' | 'U19' | 'U21';
+export type YouthTeam = 'U16' | 'U17' | 'U18' | 'U19' | 'U20' | 'U21';
 
 export interface NationalSeason {
   /** U-Nationalmannschaft (nur wenn nicht in der A-Elf). */

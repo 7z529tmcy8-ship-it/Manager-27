@@ -14,15 +14,17 @@ import type { Career, NlzProgram, NlzTeam, PlayerState, Position, SeasonRecord }
 // außergewöhnliche Entwicklung überspringt sie. Wer bei den Profis kaum spielt oder schwach ist, kann zurückgestuft werden.
 
 /** Höchstalter (zu Saisonbeginn) je Mannschaft. */
-export const NLZ_MAX_AGE: Record<NlzTeam, number> = { U15: 14, U17: 16, U19: 18, U23: 21 };
+export const NLZ_MAX_AGE: Record<NlzTeam, number> = { U15: 14, U17: 16, U19: 18, U23: 22 };
 
 /** So weit unter der Profi-Stärke startet man im NLZ statt bei den Profis. */
 const START_GAP = 7;
-/** Ab hier ist man reif für die Profis – mit starker Saison schon etwas früher. */
-const READY_GAP = 8;
-const READY_GAP_STRONG = 11;
-/** Außergewöhnlich: so nah an der Profi-Stärke darf man jede Stufe überspringen. */
-const EXCEPTIONAL_GAP = 4;
+/** Ab hier ist man reif für die Profis – mit starker Saison schon etwas früher. Bewusst streng: Wie im echten
+ *  Fußball bleiben die meisten Talente mehrere Jahre im NLZ, viele gehen über die U23 oder eine Leihe. */
+const READY_GAP = 6;
+const READY_GAP_STRONG = 9;
+/** Außergewöhnlich: so nah an der Profi-Stärke darf man jede Stufe überspringen (frühestens mit 16). */
+const EXCEPTIONAL_GAP = 3;
+const EXCEPTIONAL_MIN_AGE = 16;
 
 /** Startet ein neuer Spieler im NLZ? Dann in welcher Mannschaft (fehlende Stufen fallen auf die nächsthöhere). */
 export function nlzStartTeam(age: number, ovr: number, clubId: string, parentStrength: number): NlzTeam | null {
@@ -172,7 +174,7 @@ export function nlzSeasonEnd(career: Career, record: SeasonRecord): NlzMove | nu
     const keep = { program: p.nlz.program, proTraining: p.nlz.proTraining };
     const trust = p.nlz.program === 'taktik' ? 1 : 0;
     const outgrown = p.age > NLZ_MAX_AGE[team];
-    const exceptional = p.ovr >= pro - EXCEPTIONAL_GAP;
+    const exceptional = p.ovr >= pro - EXCEPTIONAL_GAP && p.age >= EXCEPTIONAL_MIN_AGE;
     const ready = p.ovr >= pro - READY_GAP - trust || (strong && p.ovr >= pro - READY_GAP_STRONG - trust);
     const senior = team === 'U19' || team === 'U23';
     const moveTo = (next: NlzTeam, title: string, text: string) => {
