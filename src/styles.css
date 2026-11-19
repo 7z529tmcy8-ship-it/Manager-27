@@ -5060,3 +5060,14 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .cs-season-pos b em { font-style: normal; font-size: .9rem; opacity: .6; }
 .cs-season-pos b.rec { font-size: 1.15rem; padding-top: 4px; }
 .sim-end .goalbars { max-width: 360px; margin: 12px auto 0; }
+/* Karriere: Lebens-Knöpfe als Raster statt abgeschnittener Leiste, Gegner-Vorschau */
+.cs-life { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: visible; margin: 10px 0 0; padding: 0; }
+.cs-life .cs-life-btn { min-width: 0; border-radius: 12px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 8px 6px !important; }
+.cs-nav-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.cs-nav .cs-link { white-space: nowrap; }
+.cs-next { margin-bottom: 12px; }
+.cs-next small, .cs-season .goalbars > small { display: block; font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted, #a9b2dc); margin-bottom: 6px; }
+.cs-next > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.cs-next span { display: flex; flex-direction: column; padding: 7px 8px; border-radius: 12px; background: rgba(255, 255, 255, .05); font-size: .8rem; font-weight: 700; line-height: 1.2; overflow: hidden; }
+.cs-next span em { font-style: normal; font-size: .62rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: #19f0ff; }
+.cs-next span.away em { color: #ff9f43; }

@@ -13,7 +13,7 @@ import MomentOverlay from './MomentOverlay';
 import LiveMatch from './LiveMatch';
 import SimShow, { GoalBars } from './SimShow';
 import { evaluateGoals } from '../game/goals';
-import { sortTable } from '../game/season';
+import { sortTable, upcomingFixtures } from '../game/season';
 import { replayOf, type Replay } from '../game/simReplay';
 import { advanceFinal, autoFinal } from '../game/final';
 import { autoPlayFinal, keyMatchFor, playFinalStep, setKeyMatch, startKeyMatch } from '../game/career';
@@ -622,14 +622,23 @@ function NlzOfferCard({ career, onChange }: { career: Career; onChange: (c: Care
 function SeasonPanel({ career }: { career: Career }) {
   const prog = career.progress;
   const goals = career.seasonGoals ?? [];
-  if (!prog || (!goals.length && !prog.matches.length)) return null;
+  if (!prog) return null;
   const clubId = currentClubId(career.player);
   const rows = sortTable(prog.rows[clubLeagueId(career, clubId)] ?? []);
   const idx = rows.findIndex((r) => r.clubId === clubId);
   const row = idx >= 0 ? rows[idx] : null;
   const results = evaluateGoals(goals, prog.matches);
+  const nextUp = (() => { try { return upcomingFixtures(career, prog, prog.stage ?? 0).slice(0, 3); } catch { return []; } })();
+  const nm = (id: string) => { try { return getClub(id).name; } catch { return id; } };
+  if (!goals.length && !prog.matches.length && !nextUp.length) return null;
   return (
     <div className="cs-season">
+      {nextUp.length > 0 && (
+        <div className="cs-next">
+          <small>Nächste Gegner</small>
+          <div>{nextUp.map((f, k) => <span key={k} className={f.home ? 'home' : 'away'}><em>{f.home ? 'Heim' : 'Ausw.'}</em>{nm(f.opponentId)}</span>)}</div>
+        </div>
+      )}
       {row && row.played > 0 && (
         <div className="cs-season-pos">
           <span><small>Platz</small><b>{idx + 1}<em>/{rows.length}</em></b></span>

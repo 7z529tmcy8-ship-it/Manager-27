@@ -37,6 +37,7 @@ export const UPDATES: UpdateNote[] = [
       'Tor, Doppelpack, Hattrick und „Mann des Spiels“ werden groß gefeiert, mit Ton und Vibration.',
       'Tempo 1×, 2× oder 4× – oder „Überspringen“. Am Ende: Tabellenplatz, Bilanz und dein Wertungs-Sprung.',
       'Die Ziele deines Trainers (z. B. 21 Tore, Ø-Note 6,9) siehst du jetzt mit Fortschrittsbalken – in der Karriere und nach jeder Halbserie. Dazu Platz, Punkte, Bilanz und Tore deines Vereins.',
+      'Vor jeder Halbserie siehst du die nächsten Gegner. Vermögen, Klinik, Look, Kickgram, Ausrüster und Position liegen jetzt als Raster da statt in einer abgeschnittenen Leiste.',
       'Die Live-Simulation lässt sich in den Karriere-Einstellungen abschalten.',
     ],
   },
