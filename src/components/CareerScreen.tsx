@@ -77,6 +77,14 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   const [open, setOpen] = useState<string | null>(null);
   const [tree, setTree] = useState(false);
   const [full, setFull] = useState(false);
+  const wide = useWide();
+  type Tab = 'play' | 'dev' | 'life' | 'history';
+  const [tab, setTabState] = useState<Tab>(() => { try { return (sessionStorage.getItem('fc-cs-tab') as Tab) || 'play'; } catch { return 'play'; } });
+  const setTab = (t: Tab) => { setTabState(t); try { sessionStorage.setItem('fc-cs-tab', t); } catch { /* egal */ } window.scrollTo({ top: 0 }); };
+  const show = (t: Tab) => wide || tab === t;
+  // Neue Phase (Winterpause, Transferfenster …): zurück zum Saison-Reiter, dort wartet die Entscheidung.
+  const phaseSeen = useRef(career.phase);
+  useEffect(() => { if (phaseSeen.current !== career.phase) { phaseSeen.current = career.phase; setTabState('play'); } }, [career.phase]);
   const [panel, setPanel] = useState<'invest' | 'look' | 'clinic' | 'position' | 'kit' | 'gram' | null>(null);
   // Nur einklappen, wenn sich das lohnt (mindestens zwei ältere Saisons)
   const shown = full || career.history.length <= COLLAPSED + 1 ? career.history : career.history.slice(-COLLAPSED);
@@ -208,11 +216,22 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           </div>
         </div>
       </header>
-      {!retired && <NlzBar career={career} onChange={onChange} />}
-      {!retired && <NationalPath career={career} />}
+      {!wide && (
+        <nav className="cs-tabs" role="tablist" aria-label="Karriere-Bereiche">
+          {([['play', 'Saison', 'ball'], ['dev', 'Entwicklung', 'rise'], ['life', 'Leben', 'heart'], ['history', 'Verlauf', 'chart']] as const).map(([id, label, ic]) => (
+            <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} onClick={() => setTab(id)}>
+              <Icon name={ic} size={17} />{label}
+              {id === 'life' && ((career.kitOffers?.length ?? 0) > 0 || (career.gifts?.length ?? 0) > 0) && <i className="cs-tab-dot" />}
+              {id === 'dev' && p.skills && freePoints(p) > 0 && <i className="cs-tab-dot" />}
+            </button>
+          ))}
+        </nav>
+      )}
+      {show('dev') && !retired && <NlzBar career={career} onChange={onChange} />}
+      {show('dev') && !retired && <NationalPath career={career} />}
 
       {/* Familie und Vermögen */}
-      <div className="cs-life">
+      {show('life') && <div className="cs-life">
         <button className="cs-life-btn" onClick={() => setPanel('invest')}>Vermögen</button>
         <button className="cs-life-btn" onClick={() => setPanel('clinic')}>Klinik{career.glam ? ` · ${career.glam}` : ''}</button>
         {!retired && (
@@ -231,17 +250,17 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
             Position{p.retrain ? ` · ${p.retrain.total - p.retrain.left}/${p.retrain.total}` : ''}
           </button>
         )}
-      </div>
+      </div>}
 
-      {career.history.length > 0 && <CareerPulse career={career} />}
-      <AttrPanel career={career} />
+      {show('dev') && career.history.length > 0 && <CareerPulse career={career} />}
+      {show('dev') && <AttrPanel career={career} />}
 
-      {!retired && (career.kitOffers?.length ?? 0) > 0 && (
+      {show('play') && !retired && (career.kitOffers?.length ?? 0) > 0 && (
         <button className="cs-note good sk-note kit-note" onClick={() => setPanel('kit')}>
           {career.kitOffers!.length === 1 ? `${BRANDS[career.kitOffers![0].brand].name} will dich als Ausrüster` : `${career.kitOffers!.length} Ausrüster wollen dich`} – Angebot ansehen
         </button>
       )}
-      {(career.gifts?.length ?? 0) > 0 && (
+      {show('play') && (career.gifts?.length ?? 0) > 0 && (
         <button className="cs-note good sk-note gift-note" onClick={() => setPanel('invest')}>
           {career.gifts!.length === 1 ? 'Ein Geschenk' : `${career.gifts!.length} Geschenke`} vom Aufsichtsrat – jetzt öffnen!
         </button>
@@ -249,6 +268,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
 
       </div>
       <div className="cs-main" ref={mainRef}>
+      {show('play') && <>
       {/* Aktion */}
       {needType && <ArchetypePicker career={career} onChange={onChange} />}
 
@@ -360,7 +380,9 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         </section>
       )}
 
+      </>}
       {/* Zeitleiste: standardmäßig nur die letzten Saisons, damit Entscheidungen oben bleiben */}
+      {show('history') && <>
       <div className="cs-timeline-head">
         <h2>Karriereverlauf</h2>
         {full && career.history.length > COLLAPSED && <button className="cs-link" onClick={() => setFull(false)}>Einklappen ▴</button>}
@@ -430,6 +452,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           </div>
         )}
       </div>
+      </>}
 
       </div>
     </main>
@@ -676,4 +699,18 @@ function NationalPath({ career }: { career: Career }) {
       {!p.caps && <span className="cs-natpath-hint">{p.age <= 19 ? 'Die A-Elf ist noch weit weg – überzeug in den U-Teams.' : p.nlz ? 'Aus dem NLZ heraus beruft der Nationaltrainer fast nie – erst Stammspieler bei den Profis werden.' : 'Stammplatz, starke Noten und viele U21-Spiele bringen dich in die A-Elf.'}</span>}
     </div>
   );
+}
+
+/** Breiter Bildschirm (iPad quer, Desktop): alles nebeneinander statt Reiter. */
+function useWide() {
+  const q = '(min-width: 900px)';
+  const [wide, setWide] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.(q).matches);
+  useEffect(() => {
+    const m = window.matchMedia?.(q);
+    if (!m) return;
+    const on = () => setWide(m.matches);
+    m.addEventListener('change', on);
+    return () => m.removeEventListener('change', on);
+  }, []);
+  return wide;
 }

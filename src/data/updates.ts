@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-21-karriere-reiter',
+    date: '21.11.2026',
+    title: 'Karriere ohne Dauer-Scrollen + 29 neue Talente',
+    items: [
+      'Karriere in Reitern: Saison (simulieren, Ziele, Entscheidungen), Entwicklung (NLZ, Nationalelf, Werte), Leben (Vermögen, Klinik, Look, Kickgram, Ausrüster, Position) und Verlauf. Ein Punkt am Reiter zeigt, wo etwas wartet. Auf dem iPad quer bleibt alles nebeneinander.',
+      'Neue echte Talente: Mikey Moore, Francesco Camarda, Senny Mayulu, Ibrahim Mbaye, Mathys Tel, Claudio Echeverri, Kendry Páez, Malick Fofana, Jorthy Mokio, Mika Godts, Noah Darvich, Francis Onyeka, Gabriel Carvalho, Louis Page, Wilson Odobert, Lewis Hall, Andrey Santos, Alejandro Balde, Jeanuël Belocian, Hugo Larsson, Nnamdi Collins, Assane Diao, Jesús Rodríguez, Mamadou Sarr, Valentín Barco, Nestory Irankunda, Lennon Miller und Bilal El Khannouss.',
+      'Alle mit Verein zum Saisonstart 2025/26 (Leihspieler beim Leihverein) – als Startspieler in der Karriere und als Karten in der Sammlung.',
+    ],
+  },
+  {
     id: '2026-11-21-nlz-real',
     date: '21.11.2026',
     title: 'NLZ und Nationalmannschaft: realistischer und länger',

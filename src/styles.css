@@ -5090,3 +5090,11 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .cs-natpath li.a { background: rgba(255, 215, 106, .08); }
 .cs-natpath li.a.done { background: rgba(255, 215, 106, .2); } .cs-natpath li.a.done b { color: #ffd76a; }
 .cs-natpath-hint { display: block; margin-top: 8px; font-size: .76rem; color: var(--muted, #a9b2dc); line-height: 1.35; }
+/* Karriere-Reiter (Handy/iPad hochkant): weniger Scrollen */
+.cs-tabs { position: sticky; top: 0; z-index: 30; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 10px -4px 12px; padding: 6px 4px; border-radius: 16px;
+  background: rgba(10, 12, 34, .82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(160, 190, 255, .18); }
+.cs-tabs button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 48px; padding: 6px 2px; border: 0; border-radius: 12px; background: none; color: var(--muted, #8f99c6); font: inherit; font-size: .72rem; font-weight: 800; cursor: pointer; transition: background .15s, color .15s, transform .12s ease-out; }
+.cs-tabs button:active { transform: scale(.95); }
+.cs-tabs button.on { background: rgba(25, 240, 255, .14); color: #fff; box-shadow: inset 0 0 0 1px rgba(25, 240, 255, .45); }
+.cs-tabs button.on svg { color: #19f0ff; }
+.cs-tab-dot { position: absolute; top: 6px; right: calc(50% - 18px); width: 8px; height: 8px; border-radius: 50%; background: #ff2fd1; box-shadow: 0 0 8px #ff2fd1; }
