@@ -593,6 +593,7 @@ function completeSeason(career: Career): Career {
   }
   record.events = prog.events ?? [];
   record.devReasons = prog.devReasons ?? [];
+  career.simReplay = { matches: prog.matches.filter((m) => m.half === 2), table: record.table, clubId: record.clubId };
   career.progress = null;
 
   const leagueBefore = clubLeagueId(career, p.contract.clubId);

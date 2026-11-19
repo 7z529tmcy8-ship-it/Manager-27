@@ -428,6 +428,8 @@ export interface Career {
   unlocked?: Record<string, string>;
   /** Laufende Saison zwischen Hin- und Rückrunde. */
   progress?: SeasonProgress | null;
+  /** Spiele der zuletzt beendeten Rückrunde – nur für die Live-Simulation in der Oberfläche. */
+  simReplay?: { matches: MatchLine[]; table: TableRow[]; clubId: string } | null;
   /** Wie viele Angebotsrunden in diesem Fenster noch angefragt werden können. */
   requestsLeft: number;
   /** Vereinsstärken können sich über die Jahre leicht verändern. */
@@ -723,6 +725,8 @@ export interface CareerSettings {
   press?: PressFrequency;
   /** Topspiele und Finals selbst spielen (Standard) oder alles simulieren. */
   liveMatches?: boolean;
+  /** Halbserie als Live-Simulation (Spiel für Spiel) zeigen – Standard an. */
+  simShow?: boolean;
 }
 
 export type InboxKind = 'national' | 'welcome' | 'goals' | 'season' | 'offer' | 'contract' | 'transfer' | 'event' | 'decision' | 'press' | 'achievement' | 'lotto' | 'casino' | 'holiday' | 'retire';

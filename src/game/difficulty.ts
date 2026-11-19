@@ -18,6 +18,7 @@ export const settingsOf = (c: Career): Required<CareerSettings> => ({
   difficulty: c.settings?.difficulty ?? 'normal',
   press: c.settings?.press ?? 'normal',
   liveMatches: c.settings?.liveMatches !== false,
+  simShow: c.settings?.simShow !== false,
 });
 
 export const difficultyOf = (c: Career) => DIFFICULTIES[settingsOf(c).difficulty];

@@ -29,6 +29,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-21-live-simulation',
+    date: '21.11.2026',
+    title: 'Karriere: Live-Simulation Spiel für Spiel',
+    items: [
+      'Simulieren springt nicht mehr einfach ans Ende: Die Halbserie läuft live durch – jedes Ergebnis, deine Tore, Vorlagen und Noten, dazu Punkte und Ø-Note in Echtzeit.',
+      'Tor, Doppelpack, Hattrick und „Mann des Spiels“ werden groß gefeiert, mit Ton und Vibration.',
+      'Tempo 1×, 2× oder 4× – oder „Überspringen“. Am Ende: Tabellenplatz, Bilanz und dein Wertungs-Sprung.',
+      'Die Ziele deines Trainers (z. B. 21 Tore, Ø-Note 6,9) siehst du jetzt mit Fortschrittsbalken – in der Karriere und nach jeder Halbserie. Dazu Platz, Punkte, Bilanz und Tore deines Vereins.',
+      'Die Live-Simulation lässt sich in den Karriere-Einstellungen abschalten.',
+    ],
+  },
+  {
     id: '2026-11-21-premium-look',
     date: '21.11.2026',
     title: 'Neuer Look: dunkles Premium-Design und ein echtes Hauptmenü',

@@ -11,6 +11,10 @@ import { fmtFollowers, gramOf } from '../game/kickgram';
 import PositionPanel from './PositionPanel';
 import MomentOverlay from './MomentOverlay';
 import LiveMatch from './LiveMatch';
+import SimShow, { GoalBars } from './SimShow';
+import { evaluateGoals } from '../game/goals';
+import { sortTable } from '../game/season';
+import { replayOf, type Replay } from '../game/simReplay';
 import { advanceFinal, autoFinal } from '../game/final';
 import { autoPlayFinal, keyMatchFor, playFinalStep, setKeyMatch, startKeyMatch } from '../game/career';
 import { setCareerSettings } from '../game/difficulty';
@@ -104,13 +108,20 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       setKeyLive({ key, state: startKeyMatch(career, key), started: false });
       return;
     }
-    onChange(simulateToBreak(career, live));
+    simulate(career);
+  };
+  // Live-Simulation: Ergebnis steht fest (wird sofort gespeichert), die Halbserie läuft aber sichtbar durch.
+  const [replay, setReplay] = useState<Replay | null>(null);
+  const simulate = (from: Career) => {
+    const next = simulateToBreak(from, live);
+    if (career.settings?.simShow !== false) setReplay(replayOf(career, next));
+    onChange(next);
   };
   const finishKey = (state: FinalState) => {
     if (!keyLive) return;
     const next = setKeyMatch(career, keyLive.key, state);
     setKeyLive(null);
-    onChange(simulateToBreak(next, live));
+    simulate(next);
   };
   // Transferfenster: ein Tipp entscheidet.
   const [nego, setNego] = useState<string | null>(null);
@@ -149,7 +160,8 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           onDone={() => finishKey(keyLive.state)}
         />
       )}
-      {career.phase === 'final' && career.liveFinal && (
+      {replay && <SimShow replay={replay} onDone={() => setReplay(null)} />}
+      {!replay && career.phase === 'final' && career.liveFinal && (
         <LiveMatch
           title={career.liveFinal.final.title}
           state={career.liveFinal}
@@ -166,10 +178,10 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       {panel === 'kit' && <KitPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {panel === 'look' && <LookPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
       {panel === 'gram' && <KickgramPanel career={career} onChange={onChange} onClose={() => setPanel(null)} />}
-      {moments.length > 0 && (
+      {!replay && moments.length > 0 && (
         <MomentOverlay key={moments.map((m) => m.title).join('|')} moments={moments} onDone={() => setMoments([])} />
       )}
-      {moments.length === 0 && career.larp?.reveal && <LarpReveal career={career} onChange={onChange} />}
+      {!replay && moments.length === 0 && career.larp?.reveal && <LarpReveal career={career} onChange={onChange} />}
       <div className="cs-side">
       <div className="cs-nav">
         <button className="cs-link" onClick={onExit}>‹ Menü</button>
@@ -294,6 +306,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
             </p>
           )}
           {note && <p className={`cs-note ${note.tone}`}><b>{note.title}:</b> {note.text}</p>}
+          <SeasonPanel career={career} />
           {askLive ? (
             <div className="live-ask">
               <h3>Wie willst du deine Karriere spielen?</h3>
@@ -602,5 +615,30 @@ function NlzOfferCard({ career, onChange }: { career: Career; onChange: (c: Care
       </div>
       <p className="hint">Danach geht es wie gewohnt mit dem Transferfenster weiter.</p>
     </section>
+  );
+}
+
+/** Saison auf einen Blick: Tabellenplatz, Punkte und die Ziele des Trainers mit Fortschritt. */
+function SeasonPanel({ career }: { career: Career }) {
+  const prog = career.progress;
+  const goals = career.seasonGoals ?? [];
+  if (!prog || (!goals.length && !prog.matches.length)) return null;
+  const clubId = currentClubId(career.player);
+  const rows = sortTable(prog.rows[clubLeagueId(career, clubId)] ?? []);
+  const idx = rows.findIndex((r) => r.clubId === clubId);
+  const row = idx >= 0 ? rows[idx] : null;
+  const results = evaluateGoals(goals, prog.matches);
+  return (
+    <div className="cs-season">
+      {row && row.played > 0 && (
+        <div className="cs-season-pos">
+          <span><small>Platz</small><b>{idx + 1}<em>/{rows.length}</em></b></span>
+          <span><small>Punkte</small><b>{row.points}</b></span>
+          <span><small>Bilanz</small><b className="rec">{row.won}-{row.drawn}-{row.lost}</b></span>
+          <span><small>Tore</small><b className="rec">{row.goalsFor}:{row.goalsAgainst}</b></span>
+        </div>
+      )}
+      {results.length > 0 && <GoalBars goals={results} title="Ziele des Trainers" />}
+    </div>
   );
 }
