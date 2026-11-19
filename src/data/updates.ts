@@ -37,6 +37,7 @@ export const UPDATES: UpdateNote[] = [
       'Tagesziele: Spiel in der Karriere weiter, gewinne 2 Duelle, öffne 1 Pack und spiele 5 Casino-Runden. Jedes Ziel zahlt Coins oder Chips, alle zusammen ein Gold-Pack.',
       'Neue Karten: schlankere Sammelkarten-Form mit Trikot-Bild, auch auf kleinen Karten. Keine Gesichter mehr auf Karten, eigene Bilder füllen jetzt die ganze obere Karte.',
       'Nichts ist mehr zu breit: Sammlung und Startseite passen aufs Handy, auf dem iPad bleibt alles eine übersichtliche Spalte.',
+      'Pack öffnen: Rückseiten in Kartenform, die schon vorher leuchten, wenn etwas Seltenes drin ist. Im Team zeigt eine Leiste Wertung, Chemie und Karten auf einen Blick.',
       'Shop wie ein Spiele-Store: große Pack-Kacheln in eigenen Farben. Der dunkle Look ist jetzt Standard – „Hell“ und „Bunt“ gibt es weiter in den Einstellungen.',
     ],
   },

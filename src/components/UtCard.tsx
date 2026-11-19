@@ -102,7 +102,7 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick,
         <span className="ucard-pos">{card.position}</span>
         <span className="ucard-flag" aria-hidden="true">{flagOf(card.nation)}</span>
       </div>
-      {size !== 'xs' && (
+      {(
         <div className={`ucard-art ${art ? 'photo' : ''}`} aria-hidden="true">
           {art ? <img src={art} alt="" draggable={false} /> : <Jersey text={initials(card.name)} />}
         </div>
