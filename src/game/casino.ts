@@ -99,19 +99,14 @@ export function placeBet(club: ClubState, bet: number): ClubState | null {
   if (!Number.isFinite(bet) || bet <= 0 || bet > c.chips || (bet > maxBet(club) && bet !== c.chips)) return null;
   return withCasino(club, (x) => {
     const vipPts = x.vipPts + bet * (happyHour().active ? 2 : 1);
-    // Level-Aufstieg: Belohnung sofort gutschreiben (die Oberfläche feiert es).
-    const lvl = casinoLevel(vipPts).level;
-    const paid = x.levelPaid ?? casinoLevel(x.vipPts).level;
-    let reward = 0;
-    for (let l = paid + 1; l <= lvl; l++) reward += levelReward(l);
-    return { ...x, chips: x.chips - bet + reward, vipPts, levelPaid: Math.max(paid, lvl), jackpot: x.jackpot + Math.round(bet * JACKPOT_SHARE), ...cbTrack(x, bet, 0) };
+    // Casino-Level zeigt nur den Fortschritt – Level-Aufstiege bringen bewusst keine Chips.
+    return { ...x, chips: x.chips - bet, vipPts, jackpot: x.jackpot + Math.round(bet * JACKPOT_SHARE), ...cbTrack(x, bet, 0) };
   });
 }
 
 // ---------- Casino-Level (jede Runde bringt Fortschritt, jedes Level Chips) ----------
 /** Gesamteinsatz, der für Level n nötig ist (wächst langsam an). */
 export const levelNeed = (n: number) => Math.round(400 * Math.pow(n, 1.55));
-export const levelReward = (n: number) => 150 + n * 50 + (n % 5 === 0 ? n * 200 : 0);
 export function casinoLevel(pts: number): { level: number; from: number; to: number; pct: number } {
   let level = 0;
   while (pts >= levelNeed(level + 1)) level++;

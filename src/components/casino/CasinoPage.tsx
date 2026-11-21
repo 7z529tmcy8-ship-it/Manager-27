@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../../clubStore';
-import { CASHOUT_MIN, CASHOUT_RATE, CHIP_PACKS, REFILL, SHOP, VIP, buy, buyChips, cashOutChips, casinoOf, claimDaily, claimQuest, claimRefill, dailyBonus, casinoLevel, levelReward, cashback, claimCashback, giftSpins, tourBoard, tourReward, claimTour, weekEnds, TOUR_MIN_BET, TOUR_PRIZES, happyHour, boxesReady, roundsToBox, openBox, BOX_ODDS, BOX_EVERY, DROP_CHANCE, DROP_TABLE, type BoxPrize, ownsExtra, questList, refillState, vipLevel } from '../../game/casino';
+import { CASHOUT_MIN, CASHOUT_RATE, CHIP_PACKS, REFILL, SHOP, VIP, buy, buyChips, cashOutChips, casinoOf, claimDaily, claimQuest, claimRefill, dailyBonus, casinoLevel, cashback, claimCashback, giftSpins, tourBoard, tourReward, claimTour, weekEnds, TOUR_MIN_BET, TOUR_PRIZES, happyHour, boxesReady, roundsToBox, openBox, BOX_ODDS, BOX_EVERY, DROP_CHANCE, DROP_TABLE, type BoxPrize, ownsExtra, questList, refillState, vipLevel } from '../../game/casino';
 import { betsOf, resolveCareerBets } from '../../game/bets';
 import { listCareers } from '../../game/storage';
 import Icon from '../Icon';
@@ -124,7 +124,7 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
           <span className="cz-level-badge"><small>Lv</small>{lvl.level}</span>
           <span className="cz-level-main">
             <span className="cz-bar"><i style={{ width: `${lvl.pct}%` }} /></span>
-            <small>Noch {fmt(lvl.to - c.vipPts)} Einsatz bis Level {lvl.level + 1} · Belohnung <b>+{fmt(levelReward(lvl.level + 1))}</b></small>
+            <small>Noch {fmt(lvl.to - c.vipPts)} Einsatz bis Level {lvl.level + 1}</small>
           </span>
         </section>
 
@@ -247,7 +247,7 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
           </div>
         </div>
       )}
-      {lvUp && <div className="cz-lvup" role="status"><small>Level-Aufstieg</small><b>Level {lvUp}</b><span>+{fmt(levelReward(lvUp))} Chips</span></div>}
+      {lvUp && <div className="cz-lvup" role="status"><Icon name="rise" size={16} /><b>Level {lvUp}</b></div>}
     </div>
   );
 }

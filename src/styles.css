@@ -5210,3 +5210,8 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .cz-sc-cell.hit svg { color: #2a1a00; filter: none; }
 .cz-sc-pay { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; margin-top: 10px; color: #b9ffd6; font-size: .74rem; font-weight: 800; }
 .cz-sc-pay span { display: inline-flex; align-items: center; gap: 3px; }
+
+/* Level-Einblendung: klein und dezent oben */
+.cz-lvup { top: calc(70px + env(safe-area-inset-top)); flex-direction: row; gap: 6px; padding: 7px 14px; border-radius: 99px; box-shadow: 0 0 16px rgba(255, 63, 180, .45), 0 8px 18px rgba(0, 0, 0, .4); animation: cz-lvup 1.8s ease-out forwards; }
+.cz-lvup b { font-size: 1rem; line-height: 1; }
+@keyframes cz-lvup { 0% { transform: translate(-50%, -8px); opacity: 0; } 15%, 75% { transform: translate(-50%, 0); opacity: 1; } 100% { transform: translate(-50%, -6px); opacity: 0; } }

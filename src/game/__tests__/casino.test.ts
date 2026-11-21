@@ -3,7 +3,7 @@ import { freshClub, type ClubState } from '../club';
 import {
   JACKPOT_SEED, PLINKO, PLINKO_P, RTP, SHOP, START_CHIPS, VIP, bigWinOf, bjReturn, buy, casinoOf, claimDaily, claimQuest, crashPoint, dailyBonus,
   scratchRtp, scratchTicket, openBox, boxesReady, happyHour, BOX_EVERY,
-  levelReward, casinoLevel, cashback, claimCashback, giftSpins, takeGiftSpin, tourBoard, tourReward, claimTour, weekId,
+  casinoLevel, cashback, claimCashback, giftSpins, takeGiftSpin, tourBoard, tourReward, claimTour, weekId,
   evalGrid, handValue, minesMult, payout, placeBet, placeMines, questList, rouletteReturn, takeJackpot, vipLevel, type BjCard, type Sym,
 } from '../casino';
 
@@ -17,7 +17,7 @@ it('Start: 1.000 Chips, Einsatz-Limit nach VIP-Stufe, Jackpot wächst mit', () =
   c = { ...c, casino: { ...casinoOf(c), chips: 10_000 } };
   expect(placeBet(c, 600)).toBeNull(); // Bronze: max. 500
   const b = placeBet(c, 500)!;
-  expect(casinoOf(b).chips).toBe(9_500 + levelReward(1)); // 500 Einsatz = Casino-Level 1 → Belohnung
+  expect(casinoOf(b).chips).toBe(9_500); // Level-Aufstiege bringen keine Chips
   expect(casinoOf(b).vipPts).toBe(500);
   expect(casinoOf(b).jackpot).toBe(JACKPOT_SEED + 5);
   expect(vipLevel(VIP[2].min)).toBe(2);
@@ -137,15 +137,13 @@ it('Plinko: alle Reihen/Risiken zahlen inkl. Goldball 94–98 % zurück, Rand is
   expect(plinkoWin(100_000, 10_000, true)).toBe(PLINKO_MAX_WIN);
 });
 
-it('Casino-Level: Fortschritt mit jedem Einsatz, Belohnung bei jedem Aufstieg genau einmal', () => {
+it('Casino-Level: Fortschritt mit jedem Einsatz, aber keine Chips für Aufstiege', () => {
   expect(casinoLevel(0).level).toBe(0);
   expect(casinoLevel(400).level).toBe(1);
   let c: ClubState = { ...freshClub(), casino: { ...casinoOf(freshClub()), chips: 100_000 } };
   for (let i = 0; i < 10; i++) c = placeBet(c, 500)!;
-  const lv = casinoLevel(5_000).level;
-  let sum = 0; for (let l = 1; l <= lv; l++) sum += levelReward(l);
-  expect(casinoOf(c).chips).toBe(100_000 - 5_000 + sum);
-  expect(casinoOf(c).levelPaid).toBe(lv);
+  expect(casinoLevel(casinoOf(c).vipPts).level).toBeGreaterThan(1);
+  expect(casinoOf(c).chips).toBe(95_000);
 });
 
 it('Cashback: Teil des Verlusts von gestern kommt heute zurück, nur einmal', () => {
