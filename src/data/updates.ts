@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-21-casino-fix-performance',
+    date: '21.11.2026',
+    title: 'Casino-Reparatur + Performance-Update',
+    items: [
+      'Roulette repariert: Das Rad blieb optisch oft eine halbe Fachbreite daneben stehen – der Zeiger zeigte dann die Nachbarzahl, obwohl richtig abgerechnet wurde. Jetzt zeigt der Zeiger immer genau die gezogene Zahl.',
+      'Roulette zeigt den echten Gewinn: „+2.400“ heißt jetzt wirklich 2.400 mehr als vorher. Bekommst du nur deinen Einsatz (oder einen Teil) zurück, steht „… zurück“ da.',
+      'Hohe Zahlen: Einsätze über 100.000 lassen sich wieder mit + und − verstellen (vorher gab es einen Rechenfehler), große Guthaben stehen kompakt in der Kopfleiste („12,4 Mio.“), Crash geht bis höchstens 10.000×.',
+      'Performance: Plinko zeichnet das Brett nur noch einmal vor statt in jedem Bild, Leuchteffekte ohne teuren Weichzeichner, weniger Konfetti im Dauerfeuer, und ein Casino-Gewinn zeichnet nicht mehr die ganze App neu. Die Crash-Kurve wird bei langen Flügen nicht mehr immer langsamer.',
+    ],
+  },
+  {
     id: '2026-11-21-casino-level',
     date: '21.11.2026',
     title: 'Casino-Level ohne Chips',

@@ -53,6 +53,7 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const balls = useRef<Ball[]>([]);
   const flashes = useRef(new Map<string, number>());
+  const board = useRef<{ key: string; img: HTMLCanvasElement } | null>(null);
   const binHits = useRef(new Map<number, number>());
   const pops = useRef<Pop[]>([]);
   const seq = useRef(0);
@@ -128,24 +129,47 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
       const posX = (r: number, k: number) => w / 2 + (k - r / 2) * sx;
       const binY = top + (n - 1) * sy + sy * 0.7;
 
-      // Pfosten
-      for (let r = 0; r < n; r++) for (let j = 0; j < r + 3; j++) {
-        const f = flashes.current.get(`${r}-${j}`);
-        const glow = f !== undefined ? Math.max(0, 1 - (now - f) / 260) : 0;
-        ctx.beginPath();
-        ctx.arc(pegX(r, j), pegY(r), pegR + glow * (fever.current ? 3.4 : 2.2), 0, Math.PI * 2);
-        const hue = PEG_COLORS[(r + j) % PEG_COLORS.length];
-        ctx.fillStyle = glow > 0 ? hue : 'rgba(210, 222, 255, .7)';
-        if (glow > 0) { ctx.shadowColor = hue; ctx.shadowBlur = 16 * glow; }
-        ctx.fill();
-        ctx.shadowBlur = 0;
+      // Brett (Pfosten + Fächer) nur neu vorzeichnen, wenn sich Größe, Reihen oder Risiko ändern.
+      const key = `${w}x${h}x${dpr}x${n}x${t.join(',')}`;
+      if (board.current?.key !== key) {
+        const off = document.createElement('canvas');
+        off.width = Math.round(w * dpr); off.height = Math.round(h * dpr);
+        const o = off.getContext('2d')!;
+        o.setTransform(dpr, 0, 0, dpr, 0, 0);
+        o.fillStyle = 'rgba(210, 222, 255, .7)';
+        for (let r = 0; r < n; r++) for (let j = 0; j < r + 3; j++) { o.beginPath(); o.arc(pegX(r, j), pegY(r), pegR, 0, Math.PI * 2); o.fill(); }
+        for (let k = 0; k <= n; k++) {
+          const bw = sx - 3; const x = posX(n, k) - bw / 2; const m = t[k];
+          o.fillStyle = binColor(m); o.globalAlpha = 0.88; roundRect(o, x, binY, bw, binH, 5); o.fill(); o.globalAlpha = 1;
+          o.fillStyle = m >= 100 ? '#2a1600' : '#fff';
+          o.font = `800 ${Math.max(7, Math.min(12, bw * 0.34))}px system-ui, sans-serif`;
+          o.textAlign = 'center'; o.textBaseline = 'middle';
+          o.fillText(multText(m), x + bw / 2, binY + binH / 2 + 0.5);
+        }
+        board.current = { key, img: off };
       }
-      // Fächer
+      ctx.drawImage(board.current.img, 0, 0, w, h);
+      // Aufleuchtende Pfosten (nur die gerade getroffenen)
+      for (const [id, f] of flashes.current) {
+        const glow = Math.max(0, 1 - (now - f) / 260);
+        if (glow <= 0) { flashes.current.delete(id); continue; }
+        const [r, j] = id.split('-').map(Number);
+        if (r >= n) continue;
+        const hue = PEG_COLORS[(r + j) % PEG_COLORS.length];
+        ctx.fillStyle = hue;
+        ctx.globalAlpha = 0.3 * glow;
+        ctx.beginPath(); ctx.arc(pegX(r, j), pegY(r), pegR + glow * (fever.current ? 7 : 5), 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.beginPath(); ctx.arc(pegX(r, j), pegY(r), pegR + glow * (fever.current ? 3.4 : 2.2), 0, Math.PI * 2); ctx.fill();
+      }
+      // Getroffene Fächer (nur die gerade getroffenen neu zeichnen)
       for (let k = 0; k <= n; k++) {
         const hit = binHits.current.get(k);
         const ht = hit !== undefined ? Math.max(0, 1 - (now - hit) / 320) : 0;
+        if (ht <= 0) continue;
         const bw = sx - 3;
         const x = posX(n, k) - bw / 2;
+        ctx.clearRect(x - 1, binY - 1, bw + 2, binH + 9); // vorgezeichnetes Fach entfernen, es springt gerade
         const y = binY + ht * 6;
         const m = t[k];
         ctx.fillStyle = binColor(m);
@@ -212,6 +236,7 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
       }
       // Funken
       sparks.current = sparks.current.filter((sp) => now - sp.born < sp.life);
+      if (sparks.current.length > 260) sparks.current = sparks.current.slice(-260);
       for (const sp of sparks.current) {
         sp.x += sp.vx; sp.y += sp.vy; sp.vy += 0.22; sp.vx *= 0.98;
         ctx.globalAlpha = 1 - (now - sp.born) / sp.life;
@@ -227,10 +252,10 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
         ctx.fillStyle = p.color;
         const big = p.text.length <= 6 ? 20 : 15;
         ctx.font = `900 ${big + Math.sin(a * Math.PI) * 6}px system-ui, sans-serif`;
-        ctx.shadowColor = p.color; ctx.shadowBlur = 12;
         ctx.textAlign = 'center';
+        ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(10, 4, 30, .8)';
+        ctx.strokeText(p.text, posX(n, p.slot), binY - 14 - a * 50);
         ctx.fillText(p.text, posX(n, p.slot), binY - 14 - a * 50);
-        ctx.shadowBlur = 0;
         ctx.globalAlpha = 1;
       }
       if (landed.length) {
@@ -335,12 +360,14 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 /** Ball als kleiner Fußball – Goldbälle leuchten. */
 function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, gold: boolean, tint?: string) {
   ctx.save();
-  ctx.shadowColor = tint ?? (gold ? '#ffd24a' : 'rgba(255,255,255,.8)');
-  ctx.shadowBlur = gold ? 14 : 6;
-  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+  // Leuchten ohne teuren Weichzeichner: ein halbtransparenter Hof
+  ctx.globalAlpha = gold ? 0.35 : 0.22;
+  ctx.beginPath(); ctx.arc(x, y, r * (gold ? 2 : 1.6), 0, Math.PI * 2);
   ctx.fillStyle = tint ?? (gold ? '#ffd24a' : '#ffffff');
   ctx.fill();
-  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 1;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fill();
   // Fünfeck in der Mitte
   ctx.beginPath();
   for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5; const px = x + Math.cos(a) * r * 0.42; const py = y + Math.sin(a) * r * 0.42; if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py); }

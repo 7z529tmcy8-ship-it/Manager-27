@@ -200,7 +200,12 @@ export function Crash({ onClose }: { onClose: () => void }) {
       const stepNow = Math.floor((m - 1) * 2);
       if (stepNow > r.lastStep) { r.lastStep = stepNow; if (!r.cashed) playStep(stepNow); }
       setMult(m);
-      setPts((p) => (p.length && sec - p[p.length - 1][0] < 0.08 ? p : [...p, [sec, m]]));
+      // Kurve: höchstens ~200 Punkte (bei langen Flügen jeden zweiten verwerfen) – sonst wird jedes Bild bei hohen Multiplikatoren langsamer.
+      setPts((p) => {
+        if (p.length && sec - p[p.length - 1][0] < 0.08) return p;
+        const next: [number, number][] = [...p, [sec, m]];
+        return next.length > 200 ? next.filter((_, i) => i % 2 === 0 || i === next.length - 1) : next;
+      });
       if (!r.cashed && auto > 0 && m >= auto) cash(auto);
       raf.current = requestAnimationFrame(tick);
     };
@@ -208,7 +213,7 @@ export function Crash({ onClose }: { onClose: () => void }) {
   };
 
   // Kurve: Zeit → x, Multiplikator → y (mitwachsende Achsen)
-  const maxT = Math.max(6, ...pts.map((p) => p[0]));
+  const maxT = Math.max(6, pts.length ? pts[pts.length - 1][0] : 0);
   const maxM = Math.max(2, mult * 1.15);
   const path = pts.map(([t, m], i) => `${i ? 'L' : 'M'} ${(t / maxT) * 300} ${190 - ((m - 1) / (maxM - 1)) * 180}`).join(' ');
   const last = pts[pts.length - 1];
@@ -216,7 +221,7 @@ export function Crash({ onClose }: { onClose: () => void }) {
   const tier = mult >= 10 ? 'c4' : mult >= 5 ? 'c3' : mult >= 2 ? 'c2' : 'c1';
   return (
     <GameFrame title="Elfmeter-Crash" onClose={onClose} className="cz-crash"
-      odds="Der Ball fliegt, der Multiplikator steigt. Die Chance, dass er mindestens bis m kommt, ist 97 % ÷ m (z. B. 2× in 48,5 %, 10× in 9,7 %). Auszahlungsquote 97 %.">
+      odds="Der Ball fliegt, der Multiplikator steigt. Die Chance, dass er mindestens bis m kommt, ist 97 % ÷ m (z. B. 2× in 48,5 %, 10× in 9,7 %). Höchstens 10.000×. Auszahlungsquote 97 %.">
       <div className={`cz-sky ${tier} ${phase === 'fly' ? 'flying' : ''} ${crashed ? (cashed ? 'won' : 'lost') : ''}`} style={{ '--spd': `${Math.max(0.25, 3 / mult)}s` } as React.CSSProperties}>
         <span className="cz-stars" aria-hidden="true" />
         <svg viewBox="0 0 300 200" preserveAspectRatio="none" aria-hidden="true">

@@ -221,3 +221,8 @@ it('Mystery-Box alle 30 Runden, Drops und Glücks-Serie zahlen extra', () => {
   expect(happyHour(new Date(2026, 10, 11, 15, 0)).active).toBe(false);
   expect(BOX_EVERY).toBe(30);
 });
+
+it('Crash: höchstens 10.000×, sonst unveränderte Verteilung', () => {
+  expect(crashPoint(() => 0.999999999)).toBe(10_000);
+  expect(crashPoint(() => 0.5)).toBe(1.94);
+});

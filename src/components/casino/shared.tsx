@@ -9,7 +9,9 @@ import Icon from '../Icon';
 
 export const sfx = (id: Parameters<typeof play>[0]) => { try { play(id); } catch { /* kein Ton */ } };
 export const buzz = (ms: number | number[]) => { try { navigator.vibrate?.(ms); } catch { /* egal */ } };
-export const fmt = (n: number) => Math.round(n).toLocaleString('de-DE');
+export const fmt = (n: number) => (Number.isFinite(n) ? Math.round(n).toLocaleString('de-DE') : '0');
+/** Kurz für enge Stellen (Kopfleiste): ab 10 Mio. als „12,4 Mio.“, ab 1 Mrd. als „1,2 Mrd.“. */
+export const fmtShort = (n: number) => (n >= 1e9 ? `${(n / 1e9).toLocaleString('de-DE', { maximumFractionDigits: 1 })} Mrd.` : n >= 1e7 ? `${(n / 1e6).toLocaleString('de-DE', { maximumFractionDigits: 1 })} Mio.` : fmt(n));
 export const fx = (n: number) => n.toFixed(2).replace('.', ',');
 
 /** Große-Gewinn-Anzeige: wird vom Casino-Bildschirm angezeigt. */
@@ -93,10 +95,12 @@ export function settle(ev: PlayEvent, opts: { quiet?: boolean } = {}): void {
 }
 
 /** Zahl, die weich zum neuen Wert hochzählt. */
-export function useCountUp(value: number, ms = 600): number {
+export function useCountUp(value: number, ms = 600, enabled = true): number {
   const [shown, setShown] = useState(value);
   const from = useRef(value);
   useEffect(() => {
+    // Ausgeblendet (z. B. Casino-Übersicht hinter einem offenen Spiel): nicht animieren, sonst zeichnet jedes Bild alles neu.
+    if (!enabled) { from.current = value; setShown(value); return; }
     const start = performance.now();
     const a = from.current;
     let raf = 0;
@@ -109,7 +113,7 @@ export function useCountUp(value: number, ms = 600): number {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [value, ms]);
+  }, [value, ms, enabled]);
   return Math.round(shown);
 }
 
@@ -121,7 +125,7 @@ export function BetPicker({ value, onChange, disabled, label = 'Einsatz' }: { va
   const cap = Math.min(maxBet(club), casinoOf(club).chips);
   const chips = casinoOf(club).chips;
   const [allIn, setAllIn] = useState(false);
-  const set = (n: number) => { setAllIn(false); onChange(Math.max(10, Math.min(Math.max(10, cap), Math.round(n)))); };
+  const set = (n: number) => { if (!Number.isFinite(n)) return; setAllIn(false); onChange(Math.max(10, Math.min(Math.max(10, cap), Math.round(n)))); };
   // All-in bleibt aktiv: der Einsatz folgt immer dem ganzen Guthaben (nach Gewinn oder Verlust).
   useEffect(() => { if (allIn && !disabled && chips > 0 && value !== chips) onChange(chips); }, [allIn, chips, disabled]); // eslint-disable-line react-hooks/exhaustive-deps
   const goAllIn = () => {
@@ -130,8 +134,10 @@ export function BetPicker({ value, onChange, disabled, label = 'Einsatz' }: { va
     setAllIn(true); onChange(chips); sfx('boom'); buzz([40, 30, 80]);
   };
   const step = (dir: 1 | -1) => {
-    const i = STEPS.findIndex((s) => s >= value);
-    const next = dir > 0 ? STEPS[Math.min(STEPS.length - 1, (STEPS[i] === value ? i : i - 1) + 1)] : STEPS[Math.max(0, (i < 0 ? STEPS.length : i) - 1)];
+    // Feste Stufen, darüber in 1-2-5-Schritten weiter (funktioniert auch bei Millionen-Einsätzen).
+    const ladder = [...STEPS];
+    while (ladder[ladder.length - 1] < Math.max(value, cap)) { const l = ladder[ladder.length - 1]; ladder.push(String(l).startsWith('2') ? l * 2.5 : l * 2); }
+    const next = dir > 0 ? ladder.find((x) => x > value) ?? ladder[ladder.length - 1] : [...ladder].reverse().find((x) => x < value) ?? ladder[0];
     set(next);
   };
   return (
@@ -168,6 +174,7 @@ export function GameFrame({ title, odds, onClose, children, className = '' }: { 
   const [info, setInfo] = useState(false);
   const [coins, setCoins] = useState<{ id: number; n: number } | null>(null);
   const [party, setParty] = useState<{ id: number; power: number } | null>(null);
+  const lastParty = useRef({ at: 0, power: 0 });
   const [shaking, setShaking] = useState<'' | 'shake' | 'shake hard'>('');
   const [bump, setBump] = useState(0);
   const prev = useRef(real);
@@ -175,7 +182,13 @@ export function GameFrame({ title, odds, onClose, children, className = '' }: { 
   useEffect(() => {
     const f = (e: Fx) => {
       if (e.kind === 'coins') setCoins({ id: Date.now(), n: e.n });
-      else if (e.kind === 'party') { const id = Date.now(); setParty({ id, power: e.power }); setTimeout(() => setParty((p) => (p?.id === id ? null : p)), 1300); }
+      else if (e.kind === 'party') {
+        // Höchstens ein Konfetti pro Sekunde (außer ein größerer Gewinn) – Dauerfeuer im Auto-Modus bremst sonst schwache Geräte.
+        const id = Date.now();
+        if (id - lastParty.current.at < 1000 && e.power <= lastParty.current.power) return;
+        lastParty.current = { at: id, power: e.power };
+        setParty({ id, power: e.power }); setTimeout(() => setParty((p) => (p?.id === id ? null : p)), 1300);
+      }
       else { setShaking(e.hard ? 'shake hard' : 'shake'); setTimeout(() => setShaking(''), e.hard ? 650 : 380); }
     };
     fxListeners.add(f);
@@ -187,7 +200,7 @@ export function GameFrame({ title, odds, onClose, children, className = '' }: { 
         <button className="cz-round" onClick={onClose} aria-label="Zurück zum Casino"><Icon name="arrow" size={20} /></button>
         <b>{title}</b>
         <button className="cz-round" onClick={() => setInfo((x) => !x)} aria-label="Gewinnchancen"><Icon name="info" size={20} /></button>
-        <button key={bump} className={`cz-chips ${bump ? 'bump' : ''}`} onClick={openBank} aria-label="Chip-Kasse öffnen"><Icon name="coin" size={16} />{fmt(chips)}<Icon name="plus" size={14} /></button>
+        <button key={bump} className={`cz-chips ${bump ? 'bump' : ''}`} onClick={openBank} aria-label="Chip-Kasse öffnen"><Icon name="coin" size={16} />{fmtShort(chips)}<Icon name="plus" size={14} /></button>
       </header>
       {party && (
         <div key={party.id} className={`cz-party p${party.power}`} aria-hidden="true">

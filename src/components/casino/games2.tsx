@@ -29,7 +29,7 @@ export function Roulette({ onClose }: { onClose: () => void }) {
   const [rot, setRot] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [last, setLast] = useState<number[]>([]);
-  const [res, setRes] = useState<{ n: number; win: number } | null>(null);
+  const [res, setRes] = useState<{ n: number; win: number; bet: number } | null>(null);
   const total = Object.values(bets).reduce((a, b) => a + b, 0);
   const chipsNow = casinoOf(club).chips;
   const cap = Math.min(maxBet(club), chipsNow);
@@ -47,14 +47,15 @@ export function Roulette({ onClose }: { onClose: () => void }) {
     setSpinning(true); setRes(null);
     const n = spinRoulette();
     const idx = WHEEL_ORDER.indexOf(n);
-    const target = 360 * 6 - idx * SEG - SEG / 2 + (Math.random() - 0.5) * SEG * 0.6;
+    // Feld idx hat seine Mitte bei idx·SEG (oben = 0°) – genau dorthin drehen, mit etwas Zufall innerhalb des Felds.
+    const target = 360 * 6 - idx * SEG + (Math.random() - 0.5) * SEG * 0.7;
     setRot((r) => r - (r % 360) + target);
     const stop = motionReduced() ? () => {} : tickDown(4200);
     await wait(motionReduced() ? 300 : 4200);
     stop();
     const win = Object.entries(bets).reduce((a, [b, amt]) => a + rouletteReturn(b as RouletteBet, amt, n), 0);
     settle({ game: 'roulette', bet: total, win });
-    setRes({ n, win });
+    setRes({ n, win, bet: total });
     setLast((l) => [n, ...l].slice(0, 12));
     setSpinning(false);
   };
@@ -81,7 +82,7 @@ export function Roulette({ onClose }: { onClose: () => void }) {
         <div className="cz-wheel-center">{res ? <b className={colorOf(res.n)}>{res.n}</b> : <Icon name="ball" size={26} />}</div>
       </div>
       <div className="cz-history">{last.map((n, i) => <span key={i} className={`rn ${colorOf(n)}`}>{n}</span>)}</div>
-      <div className={`cz-result ${res ? 'on' : ''}`}>{res ? (res.win ? <><b>+{fmt(res.win)}</b><small>Nummer {res.n}</small></> : <><b className="pink">{res.n}</b><small>Nächste Runde – setz neu!</small></>) : <small>Setz deine Chips – Einsatz gesamt {fmt(total)}</small>}</div>
+      <div className={`cz-result ${res ? 'on' : ''}`}>{res ? (res.win > res.bet ? <><b>+{fmt(res.win - res.bet)}</b><small>Nummer {res.n} · Auszahlung {fmt(res.win)}</small></> : res.win > 0 ? <><b>{fmt(res.win)} zurück</b><small>Nummer {res.n} · Einsatz war {fmt(res.bet)}</small></> : <><b className="pink">{res.n}</b><small>Nächste Runde – setz neu!</small></>) : <small>Setz deine Chips – Einsatz gesamt {fmt(total)}</small>}</div>
       <div className="cz-table">
         <button className={`num z ${bets.n0 ? 'has' : ''}`} onClick={() => add('n0')}>0{bets.n0 ? <em>{fmt(bets.n0)}</em> : null}</button>
         <div className="nums">

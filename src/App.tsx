@@ -88,15 +88,7 @@ export default function App() {
     }, 800);
     return () => clearTimeout(t);
   }, []);
-  const clubNow = useClub();
-  const coins = clubNow.coins;
-  const casinoDot = dailyBonus(clubNow).ready || cashback(clubNow).ready || !!tourReward(clubNow);
-  const lastCoins = useRef(coins);
-  useEffect(() => {
-    if (coins === lastCoins.current) return;
-    play(coins > lastCoins.current ? 'coin' : 'spend');
-    lastCoins.current = coins;
-  }, [coins]);
+  // Kontostand-Ton und Casino-Punkt leben in eigenen kleinen Komponenten – so zeichnet ein Casino-Gewinn nicht die ganze App neu.
 
   // Update-Banner: erscheint einmal nach jedem neuen Update (und auf Wunsch über „Neuigkeiten“).
   const [news, setNews] = useState<UpdateNote[]>(unseenUpdates);
@@ -132,7 +124,8 @@ export default function App() {
 
   return (
     <div className={`app ${showNav ? 'has-nav' : ''}`}>
-      {showNav && <NavBar active={navActive} onGo={go} dots={{ casino: casinoDot }} />}
+      <CoinSound />
+      {showNav && <ClubNav active={navActive} onGo={go} />}
       {/* Hinweis aufs Querformat nur in der Karriere – das Startmenü ist fürs Hochformat gebaut */}
       {!hintClosed && screen.name === 'game' && (
         <div className="rotate-hint" role="status">
@@ -199,4 +192,23 @@ function SaveWarning({ onRetry }: { onRetry: () => void }) {
       {info && <small>{info} Wenn es weiter nicht klappt: alte Karrieren unter „Spielstände“ löschen.</small>}
     </div>
   );
+}
+
+/** Ton beim Verdienen und Ausgeben von Coins. */
+function CoinSound() {
+  const coins = useClub().coins;
+  const last = useRef(coins);
+  useEffect(() => {
+    if (coins === last.current) return;
+    play(coins > last.current ? 'coin' : 'spend');
+    last.current = coins;
+  }, [coins]);
+  return null;
+}
+
+/** Navigation mit Hinweis-Punkt am Casino (Bonus wartet). */
+function ClubNav({ active, onGo }: { active: NavTarget | null; onGo: (t: NavTarget) => void }) {
+  const club = useClub();
+  const dot = dailyBonus(club).ready || cashback(club).ready || !!tourReward(club);
+  return <NavBar active={active} onGo={onGo} dots={{ casino: dot }} />;
 }

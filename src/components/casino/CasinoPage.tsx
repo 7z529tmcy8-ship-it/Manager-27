@@ -5,7 +5,7 @@ import { betsOf, resolveCareerBets } from '../../game/bets';
 import { listCareers } from '../../game/storage';
 import Icon from '../Icon';
 import UtCard from '../UtCard';
-import { buzz, celebrate, fmt, giveXp, onCasinoExtra, onOpenBank, onWinShow, openBank, sfx, useCountUp, type CasinoExtra, type WinShow } from './shared';
+import { buzz, celebrate, fmt, fmtShort, giveXp, onCasinoExtra, onOpenBank, onWinShow, openBank, sfx, useCountUp, type CasinoExtra, type WinShow } from './shared';
 
 const Games = {
   slots: lazy(() => import('./games1').then((m) => ({ default: m.Slots }))),
@@ -35,12 +35,13 @@ const TILES: { id: Playable; name: string; sub: string; icon: string; hue: strin
 export default function CasinoPage({ onExit }: { onExit: () => void }) {
   const club = useClub();
   const c = casinoOf(club);
-  const chips = useCountUp(c.chips);
-  const jackpot = useCountUp(c.jackpot, 1200);
+
   const lv = vipLevel(c.vipPts);
   const next = VIP[lv + 1];
   const daily = dailyBonus(club);
   const [game, setGame] = useState<Playable | null>(null);
+  const chips = useCountUp(c.chips, 600, !game);
+  const jackpot = useCountUp(c.jackpot, 1200, !game);
   const [shop, setShop] = useState(false);
   const [win, setWin] = useState<WinShow | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -117,7 +118,7 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
         <header className="cz-top">
           <button className="cz-round" onClick={onExit} aria-label="Zurück zum Home-Menü"><Icon name="arrow" size={20} /></button>
           <h1 className="cz-logo">Neon<span>Casino</span></h1>
-          <button className="cz-chips big" onClick={openBank} aria-label="Chip-Kasse öffnen"><Icon name="coin" size={18} />{fmt(chips)}<Icon name="plus" size={16} /></button>
+          <button className="cz-chips big" onClick={openBank} aria-label="Chip-Kasse öffnen"><Icon name="coin" size={18} />{fmtShort(chips)}<Icon name="plus" size={16} /></button>
         </header>
 
         <section className="cz-level" aria-label="Casino-Level">

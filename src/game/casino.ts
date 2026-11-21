@@ -296,9 +296,11 @@ export function playSlots(bet: number, rand: Rand = Math.random): SlotResult {
 
 // ---------- 2. Elfmeter-Crash ----------
 /** Bei welchem Multiplikator der Torwart hält: P(Ball fliegt mindestens bis m) = 0,97 / m. */
+export const CRASH_MAX = 10_000;
 export function crashPoint(rand: Rand = Math.random): number {
   const u = rand();
-  return Math.max(1, Math.floor((RTP / (1 - u)) * 100) / 100);
+  // Obergrenze 10.000× (wie bei echten Crash-Spielen) – sonst könnte ein Flug viele Minuten dauern.
+  return Math.min(CRASH_MAX, Math.max(1, Math.floor((RTP / (1 - u)) * 100) / 100));
 }
 /** Multiplikator nach t Sekunden Flug. */
 export const crashAt = (t: number) => Math.floor(Math.exp(0.11 * t) * 100) / 100;
