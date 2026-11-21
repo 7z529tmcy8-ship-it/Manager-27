@@ -5,7 +5,7 @@ import { seasonId } from './squad';
 // Jackpot, Tagesaufgaben und ein Preis-Shop (Karten, XP, Profil-Extras). Nur Spielgeld.
 // Alle Spiele haben eine offen angezeigte Auszahlungsquote (RTP) knapp unter 100 %.
 
-export type GameId = 'slots' | 'crash' | 'plinko' | 'mines' | 'roulette' | 'blackjack' | 'hilo' | 'wheel' | 'bets';
+export type GameId = 'slots' | 'crash' | 'plinko' | 'mines' | 'roulette' | 'blackjack' | 'hilo' | 'wheel' | 'bets' | 'scratch';
 /** Höher/Tiefer gibt es nicht mehr – 'hilo' bleibt nur für alte Statistiken im Typ. */
 type Rand = () => number;
 
@@ -38,6 +38,13 @@ export interface CasinoState {
   tour?: { week: string; best: number; game?: GameId };
   tourPaid?: string[];
   tourLast?: { week: string; best: number };
+  /** Drops & Wins: letzter Zufalls-Drop (für die Einblendung). */
+  lastDrop?: { amount: number; mult: number; at: number };
+  /** Glücks-Serie: Gewinne in Folge und der letzte Serien-Bonus. */
+  winStreak?: number;
+  lastStreak?: { n: number; bonus: number; at: number };
+  /** Geöffnete Mystery-Boxen (eine pro 30 Runden). */
+  boxes?: number;
 }
 
 export const START_CHIPS = 1_000;
@@ -91,7 +98,7 @@ export function placeBet(club: ClubState, bet: number): ClubState | null {
   // All-in: das ganze Guthaben geht immer – auch über dem VIP-Limit.
   if (!Number.isFinite(bet) || bet <= 0 || bet > c.chips || (bet > maxBet(club) && bet !== c.chips)) return null;
   return withCasino(club, (x) => {
-    const vipPts = x.vipPts + bet;
+    const vipPts = x.vipPts + bet * (happyHour().active ? 2 : 1);
     // Level-Aufstieg: Belohnung sofort gutschreiben (die Oberfläche feiert es).
     const lvl = casinoLevel(vipPts).level;
     const paid = x.levelPaid ?? casinoLevel(x.vipPts).level;
@@ -218,8 +225,9 @@ function tourTrack(c: CasinoState, ev: PlayEvent, now: Date): Pick<CasinoState, 
 /** Event für Aufgaben und Statistik. */
 export interface PlayEvent { game: GameId; bet: number; win: number; mult?: number; streak?: number; safe?: number; jackpot?: boolean; legs?: number }
 /** Gewinn gutschreiben, Statistik und Aufgaben fortschreiben. */
-export function payout(club: ClubState, ev: PlayEvent, now = new Date()): ClubState {
-  return withCasino(club, (c) => {
+export function payout(club: ClubState, ev: PlayEvent, now = new Date(), rand: Rand = Math.random): ClubState {
+  return withCasino(club, (c0) => {
+    const c = extras(c0, ev, now, rand);
     const stats = {
       ...c.stats,
       rounds: c.stats.rounds + 1,
@@ -577,4 +585,94 @@ export function cashOutChips(club: ClubState, chips: number): ClubState | null {
   const n = Math.floor(chips / CASHOUT_RATE) * CASHOUT_RATE;
   if (n < CASHOUT_MIN || n > c.chips) return null;
   return { ...club, coins: club.coins + n / CASHOUT_RATE, casino: { ...c, chips: c.chips - n } };
+}
+
+
+// ---------- Happy Hour: doppelte Level- und VIP-Punkte zu festen Zeiten ----------
+export const HAPPY_HOURS: [number, number][] = [[12, 13], [19, 21]];
+export function happyHour(now = new Date()): { active: boolean; endsAt: number; nextAt: number } {
+  const h = now.getHours() + now.getMinutes() / 60;
+  const at = (hour: number, dayOff = 0) => { const d = new Date(now); d.setDate(d.getDate() + dayOff); d.setHours(hour, 0, 0, 0); return d.getTime(); };
+  for (const [a, b] of HAPPY_HOURS) if (h >= a && h < b) return { active: true, endsAt: at(b), nextAt: at(a) };
+  const next = HAPPY_HOURS.find(([a]) => a > h);
+  return { active: false, endsAt: 0, nextAt: next ? at(next[0]) : at(HAPPY_HOURS[0][0], 1) };
+}
+
+// ---------- Drops & Wins + Glücks-Serie ----------
+/** Chance pro Runde auf einen Zufalls-Drop und seine Multiplikatoren (offen angezeigt). */
+export const DROP_CHANCE = 1 / 120;
+export const DROP_TABLE: [number, number][] = [[5, 50], [10, 30], [25, 14], [50, 5], [100, 1]];
+export const DROP_MAX = 50_000;
+export const STREAK_BONUS: Record<number, number> = { 3: 100, 5: 400, 7: 1_000, 10: 3_000 };
+function extras(c: CasinoState, ev: PlayEvent, now: Date, rand: Rand): CasinoState {
+  if (ev.bet <= 0) return c;
+  let next = c;
+  if (rand() < DROP_CHANCE) {
+    const total = DROP_TABLE.reduce((a, [, w]) => a + w, 0);
+    let r = rand() * total, mult = DROP_TABLE[0][0];
+    for (const [m, w] of DROP_TABLE) { if ((r -= w) < 0) { mult = m; break; } }
+    const amount = Math.min(DROP_MAX, Math.round(ev.bet * mult));
+    next = { ...next, chips: next.chips + amount, lastDrop: { amount, mult, at: now.getTime() } };
+  }
+  const won = ev.win > ev.bet;
+  const n = won ? (c.winStreak ?? 0) + 1 : 0;
+  next = { ...next, winStreak: n };
+  const bonus = STREAK_BONUS[n];
+  if (bonus) next = { ...next, chips: next.chips + bonus, lastStreak: { n, bonus, at: now.getTime() } };
+  return next;
+}
+
+// ---------- Mystery-Box: alle 30 Runden eine, Chancen offen ----------
+export const BOX_EVERY = 30;
+export type BoxPrize = { kind: 'chips'; amount: number } | { kind: 'spins'; amount: number } | { kind: 'card'; card: CollectCard; tier: ShopCardTier };
+export const BOX_ODDS: { label: string; w: number }[] = [
+  { label: '500–1.500 Chips', w: 48 }, { label: '10 Gratis-Drehs', w: 22 }, { label: '3.000–8.000 Chips', w: 17 },
+  { label: 'Karte 80–86', w: 9 }, { label: 'Top-Karte 87–91', w: 3 }, { label: 'Ikone oder 92+', w: 1 },
+];
+export function boxesReady(club: Pick<ClubState, 'casino'>): number {
+  const c = casinoOf(club);
+  return Math.max(0, Math.floor(c.stats.rounds / BOX_EVERY) - (c.boxes ?? 0));
+}
+export const roundsToBox = (club: Pick<ClubState, 'casino'>) => BOX_EVERY - (casinoOf(club).stats.rounds % BOX_EVERY);
+export function openBox(club: ClubState, now = new Date(), rand: Rand = Math.random): { club: ClubState; prize: BoxPrize } | null {
+  if (boxesReady(club) <= 0) return null;
+  const total = BOX_ODDS.reduce((a, o) => a + o.w, 0);
+  let r = rand() * total, i = 0;
+  for (; i < BOX_ODDS.length; i++) if ((r -= BOX_ODDS[i].w) < 0) break;
+  let next = withCasino(club, (c) => ({ ...c, boxes: (c.boxes ?? 0) + 1 }));
+  let prize: BoxPrize;
+  if (i === 0) prize = { kind: 'chips', amount: 500 + Math.round(rand() * 10) * 100 };
+  else if (i === 1) prize = { kind: 'spins', amount: 10 };
+  else if (i === 2) prize = { kind: 'chips', amount: 3_000 + Math.round(rand() * 10) * 500 };
+  else { const tier: ShopCardTier = i === 3 ? 'gold' : i === 4 ? 'top' : 'icon'; prize = { kind: 'card', card: randomCard(tier, rand), tier }; }
+  if (prize.kind === 'chips') next = withCasino(next, (c) => ({ ...c, chips: c.chips + (prize as { amount: number }).amount }));
+  if (prize.kind === 'spins') next = withCasino(next, (c) => { const g = giftSpins(next, now); return { ...c, gift: { day: seasonId(now), left: g.left + 10 } }; });
+  if (prize.kind === 'card') next = addCard(next, prize.card);
+  return { club: next, prize };
+}
+
+// ---------- Rubbellos ----------
+/** Gewinnklassen pro Los (Vielfaches vom Lospreis) mit Wahrscheinlichkeit – Auszahlungsquote ca. 95 %. */
+export const SCRATCH_TABLE: { mult: number; p: number; sym: Sym }[] = [
+  { mult: 1, p: 0.2, sym: 'ball' }, { mult: 2, p: 0.12, sym: 'boot' }, { mult: 3, p: 0.05, sym: 'shirt' },
+  { mult: 5, p: 0.03, sym: 'whistle' }, { mult: 10, p: 0.012, sym: 'star' }, { mult: 50, p: 0.0012, sym: 'trophy' }, { mult: 500, p: 0.00005, sym: 'crown' },
+];
+export const scratchRtp = () => SCRATCH_TABLE.reduce((a, t) => a + t.mult * t.p, 0);
+/** Ein Los: 9 Felder, 3 gleiche Symbole gewinnen. Ergebnis wird zuerst ausgelost, dann verteilt. */
+export function scratchTicket(rand: Rand = Math.random): { cells: Sym[]; mult: number; sym: Sym | null } {
+  let r = rand(), hit: (typeof SCRATCH_TABLE)[number] | null = null;
+  for (const t of SCRATCH_TABLE) { if (r < t.p) { hit = t; break; } r -= t.p; }
+  const syms = SCRATCH_TABLE.map((t) => t.sym);
+  const cells: Sym[] = [];
+  if (hit) cells.push(hit.sym, hit.sym, hit.sym);
+  // Rest: höchstens 2 von jedem anderen Symbol, damit kein zweiter Gewinn entsteht
+  const count: Partial<Record<Sym, number>> = hit ? { [hit.sym]: 3 } : {};
+  while (cells.length < 9) {
+    const s2 = syms[Math.floor(rand() * syms.length)];
+    if ((count[s2] ?? 0) >= 2 && s2 !== hit?.sym) continue;
+    if (s2 === hit?.sym) continue;
+    count[s2] = (count[s2] ?? 0) + 1; cells.push(s2);
+  }
+  for (let i = cells.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [cells[i], cells[j]] = [cells[j], cells[i]]; }
+  return { cells, mult: hit?.mult ?? 0, sym: hit?.sym ?? null };
 }

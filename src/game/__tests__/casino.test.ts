@@ -2,6 +2,7 @@ import { expect, it } from 'vitest';
 import { freshClub, type ClubState } from '../club';
 import {
   JACKPOT_SEED, PLINKO, PLINKO_P, RTP, SHOP, START_CHIPS, VIP, bigWinOf, bjReturn, buy, casinoOf, claimDaily, claimQuest, crashPoint, dailyBonus,
+  scratchRtp, scratchTicket, openBox, boxesReady, happyHour, BOX_EVERY,
   levelReward, casinoLevel, cashback, claimCashback, giftSpins, takeGiftSpin, tourBoard, tourReward, claimTour, weekId,
   evalGrid, handValue, minesMult, payout, placeBet, placeMines, questList, rouletteReturn, takeJackpot, vipLevel, type BjCard, type Sym,
 } from '../casino';
@@ -187,4 +188,38 @@ it('All-in: das ganze Guthaben geht immer, auch über dem VIP-Limit – mehr nic
   const all = placeBet(c, 3_000)!;
   expect(casinoOf(all).chips).toBe(0);
   expect(placeBet(c, 3_001)).toBeNull();
+});
+
+it('Rubbellos: Quote ca. 95 %, genau ein Gewinnsymbol dreifach oder keins', () => {
+  expect(scratchRtp()).toBeGreaterThan(0.93);
+  expect(scratchRtp()).toBeLessThan(0.97);
+  for (let i = 0; i < 300; i++) {
+    const t = scratchTicket();
+    const counts: Record<string, number> = {};
+    for (const s of t.cells) counts[s] = (counts[s] ?? 0) + 1;
+    const triples = Object.entries(counts).filter(([, n]) => n >= 3);
+    expect(t.cells.length).toBe(9);
+    expect(triples.length).toBe(t.mult ? 1 : 0);
+    if (t.mult) expect(triples[0][0]).toBe(t.sym);
+  }
+});
+
+it('Mystery-Box alle 30 Runden, Drops und Glücks-Serie zahlen extra', () => {
+  let c: ClubState = { ...freshClub(), casino: { ...casinoOf(freshClub()), chips: 10_000 } };
+  for (let i = 0; i < 30; i++) c = payout(c, { game: 'slots', bet: 10, win: 0 }, day('2026-11-11'), () => 0.9);
+  expect(boxesReady(c)).toBe(1);
+  const r = openBox(c, day('2026-11-11'), () => 0.1)!;
+  expect(boxesReady(r.club)).toBe(0);
+  expect(r.prize.kind).toBe('chips');
+  // Drop: rand 0 → sicher ein Drop
+  const before = casinoOf(c).chips;
+  const d = payout(c, { game: 'slots', bet: 100, win: 0 }, day('2026-11-11'), () => 0);
+  expect(casinoOf(d).chips).toBe(before + 500);
+  // Glücks-Serie: 3 Gewinne in Folge = +100
+  let s = c;
+  for (let i = 0; i < 3; i++) s = payout(s, { game: 'slots', bet: 10, win: 20 }, day('2026-11-11'), () => 0.9);
+  expect(casinoOf(s).chips).toBe(before + 60 + 100);
+  expect(happyHour(new Date(2026, 10, 11, 19, 30)).active).toBe(true);
+  expect(happyHour(new Date(2026, 10, 11, 15, 0)).active).toBe(false);
+  expect(BOX_EVERY).toBe(30);
 });

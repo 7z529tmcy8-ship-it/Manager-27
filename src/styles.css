@@ -5170,3 +5170,43 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .cz-allin small { font-size: .62rem; font-weight: 800; opacity: .85; text-transform: none; letter-spacing: 0; }
 .cz-allin.on { color: #fff; border-color: #ff4d6d; background: linear-gradient(135deg, #ff4d6d, #ff3fb4); box-shadow: 0 0 22px rgba(255, 77, 109, .6); animation: cz-breathe 1.2s ease-in-out infinite; }
 :root.reduce-motion .cz-allin.on { animation: none; }
+
+/* ---- Casino 4: Happy Hour, Mystery-Box, Drops, Rubbellos ---- */
+.cz-happy { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; padding: 9px 12px; border-radius: 14px; font-size: .8rem; color: #d8ccff; background: rgba(255, 255, 255, .05); border: 1px dashed rgba(255, 210, 74, .4); }
+.cz-happy svg { color: #ffd24a; flex: none; }
+.cz-happy b { color: #ffd24a; }
+.cz-happy.on { color: #fff; border-style: solid; border-color: #ffd24a; background: linear-gradient(90deg, rgba(255, 210, 74, .3), rgba(255, 63, 180, .25)); box-shadow: 0 0 20px rgba(255, 210, 74, .35); animation: cz-breathe 1.6s ease-in-out infinite; }
+.b-box { background: linear-gradient(135deg, #ffb020, #ff3fb4 60%, #8b5cff); }
+.b-box .cz-bar { width: 100%; height: 6px; margin-top: 6px; background: rgba(0, 0, 0, .25); }
+.b-box .cz-bar i { background: #fff; }
+.cz-bonus-card.wait { animation: none; background: linear-gradient(135deg, rgba(255, 176, 32, .25), rgba(139, 92, 255, .25)); border: 1px solid rgba(255, 176, 32, .45); cursor: default; }
+.cz-bonus-card.wait::after { display: none; }
+.cz-extra { position: fixed; left: 50%; top: 30%; z-index: 995; display: flex; flex-direction: column; align-items: center; padding: 18px 30px; border-radius: 24px; pointer-events: none; color: #fff; text-align: center;
+  animation: sim-pop 2.6s cubic-bezier(.2, 1.4, .4, 1) forwards; }
+.cz-extra.drop { background: radial-gradient(circle at 50% 0%, #ffe58a, #ff9f1c 55%, #ff3fb4); box-shadow: 0 0 60px rgba(255, 200, 60, .8), 0 20px 40px rgba(0, 0, 0, .5); color: #2a0b00; }
+.cz-extra.streak { background: linear-gradient(160deg, #39ff88, #19c3ff); box-shadow: 0 0 40px rgba(57, 255, 136, .6); color: #02210f; }
+.cz-extra small { font-weight: 900; letter-spacing: .14em; text-transform: uppercase; font-size: .72rem; }
+.cz-extra b { font-family: 'Rajdhani', var(--display, sans-serif); font-size: 2.6rem; line-height: 1; text-transform: uppercase; }
+.cz-extra span { font-weight: 900; font-size: 1.1rem; }
+.cz-boxshow { position: fixed; inset: 0; z-index: 990; display: grid; place-items: center; padding: 20px; background: radial-gradient(circle, rgba(255, 176, 32, .35), rgba(5, 2, 14, .92) 60%); animation: cz-in .25s ease-out; }
+.cz-boxshow-in { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; color: #fff; animation: sim-in .4s cubic-bezier(.2, 1.4, .4, 1); }
+.cz-boxshow-in > small { font-weight: 900; letter-spacing: .16em; text-transform: uppercase; color: #ffd24a; }
+.cz-boxshow-in > svg { color: #ffd24a; filter: drop-shadow(0 0 20px rgba(255, 210, 74, .8)); }
+.cz-boxshow-in b { font-family: 'Rajdhani', var(--display, sans-serif); font-size: 2.2rem; text-transform: uppercase; }
+.cz-boxshow-in .cz-cta { min-width: 200px; margin-top: 8px; }
+.cz-sc-card { margin: 8px auto 0; max-width: 360px; padding: 14px; border-radius: 22px; background: linear-gradient(160deg, #1d7a4a, #0c3b28); border: 2px solid #39ff88; box-shadow: 0 0 24px rgba(57, 255, 136, .3); }
+.cz-sc-card.win { animation: cz-breathe 1s ease-in-out 3; box-shadow: 0 0 40px rgba(255, 210, 74, .7); border-color: #ffd24a; }
+.cz-sc-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; color: #fff; }
+.cz-sc-head b { font-family: 'Rajdhani', var(--display, sans-serif); font-size: 1.3rem; text-transform: uppercase; letter-spacing: .04em; }
+.cz-sc-head small { color: #b9ffd6; font-weight: 700; }
+.cz-sc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.cz-sc-cell { aspect-ratio: 1; border: 0; border-radius: 14px; padding: 0; display: grid; place-items: center; cursor: pointer; background: rgba(0, 0, 0, .3); color: #fff; overflow: hidden; position: relative; }
+.cz-sc-cell:disabled { cursor: default; }
+.cz-sc-foil { position: absolute; inset: 0; background: repeating-linear-gradient(45deg, #c9ccd6 0 6px, #aeb2bf 6px 12px); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .4); }
+.cz-sc-cell:not(:disabled):active .cz-sc-foil { filter: brightness(1.2); }
+.cz-sc-cell.open { animation: sim-in .25s ease-out; }
+.cz-sc-cell.open svg { color: #ffd24a; filter: drop-shadow(0 0 8px rgba(255, 210, 74, .6)); }
+.cz-sc-cell.hit { background: linear-gradient(160deg, #ffd24a, #ff9f1c); }
+.cz-sc-cell.hit svg { color: #2a1a00; filter: none; }
+.cz-sc-pay { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; margin-top: 10px; color: #b9ffd6; font-size: .74rem; font-weight: 800; }
+.cz-sc-pay span { display: inline-flex; align-items: center; gap: 3px; }

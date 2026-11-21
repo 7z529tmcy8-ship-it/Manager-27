@@ -53,8 +53,17 @@ export function bet(amount: number): boolean {
 }
 
 /** Runde abrechnen: Gewinn gutschreiben, Ton, Vibration, bei Big Win die große Show. */
+/** Drops & Glücks-Serie: Einblendung im Casino (CasinoPage hört zu). */
+export type CasinoExtra = { kind: 'drop'; amount: number; mult: number } | { kind: 'streak'; n: number; bonus: number };
+export const onCasinoExtra = (f: (e: CasinoExtra) => void) => { const h = (e: Event) => f((e as CustomEvent<CasinoExtra>).detail); window.addEventListener('cz-extra', h); return () => window.removeEventListener('cz-extra', h); };
+const emitExtra = (e: CasinoExtra) => window.dispatchEvent(new CustomEvent('cz-extra', { detail: e }));
+
 export function settle(ev: PlayEvent, opts: { quiet?: boolean } = {}): void {
+  const before = casinoOf(getClubState());
   let club = payout(getClubState(), ev);
+  const after = casinoOf(club);
+  if (after.lastDrop && after.lastDrop.at !== before.lastDrop?.at) { emitExtra({ kind: 'drop', amount: after.lastDrop.amount, mult: after.lastDrop.mult }); sfx('jackpot'); buzz([60, 40, 60, 40, 120]); shake(true); }
+  else if (after.lastStreak && after.lastStreak.at !== before.lastStreak?.at) { emitExtra({ kind: 'streak', n: after.lastStreak.n, bonus: after.lastStreak.bonus }); sfx('fanfare'); }
   let win = ev.win;
   let card: CollectCard | undefined;
   if (ev.jackpot) {

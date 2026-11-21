@@ -29,6 +29,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-21-casino-4',
+    date: '21.11.2026',
+    title: 'Casino 4.0: Drops, Mystery-Box, Glücks-Serie, Happy Hour und Rubbellos',
+    items: [
+      'Drops & Wins: In jeder Runde mit Einsatz kann aus dem Nichts ein Bonus fallen – 5× bis 100× deines Einsatzes, mit großer Einblendung.',
+      'Glücks-Serie: 3, 5, 7 und 10 Gewinne in Folge bringen Extra-Chips (bis 3.000).',
+      'Mystery-Box: Alle 30 Runden gibt es eine – Chips, 10 Gratis-Drehs oder eine Karte bis zur Ikone. Die Chancen stehen im Casino.',
+      'Happy Hour: 12–13 Uhr und 19–21 Uhr zählen Einsätze doppelt für Level und VIP. Ein Countdown zeigt, wann es losgeht.',
+      'Neues Spiel – Rubbellos: Los kaufen, 9 Felder freirubbeln, 3 gleiche Symbole gewinnen bis 500×.',
+    ],
+  },
+  {
     id: '2026-11-21-casino-3',
     date: '21.11.2026',
     title: 'Casino 3.0: Level, Cashback, Gratis-Drehs und Wochen-Turnier',
