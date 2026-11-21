@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-21-karten-feinschliff',
+    date: '21.11.2026',
+    title: 'Karten: Namen passen, Fotos sitzen',
+    items: [
+      'Keine abgeschnittenen Namen mehr: Lange Namen wie Schlotterbeck oder Zaïre-Emery werden automatisch etwas kleiner geschrieben und passen immer ganz auf die Karte – geprüft an allen 872 Karten.',
+      'Eigene Fotos sitzen jetzt mittig im Bildfeld (wie das Trikot) und laufen weich in die Karte aus – auf großen und kleinen Karten und auf dem Spielfeld.',
+      'Hochformat-Fotos werden beim Hochladen eher oben zugeschnitten, damit der Kopf nicht abgeschnitten wird. Schon gespeicherte Bilder bleiben, wie sie sind – einfach neu hochladen, falls nötig.',
+    ],
+  },
+  {
     id: '2026-11-21-karriere-reiter',
     date: '21.11.2026',
     title: 'Karriere ohne Dauer-Scrollen + 29 neue Talente',

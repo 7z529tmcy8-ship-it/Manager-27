@@ -5098,3 +5098,20 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .cs-tabs button.on { background: rgba(25, 240, 255, .14); color: #fff; box-shadow: inset 0 0 0 1px rgba(25, 240, 255, .45); }
 .cs-tabs button.on svg { color: #19f0ff; }
 .cs-tab-dot { position: absolute; top: 6px; right: calc(50% - 18px); width: 8px; height: 8px; border-radius: 50%; background: #ff2fd1; box-shadow: 0 0 8px #ff2fd1; }
+
+/* ---- Karten: Namen passen immer, eigene Fotos sitzen mittig ---- */
+.ucard { container-type: inline-size; --nf-max: .95rem; }
+.ucard.sm { --nf-max: .76rem; }
+.ucard.xs { --nf-max: .56rem; }
+:root .ucard:not(.lg) .ucard-name { white-space: nowrap; overflow: visible; text-overflow: clip; max-width: none; letter-spacing: 0;
+  font-size: min(var(--nf-max), calc(100cqi * 1.4 / var(--nl, 8))); }
+/* Foto: im selben Bildfeld wie das Trikot, waagerecht mittig, weich ausgeblendet */
+:root .ucard .ucard-art.photo { position: relative; inset: auto; z-index: 0; display: block; width: 68%; height: auto; aspect-ratio: 1; margin: 6% auto 0 !important;
+  overflow: hidden; border-radius: 0 !important; background: none !important; box-shadow: none !important;
+  -webkit-mask-image: radial-gradient(ellipse 50% 54% at 50% 46%, #000 70%, transparent 100%); mask-image: radial-gradient(ellipse 50% 54% at 50% 46%, #000 70%, transparent 100%); }
+:root .ucard .ucard-art.photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; display: block; }
+:root .ucard.sm .ucard-art.photo { width: 72%; margin-top: 7% !important; }
+:root .ucard.xs .ucard-art.photo { width: 70%; margin-top: 9% !important; }
+:root .ucard:has(.ucard-art.photo) .ucard-badge { margin-top: 4px; }
+:root .ucard.sm:has(.ucard-art.photo) .ucard-name { margin-top: auto; }
+:root .ucard:has(.ucard-art.photo) .ucard-top { text-shadow: 0 1px 3px rgba(0, 0, 0, .35); }

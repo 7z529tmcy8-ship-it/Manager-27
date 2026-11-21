@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useCardArt } from '../cardArt';
 import { useEffect, useRef } from 'react';
 import { getSettings, motionReduced } from '../settings';
@@ -91,6 +92,7 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick,
       ref={tiltRef as never}
       className={`ucard v-${card.variant} ${card.era ? `era-${card.era}` : ''} ${size} ${size === 'lg' || size === 'md' ? 'tilt' : ''} ${emblem ? 'special' : ''} ${card.boost ? 'evo' : ''} ${shine ? 'shine' : ''} ${onClick ? 'clickable' : ''}`}
       aria-label={mask === 'ovr' ? `${card.name}, ${card.position}` : `${card.name}, ${card.ovr} ${card.position}`}
+      style={{ '--nl': Math.max(5, (big ? card.name : lastName).length) } as React.CSSProperties}
       onClick={onClick}
     >
       {emblem && <span className="ucard-foil" aria-hidden="true" />}

@@ -65,7 +65,9 @@ export function shrinkImage(file: File, size = 320): Promise<string> {
       c.width = size; c.height = size;
       const s = Math.min(img.width, img.height);
       const ctx = c.getContext('2d')!;
-      ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
+      // Hochformat (typisch für Fotos von Personen): eher oben ausschneiden, damit der Kopf nicht abgeschnitten wird.
+      const y = img.height > img.width ? (img.height - s) * 0.18 : (img.height - s) / 2;
+      ctx.drawImage(img, (img.width - s) / 2, y, s, s, 0, 0, size, size);
       URL.revokeObjectURL(url);
       res(c.toDataURL('image/jpeg', 0.82));
     };
