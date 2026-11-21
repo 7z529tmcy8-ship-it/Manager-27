@@ -88,7 +88,8 @@ export const bigWinOf = (bet: number, win: number): BigWin => {
 /** Einsatz abbuchen (geht in VIP-Punkte und zu 1 % in den Jackpot). null = nicht genug Chips oder über dem Limit. */
 export function placeBet(club: ClubState, bet: number): ClubState | null {
   const c = casinoOf(club);
-  if (!Number.isFinite(bet) || bet <= 0 || bet > c.chips || bet > maxBet(club)) return null;
+  // All-in: das ganze Guthaben geht immer – auch über dem VIP-Limit.
+  if (!Number.isFinite(bet) || bet <= 0 || bet > c.chips || (bet > maxBet(club) && bet !== c.chips)) return null;
   return withCasino(club, (x) => {
     const vipPts = x.vipPts + bet;
     // Level-Aufstieg: Belohnung sofort gutschreiben (die Oberfläche feiert es).

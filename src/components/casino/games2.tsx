@@ -31,10 +31,13 @@ export function Roulette({ onClose }: { onClose: () => void }) {
   const [last, setLast] = useState<number[]>([]);
   const [res, setRes] = useState<{ n: number; win: number } | null>(null);
   const total = Object.values(bets).reduce((a, b) => a + b, 0);
-  const cap = Math.min(maxBet(club), casinoOf(club).chips);
+  const chipsNow = casinoOf(club).chips;
+  const cap = Math.min(maxBet(club), chipsNow);
   const add = (b: RouletteBet) => {
     if (spinning) return;
-    if (total + chip > cap) { sfx('error'); return; }
+    // All-in: das ganze Guthaben auf ein Feld darf immer – sonst gilt das VIP-Limit.
+    const allIn = total === 0 && chip === chipsNow;
+    if (!allIn && total + chip > cap) { sfx('error'); return; }
     setRes(null);
     setBets((x) => ({ ...x, [b]: (x[b] ?? 0) + chip }));
     sfx('tap');

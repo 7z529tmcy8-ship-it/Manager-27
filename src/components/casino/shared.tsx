@@ -47,7 +47,8 @@ export function bet(amount: number): boolean {
   const next = placeBet(club, amount);
   if (!next) { sfx('error'); if (casinoOf(club).chips < amount) openBank(); return false; }
   setClubState(next);
-  sfx('spend');
+  // All-in: alles auf eine Karte – mit Wumms.
+  if (amount === casinoOf(club).chips && amount >= 100) { sfx('boom'); buzz([50, 40, 50]); shake(); } else sfx('spend');
   return true;
 }
 
@@ -109,7 +110,16 @@ const STEPS = [10, 20, 50, 100, 200, 500, 1_000, 2_000, 5_000, 10_000, 20_000, 5
 export function BetPicker({ value, onChange, disabled, label = 'Einsatz' }: { value: number; onChange: (n: number) => void; disabled?: boolean; label?: string }) {
   const club = useClub();
   const cap = Math.min(maxBet(club), casinoOf(club).chips);
-  const set = (n: number) => onChange(Math.max(10, Math.min(Math.max(10, cap), Math.round(n))));
+  const chips = casinoOf(club).chips;
+  const [allIn, setAllIn] = useState(false);
+  const set = (n: number) => { setAllIn(false); onChange(Math.max(10, Math.min(Math.max(10, cap), Math.round(n)))); };
+  // All-in bleibt aktiv: der Einsatz folgt immer dem ganzen Guthaben (nach Gewinn oder Verlust).
+  useEffect(() => { if (allIn && !disabled && chips > 0 && value !== chips) onChange(chips); }, [allIn, chips, disabled]); // eslint-disable-line react-hooks/exhaustive-deps
+  const goAllIn = () => {
+    if (allIn) { setAllIn(false); onChange(Math.max(10, Math.min(cap, value))); return; }
+    if (chips <= 0) { openBank(); return; }
+    setAllIn(true); onChange(chips); sfx('boom'); buzz([40, 30, 80]);
+  };
   const step = (dir: 1 | -1) => {
     const i = STEPS.findIndex((s) => s >= value);
     const next = dir > 0 ? STEPS[Math.min(STEPS.length - 1, (STEPS[i] === value ? i : i - 1) + 1)] : STEPS[Math.max(0, (i < 0 ? STEPS.length : i) - 1)];
@@ -126,6 +136,9 @@ export function BetPicker({ value, onChange, disabled, label = 'Einsatz' }: { va
         <button disabled={disabled} onClick={() => set(value * 2)} aria-label="Verdoppeln">2×</button>
         <button disabled={disabled} onClick={() => set(cap)} aria-label="Maximum">Max</button>
       </div>
+      <button className={`cz-allin ${allIn ? 'on' : ''}`} disabled={disabled} onClick={goAllIn} aria-pressed={allIn}>
+        <Icon name="fire" size={18} />{allIn ? <>All-in aktiv · {fmt(chips)} <small>tippen zum Beenden</small></> : <>All-in · {fmt(chips)}</>}
+      </button>
     </div>
   );
 }

@@ -5162,3 +5162,11 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .cz-lvup small { font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-size: .72rem; }
 .cz-lvup b { font-family: 'Rajdhani', var(--display, sans-serif); font-size: 2.4rem; line-height: 1; }
 .cz-lvup span { font-weight: 900; color: #ffe58a; }
+/* All-in-Knopf */
+.cz-allin { width: 100%; margin-top: 8px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 14px; border: 1px solid rgba(255, 77, 109, .6); cursor: pointer;
+  background: linear-gradient(135deg, rgba(255, 77, 109, .18), rgba(255, 63, 180, .14)); color: #ff9db0; font: inherit; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; font-size: .9rem; transition: transform .12s ease-out, background .15s; }
+.cz-allin:active { transform: scale(.97); }
+.cz-allin:disabled { opacity: .5; cursor: default; }
+.cz-allin small { font-size: .62rem; font-weight: 800; opacity: .85; text-transform: none; letter-spacing: 0; }
+.cz-allin.on { color: #fff; border-color: #ff4d6d; background: linear-gradient(135deg, #ff4d6d, #ff3fb4); box-shadow: 0 0 22px rgba(255, 77, 109, .6); animation: cz-breathe 1.2s ease-in-out infinite; }
+:root.reduce-motion .cz-allin.on { animation: none; }

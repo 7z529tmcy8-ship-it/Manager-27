@@ -38,6 +38,7 @@ export const UPDATES: UpdateNote[] = [
       'Cashback wie in echten Online-Casinos: Ein Teil deines Verlusts von gestern kommt heute zurück – 5 % bei Bronze bis 15 % bei Diamant.',
       'Jeden Tag 10 Gratis-Drehungen an den Stadion-Slots, der Einsatz wächst mit deiner VIP-Stufe.',
       'Wochen-Turnier: Wer diese Woche den höchsten Gewinn-Multiplikator schafft (ab 50 Einsatz), gewinnt bis zu 25.000 Chips. Rangliste gegen Computer-Gegner, Preis in der Folgewoche abholen.',
+      'All-in in jedem Spiel: Ein Tipp setzt dein ganzes Guthaben – auch über dein VIP-Limit hinaus. Solange All-in aktiv ist, folgt der Einsatz immer deinem ganzen Guthaben. Nochmal tippen beendet es.',
       'Weiter nur Spielgeld, und die Gewinnchancen jedes Spiels stehen wie gehabt unter dem Info-Knopf.',
     ],
   },

@@ -180,3 +180,11 @@ it('Wochen-Turnier: bester Multiplikator zählt, Preis in der Folgewoche einmal 
   expect(r.prize).toBe(25_000);
   expect(claimTour(r.club, next).prize).toBe(0);
 });
+
+it('All-in: das ganze Guthaben geht immer, auch über dem VIP-Limit – mehr nicht', () => {
+  const c: ClubState = { ...freshClub(), casino: { ...casinoOf(freshClub()), chips: 3_000, vipPts: 0, levelPaid: 99 } };
+  expect(placeBet(c, 2_000)).toBeNull(); // Bronze: max. 500
+  const all = placeBet(c, 3_000)!;
+  expect(casinoOf(all).chips).toBe(0);
+  expect(placeBet(c, 3_001)).toBeNull();
+});
