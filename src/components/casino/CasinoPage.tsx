@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../../clubStore';
-import { CASHOUT_MIN, CASHOUT_RATE, CHIP_PACKS, REFILL, SHOP, VIP, buy, buyChips, cashOutChips, casinoOf, claimDaily, claimQuest, claimRefill, dailyBonus, ownsExtra, questList, refillState, vipLevel } from '../../game/casino';
+import { CASHOUT_MIN, CASHOUT_RATE, CHIP_PACKS, REFILL, SHOP, VIP, buy, buyChips, cashOutChips, casinoOf, claimDaily, claimQuest, claimRefill, dailyBonus, casinoLevel, levelReward, cashback, claimCashback, giftSpins, tourBoard, tourReward, claimTour, weekEnds, TOUR_MIN_BET, TOUR_PRIZES, ownsExtra, questList, refillState, vipLevel } from '../../game/casino';
 import { betsOf, resolveCareerBets } from '../../game/bets';
 import { listCareers } from '../../game/storage';
 import Icon from '../Icon';
@@ -57,6 +57,29 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
   const round = betsOf(club).round;
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 2400); return () => clearTimeout(t); }, [toast]);
   const quests = questList(club);
+  const lvl = casinoLevel(c.vipPts);
+  const cb = cashback(club);
+  const gift = giftSpins(club);
+  const board = tourBoard(club);
+  const tourWin = tourReward(club);
+  // Level-Aufstieg feiern (Belohnung ist beim Einsatz schon gutgeschrieben)
+  const lastLvl = useRef(lvl.level);
+  const [lvUp, setLvUp] = useState<number | null>(null);
+  useEffect(() => {
+    if (lvl.level > lastLvl.current) {
+      setLvUp(lvl.level); sfx('levelUp'); buzz([30, 40, 30, 40, 80]);
+      const t = setTimeout(() => setLvUp(null), 2600);
+      lastLvl.current = lvl.level;
+      return () => clearTimeout(t);
+    }
+    lastLvl.current = lvl.level;
+  }, [lvl.level]);
+  // Im Spiel: Navigationsleiste ausblenden, damit sie keine Knöpfe verdeckt
+  useEffect(() => { document.documentElement.classList.toggle('in-casino-game', !!game); return () => document.documentElement.classList.remove('in-casino-game'); }, [game]);
+  const claimCb = () => { const r = claimCashback(getClubState()); if (!r.amount) return; setClubState(r.club); sfx('cash'); buzz([20, 40, 20]); setToast(`Cashback: +${fmt(r.amount)} Chips`); };
+  const claimT = () => { const r = claimTour(getClubState()); if (!r.prize) return; setClubState(r.club); sfx('fanfare'); setToast(`Turnier Platz ${r.rank}: +${fmt(r.prize)} Chips`); };
+  const left = Math.max(0, weekEnds() - Date.now());
+  const leftTxt = left > 86_400_000 ? `${Math.floor(left / 86_400_000)} T ${Math.floor((left % 86_400_000) / 3_600_000)} Std` : `${Math.floor(left / 3_600_000)} Std ${Math.floor((left % 3_600_000) / 60_000)} Min`;
   const Game = game ? Games[game] : null;
   // Casino scrollt mit der Seite (feste Ebenen mit eigenem Scrollbereich scrollen im iPad-Vollbild nicht).
   const hubY = useRef(0);
@@ -85,6 +108,22 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
           <h1 className="cz-logo">Neon<span>Casino</span></h1>
           <button className="cz-chips big" onClick={openBank} aria-label="Chip-Kasse öffnen"><Icon name="coin" size={18} />{fmt(chips)}<Icon name="plus" size={16} /></button>
         </header>
+
+        <section className="cz-level" aria-label="Casino-Level">
+          <span className="cz-level-badge"><small>Lv</small>{lvl.level}</span>
+          <span className="cz-level-main">
+            <span className="cz-bar"><i style={{ width: `${lvl.pct}%` }} /></span>
+            <small>Noch {fmt(lvl.to - c.vipPts)} Einsatz bis Level {lvl.level + 1} · Belohnung <b>+{fmt(levelReward(lvl.level + 1))}</b></small>
+          </span>
+        </section>
+
+        {(cb.ready || tourWin || gift.left > 0) && (
+          <section className="cz-bonus" aria-label="Bonus-Center">
+            {cb.ready && <button className="cz-bonus-card b-cb" onClick={claimCb}><Icon name="rewind" size={24} /><b>+{fmt(cb.amount)}</b><small>Cashback {Math.round(cb.pct * 100)} % von gestern</small></button>}
+            {tourWin && <button className="cz-bonus-card b-tour" onClick={claimT}><Icon name="trophy" size={24} /><b>+{fmt(tourWin.prize)}</b><small>Turnier · Platz {tourWin.rank}</small></button>}
+            {gift.left > 0 && <button className="cz-bonus-card b-gift" onClick={() => { sfx('tap'); openGame('slots'); }}><Icon name="star" size={24} /><b>{gift.left} Gratis-Drehs</b><small>Slots · je {fmt(gift.bet)} Einsatz</small></button>}
+          </section>
+        )}
 
         <section className="cz-jackpot" aria-label="Jackpot">
           <small>Progressiver Jackpot</small>
@@ -134,6 +173,17 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
           ))}
         </div>
 
+        <section className="cz-tour" aria-label="Wochen-Turnier">
+          <header><b><Icon name="trophy" size={20} /> Wochen-Turnier</b><small>endet in {leftTxt}</small></header>
+          <p>Höchster Gewinn-Multiplikator der Woche (ab {TOUR_MIN_BET} Einsatz) – gegen Computer-Gegner. Platz 1: {fmt(TOUR_PRIZES[0])} Chips.</p>
+          <ol>
+            {board.rows.slice(0, 5).map((r, i) => (
+              <li key={r.name} className={r.me ? 'me' : ''}><i>{i + 1}</i><span>{r.name}</span><b>{r.best ? `${r.best.toFixed(1).replace('.', ',')}×` : '–'}</b><em>{fmt(TOUR_PRIZES[i])}</em></li>
+            ))}
+            {board.rank > 5 && <li className="me"><i>{board.rank}</i><span>Du</span><b>{board.rows[board.rank - 1].best ? `${board.rows[board.rank - 1].best.toFixed(1).replace('.', ',')}×` : '–'}</b><em>{board.prize ? fmt(board.prize) : '–'}</em></li>}
+          </ol>
+        </section>
+
         <h2 className="cz-h">Tagesaufgaben</h2>
         <ul className="cz-quests">
           {quests.map(({ quest, have, claimed }) => (
@@ -159,6 +209,7 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
       {Game && <Suspense fallback={<div className="cz-game cz-loading" />}><Game onClose={closeGame} /></Suspense>}
       {bank && <Bank onClose={() => setBank(false)} onDone={setToast} />}
       {win && <BigWinShow w={win} onClose={() => setWin(null)} />}
+      {lvUp && <div className="cz-lvup" role="status"><small>Level-Aufstieg</small><b>Level {lvUp}</b><span>+{fmt(levelReward(lvUp))} Chips</span></div>}
     </div>
   );
 }

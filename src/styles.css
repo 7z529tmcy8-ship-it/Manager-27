@@ -5115,3 +5115,50 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 :root .ucard:has(.ucard-art.photo) .ucard-badge { margin-top: 4px; }
 :root .ucard.sm:has(.ucard-art.photo) .ucard-name { margin-top: auto; }
 :root .ucard:has(.ucard-art.photo) .ucard-top { text-shadow: 0 1px 3px rgba(0, 0, 0, .35); }
+
+/* ---- Casino 3: Level, Bonus-Center, Turnier, Navigation ---- */
+.navbar.nav6 .navbar-label { font-size: .66rem; }
+.navbar-ic { position: relative; }
+.navbar-dot { position: absolute; top: -3px; right: -6px; width: 9px; height: 9px; border-radius: 50%; background: #ff2fd1; box-shadow: 0 0 8px #ff2fd1; animation: ch3-pulse 1.6s ease-in-out infinite; }
+:root.in-casino .cz-scroll { padding-bottom: calc(var(--nav-h, 62px) + env(safe-area-inset-bottom) + 18px); }
+:root.in-casino-game .navbar { display: none !important; }
+.cz-level { display: flex; align-items: center; gap: 12px; margin: 12px 0 0; padding: 10px 12px; border-radius: 18px; background: linear-gradient(90deg, rgba(139, 92, 255, .28), rgba(63, 240, 255, .14)); border: 1px solid rgba(139, 92, 255, .5); }
+.cz-level-badge { flex: none; width: 54px; height: 54px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; font-family: 'Rajdhani', var(--display, sans-serif); font-weight: 700; font-size: 1.6rem; color: #fff;
+  background: linear-gradient(160deg, #8b5cff, #ff3fb4); box-shadow: 0 0 18px rgba(255, 63, 180, .45), inset 0 2px 0 rgba(255, 255, 255, .35); }
+.cz-level-badge small { font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; opacity: .85; }
+.cz-level-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.cz-level-main .cz-bar { height: 10px; }
+.cz-level-main .cz-bar i { background: linear-gradient(90deg, #ff3fb4, #ffd24a, #3ff0ff); background-size: 200% 100%; animation: cz-holo 3s linear infinite; }
+.cz-level-main small { font-size: .76rem; color: #d8ccff; }
+.cz-level-main small b { color: #ffd24a; }
+.cz-bonus { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 12px 0 0; }
+.cz-bonus-card { position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px; border-radius: 18px; border: 0; color: #fff; font: inherit; text-align: left; cursor: pointer; animation: cz-breathe 2s ease-in-out infinite; transition: transform .12s ease-out; }
+@keyframes cz-breathe { 50% { transform: scale(1.03); filter: brightness(1.12); } }
+.cz-bonus-card:active { transform: scale(.96); }
+.cz-bonus-card b { font-family: 'Rajdhani', var(--display, sans-serif); font-size: 1.35rem; line-height: 1.1; }
+.cz-bonus-card small { font-size: .72rem; opacity: .9; }
+.cz-bonus-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, .35) 50%, transparent 70%); transform: translateX(-100%); animation: cz-shine 2.4s ease-in-out infinite; }
+@keyframes cz-shine { 60%, 100% { transform: translateX(100%); } }
+:root.reduce-motion .cz-bonus-card, :root.reduce-motion .cz-bonus-card::after { animation: none; }
+.b-daily { background: linear-gradient(135deg, #16a34a, #0ea5e9); }
+.b-cb { background: linear-gradient(135deg, #0ea5e9, #8b5cff); }
+.b-tour { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+.b-gift { background: linear-gradient(135deg, #ff3fb4, #8b5cff); }
+.cz-tour { margin: 18px 0 0; padding: 14px; border-radius: 20px; background: linear-gradient(180deg, rgba(255, 210, 74, .14), rgba(255, 63, 180, .08)); border: 1px solid rgba(255, 210, 74, .45); }
+.cz-tour header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.cz-tour header b { display: inline-flex; align-items: center; gap: 6px; font-family: 'Rajdhani', var(--display, sans-serif); font-size: 1.25rem; text-transform: uppercase; color: #ffd24a; }
+.cz-tour header small { color: #ffd9a0; font-weight: 800; font-size: .78rem; }
+.cz-tour p { margin: 6px 0 10px; font-size: .78rem; color: #d8ccff; }
+.cz-tour ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.cz-tour li { display: grid; grid-template-columns: 26px 1fr auto 64px; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 12px; background: rgba(255, 255, 255, .05); font-size: .86rem; }
+.cz-tour li i { font-style: normal; font-weight: 900; color: #ffd24a; text-align: center; }
+.cz-tour li b { font-variant-numeric: tabular-nums; }
+.cz-tour li em { font-style: normal; font-size: .74rem; color: #ffd9a0; text-align: right; font-variant-numeric: tabular-nums; }
+.cz-tour li.me { background: linear-gradient(90deg, rgba(63, 240, 255, .25), rgba(139, 92, 255, .2)); box-shadow: inset 0 0 0 1px rgba(63, 240, 255, .6); }
+.cz-cta.gift { background: linear-gradient(135deg, #ff3fb4, #8b5cff) !important; display: flex; flex-direction: column; align-items: center; line-height: 1.05; }
+.cz-cta.gift small { font-size: .68rem; font-weight: 800; opacity: .85; }
+.cz-lvup { position: fixed; left: 50%; top: 22%; z-index: 990; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; padding: 16px 28px; border-radius: 22px; pointer-events: none;
+  background: linear-gradient(160deg, #8b5cff, #ff3fb4); box-shadow: 0 0 40px rgba(255, 63, 180, .6), 0 20px 40px rgba(0, 0, 0, .5); color: #fff; animation: sim-pop 2.6s cubic-bezier(.2, 1.4, .4, 1) forwards; }
+.cz-lvup small { font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-size: .72rem; }
+.cz-lvup b { font-family: 'Rajdhani', var(--display, sans-serif); font-size: 2.4rem; line-height: 1; }
+.cz-lvup span { font-weight: 900; color: #ffe58a; }

@@ -2,6 +2,7 @@ import { expect, it } from 'vitest';
 import { freshClub, type ClubState } from '../club';
 import {
   JACKPOT_SEED, PLINKO, PLINKO_P, RTP, SHOP, START_CHIPS, VIP, bigWinOf, bjReturn, buy, casinoOf, claimDaily, claimQuest, crashPoint, dailyBonus,
+  levelReward, casinoLevel, cashback, claimCashback, giftSpins, takeGiftSpin, tourBoard, tourReward, claimTour, weekId,
   evalGrid, handValue, minesMult, payout, placeBet, placeMines, questList, rouletteReturn, takeJackpot, vipLevel, type BjCard, type Sym,
 } from '../casino';
 
@@ -15,7 +16,7 @@ it('Start: 1.000 Chips, Einsatz-Limit nach VIP-Stufe, Jackpot wächst mit', () =
   c = { ...c, casino: { ...casinoOf(c), chips: 10_000 } };
   expect(placeBet(c, 600)).toBeNull(); // Bronze: max. 500
   const b = placeBet(c, 500)!;
-  expect(casinoOf(b).chips).toBe(9_500);
+  expect(casinoOf(b).chips).toBe(9_500 + levelReward(1)); // 500 Einsatz = Casino-Level 1 → Belohnung
   expect(casinoOf(b).vipPts).toBe(500);
   expect(casinoOf(b).jackpot).toBe(JACKPOT_SEED + 5);
   expect(vipLevel(VIP[2].min)).toBe(2);
@@ -133,4 +134,49 @@ it('Plinko: alle Reihen/Risiken zahlen inkl. Goldball 94–98 % zurück, Rand is
   expect(d.slot).toBe(16);
   expect(plinkoWin(100, 3, true)).toBe(600);
   expect(plinkoWin(100_000, 10_000, true)).toBe(PLINKO_MAX_WIN);
+});
+
+it('Casino-Level: Fortschritt mit jedem Einsatz, Belohnung bei jedem Aufstieg genau einmal', () => {
+  expect(casinoLevel(0).level).toBe(0);
+  expect(casinoLevel(400).level).toBe(1);
+  let c: ClubState = { ...freshClub(), casino: { ...casinoOf(freshClub()), chips: 100_000 } };
+  for (let i = 0; i < 10; i++) c = placeBet(c, 500)!;
+  const lv = casinoLevel(5_000).level;
+  let sum = 0; for (let l = 1; l <= lv; l++) sum += levelReward(l);
+  expect(casinoOf(c).chips).toBe(100_000 - 5_000 + sum);
+  expect(casinoOf(c).levelPaid).toBe(lv);
+});
+
+it('Cashback: Teil des Verlusts von gestern kommt heute zurück, nur einmal', () => {
+  let c: ClubState = { ...freshClub(), casino: { ...casinoOf(freshClub()), chips: 10_000, levelPaid: 99 } };
+  const y = day('2026-11-10'), t = day('2026-11-11');
+  c = placeBet(c, 400)!; // ohne Zeit: heute – deshalb direkt Zustand setzen
+  c = { ...c, casino: { ...casinoOf(c), cb: { day: '2026-11-10', wagered: 2_000, won: 500 }, cbOpen: undefined } };
+  expect(cashback(c, y).ready).toBe(false); // am selben Tag noch nichts
+  const cb = cashback(c, t);
+  expect(cb.amount).toBe(Math.floor(1_500 * cb.pct));
+  const r = claimCashback(c, t);
+  expect(r.amount).toBe(cb.amount);
+  expect(cashback(r.club, t).ready).toBe(false);
+});
+
+it('Gratis-Drehungen: 10 pro Tag', () => {
+  let c = freshClub();
+  const now = day('2026-11-11');
+  expect(giftSpins(c, now).left).toBe(10);
+  for (let i = 0; i < 10; i++) c = takeGiftSpin(c, now)!;
+  expect(takeGiftSpin(c, now)).toBeNull();
+  expect(giftSpins(c, day('2026-11-12')).left).toBe(10);
+});
+
+it('Wochen-Turnier: bester Multiplikator zählt, Preis in der Folgewoche einmal abholbar', () => {
+  const mon = day('2026-11-09'), thu = day('2026-11-12'), next = day('2026-11-17');
+  expect(weekId(thu)).toBe('2026-11-09');
+  let c: ClubState = { ...freshClub(), casino: { ...casinoOf(freshClub()), chips: 10_000 } };
+  c = payout(c, { game: 'plinko', bet: 100, win: 99_900 }, mon); // 999×: sicher Platz 1
+  expect(tourBoard(c, thu).rank).toBe(1);
+  expect(tourReward(c, thu)).toBeNull();
+  const r = claimTour(c, next);
+  expect(r.prize).toBe(25_000);
+  expect(claimTour(r.club, next).prize).toBe(0);
 });

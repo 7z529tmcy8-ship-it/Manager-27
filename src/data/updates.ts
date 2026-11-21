@@ -29,6 +29,19 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-21-casino-3',
+    date: '21.11.2026',
+    title: 'Casino 3.0: Level, Cashback, Gratis-Drehs und Wochen-Turnier',
+    items: [
+      'Das Casino ist jetzt in der Leiste unten – von überall einen Tipp entfernt. Ein pinker Punkt zeigt, wenn ein Bonus wartet.',
+      'Casino-Level: Jeder Einsatz füllt den Level-Balken, jeder Aufstieg zahlt sofort Chips aus (jedes 5. Level extra viel).',
+      'Cashback wie in echten Online-Casinos: Ein Teil deines Verlusts von gestern kommt heute zurück – 5 % bei Bronze bis 15 % bei Diamant.',
+      'Jeden Tag 10 Gratis-Drehungen an den Stadion-Slots, der Einsatz wächst mit deiner VIP-Stufe.',
+      'Wochen-Turnier: Wer diese Woche den höchsten Gewinn-Multiplikator schafft (ab 50 Einsatz), gewinnt bis zu 25.000 Chips. Rangliste gegen Computer-Gegner, Preis in der Folgewoche abholen.',
+      'Weiter nur Spielgeld, und die Gewinnchancen jedes Spiels stehen wie gehabt unter dem Info-Knopf.',
+    ],
+  },
+  {
     id: '2026-11-21-karten-feinschliff',
     date: '21.11.2026',
     title: 'Karten: Namen passen, Fotos sitzen',

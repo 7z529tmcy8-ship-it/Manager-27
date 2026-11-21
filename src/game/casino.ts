@@ -27,6 +27,17 @@ export interface CasinoState {
   recent?: { game: GameId; win: number; mult: number }[];
   /** Zeitpunkt des letzten Gratis-Nachschubs (ms). */
   refillAt?: number;
+  /** Höchstes Casino-Level, dessen Belohnung schon ausgezahlt ist. */
+  levelPaid?: number;
+  /** Cashback: Einsatz/Gewinn heute und der offene Anspruch von gestern. */
+  cb?: { day: string; wagered: number; won: number };
+  cbOpen?: { day: string; loss: number };
+  /** Tägliche Gratis-Drehungen an den Slots. */
+  gift?: { day: string; left: number };
+  /** Wochen-Turnier: bester Multiplikator dieser Woche, ausgezahlte Wochen. */
+  tour?: { week: string; best: number; game?: GameId };
+  tourPaid?: string[];
+  tourLast?: { week: string; best: number };
 }
 
 export const START_CHIPS = 1_000;
@@ -78,7 +89,130 @@ export const bigWinOf = (bet: number, win: number): BigWin => {
 export function placeBet(club: ClubState, bet: number): ClubState | null {
   const c = casinoOf(club);
   if (!Number.isFinite(bet) || bet <= 0 || bet > c.chips || bet > maxBet(club)) return null;
-  return withCasino(club, (x) => ({ ...x, chips: x.chips - bet, vipPts: x.vipPts + bet, jackpot: x.jackpot + Math.round(bet * JACKPOT_SHARE) }));
+  return withCasino(club, (x) => {
+    const vipPts = x.vipPts + bet;
+    // Level-Aufstieg: Belohnung sofort gutschreiben (die Oberfläche feiert es).
+    const lvl = casinoLevel(vipPts).level;
+    const paid = x.levelPaid ?? casinoLevel(x.vipPts).level;
+    let reward = 0;
+    for (let l = paid + 1; l <= lvl; l++) reward += levelReward(l);
+    return { ...x, chips: x.chips - bet + reward, vipPts, levelPaid: Math.max(paid, lvl), jackpot: x.jackpot + Math.round(bet * JACKPOT_SHARE), ...cbTrack(x, bet, 0) };
+  });
+}
+
+// ---------- Casino-Level (jede Runde bringt Fortschritt, jedes Level Chips) ----------
+/** Gesamteinsatz, der für Level n nötig ist (wächst langsam an). */
+export const levelNeed = (n: number) => Math.round(400 * Math.pow(n, 1.55));
+export const levelReward = (n: number) => 150 + n * 50 + (n % 5 === 0 ? n * 200 : 0);
+export function casinoLevel(pts: number): { level: number; from: number; to: number; pct: number } {
+  let level = 0;
+  while (pts >= levelNeed(level + 1)) level++;
+  const from = levelNeed(level), to = levelNeed(level + 1);
+  return { level, from, to, pct: Math.min(100, ((pts - from) / (to - from)) * 100) };
+}
+
+// ---------- Cashback: ein Teil des Tagesverlusts kommt am nächsten Tag zurück ----------
+export const CASHBACK = [0.05, 0.07, 0.1, 0.12, 0.15];
+function cbTrack(c: CasinoState, wagered: number, won: number, now = new Date()): Pick<CasinoState, 'cb' | 'cbOpen'> {
+  const today = seasonId(now);
+  if (c.cb && c.cb.day !== today) {
+    const loss = Math.max(0, c.cb.wagered - c.cb.won);
+    const open = c.cb.day === dayBefore(today) && loss > 0 ? { day: c.cb.day, loss } : c.cbOpen?.day === dayBefore(today) ? c.cbOpen : undefined;
+    return { cb: { day: today, wagered, won }, cbOpen: open };
+  }
+  const cb = c.cb ?? { day: today, wagered: 0, won: 0 };
+  return { cb: { day: today, wagered: cb.wagered + wagered, won: cb.won + won }, cbOpen: c.cbOpen };
+}
+export function cashback(club: Pick<ClubState, 'casino'>, now = new Date()): { ready: boolean; amount: number; pct: number; todayLoss: number } {
+  const c = casinoOf(club);
+  const pct = CASHBACK[vipLevel(c.vipPts)];
+  const today = seasonId(now);
+  const open = c.cb && c.cb.day === dayBefore(today) ? { loss: Math.max(0, c.cb.wagered - c.cb.won) } : c.cbOpen?.day === dayBefore(today) ? c.cbOpen : null;
+  const todayLoss = c.cb?.day === today ? Math.max(0, c.cb.wagered - c.cb.won) : 0;
+  const amount = open ? Math.floor(open.loss * pct) : 0;
+  return { ready: amount > 0, amount, pct, todayLoss };
+}
+export function claimCashback(club: ClubState, now = new Date()): { club: ClubState; amount: number } {
+  const cb = cashback(club, now);
+  if (!cb.ready) return { club, amount: 0 };
+  const today = seasonId(now);
+  return { club: withCasino(club, (c) => ({ ...c, chips: c.chips + cb.amount, cbOpen: undefined, cb: c.cb?.day === today ? c.cb : { day: today, wagered: 0, won: 0 } })), amount: cb.amount };
+}
+
+// ---------- Tägliche Gratis-Drehungen (Slots) ----------
+export const GIFT_SPINS = 10;
+export const GIFT_BET = [20, 40, 80, 150, 300];
+export function giftSpins(club: Pick<ClubState, 'casino'>, now = new Date()): { left: number; bet: number } {
+  const c = casinoOf(club);
+  const left = c.gift?.day === seasonId(now) ? c.gift.left : GIFT_SPINS;
+  return { left, bet: GIFT_BET[vipLevel(c.vipPts)] };
+}
+export function takeGiftSpin(club: ClubState, now = new Date()): ClubState | null {
+  const g = giftSpins(club, now);
+  if (g.left <= 0) return null;
+  return withCasino(club, (c) => ({ ...c, gift: { day: seasonId(now), left: g.left - 1 } }));
+}
+
+// ---------- Wochen-Turnier: höchster Multiplikator gegen Computer-Gegner ----------
+export const TOUR_MIN_BET = 50;
+export const TOUR_PRIZES = [25_000, 12_000, 6_000, 3_000, 2_000, 1_500, 1_200, 1_000, 800, 600];
+const BOT_NAMES = ['NeonKönig', 'Plinko_Paul', 'GoldGabi', 'CrashKid', 'Tor-Toni', 'JackpotJule', 'SlotSven', 'LuckyLena', 'MinenMax', 'RouletteRia', 'KombiKarl', 'FlutlichtFlo'];
+/** Woche als „JJJJ-Wnn“ (Montag bis Sonntag). */
+export function weekId(now = new Date()): string {
+  const d = new Date(now); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+export function weekEnds(now = new Date()): number {
+  const d = new Date(now); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + (7 - ((d.getDay() + 6) % 7)));
+  return d.getTime();
+}
+function seeded(seed: string): () => number {
+  let h = 2166136261; for (const ch of seed) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  return () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; };
+}
+/** Computer-Gegner: feste Zielwerte je Woche, die über die Woche anwachsen. */
+export function tourBots(week: string, now = new Date()): { name: string; best: number }[] {
+  const r = seeded(week);
+  const start = new Date(`${week}T00:00:00`).getTime();
+  const progress = Math.max(0.15, Math.min(1, (now.getTime() - start) / (7 * 86_400_000)));
+  return BOT_NAMES.slice(0, 9).map((name, i) => {
+    const target = Math.round((8 + Math.pow(r(), 1.6) * 420 / (1 + i * 0.35)) * 10) / 10;
+    return { name, best: Math.round(target * (0.35 + 0.65 * progress) * 10) / 10 };
+  });
+}
+export function tourBoard(club: Pick<ClubState, 'casino'>, now = new Date()): { rows: { name: string; best: number; me?: boolean }[]; rank: number; prize: number } {
+  const c = casinoOf(club);
+  const week = weekId(now);
+  const mine = c.tour?.week === week ? c.tour.best : 0;
+  const rows: { name: string; best: number; me?: boolean }[] = [...tourBots(week, now), { name: 'Du', best: mine, me: true }].sort((a, b) => b.best - a.best);
+  const rank = rows.findIndex((x) => x.me) + 1;
+  return { rows, rank, prize: mine > 0 ? TOUR_PRIZES[rank - 1] ?? 0 : 0 };
+}
+/** Preis der letzten (abgeschlossenen) Woche, falls noch nicht abgeholt. */
+export function tourReward(club: Pick<ClubState, 'casino'>, now = new Date()): { week: string; rank: number; prize: number } | null {
+  const c = casinoOf(club);
+  const last = c.tour && c.tour.week !== weekId(now) ? c.tour : c.tourLast && c.tourLast.week !== weekId(now) ? c.tourLast : null;
+  if (!last || !last.best || (c.tourPaid ?? []).includes(last.week)) return null;
+  const end = new Date(`${last.week}T12:00:00`); end.setDate(end.getDate() + 7);
+  const rows: { name: string; best: number; me?: boolean }[] = [...tourBots(last.week, end), { name: 'Du', best: last.best, me: true }].sort((a, b) => b.best - a.best);
+  const rank = rows.findIndex((x) => x.me) + 1;
+  const prize = TOUR_PRIZES[rank - 1] ?? 0;
+  return prize ? { week: last.week, rank, prize } : null;
+}
+export function claimTour(club: ClubState, now = new Date()): { club: ClubState; prize: number; rank: number } {
+  const r = tourReward(club, now);
+  if (!r) return { club, prize: 0, rank: 0 };
+  return { club: withCasino(club, (c) => ({ ...c, chips: c.chips + r.prize, tourPaid: [...(c.tourPaid ?? []), r.week].slice(-10) })), prize: r.prize, rank: r.rank };
+}
+function tourTrack(c: CasinoState, ev: PlayEvent, now: Date): Pick<CasinoState, 'tour' | 'tourLast'> {
+  const week = weekId(now);
+  let tour = c.tour, tourLast = c.tourLast;
+  if (tour && tour.week !== week) { tourLast = tour; tour = undefined; }
+  if (ev.bet >= TOUR_MIN_BET && ev.win > 0) {
+    const mult = Math.round((ev.win / ev.bet) * 10) / 10;
+    if (!tour || mult > tour.best) tour = { week, best: Math.max(mult, tour?.best ?? 0), game: ev.game };
+  }
+  return { tour, tourLast };
 }
 /** Event für Aufgaben und Statistik. */
 export interface PlayEvent { game: GameId; bet: number; win: number; mult?: number; streak?: number; safe?: number; jackpot?: boolean; legs?: number }
@@ -95,7 +229,7 @@ export function payout(club: ClubState, ev: PlayEvent, now = new Date()): ClubSt
     };
     const recent = ev.bet > 0 && ev.win >= ev.bet * 2 && ev.win >= 100
       ? [{ game: ev.game, win: Math.round(ev.win), mult: Math.round((ev.win / ev.bet) * 100) / 100 }, ...(c.recent ?? [])].slice(0, 12) : c.recent;
-    return { ...c, chips: c.chips + Math.max(0, Math.round(ev.win)), stats, quests: trackQuests(c, ev, now), recent };
+    return { ...c, chips: c.chips + Math.max(0, Math.round(ev.win)), stats, quests: trackQuests(c, ev, now), recent, ...(ev.bet > 0 ? cbTrack(c, 0, Math.max(0, Math.round(ev.win)), now) : {}), ...tourTrack(c, ev, now) };
   });
 }
 /** Jackpot leeren (wird ausgezahlt) und neu befüllen. */

@@ -23,6 +23,7 @@ import type { Career } from './game/types';
 import { getClubState, setClubState, trackDailyGoal, useClub } from './clubStore';
 import { installClickSound, play } from './sound';
 import Icon, { noEmoji } from './components/Icon';
+import { cashback, dailyBonus, tourReward } from './game/casino';
 
 // Nur noch vier Bereiche: Karriere (Start), Team, Duelle, Profil.
 type Screen =
@@ -87,7 +88,9 @@ export default function App() {
     }, 800);
     return () => clearTimeout(t);
   }, []);
-  const coins = useClub().coins;
+  const clubNow = useClub();
+  const coins = clubNow.coins;
+  const casinoDot = dailyBonus(clubNow).ready || cashback(clubNow).ready || !!tourReward(clubNow);
   const lastCoins = useRef(coins);
   useEffect(() => {
     if (coins === lastCoins.current) return;
@@ -123,13 +126,13 @@ export default function App() {
   const home = () => setScreen({ name: 'home' });
   const load = (career: Career) => setScreen({ name: 'game', career });
   const go = (t: NavTarget) => setScreen(t === 'career' ? { name: 'home' } : ({ name: t } as Screen));
-  const navActive: NavTarget | null = screen.name === 'home' || screen.name === 'create' ? 'career' : screen.name === 'team' || screen.name === 'shop' || screen.name === 'duels' || screen.name === 'profile' ? screen.name : null;
+  const navActive: NavTarget | null = screen.name === 'home' || screen.name === 'create' ? 'career' : screen.name === 'team' || screen.name === 'shop' || screen.name === 'duels' || screen.name === 'casino' || screen.name === 'profile' ? screen.name : null;
   // In der laufenden Karriere hat das Spiel eigene Leisten – dort keine Hauptnavigation.
   const showNav = screen.name !== 'game';
 
   return (
     <div className={`app ${showNav ? 'has-nav' : ''}`}>
-      {showNav && <NavBar active={navActive} onGo={go} />}
+      {showNav && <NavBar active={navActive} onGo={go} dots={{ casino: casinoDot }} />}
       {/* Hinweis aufs Querformat nur in der Karriere – das Startmenü ist fürs Hochformat gebaut */}
       {!hintClosed && screen.name === 'game' && (
         <div className="rotate-hint" role="status">

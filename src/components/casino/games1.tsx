@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  FREE_SPINS, LINES, MINE_FIELDS, PAYTABLE, SLOT_SCALE, crashAt, crashPoint, minesMult, placeMines, playSlots, spinGrid,
+  FREE_SPINS, giftSpins, takeGiftSpin, LINES, MINE_FIELDS, PAYTABLE, SLOT_SCALE, crashAt, crashPoint, minesMult, placeMines, playSlots, spinGrid,
   type SlotResult, type Sym,
 } from '../../game/casino';
 import { motionReduced } from '../../settings';
+import { getClubState, setClubState, useClub } from '../../clubStore';
 import Icon from '../Icon';
 import { BetPicker, GameFrame, bet, buzz, fmt, fx, settle, sfx, useBet } from './shared';
 import { playStep } from '../../sound';
@@ -65,11 +66,15 @@ export function Slots({ onClose }: { onClose: () => void }) {
     setRolling(false);
   };
 
-  const spin = async (): Promise<boolean> => {
-    if (busy || !bet(stake)) return false;
+  const gift = giftSpins(useClub());
+  const spin = async (giftSpin = false): Promise<boolean> => {
+    if (busy) return false;
+    const used = giftSpin ? takeGiftSpin(getClubState()) : null;
+    if (giftSpin) { if (!used) return false; setClubState(used); } else if (!bet(stake)) return false;
+    const st = giftSpin ? gift.bet : stake;
     setBusy(true);
     setShown(null);
-    const r: SlotResult = playSlots(stake);
+    const r: SlotResult = playSlots(st);
     await roll(r.grid);
     if (!alive.current) return false;
     setLines(r.lines.map((l) => ({ line: l.line, count: l.count })));
@@ -90,7 +95,8 @@ export function Slots({ onClose }: { onClose: () => void }) {
       await wait(500);
       setFree(null);
     }
-    settle({ game: 'slots', bet: stake, win: r.win, jackpot: r.jackpot });
+    settle({ game: 'slots', bet: giftSpin ? 0 : stake, win: r.win, jackpot: r.jackpot });
+    if (giftSpin && r.win > 0) setShown({ win: r.win, text: 'Gratis-Dreh' });
     setBusy(false);
     return true;
   };
@@ -135,7 +141,9 @@ export function Slots({ onClose }: { onClose: () => void }) {
       <div className={`cz-result ${shown ? 'on' : ''}`}>{shown ? <><b>+{fmt(shown.win)}</b><small>{shown.text}</small></> : <small>Krone ist Joker · 3 Pokale = Freispiele</small>}</div>
       <BetPicker value={stake} onChange={setStake} disabled={busy || auto > 0} />
       <div className="cz-actions">
-        <button className="cz-cta" disabled={busy || auto > 0} onClick={() => spin()}>Drehen</button>
+        {gift.left > 0 ? (
+          <button className="cz-cta gift" disabled={busy || auto > 0} onClick={() => spin(true)}>Gratis-Dreh<small>noch {gift.left} · Einsatz {fmt(gift.bet)}</small></button>
+        ) : <button className="cz-cta" disabled={busy || auto > 0} onClick={() => spin()}>Drehen</button>}
         <button className={`cz-sub ${auto ? 'on' : ''}`} onClick={() => setAuto(auto ? 0 : 10)}>{auto ? `Stopp (${auto})` : 'Auto ×10'}</button>
         <button className={`cz-sub sq ${turbo ? 'on' : ''}`} onClick={() => setTurbo(!turbo)} aria-pressed={turbo} aria-label="Turbo"><Icon name="bolt" size={20} /></button>
       </div>
