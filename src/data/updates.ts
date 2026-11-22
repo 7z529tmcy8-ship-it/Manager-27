@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-22-casino-lobby',
+    date: '22.11.2026',
+    title: 'Neue Casino-Lobby: aufgeräumt wie ein echtes Online-Casino',
+    items: [
+      'Ein großes Banner statt vieler Kästen: Jackpot, Sportwetten, Wochen-Turnier und Happy Hour wechseln sich automatisch ab.',
+      'Spiele nach Kategorien: Alle, Slots, Sofort (Plinko, Crash, Rubbellos, Minen), Tisch (Roulette, Blackjack, Glücksrad) und Sport. Dazu „Zuletzt gespielt“ für den schnellen Einstieg.',
+      'Alle Belohnungen an einem Ort: Das Geschenk oben rechts zeigt, wie viele bereitliegen – Tagesbonus, Mystery-Box, Cashback, Gratis-Drehs, Turnier, Level & VIP und Tagesaufgaben.',
+      'Schmale Level-Leiste direkt unter der Kopfleiste, ruhigere Spiele-Kacheln ohne Dauer-Blinken.',
+    ],
+  },
+  {
     id: '2026-11-21-casino-fix-performance',
     date: '21.11.2026',
     title: 'Casino-Reparatur + Performance-Update',

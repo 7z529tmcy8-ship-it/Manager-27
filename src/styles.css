@@ -5217,3 +5217,68 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 @keyframes cz-lvup { 0% { transform: translate(-50%, -8px); opacity: 0; } 15%, 75% { transform: translate(-50%, 0); opacity: 1; } 100% { transform: translate(-50%, -6px); opacity: 0; } }
 /* Leistung: Kopfleisten im Casino ohne Glas-Weichzeichner (der wird bei jedem Bild neu berechnet) */
 .cz-top, .cz-game-top { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; background: rgba(18, 6, 48, .97) !important; }
+
+/* ---- Casino-Lobby (wie Online-Casinos): aufgeräumt, ein Banner, Kategorien, Belohnungen gesammelt ---- */
+.cz-lobby .cz-top { display: flex; align-items: center; gap: 8px; }
+.cz-lobby .cz-logo { flex: 1; min-width: 0; font-size: 1.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cz-bell { position: relative; flex: none; }
+.cz-bell em { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 99px; display: grid; place-items: center; background: #ff3fb4; color: #fff; font-style: normal; font-size: .66rem; font-weight: 900; box-shadow: 0 0 10px #ff3fb4; }
+.cz-bell.has { animation: cz-ring 2.4s ease-in-out infinite; }
+@keyframes cz-ring { 0%, 86%, 100% { transform: rotate(0); } 89% { transform: rotate(-12deg); } 92% { transform: rotate(10deg); } 95% { transform: rotate(-6deg); } }
+:root.reduce-motion .cz-bell.has { animation: none; }
+.cz-lvline { width: 100%; display: flex; align-items: center; gap: 10px; margin: 10px 0 0; padding: 6px 2px; border: 0; background: none; color: #d8ccff; font: inherit; cursor: pointer; }
+.cz-lvline b { font-family: 'Rajdhani', var(--display, sans-serif); font-size: .95rem; color: #fff; white-space: nowrap; }
+.cz-lvline .cz-bar { flex: 1; height: 6px; }
+.cz-lvline .cz-bar i { background: linear-gradient(90deg, #ff3fb4, #ffd24a); }
+.cz-lvline small { font-size: .72rem; font-weight: 800; white-space: nowrap; }
+.cz-hh { font-style: normal; font-size: .62rem; font-weight: 900; padding: 2px 6px; border-radius: 99px; background: #ffd24a; color: #2a1a00; white-space: nowrap; }
+.cz-hero2 { position: relative; margin: 10px 0 0; border-radius: 22px; overflow: hidden; min-height: 150px; }
+.cz-hero2-in { width: 100%; min-height: 150px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; padding: 18px 18px 28px; border: 0; color: #fff; font: inherit; text-align: left; cursor: pointer; animation: cz-slide .45s ease-out; }
+@keyframes cz-slide { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+.cz-hero2-in small { font-size: .7rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; opacity: .9; }
+.cz-hero2-in b { font-family: 'Rajdhani', var(--display, sans-serif); font-size: 2.3rem; line-height: 1; text-transform: uppercase; }
+.cz-hero2-in span { font-size: .84rem; opacity: .92; max-width: 30ch; }
+.cz-hero2-in em { margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; padding: 7px 14px; border-radius: 99px; background: rgba(255, 255, 255, .95); color: #1a0b33; font-style: normal; font-weight: 900; font-size: .82rem; }
+.cz-hero2.t-gold .cz-hero2-in { background: radial-gradient(80% 120% at 100% 0%, rgba(255, 255, 255, .35), transparent 60%), linear-gradient(135deg, #ffb020, #ff6a3d); }
+.cz-hero2.t-gold .cz-hero2-in b { color: #2a0b00; } .cz-hero2.t-gold .cz-hero2-in { color: #2a0b00; }
+.cz-hero2.t-green .cz-hero2-in { background: radial-gradient(80% 120% at 100% 0%, rgba(255, 255, 255, .25), transparent 60%), linear-gradient(135deg, #0f9f62, #0b4f8a); }
+.cz-hero2.t-pink .cz-hero2-in { background: linear-gradient(135deg, #ff3fb4, #8b5cff); }
+.cz-hero2.t-violet .cz-hero2-in { background: radial-gradient(80% 120% at 100% 0%, rgba(255, 210, 74, .35), transparent 60%), linear-gradient(135deg, #5b21b6, #1e1b4b); }
+.cz-dots { position: absolute; left: 0; right: 0; bottom: 9px; display: flex; justify-content: center; gap: 6px; pointer-events: none; }
+.cz-dots button { pointer-events: auto; width: 7px; height: 7px; padding: 0; border: 0; border-radius: 99px; background: rgba(255, 255, 255, .45); cursor: pointer; transition: width .2s; }
+.cz-dots button.on { width: 20px; background: #fff; }
+.cz-cats { display: flex; gap: 6px; margin: 14px 0 0; overflow-x: auto; scrollbar-width: none; }
+.cz-cats button { flex: none; padding: 8px 14px; border-radius: 99px; border: 1px solid rgba(160, 140, 255, .3); background: rgba(255, 255, 255, .04); color: #d8ccff; font: inherit; font-weight: 800; font-size: .84rem; cursor: pointer; }
+.cz-cats button.on { background: #fff; color: #1a0b33; border-color: #fff; }
+.cz-recentgames .cz-h { margin: 14px 0 6px; }
+.cz-recentgames > div { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.cz-mini { --hc: var(--violet); flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--hc) 50%, transparent); background: color-mix(in srgb, var(--hc) 16%, transparent); color: #fff; font: inherit; font-weight: 800; font-size: .82rem; cursor: pointer; }
+.cz-mini.h-gold { --hc: var(--gold); } .cz-mini.h-cyan { --hc: var(--cyan); } .cz-mini.h-pink { --hc: var(--pink); } .cz-mini.h-green { --hc: var(--green); } .cz-mini.h-red { --hc: var(--red); }
+.cz-mini svg { color: var(--hc); }
+.cz-lobby .cz-grid { margin-top: 12px; }
+@media (min-width: 700px) { .cz-lobby .cz-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1000px) { .cz-lobby .cz-grid { grid-template-columns: repeat(4, 1fr); } }
+.cz-hot.b-neu { background: linear-gradient(90deg, #39ff88, #19c3ff); color: #02210f; }
+.cz-hot.b-live { background: #ff4d6d; }
+.cz-hot.b-free { top: auto; bottom: 10px; background: #ffd24a; color: #2a1a00; }
+.cz-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0 0; }
+.cz-links button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px; border-radius: 14px; border: 1px solid rgba(160, 140, 255, .25); background: rgba(255, 255, 255, .04); color: #d8ccff; font: inherit; font-size: .76rem; font-weight: 800; cursor: pointer; }
+.cz-sheet { position: fixed; inset: 0; z-index: 980; display: flex; align-items: flex-end; justify-content: center; background: rgba(5, 2, 14, .7); animation: cz-in .2s ease-out; }
+.cz-sheet-in { width: 100%; max-width: 620px; max-height: 88dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 14px 16px calc(18px + env(safe-area-inset-bottom)); border-radius: 24px 24px 0 0; background: linear-gradient(180deg, #1c0b45, #0d0626); border: 1px solid rgba(160, 140, 255, .3); color: #fff; animation: cz-up .28s cubic-bezier(.2, .9, .3, 1); }
+@keyframes cz-up { from { transform: translateY(40px); opacity: .5; } to { transform: none; opacity: 1; } }
+.cz-sheet-in > header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.cz-sheet-in > header b { font-family: 'Rajdhani', var(--display, sans-serif); font-size: 1.4rem; text-transform: uppercase; }
+.cz-sheet .cz-bonus { margin: 0; }
+.cz-sec { margin-top: 16px; }
+.cz-sec h3 { margin: 0 0 8px; font-size: .74rem; letter-spacing: .12em; text-transform: uppercase; color: #b9a8ff; }
+.cz-vipline { display: flex; gap: 12px; align-items: center; }
+.cz-vipline > span:last-child { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.cz-vipline small { font-size: .76rem; color: #d8ccff; }
+.cz-hhline { display: flex; align-items: center; gap: 6px; margin: 10px 0 0; font-size: .78rem; color: #d8ccff; }
+.cz-hhline svg { color: #ffd24a; }
+.cz-hhline.on { color: #ffd24a; font-weight: 800; }
+.cz-sheet .cz-tour { margin-top: 16px; }
+/* Lobby ruhiger: kein umlaufender Regenbogen, nur dezente Farbkante – Bewegung nur da, wo etwas wartet */
+.cz-lobby .cz-tile::before { animation: none !important; background: none !important; }
+.cz-lobby .cz-tile { border: 1px solid color-mix(in srgb, var(--hc) 45%, transparent); }
+.cz-lobby .cz-hot.b-free { top: 10px; bottom: auto; }

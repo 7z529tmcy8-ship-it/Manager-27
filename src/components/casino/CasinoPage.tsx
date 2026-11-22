@@ -20,16 +20,38 @@ const Games = {
 };
 type Playable = keyof typeof Games;
 const GAME_NAME: Record<string, string> = { slots: 'Slots', crash: 'Crash', plinko: 'Plinko', mines: 'Minen', roulette: 'Roulette', blackjack: 'Blackjack', wheel: 'Glücksrad', bets: 'Sportwetten', scratch: 'Rubbellos' };
-const TILES: { id: Playable; name: string; sub: string; icon: string; hue: string; hot?: boolean }[] = [
-  { id: 'slots', name: 'Stadion-Slots', sub: '10 Linien · Freispiele', icon: 'star', hue: 'gold', hot: true },
-  { id: 'crash', name: 'Elfmeter-Crash', sub: 'Kassier, bevor er hält', icon: 'rocket', hue: 'pink', hot: true },
-  { id: 'plinko', name: 'Torwand-Plinko', sub: 'Bis 10.000× · Goldbälle', icon: 'ball', hue: 'cyan', hot: true },
-  { id: 'mines', name: 'Elfmeter-Minen', sub: 'Tor oder Parade', icon: 'target', hue: 'green' },
-  { id: 'roulette', name: 'Roulette', sub: 'Rückennummern 0–36', icon: 'dice', hue: 'red' },
-  { id: 'blackjack', name: 'Blackjack', sub: 'Blackjack zahlt 3:2', icon: 'cards', hue: 'violet' },
-  { id: 'scratch', name: 'Rubbellos', sub: 'Freirubbeln · bis 500×', icon: 'ticket', hue: 'green', hot: true },
-  { id: 'wheel', name: 'Glücksrad', sub: 'Täglich gratis', icon: 'spark', hue: 'gold' },
+const TILES: { id: Playable; name: string; sub: string; icon: string; hue: string; cat: 'slots' | 'instant' | 'table' | 'sport'; badge?: 'hot' | 'neu' | 'live' }[] = [
+  { id: 'slots', name: 'Stadion-Slots', sub: '10 Linien · Freispiele · Jackpot', icon: 'star', hue: 'gold', cat: 'slots', badge: 'hot' },
+  { id: 'plinko', name: 'Torwand-Plinko', sub: 'Bis 10.000× · Goldbälle', icon: 'ball', hue: 'cyan', cat: 'instant', badge: 'hot' },
+  { id: 'crash', name: 'Elfmeter-Crash', sub: 'Kassier, bevor er hält', icon: 'rocket', hue: 'pink', cat: 'instant' },
+  { id: 'scratch', name: 'Rubbellos', sub: 'Freirubbeln · bis 500×', icon: 'ticket', hue: 'green', cat: 'instant', badge: 'neu' },
+  { id: 'mines', name: 'Elfmeter-Minen', sub: 'Tor oder Parade', icon: 'target', hue: 'green', cat: 'instant' },
+  { id: 'roulette', name: 'Roulette', sub: 'Europäisch · 0–36', icon: 'dice', hue: 'red', cat: 'table' },
+  { id: 'blackjack', name: 'Blackjack', sub: 'Blackjack zahlt 3:2', icon: 'cards', hue: 'violet', cat: 'table' },
+  { id: 'wheel', name: 'Glücksrad', sub: 'Täglich gratis', icon: 'spark', hue: 'gold', cat: 'table' },
+  { id: 'bets', name: 'Sportwetten', sub: 'Live-Spieltag · Kombi-Boost', icon: 'ball', hue: 'cyan', cat: 'sport', badge: 'live' },
 ];
+const CATS: [('all' | 'slots' | 'instant' | 'table' | 'sport'), string][] = [['all', 'Alle'], ['slots', 'Slots'], ['instant', 'Sofort'], ['table', 'Tisch'], ['sport', 'Sport']];
+
+type Slide = { id: string; kicker: string; title: string; text: string; cta: string; tone: 'gold' | 'green' | 'pink' | 'violet'; go: () => void };
+/** Banner wie in Online-Casino-Lobbys: eins zur Zeit, wechselt automatisch, Punkte zum Umschalten. */
+function Hero({ slides }: { slides: Slide[] }) {
+  const [i, setI] = useState(0);
+  const k = i % slides.length;
+  useEffect(() => { const t = setTimeout(() => setI((x) => x + 1), 5500); return () => clearTimeout(t); }, [i]);
+  const s = slides[k];
+  return (
+    <section className={`cz-hero2 t-${s.tone}`} aria-label="Aktionen">
+      <button key={s.id} className="cz-hero2-in" onClick={() => { sfx('tap'); s.go(); }}>
+        <small>{s.kicker}</small>
+        <b>{s.title}</b>
+        <span>{s.text}</span>
+        <em>{s.cta} <Icon name="arrow" size={16} /></em>
+      </button>
+      <div className="cz-dots">{slides.map((x, n) => <button key={x.id} className={n === k ? 'on' : ''} onClick={() => setI(n)} aria-label={`Banner ${n + 1}`} />)}</div>
+    </section>
+  );
+}
 
 /** Neon-Casino: Chips, Jackpot, VIP, Tagesbonus, 8 Spiele, Aufgaben und Preis-Shop. */
 export default function CasinoPage({ onExit }: { onExit: () => void }) {
@@ -80,6 +102,11 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
   // Im Spiel: Navigationsleiste ausblenden, damit sie keine Knöpfe verdeckt
   useEffect(() => { document.documentElement.classList.toggle('in-casino-game', !!game); return () => document.documentElement.classList.remove('in-casino-game'); }, [game]);
   const happy = happyHour();
+  const [sheet, setSheet] = useState(false);
+  type Cat = 'all' | 'slots' | 'instant' | 'table' | 'sport';
+  const [cat, setCatState] = useState<Cat>(() => { try { return (sessionStorage.getItem('fc-cz-cat') as Cat) || 'all'; } catch { return 'all'; } });
+  const setCat = (x: Cat) => { setCatState(x); try { sessionStorage.setItem('fc-cz-cat', x); } catch { /* egal */ } };
+  const [lastPlayed, setLastPlayed] = useState<Playable[]>(() => { try { return JSON.parse(localStorage.getItem('fc-cz-last') || '[]'); } catch { return []; } });
   const boxes = boxesReady(club);
   const [box, setBox] = useState<BoxPrize | null>(null);
   const openMystery = () => { const r = openBox(getClubState()); if (!r) return; setClubState(r.club); setBox(r.prize); sfx(r.prize.kind === 'card' && r.prize.tier !== 'gold' ? 'walkout' : 'revealRare'); buzz([40, 30, 80]); };
@@ -101,7 +128,10 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
     window.scrollTo(0, 0);
     return () => { root.classList.remove('in-casino'); window.scrollTo(0, 0); };
   }, []);
-  const openGame = (g: Playable) => { hubY.current = window.scrollY; setGame(g); window.scrollTo(0, 0); };
+  const openGame = (g: Playable) => {
+    hubY.current = window.scrollY; setGame(g); window.scrollTo(0, 0);
+    setLastPlayed((l) => { const n = [g, ...l.filter((x) => x !== g)].slice(0, 4); try { localStorage.setItem('fc-cz-last', JSON.stringify(n)); } catch { /* egal */ } return n; });
+  };
   const closeGame = () => { setGame(null); requestAnimationFrame(() => window.scrollTo(0, hubY.current)); };
 
   const claim = () => {
@@ -112,46 +142,35 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
     setToast(`+${fmt(r.amount)} Chips · Tag ${daily.streak} in Folge`);
   };
 
+  const questsReady = quests.filter((q) => !q.claimed && q.have >= q.quest.goal).length;
+  const rewardCount = (daily.ready ? 1 : 0) + (cb.ready ? 1 : 0) + (tourWin ? 1 : 0) + (boxes > 0 ? 1 : 0) + questsReady;
+  const slides: Slide[] = [
+    { id: 'jackpot', kicker: 'Progressiver Jackpot', title: fmt(jackpot), text: '5 Jackpot-Münzen an den Slots oder das Glücksrad – plus Ikonen-Karte', cta: 'Slots spielen', tone: 'gold', go: () => openGame('slots') },
+    ...(happy.active ? [{ id: 'happy', kicker: 'Jetzt', title: 'Happy Hour', text: `Doppelte Level- und VIP-Punkte – noch ${hhTxt}`, cta: 'Spielen', tone: 'pink' as const, go: () => openGame('plinko') }] : []),
+    { id: 'bets', kicker: `Live · Spieltag ${round}`, title: 'Sportwetten', text: 'Bundesliga, Premier League & Co. · Kombi-Boost bis +50 % · Cash-out', cta: 'Jetzt tippen', tone: 'green', go: () => openGame('bets') },
+    { id: 'tour', kicker: `Wochen-Turnier · ${leftTxt}`, title: board.rank === 1 && board.rows[0].best ? 'Du führst!' : `Platz ${board.rank}`, text: `Höchster Multiplikator gewinnt – Platz 1: ${fmt(TOUR_PRIZES[0])} Chips`, cta: 'Rangliste', tone: 'violet', go: () => setSheet(true) },
+  ];
+
   return (
     <div className="cz" role="dialog" aria-label="Neon-Casino">
-      {!Game && <div className="cz-scroll">
+      {!Game && <div className="cz-scroll cz-lobby">
         <header className="cz-top">
           <button className="cz-round" onClick={onExit} aria-label="Zurück zum Home-Menü"><Icon name="arrow" size={20} /></button>
           <h1 className="cz-logo">Neon<span>Casino</span></h1>
+          <button className={`cz-round cz-bell ${rewardCount ? 'has' : ''}`} onClick={() => { sfx('tap'); setSheet(true); }} aria-label={`Belohnungen${rewardCount ? `, ${rewardCount} bereit` : ''}`}>
+            <Icon name="gift" size={20} />{rewardCount > 0 && <em>{rewardCount}</em>}
+          </button>
           <button className="cz-chips big" onClick={openBank} aria-label="Chip-Kasse öffnen"><Icon name="coin" size={18} />{fmtShort(chips)}<Icon name="plus" size={16} /></button>
         </header>
 
-        <section className="cz-level" aria-label="Casino-Level">
-          <span className="cz-level-badge"><small>Lv</small>{lvl.level}</span>
-          <span className="cz-level-main">
-            <span className="cz-bar"><i style={{ width: `${lvl.pct}%` }} /></span>
-            <small>Noch {fmt(lvl.to - c.vipPts)} Einsatz bis Level {lvl.level + 1}</small>
-          </span>
-        </section>
+        <button className="cz-lvline" onClick={() => setSheet(true)} aria-label={`Level ${lvl.level}, VIP ${VIP[lv].name}`}>
+          <b>Lv {lvl.level}</b>
+          <span className="cz-bar"><i style={{ width: `${lvl.pct}%` }} /></span>
+          <small style={{ color: VIP[lv].color }}>VIP {VIP[lv].name}</small>
+          {happy.active && <em className="cz-hh">2× Punkte</em>}
+        </button>
 
-        <div className={`cz-happy ${happy.active ? 'on' : ''}`} role="status">
-          <Icon name="bolt" size={18} />
-          {happy.active ? <span><b>Happy Hour!</b> Doppelte Level- und VIP-Punkte · noch {hhTxt}</span> : <span>Nächste Happy Hour (doppelte Punkte) in <b>{hhTxt}</b></span>}
-        </div>
-
-        <section className="cz-bonus" aria-label="Bonus-Center">
-            <button className={`cz-bonus-card b-box ${boxes ? '' : 'wait'}`} onClick={openMystery} disabled={!boxes}>
-              <Icon name="gift" size={24} /><b>{boxes ? `${boxes > 1 ? `${boxes}× ` : ''}Mystery-Box` : 'Mystery-Box'}</b>
-              <small>{boxes ? 'Jetzt öffnen!' : `noch ${roundsToBox(club)} Runden`}</small>
-              {!boxes && <span className="cz-bar"><i style={{ width: `${((BOX_EVERY - roundsToBox(club)) / BOX_EVERY) * 100}%` }} /></span>}
-            </button>
-        {(cb.ready || tourWin || gift.left > 0) && (<>
-            {cb.ready && <button className="cz-bonus-card b-cb" onClick={claimCb}><Icon name="rewind" size={24} /><b>+{fmt(cb.amount)}</b><small>Cashback {Math.round(cb.pct * 100)} % von gestern</small></button>}
-            {tourWin && <button className="cz-bonus-card b-tour" onClick={claimT}><Icon name="trophy" size={24} /><b>+{fmt(tourWin.prize)}</b><small>Turnier · Platz {tourWin.rank}</small></button>}
-            {gift.left > 0 && <button className="cz-bonus-card b-gift" onClick={() => { sfx('tap'); openGame('slots'); }}><Icon name="star" size={24} /><b>{gift.left} Gratis-Drehs</b><small>Slots · je {fmt(gift.bet)} Einsatz</small></button>}
-        </>)}
-        </section>
-
-        <section className="cz-jackpot" aria-label="Jackpot">
-          <small>Progressiver Jackpot</small>
-          <b>{fmt(jackpot)}</b>
-          <span>5 Jackpot-Münzen an den Slots oder das Glücksrad – dazu eine Ikonen-Karte</span>
-        </section>
+        <Hero slides={slides} />
 
         {recent.length > 0 && (
           <div className="cz-ticker" aria-label="Deine letzten Gewinne">
@@ -161,33 +180,22 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
           </div>
         )}
 
-        <button className="cz-hero" onClick={() => { sfx('tap'); openGame('bets'); }}>
-          <span className="cz-hero-bg" aria-hidden="true" />
-          <span className="cz-hero-tag"><span className="cz-live-dot" /> Live · Spieltag {round}</span>
-          <b>Sportwetten</b>
-          <span>Bundesliga, Premier League, LaLiga & Co. · Kombi-Boost bis +50 % · Cash-out · Wetten auf deine Karriere</span>
-          <em>Jetzt tippen <Icon name="arrow" size={18} /></em>
-        </button>
+        <nav className="cz-cats" role="tablist" aria-label="Spiele-Kategorien">
+          {CATS.map(([id, label]) => <button key={id} role="tab" aria-selected={cat === id} className={cat === id ? 'on' : ''} onClick={() => { setCat(id); sfx('tap'); }}>{label}</button>)}
+        </nav>
 
-        <div className="cz-row2">
-          <section className="cz-vip" style={{ '--vc': VIP[lv].color } as React.CSSProperties}>
-            <small>VIP</small>
-            <b>{VIP[lv].name}</b>
-            <span className="cz-bar"><i style={{ width: `${next ? Math.min(100, ((c.vipPts - VIP[lv].min) / (next.min - VIP[lv].min)) * 100) : 100}%` }} /></span>
-            <small>{next ? `${fmt(next.min - c.vipPts)} Einsatz bis ${next.name}` : 'Höchste Stufe'} · max. {fmt(VIP[lv].maxBet)}</small>
-            <small className="cz-vip-perk">{lv >= 3 ? `Eigene Kartenbilder: ${lv >= 4 ? 10 : 3} Plätze` : 'Ab Platin: eigene Bilder für deine Karten'}</small>
+        {cat === 'all' && lastPlayed.length > 0 && (
+          <section className="cz-recentgames" aria-label="Zuletzt gespielt">
+            <h2 className="cz-h">Zuletzt gespielt</h2>
+            <div>{lastPlayed.map((id) => { const t = TILES.find((x) => x.id === id); return t ? <button key={id} className={`cz-mini h-${t.hue}`} onClick={() => { sfx('tap'); openGame(t.id); }}><Icon name={t.icon} size={22} /><span>{t.name}</span></button> : null; })}</div>
           </section>
-          <button className={`cz-daily ${daily.ready ? 'ready' : ''}`} onClick={claim} disabled={!daily.ready}>
-            <Icon name="gift" size={22} />
-            <b>{daily.ready ? `+${fmt(daily.amount)}` : 'Morgen wieder'}</b>
-            <small>Tagesbonus · Serie {daily.ready ? daily.streak : Math.max(1, c.daily?.streak ?? 1)}</small>
-          </button>
-        </div>
+        )}
 
         <div className="cz-grid">
-          {TILES.map((t) => (
+          {TILES.filter((t) => cat === 'all' || t.cat === cat).map((t) => (
             <button key={t.id} className={`cz-tile h-${t.hue}`} onClick={() => { sfx('tap'); openGame(t.id); }}>
-              {t.hot && <em className="cz-hot">Heiß</em>}
+              {t.id === 'slots' && gift.left > 0 ? <em className="cz-hot b-free">{gift.left} gratis</em>
+                : t.badge && <em className={`cz-hot b-${t.badge}`}>{t.badge === 'neu' ? 'Neu' : t.badge === 'live' ? 'Live' : 'Heiß'}</em>}
               <span className="cz-tile-ic"><Icon name={t.icon} size={30} /></span>
               <b>{t.name}</b>
               <small>{t.sub}</small>
@@ -195,37 +203,74 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
           ))}
         </div>
 
-        <section className="cz-tour" aria-label="Wochen-Turnier">
-          <header><b><Icon name="trophy" size={20} /> Wochen-Turnier</b><small>endet in {leftTxt}</small></header>
-          <p>Höchster Gewinn-Multiplikator der Woche (ab {TOUR_MIN_BET} Einsatz) – gegen Computer-Gegner. Platz 1: {fmt(TOUR_PRIZES[0])} Chips.</p>
-          <ol>
-            {board.rows.slice(0, 5).map((r, i) => (
-              <li key={r.name} className={r.me ? 'me' : ''}><i>{i + 1}</i><span>{r.name}</span><b>{r.best ? `${r.best.toFixed(1).replace('.', ',')}×` : '–'}</b><em>{fmt(TOUR_PRIZES[i])}</em></li>
-            ))}
-            {board.rank > 5 && <li className="me"><i>{board.rank}</i><span>Du</span><b>{board.rows[board.rank - 1].best ? `${board.rows[board.rank - 1].best.toFixed(1).replace('.', ',')}×` : '–'}</b><em>{board.prize ? fmt(board.prize) : '–'}</em></li>}
-          </ol>
-        </section>
-
-        <h2 className="cz-h">Tagesaufgaben</h2>
-        <ul className="cz-quests">
-          {quests.map(({ quest, have, claimed }) => (
-            <li key={quest.id} className={claimed ? 'done' : have >= quest.goal ? 'ready' : ''}>
-              <span className="cz-q-text"><b>{quest.text}</b><span className="cz-bar"><i style={{ width: `${(have / quest.goal) * 100}%` }} /></span></span>
-              {claimed ? <Icon name="check" size={20} /> : (
-                <button disabled={have < quest.goal} onClick={() => { setClubState(claimQuest(getClubState(), quest.id)); sfx('coin'); }}>
-                  +{fmt(quest.reward)}
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-
-        <button className="cz-shop-btn" onClick={() => setShop(true)}>
-          <Icon name="bag" size={22} /><span><b>Preis-Shop</b><small>Karten fürs Team, XP für deine Karriere, exklusive Wappen</small></span><Icon name="arrow" size={20} />
-        </button>
-        <p className="cz-foot">Drops & Wins: in jeder Runde mit Einsatz 1 zu {Math.round(1 / DROP_CHANCE)} Chance auf einen Bonus von {DROP_TABLE.map(([m]) => `${m}×`).join(' / ')} Einsatz. Glücks-Serie: 3, 5, 7 und 10 Gewinne in Folge bringen Extra-Chips. Mystery-Box alle {BOX_EVERY} Runden: {BOX_ODDS.map((o) => `${o.label} ${o.w} %`).join(' · ')}.</p>
-        <p className="cz-foot">Nur Spielgeld – Chips gibt es gegen Spiel-Coins in der Chip-Kasse, nicht für echtes Geld. Die Gewinnchancen stehen in jedem Spiel unter <Icon name="info" size={14} />.</p>
+        <div className="cz-links">
+          <button onClick={() => setShop(true)}><Icon name="bag" size={18} />Preis-Shop</button>
+          <button onClick={openBank}><Icon name="coin" size={18} />Chip-Kasse</button>
+          <button onClick={() => setSheet(true)}><Icon name="info" size={18} />Chancen</button>
+        </div>
+        <p className="cz-foot">Nur Spielgeld – Chips gibt es gegen Spiel-Coins, nicht für echtes Geld.</p>
       </div>}
+
+      {sheet && (
+        <div className="cz-sheet" role="dialog" aria-modal="true" aria-label="Belohnungen" onClick={() => setSheet(false)}>
+          <div className="cz-sheet-in" onClick={(e) => e.stopPropagation()}>
+            <header><b>Belohnungen</b><button className="cz-round" onClick={() => setSheet(false)} aria-label="Schließen"><Icon name="close" size={18} /></button></header>
+
+            <div className="cz-bonus">
+              <button className={`cz-bonus-card b-daily ${daily.ready ? '' : 'wait'}`} onClick={claim} disabled={!daily.ready}><Icon name="gift" size={22} /><b>{daily.ready ? `+${fmt(daily.amount)}` : 'Morgen wieder'}</b><small>Tagesbonus · Serie {daily.ready ? daily.streak : Math.max(1, c.daily?.streak ?? 1)}</small></button>
+              <button className={`cz-bonus-card b-box ${boxes ? '' : 'wait'}`} onClick={openMystery} disabled={!boxes}>
+                <Icon name="gift" size={22} /><b>{boxes ? `${boxes > 1 ? `${boxes}× ` : ''}Mystery-Box` : 'Mystery-Box'}</b>
+                <small>{boxes ? 'Jetzt öffnen!' : `noch ${roundsToBox(club)} Runden`}</small>
+                {!boxes && <span className="cz-bar"><i style={{ width: `${((BOX_EVERY - roundsToBox(club)) / BOX_EVERY) * 100}%` }} /></span>}
+              </button>
+              {cb.ready && <button className="cz-bonus-card b-cb" onClick={claimCb}><Icon name="rewind" size={22} /><b>+{fmt(cb.amount)}</b><small>Cashback {Math.round(cb.pct * 100)} % von gestern</small></button>}
+              {tourWin && <button className="cz-bonus-card b-tour" onClick={claimT}><Icon name="trophy" size={22} /><b>+{fmt(tourWin.prize)}</b><small>Turnier · Platz {tourWin.rank}</small></button>}
+              {gift.left > 0 && <button className="cz-bonus-card b-gift" onClick={() => { setSheet(false); openGame('slots'); }}><Icon name="star" size={22} /><b>{gift.left} Gratis-Drehs</b><small>Slots · je {fmt(gift.bet)} Einsatz</small></button>}
+            </div>
+
+            <section className="cz-sec">
+              <h3>Level & VIP</h3>
+              <div className="cz-vipline">
+                <span className="cz-level-badge"><small>Lv</small>{lvl.level}</span>
+                <span>
+                  <span className="cz-bar"><i style={{ width: `${lvl.pct}%` }} /></span>
+                  <small>Noch {fmt(lvl.to - c.vipPts)} Einsatz bis Level {lvl.level + 1}</small>
+                  <small>VIP <b style={{ color: VIP[lv].color }}>{VIP[lv].name}</b> · max. Einsatz {fmt(VIP[lv].maxBet)}{next ? ` · ${fmt(next.min - c.vipPts)} bis ${next.name}` : ''} · Cashback {Math.round(cb.pct * 100)} %</small>
+                  <small>{lv >= 3 ? `Eigene Kartenbilder: ${lv >= 4 ? 10 : 3} Plätze` : 'Ab Platin: eigene Bilder für deine Karten'}</small>
+                </span>
+              </div>
+              <p className={`cz-hhline ${happy.active ? 'on' : ''}`}><Icon name="bolt" size={16} />{happy.active ? <>Happy Hour läuft – doppelte Punkte, noch {hhTxt}</> : <>Happy Hour (doppelte Punkte) in {hhTxt} · 12–13 und 19–21 Uhr</>}</p>
+            </section>
+
+            <section className="cz-sec cz-tour">
+              <header><b><Icon name="trophy" size={18} /> Wochen-Turnier</b><small>endet in {leftTxt}</small></header>
+              <p>Höchster Multiplikator der Woche (ab {TOUR_MIN_BET} Einsatz) gegen Computer-Gegner. Platz 1: {fmt(TOUR_PRIZES[0])} Chips.</p>
+              <ol>
+                {board.rows.slice(0, 5).map((r, i) => (
+                  <li key={r.name} className={r.me ? 'me' : ''}><i>{i + 1}</i><span>{r.name}</span><b>{r.best ? `${r.best.toFixed(1).replace('.', ',')}×` : '–'}</b><em>{fmt(TOUR_PRIZES[i])}</em></li>
+                ))}
+                {board.rank > 5 && <li className="me"><i>{board.rank}</i><span>Du</span><b>{board.rows[board.rank - 1].best ? `${board.rows[board.rank - 1].best.toFixed(1).replace('.', ',')}×` : '–'}</b><em>{board.prize ? fmt(board.prize) : '–'}</em></li>}
+              </ol>
+            </section>
+
+            <section className="cz-sec">
+              <h3>Tagesaufgaben</h3>
+              <ul className="cz-quests">
+                {quests.map(({ quest, have, claimed }) => (
+                  <li key={quest.id} className={claimed ? 'done' : have >= quest.goal ? 'ready' : ''}>
+                    <span className="cz-q-text"><b>{quest.text}</b><span className="cz-bar"><i style={{ width: `${(have / quest.goal) * 100}%` }} /></span></span>
+                    {claimed ? <Icon name="check" size={20} /> : (
+                      <button disabled={have < quest.goal} onClick={() => { setClubState(claimQuest(getClubState(), quest.id)); sfx('coin'); }}>+{fmt(quest.reward)}</button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <p className="cz-foot">Drops & Wins: in jeder Runde mit Einsatz 1 zu {Math.round(1 / DROP_CHANCE)} Chance auf {DROP_TABLE.map(([m]) => `${m}×`).join(' / ')} Einsatz. Glücks-Serie: 3, 5, 7 und 10 Gewinne in Folge bringen Extra-Chips. Mystery-Box alle {BOX_EVERY} Runden: {BOX_ODDS.map((o) => `${o.label} ${o.w} %`).join(' · ')}. Die Gewinnchancen jedes Spiels stehen im Spiel unter <Icon name="info" size={14} />.</p>
+          </div>
+        </div>
+      )}
 
       {toast && <div className="cz-toast" role="status">{toast}</div>}
       {shop && <Shop onClose={() => setShop(false)} onDone={setToast} />}
