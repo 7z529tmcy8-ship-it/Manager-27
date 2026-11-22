@@ -45,7 +45,11 @@ if (typeof window !== 'undefined') {
   document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
 }
 
+/** Schutz: „unendlich“ oder ungültige Zahlen würden Schleifen und Anzeigen lahmlegen. */
+const sane = (n: number) => (Number.isFinite(n) ? Math.min(n, Number.MAX_SAFE_INTEGER) : Number.MAX_SAFE_INTEGER);
 export function setClubState(next: ClubState): void {
+  if (!Number.isFinite(next.coins) || next.coins > Number.MAX_SAFE_INTEGER) next = { ...next, coins: Number.isNaN(next.coins) ? 0 : sane(next.coins) };
+  if (next.casino && (!Number.isFinite(next.casino.chips) || next.casino.chips > Number.MAX_SAFE_INTEGER)) next = { ...next, casino: { ...next.casino, chips: Number.isNaN(next.casino.chips) ? 0 : sane(next.casino.chips) } };
   current = next;
   if (!saveTimer) saveTimer = setTimeout(flush, 400);
   listeners.forEach((l) => l());

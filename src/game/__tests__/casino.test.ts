@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { freshClub, type ClubState } from '../club';
 import {
   JACKPOT_SEED, PLINKO, PLINKO_P, RTP, SHOP, START_CHIPS, VIP, bigWinOf, bjReturn, buy, casinoOf, claimDaily, claimQuest, crashPoint, dailyBonus,
-  scratchRtp, scratchTicket, openBox, boxesReady, happyHour, BOX_EVERY,
+  scratchRtp, scratchTicket, openBox, boxesReady, happyHour, BOX_EVERY, levelNeed,
   casinoLevel, cashback, claimCashback, giftSpins, takeGiftSpin, tourBoard, tourReward, claimTour, weekId,
   evalGrid, handValue, minesMult, payout, placeBet, placeMines, questList, rouletteReturn, takeJackpot, vipLevel, type BjCard, type Sym,
 } from '../casino';
@@ -225,4 +225,13 @@ it('Mystery-Box alle 30 Runden, Drops und Glücks-Serie zahlen extra', () => {
 it('Crash: höchstens 10.000×, sonst unveränderte Verteilung', () => {
   expect(crashPoint(() => 0.999999999)).toBe(10_000);
   expect(crashPoint(() => 0.5)).toBe(1.94);
+});
+
+it('Casino-Level: direkt berechnet, stimmt mit dem Hochzählen überein und hängt nicht bei riesigen Zahlen', () => {
+  const slow = (pts: number) => { let l = 0; while (pts >= levelNeed(l + 1)) l++; return l; };
+  for (const pts of [0, 399, 400, 401, 1_234, 50_000, 999_999, 12_345_678]) expect(casinoLevel(pts).level).toBe(slow(pts));
+  const t0 = Date.now();
+  expect(casinoLevel(5e20).level).toBeGreaterThan(1e9);
+  casinoLevel(Infinity); casinoLevel(Number.NaN);
+  expect(Date.now() - t0).toBeLessThan(50);
 });

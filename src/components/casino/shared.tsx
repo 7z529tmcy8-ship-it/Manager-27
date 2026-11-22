@@ -139,7 +139,8 @@ export function BetPicker({ value, onChange, disabled, label = 'Einsatz' }: { va
   const step = (dir: 1 | -1) => {
     // Feste Stufen, darüber in 1-2-5-Schritten weiter (funktioniert auch bei Millionen-Einsätzen).
     const ladder = [...STEPS];
-    while (ladder[ladder.length - 1] < Math.max(value, cap)) { const l = ladder[ladder.length - 1]; ladder.push(String(l).startsWith('2') ? l * 2.5 : l * 2); }
+    const top = Math.min(Number.MAX_SAFE_INTEGER, Math.max(Number.isFinite(value) ? value : 0, Number.isFinite(cap) ? cap : 0));
+    while (ladder[ladder.length - 1] < top && ladder.length < 80) { const l = ladder[ladder.length - 1]; ladder.push(String(l).startsWith('2') ? l * 2.5 : l * 2); }
     const next = dir > 0 ? ladder.find((x) => x > value) ?? ladder[ladder.length - 1] : [...ladder].reverse().find((x) => x < value) ?? ladder[0];
     set(next);
   };

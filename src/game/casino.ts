@@ -108,8 +108,11 @@ export function placeBet(club: ClubState, bet: number): ClubState | null {
 /** Gesamteinsatz, der für Level n nötig ist (wächst langsam an). */
 export const levelNeed = (n: number) => Math.round(400 * Math.pow(n, 1.55));
 export function casinoLevel(pts: number): { level: number; from: number; to: number; pct: number } {
-  let level = 0;
-  while (pts >= levelNeed(level + 1)) level++;
+  // Direkt ausrechnen statt hochzuzählen – bei riesigen Einsätzen wären das sonst Milliarden Schritte.
+  const safe = Number.isFinite(pts) && pts > 0 ? pts : 0;
+  let level = Math.max(0, Math.floor(Math.pow(safe / 400, 1 / 1.55)));
+  while (level > 0 && safe < levelNeed(level)) level--;
+  while (safe >= levelNeed(level + 1) && levelNeed(level + 1) > levelNeed(level)) level++;
   const from = levelNeed(level), to = levelNeed(level + 1);
   return { level, from, to, pct: Math.min(100, ((pts - from) / (to - from)) * 100) };
 }

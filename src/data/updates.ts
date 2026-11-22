@@ -29,6 +29,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-22-riesen-zahlen',
+    date: '22.11.2026',
+    title: 'Reparatur: Kein Einfrieren mehr bei riesigem Guthaben',
+    items: [
+      'Mit Billionen und mehr fror das Casino ein: Das Casino-Level wurde Stufe für Stufe hochgezählt – bei riesigen Einsätzen über eine Milliarde Schritte. Jetzt wird es direkt ausgerechnet.',
+      'Auch die Einsatz-Stufen (+ / −) kommen mit jeder Größe klar, und „unendlich“ oder ungültige Werte werden automatisch abgefangen. Dein Guthaben bleibt erhalten.',
+    ],
+  },
+  {
     id: '2026-11-22-casino-speed',
     date: '22.11.2026',
     title: 'Casino flüssiger – auch bei großen Zahlen',
