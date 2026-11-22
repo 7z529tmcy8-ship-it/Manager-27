@@ -25,15 +25,36 @@ export function getClubState(): ClubState {
   return current;
 }
 
-export function setClubState(next: ClubState): void {
-  current = next;
+// Speichern gebündelt: Im Casino ändert sich der Stand viele Male pro Sekunde – jedes Mal den ganzen
+// Club zu speichern bremst schwache Geräte. Der Stand im Speicher ist sofort aktuell, auf die Platte
+// geht er höchstens alle 400 ms und sicher beim Verlassen der Seite.
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+let frozen = false;
+function flush(): void {
+  if (!saveTimer) return; // nichts Neues zu speichern
+  clearTimeout(saveTimer); saveTimer = null;
+  if (frozen) return;
   try {
-    localStorage.setItem(KEY, JSON.stringify(next));
+    localStorage.setItem(KEY, JSON.stringify(current));
   } catch {
     // Ohne Speicher gilt der Club nur bis zum Neuladen.
   }
+}
+if (typeof window !== 'undefined') {
+  window.addEventListener('pagehide', flush);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
+}
+
+export function setClubState(next: ClubState): void {
+  current = next;
+  if (!saveTimer) saveTimer = setTimeout(flush, 400);
   listeners.forEach((l) => l());
 }
+
+/** Sofort speichern (z. B. vor einem Export oder in Tests). */
+export const flushClubState = flush;
+/** Vor dem Einspielen einer Sicherung: nichts Altes mehr speichern (sonst überschreibt es die Sicherung). */
+export function freezeClubSaves(): void { if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; } frozen = true; }
 
 export function useClub(): ClubState {
   return useSyncExternalStore(

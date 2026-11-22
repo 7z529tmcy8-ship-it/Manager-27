@@ -318,7 +318,7 @@ function BigWinShow({ w, onClose }: { w: WinShow; onClose: () => void }) {
     <div className={`cz-win k-${kind}`} role="dialog" aria-label={WIN_TITLE[kind]} onClick={onClose}>
       <div className="cz-rays" aria-hidden="true" />
       <div className="cz-rain" aria-hidden="true">
-        {Array.from({ length: kind === 'big' ? 24 : 44 }, (_, i) => <i key={i} style={{ left: `${(i * 37) % 100}%`, animationDelay: `${(i % 12) * 0.12}s`, animationDuration: `${1.4 + (i % 5) * 0.3}s` }}><Icon name="coin" size={18 + (i % 3) * 6} /></i>)}
+        {Array.from({ length: kind === 'big' ? 10 : 16 }, (_, i) => <i key={i} className={`s${i % 3}`} style={{ left: `${(i * 37) % 100}%`, animationDelay: `${(i % 8) * 0.15}s`, animationDuration: `${1.4 + (i % 5) * 0.3}s` }} />)}
       </div>
       <div className="cz-win-inner">
         <h2 key={kind}>{WIN_TITLE[kind]}</h2>

@@ -9,9 +9,12 @@ import Icon from '../Icon';
 
 export const sfx = (id: Parameters<typeof play>[0]) => { try { play(id); } catch { /* kein Ton */ } };
 export const buzz = (ms: number | number[]) => { try { navigator.vibrate?.(ms); } catch { /* egal */ } };
-export const fmt = (n: number) => (Number.isFinite(n) ? Math.round(n).toLocaleString('de-DE') : '0');
+// Ein gemeinsamer Zahlen-Formatierer: toLocaleString baut sonst bei jedem Aufruf einen neuen – das bremst bei vielen Zahlen pro Bild.
+const NF = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
+const NF1 = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 });
+export const fmt = (n: number) => (Number.isFinite(n) ? NF.format(Math.round(n)) : '0');
 /** Kurz für enge Stellen (Kopfleiste): ab 10 Mio. als „12,4 Mio.“, ab 1 Mrd. als „1,2 Mrd.“. */
-export const fmtShort = (n: number) => (n >= 1e9 ? `${(n / 1e9).toLocaleString('de-DE', { maximumFractionDigits: 1 })} Mrd.` : n >= 1e7 ? `${(n / 1e6).toLocaleString('de-DE', { maximumFractionDigits: 1 })} Mio.` : fmt(n));
+export const fmtShort = (n: number) => (n >= 1e9 ? `${NF1.format(n / 1e9)} Mrd.` : n >= 1e7 ? `${NF1.format(n / 1e6)} Mio.` : fmt(n));
 export const fx = (n: number) => n.toFixed(2).replace('.', ',');
 
 /** Große-Gewinn-Anzeige: wird vom Casino-Bildschirm angezeigt. */

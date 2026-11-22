@@ -1,5 +1,6 @@
 import { decompressFromUTF16 } from 'lz-string';
 import { LEGACY_KEY, clearCareerStore, exportCareersJson } from './game/storage';
+import { flushClubState, freezeClubSaves } from './clubStore';
 // Sicherung aller Spieldaten: Karrieren, Club (Coins, Karten), Einstellungen und das Rapper-Spiel.
 // Alles liegt nur im Browser – mit Export/Import kann man es sichern oder auf ein anderes Gerät bringen.
 
@@ -20,6 +21,7 @@ export interface Backup {
 }
 
 export function createBackup(): Backup {
+  flushClubState(); // letzten Stand sicher auf die Platte
   const data: Record<string, string> = {};
   for (const key of KEYS) {
     try {
@@ -71,6 +73,7 @@ export function parseBackup(text: string): Backup | string {
 /** Sicherung einspielen: ersetzt alle Spieldaten in diesem Browser. Danach muss die Seite neu laden. */
 export function restoreBackup(b: Backup): boolean {
   try {
+    freezeClubSaves(); // der alte Club darf die Sicherung nicht mehr überschreiben
     clearCareerStore();
     for (const key of KEYS) {
       if (b.data[key] !== undefined) localStorage.setItem(key, plain(key, b.data[key]));

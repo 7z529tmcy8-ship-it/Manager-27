@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-22-casino-speed',
+    date: '22.11.2026',
+    title: 'Casino flüssiger – auch bei großen Zahlen',
+    items: [
+      'Der Spielstand wird nicht mehr bei jedem einzelnen Einsatz gespeichert, sondern gebündelt (höchstens alle 0,4 Sekunden und sicher beim Verlassen) – im Auto-Modus waren das vorher bis zu 8 Speichervorgänge pro Sekunde.',
+      'Große Gewinne: Die Gewinn-Show ist leichter (weniger, einfachere Münzen, kleinere Strahlen-Fläche, ruhigeres Beben) – sie sieht fast gleich aus, braucht aber viel weniger Rechenleistung.',
+      'Zahlen werden mit einem gemeinsamen Formatierer geschrieben statt jedes Mal neu – spart bei vielen Zahlen pro Bild spürbar Zeit.',
+    ],
+  },
+  {
     id: '2026-11-22-casino-lobby',
     date: '22.11.2026',
     title: 'Neue Casino-Lobby: aufgeräumt wie ein echtes Online-Casino',
