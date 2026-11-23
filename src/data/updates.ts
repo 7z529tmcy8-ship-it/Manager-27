@@ -29,6 +29,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-23-strassen-sprint-v2',
+    date: '23.11.2026',
+    title: 'Straßen-Sprint: neuer Look, kein Ruckeln',
+    items: [
+      'Echte Straße: Asphalt, Fahrbahn-Striche, Gehweg am Start und Zielflagge.',
+      'Multiplikator steht als Plakette mitten auf jeder Fahrbahn – die nächste leuchtet gold und pulsiert.',
+      'Geschaffte Fahrbahnen werden grün mit Haken und Hütchen.',
+      'Neue Autos mit Scheiben und Scheinwerfer-Licht.',
+      'Flüssiger: nur sichtbare Fahrbahnen werden gezeichnet, Kugel und Autos bewegen sich ohne teure Leucht-Effekte.',
+    ],
+  },
+  {
     id: '2026-11-23-schiffshorn',
     date: '23.11.2026',
     title: 'Casino: Schiffshorn bei großen Gewinnen',

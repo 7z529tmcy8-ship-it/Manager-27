@@ -88,21 +88,31 @@ export default function Road({ onClose }: { onClose: () => void }) {
       </div>
 
       <div className={`rd-road ${lost ? 'lost' : ''} ${run?.state === 'cash' ? 'won' : ''}`} style={{ height: LANE_H * view, '--heat': heat } as React.CSSProperties}>
-        <div className="rd-world" style={{ transform: `translateY(${offset}px)` }}>
-          {Array.from({ length: ROAD_LANES + 1 }, (_, i) => {
-            const lane = i; // 0 = Start-Bürgersteig, ROAD_LANES = Ziel
+        <div className="rd-world" style={{ transform: `translate3d(0, ${offset}px, 0)` }}>
+          {Array.from({ length: ROAD_LANES + 1 }, (_, lane) => {
+            // Nur Fahrbahnen in Sichtweite zeichnen – spart auf schwachen Geräten viel Arbeit.
+            if (lane < camLane - 2 || lane > camLane + 7) return null;
             const crossed = lane > 0 && lane <= step && !(lost && lane === step);
+            const isNext = lane === step + 1 && playing;
+            const kind = lane === 0 ? 'start' : lane === ROAD_LANES ? 'goal' : 'road';
             return (
-              <div key={lane} className={`rd-lane ${lane === 0 ? 'start' : ''} ${lane === ROAD_LANES ? 'goal' : ''} ${crossed ? 'done' : ''} ${lane === step + 1 && playing ? 'next' : ''}`}
-                style={{ bottom: lane * LANE_H, height: LANE_H }}>
-                {lane > 0 && <span className="rd-mult">{multTxt(roadMult(level, lane))}×</span>}
-                {lane > 0 && lane < ROAD_LANES && !crossed && <i className={`rd-car c${lane % 4}`} style={{ animationDuration: `${1.6 + (lane % 5) * 0.35}s`, animationDelay: `${-(lane * 0.37) % 2}s` }} />}
-                {lane > 0 && lane < ROAD_LANES && crossed && <i className="rd-barrier" />}
+              <div key={lane} className={`rd-lane k-${kind} ${crossed ? 'done' : ''} ${isNext ? 'next' : ''}`} style={{ transform: `translate3d(0, ${-lane * LANE_H}px, 0)`, height: LANE_H }}>
+                {kind === 'road' && !crossed && <i className={`rd-car c${lane % 4} ${lane % 2 ? 'ltr' : 'rtl'}`} style={{ animationDuration: `${1.5 + (lane % 5) * 0.32}s`, animationDelay: `${-((lane * 0.61) % 2)}s` }} />}
+                {kind === 'goal' && <span className="rd-goal">Ziel</span>}
+                {lane > 0 && (
+                  <span className={`rd-plate ${crossed ? 'done' : ''} ${isNext ? 'next' : ''}`}>
+                    {crossed ? <Icon name="check" size={18} /> : <>{multTxt(roadMult(level, lane))}<small>×</small></>}
+                  </span>
+                )}
+                {crossed && kind === 'road' && <i className="rd-cone l" />}
+                {crossed && kind === 'road' && <i className="rd-cone r" />}
                 {lost && lane === step && <i className="rd-crash" />}
               </div>
             );
           })}
-          <span key={run?.hop ?? 0} className={`rd-runner ${lost ? 'hit' : ''} ${run?.state === 'cash' ? 'cash' : ''}`} style={{ bottom: step * LANE_H + LANE_H / 2 }} aria-hidden="true" />
+          <span className={`rd-runner ${lost ? 'hit' : ''} ${run?.state === 'cash' ? 'cash' : ''}`} style={{ transform: `translate3d(-50%, ${-(step * LANE_H + LANE_H / 2)}px, 0)` }} aria-hidden="true">
+            <i key={run?.hop ?? 0} />
+          </span>
         </div>
         {pop && <span key={pop.id} className="rd-pop">{pop.text}</span>}
         {run?.state === 'cash' && <div className="rd-banner win"><small>Kassiert</small><b>+{fmt(Math.floor(run.stake * roadMult(level, run.step)))}</b></div>}
