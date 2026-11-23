@@ -22,7 +22,7 @@ const Games = {
 type Playable = keyof typeof Games;
 const GAME_NAME: Record<string, string> = { slots: 'Slots', crash: 'Crash', plinko: 'Plinko', mines: 'Minen', roulette: 'Roulette', blackjack: 'Blackjack', wheel: 'Glücksrad', bets: 'Sportwetten', scratch: 'Rubbellos' };
 const TILES: { id: Playable; name: string; sub: string; icon: string; hue: string; cat: 'slots' | 'instant' | 'table' | 'sport'; badge?: 'hot' | 'neu' | 'live' }[] = [
-  { id: 'slots', name: 'Stadion-Slots', sub: '10 Linien · Freispiele · Jackpot', icon: 'star', hue: 'gold', cat: 'slots', badge: 'hot' },
+  { id: 'slots', name: 'Pokal der Legenden', sub: 'Ausbreitende Freispiele · Risiko', icon: 'star', hue: 'gold', cat: 'slots', badge: 'hot' },
   { id: 'plinko', name: 'Torwand-Plinko', sub: 'Bis 10.000× · Goldbälle', icon: 'ball', hue: 'cyan', cat: 'instant', badge: 'hot' },
   { id: 'crash', name: 'Elfmeter-Crash', sub: 'Kassier, bevor er hält', icon: 'rocket', hue: 'pink', cat: 'instant' },
   { id: 'scratch', name: 'Rubbellos', sub: 'Freirubbeln · bis 500×', icon: 'ticket', hue: 'green', cat: 'instant', badge: 'neu' },
@@ -298,7 +298,7 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
           <div className="cz-boxshow-in" onClick={(e) => e.stopPropagation()}>
             <small>Mystery-Box</small>
             {box.kind === 'card' ? <><div className="cz-boxcard"><UtCard card={box.card} size="md" shine /></div><b>{box.tier === 'icon' ? 'Ikone!' : box.tier === 'top' ? 'Top-Karte!' : 'Neue Karte!'}</b><span>{box.card.name} ist jetzt in deiner Sammlung</span></>
-              : box.kind === 'spins' ? <><Icon name="star" size={64} /><b>+10 Gratis-Drehs</b><span>an den Stadion-Slots</span></>
+              : box.kind === 'spins' ? <><Icon name="star" size={64} /><b>+10 Gratis-Drehs</b><span>am Pokal der Legenden</span></>
               : <><Icon name="coin" size={64} /><b>+{fmt(box.amount)} Chips</b><span>{box.amount >= 3000 ? 'Großer Fang!' : 'Weiter so!'}</span></>}
             <button className="cz-cta" onClick={() => setBox(null)}>Weiter</button>
           </div>

@@ -5362,3 +5362,40 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 @keyframes pk-edge { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
 :root.reduce-motion .pk-hitfx { animation-duration: .6s; }
 :root.reduce-motion .pk-edge { display: none; }
+
+/* ---- Pokal der Legenden (Book-Slot-Stil): Gold-Rahmen, Spezialsymbol, ausbreitende Walzen, Risiko-Leiter ---- */
+.cz-slots .cz-reels { padding: 12px; border: 3px solid transparent; border-radius: 24px;
+  background: linear-gradient(180deg, #1a0f3a, #0b0520) padding-box, linear-gradient(160deg, #fff1b8, #d9a63c 30%, #8a5a10 55%, #ffd76a 80%, #a8741c) border-box;
+  box-shadow: 0 0 30px rgba(255, 210, 74, .45), 0 18px 40px rgba(0, 0, 0, .55), inset 0 0 30px rgba(0, 0, 0, .7); }
+.cz-slots .cz-reel { background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(0, 0, 0, .25) 50%, rgba(255, 255, 255, .04)); border-radius: 12px; box-shadow: inset 0 0 0 1px rgba(255, 210, 74, .18); }
+.cz-slots .cz-reels.free { background: linear-gradient(180deg, #3b1a00, #170900) padding-box, linear-gradient(160deg, #fff1b8, #ff9f1c 40%, #ff3fb4 70%, #ffd76a) border-box; box-shadow: 0 0 44px rgba(255, 159, 28, .65), inset 0 0 30px rgba(0, 0, 0, .7); }
+.cz-expand { position: absolute; top: 12px; bottom: 12px; width: calc(20% - 8px); z-index: 3; display: grid; place-items: center; border-radius: 12px; color: #2a1400;
+  background: radial-gradient(circle at 50% 40%, #fff6c8, #ffd24a 45%, #d48a12); box-shadow: 0 0 26px rgba(255, 210, 74, .95), inset 0 0 0 2px rgba(255, 255, 255, .6);
+  transform-origin: 50% 50%; animation: cz-expand .45s cubic-bezier(.2, 1.5, .4, 1) both; }
+@keyframes cz-expand { 0% { transform: scaleY(.33); opacity: 0; } 60% { transform: scaleY(1.06); opacity: 1; } 100% { transform: scaleY(1); } }
+.cz-special { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 auto 10px; padding: 8px 18px; width: fit-content; border-radius: 99px;
+  background: linear-gradient(135deg, #5b2a00, #2a1000); border: 2px solid #ffd24a; color: #ffd24a; box-shadow: 0 0 24px rgba(255, 210, 74, .5); }
+.cz-special small { font-weight: 900; letter-spacing: .1em; text-transform: uppercase; font-size: .72rem; }
+.cz-special-ic { width: 60px; height: 60px; display: grid; place-items: center; border-radius: 14px; background: radial-gradient(circle, #fff6c8, #ffd24a 60%, #c98a00); color: #2a1400; }
+.cz-special.spin .cz-special-ic { filter: brightness(.85); }
+.cz-special.set .cz-special-ic { animation: cz-expand .5s cubic-bezier(.2, 1.6, .4, 1); box-shadow: 0 0 30px #ffd24a; }
+.cz-gamble { margin-top: 10px; padding: 14px; border-radius: 20px; background: linear-gradient(180deg, #24104d, #0f0626); border: 2px solid rgba(255, 210, 74, .6); }
+.cz-gamble-top { display: flex; align-items: center; gap: 14px; }
+.cz-gcard { flex: none; width: 64px; height: 90px; border-radius: 10px; display: grid; place-items: center; font-family: 'Rajdhani', var(--display, sans-serif); font-size: 2.2rem; font-weight: 700; color: #ffd24a;
+  background: repeating-linear-gradient(45deg, #3a1a7a 0 6px, #2a1060 6px 12px); border: 2px solid #ffd24a; animation: cz-gflip .35s ease-out; }
+.cz-gcard.red, .cz-gcard.black { background: #fff; }
+.cz-gcard i { width: 30px; height: 30px; border-radius: 50%; }
+.cz-gcard.red i { background: #e8303f; } .cz-gcard.black i { background: #111; }
+@keyframes cz-gflip { from { transform: rotateY(90deg); } to { transform: none; } }
+.cz-gamble-info { display: flex; flex-direction: column; }
+.cz-gamble-info small { font-weight: 900; letter-spacing: .1em; text-transform: uppercase; font-size: .7rem; color: #d8ccff; }
+.cz-gamble-info b { font-family: 'Rajdhani', var(--display, sans-serif); font-size: 2rem; line-height: 1.05; color: #ffd24a; }
+.cz-gamble-info em { font-style: normal; font-size: .82rem; color: #fff; }
+.cz-gamble.lost .cz-gamble-info b { color: #ff4d6d; }
+.cz-gamble-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; }
+.cz-gamble-btns button { min-height: 50px; border-radius: 14px; border: 0; font: inherit; font-weight: 900; font-size: 1rem; text-transform: uppercase; cursor: pointer; transition: transform .12s ease-out; }
+.cz-gamble-btns button:active { transform: scale(.95); }
+.cz-gamble-btns .red { background: linear-gradient(180deg, #ff4d5e, #b3121f); color: #fff; }
+.cz-gamble-btns .black { background: linear-gradient(180deg, #3a3a48, #0b0b12); color: #fff; border: 1px solid #555; }
+.cz-gamble-btns .take { background: linear-gradient(180deg, #ffe58a, #e3a92b); color: #2a1a00; }
+.cz-gamble-btns button:disabled { opacity: .5; }

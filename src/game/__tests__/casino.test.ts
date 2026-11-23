@@ -245,3 +245,19 @@ it('Alle Coins umtauschen: ganzes Guthaben mit Mengenbonus', async () => {
   expect(casinoOf(r.club).chips).toBe(1_000 + 325_000);
   expect(buyAllChips({ ...c, coins: 50 })).toBeNull();
 });
+
+it('Pokal der Legenden: Spezialsymbol breitet sich aus, Risiko-Leiter fair, Quote im Rahmen', async () => {
+  const { expandWin, playSlots, gambleSettle } = await import('../casino');
+  const g: Sym[][] = [['ball', 'boot', 'shirt'], ['whistle', 'ball', 'ball'], ['star', 'star', 'ball'], ['boot', 'boot', 'boot'], ['shirt', 'shirt', 'shirt']];
+  expect(expandWin(g, 'ball', 100).reels).toEqual([0, 1, 2]);
+  expect(expandWin(g, 'whistle', 100).win).toBe(0); // nur 1 Walze
+  expect(expandWin(g, 'star', 100).reels).toEqual([]); // Stern braucht 2 Walzen, liegt nur auf einer
+  let bet = 0, win = 0;
+  for (let i = 0; i < 60_000; i++) { const r = playSlots(100); bet += 100; win += r.win; }
+  expect(win / bet).toBeGreaterThan(0.8);
+  expect(win / bet).toBeLessThan(1.1);
+  const c: ClubState = { ...freshClub(), casino: { ...casinoOf(freshClub()), chips: 1_000 } };
+  expect(casinoOf(gambleSettle(c, 400, true)!).chips).toBe(1_400);
+  expect(casinoOf(gambleSettle(c, 400, false)!).chips).toBe(600);
+  expect(gambleSettle(c, 2_000, true)).toBeNull();
+});

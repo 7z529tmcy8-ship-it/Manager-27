@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-23-pokal-der-legenden',
+    date: '23.11.2026',
+    title: 'Neuer Slot: Pokal der Legenden',
+    items: [
+      'Die Slots sind jetzt ein Buch-Slot im Fußball-Look: Der Pokal ist Joker UND Freispiel-Auslöser – 3 Pokale irgendwo bringen 10 Freispiele (erneut auslösbar bis 50).',
+      'Vor den Freispielen wird ein Spezialsymbol gezogen. Liegt es in einem Freispiel auf genug Walzen, breitet es sich über die ganzen Walzen aus und zahlt auf allen 10 Linien.',
+      'Risiko-Leiter nach jedem Gewinn: Rot oder Schwarz raten und den Gewinn bis zu 5-mal verdoppeln – oder alles verlieren. Kassieren geht jederzeit.',
+      'Neuer Gold-Rahmen, glühende Freispiel-Walzen. Die Gewinnchancen stehen wie immer unter dem Info-Knopf (Quote ca. 94 %, Risiko-Leiter echte 50 : 50).',
+    ],
+  },
+  {
     id: '2026-11-23-plinko-sound',
     date: '23.11.2026',
     title: 'Torwand-Plinko: Brachial-Sound',

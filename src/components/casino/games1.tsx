@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  FREE_SPINS, giftSpins, takeGiftSpin, LINES, MINE_FIELDS, PAYTABLE, SLOT_SCALE, crashAt, crashPoint, minesMult, placeMines, playSlots, spinGrid,
+  FREE_SPINS, EXPAND_SYMS, EXPAND_MIN, GAMBLE_MAX, SCATTER_PAY, gambleRound, gambleSettle, giftSpins, takeGiftSpin, LINES, MINE_FIELDS, PAYTABLE, SLOT_SCALE, crashAt, crashPoint, minesMult, placeMines, playSlots, spinGrid,
   type SlotResult, type Sym,
 } from '../../game/casino';
 import { motionReduced } from '../../settings';
 import { getClubState, setClubState, useClub } from '../../clubStore';
 import Icon from '../Icon';
-import { BetPicker, GameFrame, bet, buzz, fmt, fx, settle, sfx, useBet } from './shared';
+import { BetPicker, GameFrame, bet, buzz, celebrate, fmt, fx, settle, sfx, shake, useBet } from './shared';
 import { playStep } from '../../sound';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -28,6 +28,9 @@ export function Slots({ onClose }: { onClose: () => void }) {
   const [turbo, setTurbo] = useState(false);
   const [durs, setDurs] = useState<number[]>([0, 0, 0, 0, 0]);
   const [tease, setTease] = useState<number[]>([]);
+  const [special, setSpecial] = useState<{ sym: Sym; spinning: boolean } | null>(null);
+  const [expand, setExpand] = useState<number[]>([]);
+  const [gamble, setGamble] = useState<{ amount: number; step: number; card: 'red' | 'black' | null; lost?: boolean } | null>(null);
   const alive = useRef(true);
   useEffect(() => () => { alive.current = false; }, []);
   const fast = motionReduced();
@@ -74,6 +77,7 @@ export function Slots({ onClose }: { onClose: () => void }) {
     const st = giftSpin ? gift.bet : stake;
     setBusy(true);
     setShown(null);
+    setGamble(null);
     const r: SlotResult = playSlots(st);
     await roll(r.grid);
     if (!alive.current) return false;
@@ -81,22 +85,47 @@ export function Slots({ onClose }: { onClose: () => void }) {
     let total = r.win - r.free.reduce((a, f) => a + f.win, 0);
     if (total > 0) setShown({ win: total, text: r.lines.length ? `${r.lines.length} Linie${r.lines.length > 1 ? 'n' : ''}` : 'Münzen' });
     if (r.free.length) {
+      // Pokal öffnet sich: Spezialsymbol wird ausgelost (Symbole rasen durch, dann steht es fest)
       sfx('fanfare'); buzz([30, 50, 30]);
+      setShown({ win: total, text: `${r.scatters} Pokale · 10 Freispiele!` });
+      setSpecial({ sym: EXPAND_SYMS[0], spinning: true });
+      if (!fast) {
+        for (let k = 0; k < 18; k++) {
+          setSpecial({ sym: EXPAND_SYMS[k % EXPAND_SYMS.length], spinning: true });
+          sfx('tick');
+          await wait(60 + k * 9);
+        }
+      }
+      setSpecial({ sym: r.special!, spinning: false });
+      sfx('jackpot'); buzz([60, 40, 120]);
+      await wait(fast ? 300 : 1500);
       setFree({ left: r.free.length, total });
-      await wait(1100);
       for (let i = 0; i < r.free.length; i++) {
         if (!alive.current) return false;
-        await roll(r.free[i].grid, true);
-        total += r.free[i].win;
+        const f = r.free[i];
+        await roll(f.grid, true);
+        total += f.win;
         setFree({ left: r.free.length - i - 1, total });
-        if (r.free[i].win) { sfx('coin'); setShown({ win: total, text: 'Freispiele' }); }
+        if (f.expand.reels.length) {
+          // Spezialsymbol breitet sich über die ganzen Walzen aus
+          await wait(200);
+          setExpand(f.expand.reels);
+          sfx('boom'); playStep(10 + f.expand.reels.length * 2); buzz([50, 30, 80]); shake(f.expand.reels.length >= 4);
+          setShown({ win: total, text: `${f.expand.reels.length} Walzen ausgebreitet · +${fmt(f.expand.win)}` });
+          await wait(fast ? 400 : 1300);
+          setExpand([]);
+        } else if (f.win) { sfx('coin'); setShown({ win: total, text: 'Freispiele' }); }
+        if (f.retrigger) { sfx('fanfare'); setShown({ win: total, text: `+${f.retrigger} Freispiele!` }); await wait(700); }
         await wait(260);
       }
       await wait(500);
       setFree(null);
+      setSpecial(null);
     }
     settle({ game: 'slots', bet: giftSpin ? 0 : stake, win: r.win, jackpot: r.jackpot });
     if (giftSpin && r.win > 0) setShown({ win: r.win, text: 'Gratis-Dreh' });
+    // Risiko-Leiter anbieten (nicht im Auto-Modus)
+    if (r.win > 0 && !auto) setGamble({ amount: r.win, step: 0, card: null });
     setBusy(false);
     return true;
   };
@@ -111,11 +140,40 @@ export function Slots({ onClose }: { onClose: () => void }) {
     return () => clearTimeout(t);
   }, [auto, busy]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const risk = async (pick: 'red' | 'black') => {
+    if (!gamble || gamble.lost) return;
+    const res = gambleRound();
+    const won = res === pick;
+    const next = gambleSettle(getClubState(), gamble.amount, won);
+    if (!next) { sfx('error'); setGamble(null); return; }
+    setGamble({ ...gamble, card: res });
+    sfx('packRip');
+    await wait(fast ? 100 : 450);
+    setClubState(next);
+    if (won) {
+      const amount = gamble.amount * 2; const step = gamble.step + 1;
+      sfx(step >= 3 ? 'jackpot' : 'cash'); buzz([30, 30, 60]);
+      setShown({ win: amount, text: `Risiko ×${2 ** step}` });
+      setGamble(step >= GAMBLE_MAX ? null : { amount, step, card: res });
+      if (step >= 3) celebrate(2 ** step);
+    } else {
+      sfx('fall'); buzz(120);
+      setShown(null);
+      setGamble({ ...gamble, card: res, lost: true });
+      setTimeout(() => setGamble(null), 900);
+    }
+  };
   const lineCells = new Set(lines.flatMap((l) => LINES[l.line].slice(0, l.count).map((r, reel) => `${reel}-${r}`)));
   const pays = (Object.entries(PAYTABLE) as [Sym, [number, number, number]][]).map(([s, p]) => `${s === 'crown' ? 'Krone (Joker)' : s}: ${p.map((x) => fx((x * SLOT_SCALE) / 10)).join(' / ')}× Einsatz`).join(' · ');
   return (
-    <GameFrame title="Stadion-Slots" onClose={onClose} className="cz-slots"
-      odds={`Auszahlungsquote ca. 95 %. 10 Linien von links, 3/4/5 gleiche: ${pays}. 3+ Pokale = ${FREE_SPINS[3]}/${FREE_SPINS[4]}/${FREE_SPINS[5]} Freispiele. Münzen irgendwo: 3 = 3×, 4 = 20×, 5 = Jackpot.`}>
+    <GameFrame title="Pokal der Legenden" onClose={onClose} className="cz-slots"
+      odds={`Auszahlungsquote ca. 94 %. 10 Linien von links, 3/4/5 gleiche: ${pays}. Pokal ist Joker und Scatter: irgendwo 3/4/5 = ${SCATTER_PAY[3]}/${SCATTER_PAY[4]}/${SCATTER_PAY[5]}× Einsatz und ${FREE_SPINS[3]} Freispiele (erneut auslösbar, max. 50). In den Freispielen breitet sich ein zufälliges Spezialsymbol über ganze Walzen aus, sobald es auf ${EXPAND_MIN.ball} Walzen liegt (Stern und Krone schon ab 2) – es zahlt dann auf allen 10 Linien. Risiko-Leiter: Rot oder Schwarz, echte 50 : 50, Gewinn verdoppeln oder verlieren (höchstens ${GAMBLE_MAX}×). Münzen irgendwo: 3 = 3×, 4 = 20×, 5 = Jackpot.`}>
+      {special && (
+        <div className={`cz-special ${special.spinning ? 'spin' : 'set'}`} aria-live="polite">
+          <small>{special.spinning ? 'Spezialsymbol wird gezogen …' : 'Spezialsymbol'}</small>
+          <span className={`cz-special-ic s-${special.sym}`}><Icon name={SYM_ICON[special.sym]} size={46} /></span>
+        </div>
+      )}
       <div className={`cz-reels ${free ? 'free' : ''}`}>
         {grid.map((col, reel) => (
           <div key={reel} className={`cz-reel ${tease.includes(reel) ? 'tease' : ''}`} style={{ height: CELL * 3 }}>
@@ -136,10 +194,29 @@ export function Slots({ onClose }: { onClose: () => void }) {
             {lines.map((l, k) => <polyline key={l.line} style={{ animationDelay: `${k * 120}ms` }} points={LINES[l.line].slice(0, l.count).map((r, reel) => `${(reel + 0.5) * 20},${(r + 0.5) * 33.3}`).join(' ')} />)}
           </svg>
         )}
+        {expand.map((reel) => special && (
+          <span key={reel} className={`cz-expand s-${special.sym}`} style={{ left: `calc(${reel * 20}% + 4px)`, animationDelay: `${expand.indexOf(reel) * 90}ms` }} aria-hidden="true"><Icon name={SYM_ICON[special.sym]} size={54} /></span>
+        ))}
         {free && <div className="cz-free-banner">Freispiele · noch {free.left}</div>}
       </div>
-      <div className={`cz-result ${shown ? 'on' : ''}`}>{shown ? <><b>+{fmt(shown.win)}</b><small>{shown.text}</small></> : <small>Krone ist Joker · 3 Pokale = Freispiele</small>}</div>
-      <BetPicker value={stake} onChange={setStake} disabled={busy || auto > 0} />
+      <div className={`cz-result ${shown ? 'on' : ''}`}>{shown ? <><b>+{fmt(shown.win)}</b><small>{shown.text}</small></> : <small>Pokal ist Joker & Scatter · 3 Pokale = 10 Freispiele</small>}</div>
+      {gamble ? (
+        <div className={`cz-gamble ${gamble.lost ? 'lost' : ''}`}>
+          <div className="cz-gamble-top">
+            <span className={`cz-gcard ${gamble.card ?? ''}`} key={`${gamble.step}-${gamble.card}`}>{gamble.card ? <i /> : '?'}</span>
+            <span className="cz-gamble-info">
+              <small>Risiko · Stufe {gamble.step}/{GAMBLE_MAX}</small>
+              <b>{gamble.lost ? 'Verloren' : fmt(gamble.amount)}</b>
+              {!gamble.lost && <em>Richtig geraten: {fmt(gamble.amount * 2)}</em>}
+            </span>
+          </div>
+          <div className="cz-gamble-btns">
+            <button className="red" disabled={gamble.lost} onClick={() => void risk('red')}>Rot</button>
+            <button className="take" disabled={gamble.lost} onClick={() => { sfx('coin'); setGamble(null); }}>Kassieren</button>
+            <button className="black" disabled={gamble.lost} onClick={() => void risk('black')}>Schwarz</button>
+          </div>
+        </div>
+      ) : <BetPicker value={stake} onChange={setStake} disabled={busy || auto > 0} />}
       <div className="cz-actions">
         {gift.left > 0 ? (
           <button className="cz-cta gift" disabled={busy || auto > 0} onClick={() => spin(true)}>Gratis-Dreh<small>noch {gift.left} · Einsatz {fmt(gift.bet)}</small></button>
