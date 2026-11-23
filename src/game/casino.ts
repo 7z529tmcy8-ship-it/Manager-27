@@ -5,7 +5,7 @@ import { seasonId } from './squad';
 // Jackpot, Tagesaufgaben und ein Preis-Shop (Karten, XP, Profil-Extras). Nur Spielgeld.
 // Alle Spiele haben eine offen angezeigte Auszahlungsquote (RTP) knapp unter 100 %.
 
-export type GameId = 'slots' | 'crash' | 'plinko' | 'mines' | 'roulette' | 'blackjack' | 'hilo' | 'wheel' | 'bets' | 'scratch';
+export type GameId = 'slots' | 'crash' | 'plinko' | 'mines' | 'roulette' | 'blackjack' | 'hilo' | 'wheel' | 'bets' | 'scratch' | 'road';
 /** Höher/Tiefer gibt es nicht mehr – 'hilo' bleibt nur für alte Statistiken im Typ. */
 type Rand = () => number;
 
@@ -705,3 +705,19 @@ export function scratchTicket(rand: Rand = Math.random): { cells: Sym[]; mult: n
   for (let i = cells.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [cells[i], cells[j]] = [cells[j], cells[i]]; }
   return { cells, mult: hit?.mult ?? 0, sym: hit?.sym ?? null };
 }
+
+
+// ---------- Straßen-Sprint: Schritt für Schritt über die Fahrbahnen, jederzeit kassieren ----------
+// Jede Fahrbahn hat eine feste Unfall-Chance (je nach Stufe). Der Multiplikator ist so berechnet,
+// dass die Auszahlungsquote bei jedem Ausstieg 97 % beträgt – egal, wann man kassiert.
+export type RoadLevel = 'easy' | 'mid' | 'hard' | 'hardcore';
+export const ROAD_LEVELS: Record<RoadLevel, { label: string; hit: number }> = {
+  easy: { label: 'Leicht', hit: 0.04 }, mid: { label: 'Mittel', hit: 0.12 }, hard: { label: 'Schwer', hit: 0.2 }, hardcore: { label: 'Hardcore', hit: 0.4 },
+};
+export const ROAD_LANES = 20;
+export function roadMult(level: RoadLevel, steps: number): number {
+  if (steps <= 0) return 1;
+  return Math.floor((RTP / Math.pow(1 - ROAD_LEVELS[level].hit, steps)) * 100) / 100;
+}
+/** Ein Schritt: true = sicher drüben, false = erwischt. */
+export const roadStep = (level: RoadLevel, rand: Rand = Math.random) => rand() >= ROAD_LEVELS[level].hit;

@@ -255,3 +255,16 @@ it('Slot: Quote im Rahmen', async () => {
   expect(win / bet).toBeGreaterThan(0.8);
   expect(win / bet).toBeLessThan(1.1);
 });
+
+it('Straßen-Sprint: Multiplikator so, dass jeder Ausstieg 97 % zurückzahlt', async () => {
+  const { roadMult, roadStep, ROAD_LEVELS } = await import('../casino');
+  for (const lv of ['easy', 'mid', 'hard', 'hardcore'] as const) {
+    for (const k of [1, 3, 8]) {
+      const survive = (1 - ROAD_LEVELS[lv].hit) ** k;
+      expect(survive * roadMult(lv, k)).toBeGreaterThan(0.95);
+      expect(survive * roadMult(lv, k)).toBeLessThanOrEqual(0.97);
+    }
+  }
+  expect(roadStep('mid', () => 0.5)).toBe(true);
+  expect(roadStep('mid', () => 0.05)).toBe(false);
+});

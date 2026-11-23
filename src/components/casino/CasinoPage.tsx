@@ -19,11 +19,13 @@ const Games = {
   wheel: lazy(() => import('./games2').then((m) => ({ default: m.Wheel }))),
   bets: lazy(() => import('./Sportsbook')),
   scratch: lazy(() => import('./scratch')),
+  road: lazy(() => import('./road')),
 };
 type Playable = keyof typeof Games;
-const GAME_NAME: Record<string, string> = { slots: 'Mega Fruits', crash: 'Crash', plinko: 'Plinko', mines: 'Minen', roulette: 'Roulette', blackjack: 'Blackjack', wheel: 'Glücksrad', bets: 'Sportwetten', scratch: 'Rubbellos' };
+const GAME_NAME: Record<string, string> = { slots: 'Mega Fruits', crash: 'Crash', plinko: 'Plinko', mines: 'Minen', roulette: 'Roulette', blackjack: 'Blackjack', wheel: 'Glücksrad', bets: 'Sportwetten', scratch: 'Rubbellos', road: 'Straßen-Sprint' };
 const TILES: { id: Playable; name: string; sub: string; icon: string; hue: string; cat: 'slots' | 'instant' | 'table'; badge?: 'hot' | 'neu' }[] = [
   { id: 'plinko', name: 'Plinko', sub: 'Bis 10.000× · Ball-Regen', icon: 'target', hue: 'cyan', cat: 'instant', badge: 'hot' },
+  { id: 'road', name: 'Straßen-Sprint', sub: 'Schritt für Schritt · bis 26.000×', icon: 'car', hue: 'green', cat: 'instant', badge: 'neu' },
   { id: 'slots', name: 'Mega Fruits', sub: 'Klassik-Slot · Freispiele ×3', icon: 'star', hue: 'gold', cat: 'slots', badge: 'hot' },
   { id: 'scratch', name: 'Rubbellos', sub: 'Freirubbeln · bis 500×', icon: 'ticket', hue: 'green', cat: 'instant' },
   { id: 'roulette', name: 'Roulette', sub: 'Europäisch · 0–36', icon: 'dice', hue: 'red', cat: 'table' },

@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-23-strassen-sprint',
+    date: '23.11.2026',
+    title: 'Neues Spiel: Straßen-Sprint',
+    items: [
+      'Deine Neon-Kugel hüpft Fahrbahn für Fahrbahn über eine befahrene Straße – mit jedem Schritt steigt der Multiplikator. Kassieren kannst du jederzeit; wirst du erwischt, ist der Einsatz weg.',
+      'Vier Stufen: Leicht (4 % Unfall pro Fahrbahn), Mittel (12 %), Schwer (20 %) und Hardcore (40 %) – auf Hardcore bis über 26.000× nach 20 Fahrbahnen.',
+      'Die nächste Fahrbahn leuchtet mit ihrem Multiplikator, jeder Schritt hat einen eigenen, steigenden Ton. Leertaste oder Enter = weiter.',
+      'Fair: Der Multiplikator ist so berechnet, dass jeder Ausstieg im Schnitt 97 % zurückzahlt – egal, wann du kassierst.',
+    ],
+  },
+  {
     id: '2026-11-23-casino-klassik',
     date: '23.11.2026',
     title: 'Casino aufgeräumt: wie ein echtes Casino',
