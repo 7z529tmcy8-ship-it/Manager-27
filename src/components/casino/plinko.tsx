@@ -3,7 +3,8 @@ import {
   GOLD_CHANCE, GOLD_MULT, PLINKO_ROWS_OPTIONS, RISKS, dropBall, plinkoP, plinkoTable, plinkoWin, type Risk,
 } from '../../game/casino';
 import { motionReduced } from '../../settings';
-import { playStep } from '../../sound';
+import { playStep, plinkoSound } from '../../sound';
+import { plinkoWinArmed, takePlinkoWin } from '../../game/dev';
 import Icon from '../Icon';
 import { BetPicker, GameFrame, bet, buzz, celebrate, fmt, fmtShort, settle, sfx, shake, useBet } from './shared';
 
@@ -35,8 +36,10 @@ const ease = (u: number) => 1 - (1 - u) ** 2;
 /** Torwand-Plinko 2.0: 8–16 Reihen, vier Risikostufen bis 10.000×, Goldbälle, Zeitlupe vor großen Treffern, Auto bis 100 Bälle. */
 export default function Plinko({ onClose }: { onClose: () => void }) {
   const [stake, setStake] = useBet('plinko', 20);
-  const [rows, setRows] = useState<number>(() => { try { return Number(sessionStorage.getItem('fc-plinko-rows')) || 12; } catch { return 12; } });
-  const [risk, setRisk] = useState<Risk>(() => { try { return (sessionStorage.getItem('fc-plinko-risk') as Risk) || 'mid'; } catch { return 'mid'; } });
+  // Code „win“ aktiv: Brett auf 16 Reihen / Extrem stellen – so wird der Treffer so groß wie möglich.
+  const armed = plinkoWinArmed();
+  const [rows, setRows] = useState<number>(() => { if (armed) return 16; try { return Number(sessionStorage.getItem('fc-plinko-rows')) || 12; } catch { return 12; } });
+  const [risk, setRisk] = useState<Risk>(() => { if (armed) return 'extreme'; try { return (sessionStorage.getItem('fc-plinko-risk') as Risk) || 'mid'; } catch { return 'mid'; } });
   const [turbo, setTurbo] = useState(false);
   const [inFlight, setInFlight] = useState(0);
   const [auto, setAuto] = useState<{ left: number; total: number } | null>(null);
@@ -87,7 +90,9 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
     if (balls.current.length >= MAX_BALLS) return true;
     const { rows: n, table: t, turbo: tb, stake: st } = cfg.current;
     if (!bet(st)) return false;
-    const d = dropBall(Math.random, n);
+    // Code „win“: dieser eine Ball fällt als Goldball ganz an den Rand – höchster Multiplikator des Bretts.
+    const rigged = takePlinkoWin();
+    const d = rigged ? { path: Array.from({ length: n }, () => 0), slot: 0, gold: true } : dropBall(Math.random, n);
     const mult = t[d.slot];
     const peak = mult * (d.gold ? GOLD_MULT : 1) >= 10;
     const base = fast ? 40 : tb ? 62 : 105;
@@ -97,6 +102,7 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
     balls.current.push({ id: seq.current++, path: d.path, slot: d.slot, gold: d.gold, stake: st, mult, start: performance.now(), durs, ends, peak, hitRow: -1, trail: [] });
     setInFlight(balls.current.length);
     launches.current.push(performance.now());
+    plinkoSound('drop');
     if (d.gold) sfx('unlock');
     return true;
   };
@@ -222,7 +228,7 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
             b.hitRow = r0;
             flashes.current.set(`${r0}-${kBefore + 1}`, now);
             for (let i = 0; i < (fever.current ? 4 : 2); i++) sparks.current.push({ x: pegX(r0, kBefore + 1), y: pegY(r0), vx: (Math.random() - 0.5) * 3, vy: -Math.random() * 2.5, born: now, life: 300 + Math.random() * 200, color: PEG_COLORS[(r0 + i) % PEG_COLORS.length], size: 1.2 + Math.random() * 1.3 });
-            if (now - lastTick.current > 28) { lastTick.current = now; sfx('tick'); }
+            if (now - lastTick.current > 28) { lastTick.current = now; plinkoSound('peg', r0); }
             if (b.peak && r0 >= n - 4) playStep((r0 - (n - 4)) * 3 + 6);
           }
         }
@@ -305,6 +311,7 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
     const mult = b.mult * (b.gold ? GOLD_MULT : 1);
     const win = plinkoWin(b.stake, b.mult, b.gold);
     binHits.current.set(b.slot, now);
+    plinkoSound('land', mult);
     {
       const { w, h } = geo.current; const n = cfg.current.rows;
       const sx = w / (n + 2); const binH = Math.max(20, Math.min(30, sx * 0.9));

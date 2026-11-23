@@ -13,6 +13,14 @@ import type { Career, Offer } from './types';
 export const DEV_CODE = 'vogue';
 export const isDevCode = (input: string) => input.trim().toLowerCase() === DEV_CODE;
 
+// ---------- Code „win“: der nächste Plinko-Ball wird die krasseste Runde aller Zeiten ----------
+const WIN_KEY = 'fc-plinko-win';
+export const isWinCode = (input: string) => input.trim().toLowerCase() === 'win';
+export function armPlinkoWin(): void { try { localStorage.setItem(WIN_KEY, '1'); } catch { /* ohne Speicher kein Trick */ } }
+export function plinkoWinArmed(): boolean { try { return localStorage.getItem(WIN_KEY) === '1'; } catch { return false; } }
+/** Einmalig: true zurückgeben und den Trick verbrauchen. */
+export function takePlinkoWin(): boolean { const on = plinkoWinArmed(); if (on) { try { localStorage.removeItem(WIN_KEY); } catch { /* egal */ } } return on; }
+
 /** „Unendlich“ Coins: so viele, dass man sie nie ausgeben kann. */
 export const INFINITE_COINS = 999_999_999;
 

@@ -265,3 +265,81 @@ export function installClickSound(): () => void {
   document.addEventListener('pointerdown', onDown, { capture: true, passive: true });
   return () => document.removeEventListener('pointerdown', onDown, { capture: true });
 }
+
+// ---------- Plinko: übersteuerte, fette Sounds ----------
+// Eigener Kanal mit Verzerrung (WaveShaper) und einem Begrenzer dahinter: klingt brachial „übersteuert“,
+// bleibt aber unter einer festen Höchstlautstärke und folgt dem Lautstärkeregler.
+let crunchIn: GainNode | null = null;
+function crunchBus(c: AudioContext): GainNode {
+  if (crunchIn) return crunchIn;
+  const drive = c.createWaveShaper();
+  const k = 60; const n = 2048; const curve = new Float32Array(n);
+  for (let i = 0; i < n; i++) { const x = (i * 2) / n - 1; curve[i] = ((1 + k) * x) / (1 + k * Math.abs(x)); }
+  drive.curve = curve;
+  drive.oversample = '2x';
+  const bass = c.createBiquadFilter(); bass.type = 'lowshelf'; bass.frequency.value = 140; bass.gain.value = 9;
+  const limiter = c.createDynamicsCompressor();
+  limiter.threshold.value = -6; limiter.knee.value = 0; limiter.ratio.value = 20; limiter.attack.value = 0.002; limiter.release.value = 0.12;
+  const out = c.createGain(); out.gain.value = 1.6;
+  crunchIn = c.createGain();
+  crunchIn.connect(drive).connect(bass).connect(limiter).connect(out).connect(master!);
+  return crunchIn;
+}
+function hit(c: AudioContext, bus: GainNode, freq: number, dur: number, o: { type?: OscillatorType; gain?: number; at?: number; to?: number } = {}) {
+  const t0 = c.currentTime + (o.at ?? 0);
+  const osc = c.createOscillator(); const g = c.createGain();
+  osc.type = o.type ?? 'square';
+  osc.frequency.setValueAtTime(freq, t0);
+  if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t0 + dur);
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(o.gain ?? 0.5, t0 + 0.004);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  osc.connect(g).connect(bus);
+  osc.start(t0); osc.stop(t0 + dur + 0.05);
+}
+function crack(c: AudioContext, bus: GainNode, dur: number, gain: number, at = 0, freq = 1800) {
+  const t0 = c.currentTime + at;
+  const src = c.createBufferSource(); src.buffer = noise(c);
+  const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 0.8;
+  const g = c.createGain();
+  g.gain.setValueAtTime(gain, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  src.connect(f).connect(g).connect(bus);
+  src.start(t0, Math.random()); src.stop(t0 + dur + 0.05);
+}
+let lastPeg = 0;
+/** Plinko-Sounds: Abwurf, Pfosten (Tonhöhe steigt mit der Reihe), Landung nach Multiplikator. */
+export function plinkoSound(kind: 'drop' | 'peg' | 'land', v = 0): void {
+  if (!getSettings().sound) return;
+  const c = audio();
+  if (!c) return;
+  try {
+    const bus = crunchBus(c);
+    if (kind === 'drop') {
+      hit(c, bus, 90, 0.22, { type: 'sawtooth', to: 40, gain: 0.7 });
+      crack(c, bus, 0.08, 0.6, 0, 3000);
+    } else if (kind === 'peg') {
+      const now = c.currentTime;
+      if (now - lastPeg < 0.03) return; // Dauerfeuer bündeln
+      lastPeg = now;
+      hit(c, bus, 220 * 2 ** (Math.min(v, 16) / 8), 0.07, { type: 'square', gain: 0.32 });
+    } else {
+      const m = v;
+      if (m < 1) { hit(c, bus, 70, 0.18, { type: 'sine', to: 45, gain: 0.45 }); return; }
+      // Bass-Schlag + Knall, je höher der Multiplikator, desto mehr Schichten
+      hit(c, bus, 60, 0.5, { type: 'sine', to: 30, gain: 0.9 });
+      crack(c, bus, 0.25, 0.8);
+      if (m >= 2) hit(c, bus, 520, 0.25, { type: 'sawtooth', to: 1040, gain: 0.45, at: 0.04 });
+      if (m >= 10) {
+        [523, 659, 784, 1047].forEach((f, i) => hit(c, bus, f, 0.35, { type: 'square', gain: 0.4, at: 0.08 + i * 0.07 }));
+        hit(c, bus, 45, 1.1, { type: 'sawtooth', to: 25, gain: 0.9, at: 0.05 });
+      }
+      if (m >= 100) {
+        crack(c, bus, 1.2, 1, 0.1, 900);
+        [1047, 1319, 1568, 2093, 2637].forEach((f, i) => hit(c, bus, f, 0.5, { type: 'square', gain: 0.38, at: 0.4 + i * 0.09 }));
+        hit(c, bus, 35, 1.8, { type: 'sawtooth', to: 20, gain: 1, at: 0.3 });
+      }
+    }
+  } catch {
+    // ohne Ton
+  }
+}

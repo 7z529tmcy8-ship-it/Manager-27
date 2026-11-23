@@ -29,6 +29,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-23-plinko-sound',
+    date: '23.11.2026',
+    title: 'Torwand-Plinko: Brachial-Sound',
+    items: [
+      'Plinko hat jetzt eigene, übersteuerte Sounds: fetter Bass-Wumms beim Abwurf, knackige Pfosten-Treffer, die mit jeder Reihe höher werden, und Landungen, die je nach Treffer immer mehr Schichten bekommen – ab 10× mit Fanfare, ab 100× mit Explosion.',
+      'Der Lautstärkeregler gilt weiter; ein eingebauter Begrenzer sorgt dafür, dass es brachial klingt, aber nie gefährlich laut wird.',
+    ],
+  },
+  {
     id: '2026-11-23-plinko-juice',
     date: '23.11.2026',
     title: 'Torwand-Plinko: noch mehr Wumms',

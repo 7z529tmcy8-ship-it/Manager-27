@@ -1,7 +1,7 @@
 import { startMotion, stopMotion } from '../tilt';
 import { useEffect, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../clubStore';
-import { INFINITE_COINS, devAdvance, devAllCards, devCoins, devFlags, devLevels, devMaxCards, devOvr, devTransfer, isDevCode } from '../game/dev';
+import { INFINITE_COINS, devAdvance, devAllCards, devCoins, devFlags, devLevels, devMaxCards, devOvr, devTransfer, isDevCode, isWinCode, armPlinkoWin } from '../game/dev';
 import { CLUBS, LEAGUES, getClub } from '../data/leagues';
 import { currentClubId } from '../game/player';
 import { DIFFICULTIES, setCareerSettings, settingsOf } from '../game/difficulty';
@@ -142,10 +142,16 @@ export default function Settings({ career, onChange, onClose }: Props) {
 function CodeInput({ onUnlock }: { onUnlock: () => void }) {
   const [code, setCode] = useState('');
   const [wrong, setWrong] = useState(false);
+  const [done, setDone] = useState(false);
   const submit = () => {
+    setDone(false);
     if (isDevCode(code)) {
       onUnlock();
       play('levelUp');
+    } else if (isWinCode(code)) {
+      armPlinkoWin();
+      setDone(true);
+      play('jackpot');
     } else {
       setWrong(true);
       play('error');
@@ -160,6 +166,7 @@ function CodeInput({ onUnlock }: { onUnlock: () => void }) {
         <button className="btn secondary small" disabled={!code.trim()}>OK</button>
       </form>
       {wrong && <p className="hint">Falscher Code.</p>}
+      {done && <p className="cs-note good" role="status">Code aktiv: Dein nächster Ball im Torwand-Plinko wird legendär.</p>}
     </div>
   );
 }
