@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { SCRATCH_TABLE, scratchRtp, scratchTicket, type Sym } from '../../game/casino';
-import Icon from '../Icon';
+import { SlotSym } from './symbols';
 import { BetPicker, GameFrame, bet, buzz, fmt, settle, sfx, useBet } from './shared';
 
-const SYM_ICON: Record<Sym, string> = { ball: 'ball', boot: 'boot', shirt: 'shirt', whistle: 'whistle', star: 'star', crown: 'crown', trophy: 'trophy', coin: 'coin' };
 
 /** Rubbellos: Los kaufen, 9 Felder freirubbeln (antippen), 3 gleiche Symbole gewinnen. */
 export default function Scratch({ onClose }: { onClose: () => void }) {
@@ -41,19 +40,19 @@ export default function Scratch({ onClose }: { onClose: () => void }) {
     <GameFrame title="Rubbellos" onClose={onClose} className="cz-scratch"
       odds={`9 Felder, 3 gleiche Symbole gewinnen das Vielfache des Lospreises: ${SCRATCH_TABLE.map((t) => `${t.mult}× (${(t.p * 100).toLocaleString('de-DE', { maximumFractionDigits: 3 })} %)`).join(' · ')}. Auszahlungsquote ca. ${Math.round(scratchRtp() * 100)} %.`}>
       <div className={`cz-sc-card ${done ? (ticket?.mult ? 'win' : 'lose') : ''}`}>
-        <div className="cz-sc-head"><b>Stadion-Los</b><small>3 gleiche gewinnen</small></div>
+        <div className="cz-sc-head"><b>Glückslos</b><small>3 gleiche gewinnen</small></div>
         <div className="cz-sc-grid">
           {Array.from({ length: 9 }, (_, i) => {
             const s = ticket?.cells[i];
             const hit = done && ticket?.mult && s === ticket.sym;
             return (
               <button key={i} className={`cz-sc-cell ${open[i] ? 'open' : ''} ${hit ? 'hit' : ''}`} disabled={!ticket || open[i]} onClick={() => reveal(i)} aria-label={open[i] && s ? s : 'Feld freirubbeln'}>
-                {open[i] && s ? <Icon name={SYM_ICON[s]} size={34} /> : <span className="cz-sc-foil" />}
+                {open[i] && s ? <SlotSym s={s} size={44} /> : <span className="cz-sc-foil" />}
               </button>
             );
           })}
         </div>
-        <div className="cz-sc-pay">{SCRATCH_TABLE.slice().reverse().map((t) => <span key={t.sym}><Icon name={SYM_ICON[t.sym]} size={14} />{t.mult}×</span>)}</div>
+        <div className="cz-sc-pay">{SCRATCH_TABLE.slice().reverse().map((t) => <span key={t.sym}><SlotSym s={t.sym} size={18} />{t.mult}×</span>)}</div>
       </div>
       <div className={`cz-result ${done && ticket?.mult ? 'on' : ''}`}>
         {done && ticket ? (ticket.mult ? <><b>+{fmt(ticket.stake * ticket.mult)}</b><small>{ticket.mult}× Lospreis</small></> : <small>Diesmal nichts – nächstes Los?</small>) : <small>{ticket ? 'Tippe die Felder an zum Freirubbeln' : 'Kauf ein Los'}</small>}

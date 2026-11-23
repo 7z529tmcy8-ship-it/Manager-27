@@ -11,6 +11,10 @@ export type SoundId =
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let noiseBuf: AudioBuffer | null = null;
+// Im Casino läuft alles über den übersteuerten Kanal (Verzerrung + Begrenzer).
+let loud = false;
+export function setLoudSound(on: boolean): void { loud = on; }
+function outNode(c: AudioContext): AudioNode { return loud ? crunchBus(c) : master!; }
 
 function audio(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -63,7 +67,7 @@ function tone(c: AudioContext, freq: number, dur: number, o: ToneOpts = {}) {
   g.gain.setValueAtTime(0.0001, t0);
   g.gain.exponentialRampToValueAtTime(peak, t0 + attack);
   g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-  osc.connect(g).connect(master!);
+  osc.connect(g).connect(outNode(c));
   osc.start(t0);
   osc.stop(t0 + dur + 0.05);
 }
@@ -86,7 +90,7 @@ function hiss(c: AudioContext, dur: number, o: NoiseOpts = {}) {
   g.gain.setValueAtTime(0.0001, t0);
   g.gain.exponentialRampToValueAtTime(peak, t0 + (o.attack ?? 0.02));
   g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-  src.connect(f).connect(g).connect(master!);
+  src.connect(f).connect(g).connect(outNode(c));
   src.start(t0, Math.random());
   src.stop(t0 + dur + 0.05);
 }
@@ -239,7 +243,7 @@ export function playCharge(ms: number): () => void {
     osc.frequency.exponentialRampToValueAtTime(980, t0 + ms / 1000);
     g.gain.setValueAtTime(0.0001, t0);
     g.gain.exponentialRampToValueAtTime(0.09, t0 + 0.08);
-    osc.connect(g).connect(master!);
+    osc.connect(g).connect(outNode(c));
     osc.start(t0);
     osc.stop(t0 + ms / 1000 + 0.05);
     return () => {
@@ -273,14 +277,14 @@ let crunchIn: GainNode | null = null;
 function crunchBus(c: AudioContext): GainNode {
   if (crunchIn) return crunchIn;
   const drive = c.createWaveShaper();
-  const k = 60; const n = 2048; const curve = new Float32Array(n);
+  const k = 400; const n = 2048; const curve = new Float32Array(n);
   for (let i = 0; i < n; i++) { const x = (i * 2) / n - 1; curve[i] = ((1 + k) * x) / (1 + k * Math.abs(x)); }
   drive.curve = curve;
   drive.oversample = '2x';
-  const bass = c.createBiquadFilter(); bass.type = 'lowshelf'; bass.frequency.value = 140; bass.gain.value = 9;
+  const bass = c.createBiquadFilter(); bass.type = 'lowshelf'; bass.frequency.value = 140; bass.gain.value = 12;
   const limiter = c.createDynamicsCompressor();
   limiter.threshold.value = -6; limiter.knee.value = 0; limiter.ratio.value = 20; limiter.attack.value = 0.002; limiter.release.value = 0.12;
-  const out = c.createGain(); out.gain.value = 1.6;
+  const out = c.createGain(); out.gain.value = 2.2;
   crunchIn = c.createGain();
   crunchIn.connect(drive).connect(bass).connect(limiter).connect(out).connect(master!);
   return crunchIn;

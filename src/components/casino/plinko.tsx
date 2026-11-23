@@ -33,7 +33,7 @@ function binColor(m: number): string {
 const multText = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(m >= 10_000 ? 0 : 1).replace('.', ',')}k` : m >= 10 ? m.toFixed(0) : String(m).replace('.', ','));
 const ease = (u: number) => 1 - (1 - u) ** 2;
 
-/** Torwand-Plinko 2.0: 8–16 Reihen, vier Risikostufen bis 10.000×, Goldbälle, Zeitlupe vor großen Treffern, Auto bis 100 Bälle. */
+/** Plinko: 8–16 Reihen, vier Risikostufen bis 10.000×, Goldbälle, Zeitlupe vor großen Treffern, Auto bis 100 Bälle. */
 export default function Plinko({ onClose }: { onClose: () => void }) {
   const [stake, setStake] = useBet('plinko', 20);
   // Code „win“ aktiv: Brett auf 16 Reihen / Extrem stellen – so wird der Treffer so groß wie möglich.
@@ -105,6 +105,21 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
     plinkoSound('drop');
     if (d.gold) sfx('unlock');
     return true;
+  };
+
+  // Ball-Regen: mehrere Bälle direkt hintereinander (jeder kostet den normalen Einsatz)
+  const rainT = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => () => { if (rainT.current) clearInterval(rainT.current); }, []);
+  const rain = (n: number) => {
+    if (rainT.current) return;
+    let left = n;
+    if (!drop()) return;
+    left--;
+    buzz(30);
+    rainT.current = setInterval(() => {
+      if (left <= 0 || !drop()) { clearInterval(rainT.current!); rainT.current = null; return; }
+      left--;
+    }, 70);
   };
 
   // Auto-Modus
@@ -357,7 +372,7 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
   const top = table[0];
 
   return (
-    <GameFrame title="Torwand-Plinko" onClose={onClose} className="cz-plinko2"
+    <GameFrame title="Plinko" onClose={onClose} className="cz-plinko2"
       odds={`${rows} Reihen, Risiko ${RISK_NAME[risk]}: ${table.map(multText).join(' · ')}×. Chance aufs Randfach: 1 zu ${fmt(1 / p[0] / 2)}. ${Math.round(GOLD_CHANCE * 100)} % aller Bälle sind Goldbälle und zahlen doppelt. Auszahlungsquote inkl. Goldball ca. 96 %. Höchstgewinn pro Ball 1 Mio. Chips.`}>
       <div className="pk-left">
       <div className={`pk-hud ${sess.streak >= FEVER_AT ? 'fever' : ''}`}>
@@ -397,6 +412,8 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
         <>
           <div className="cz-actions">
             <button className="cz-cta" onClick={() => drop()}>Ball · {fmt(stake)}</button>
+            <button className="cz-sub pk-rain" onClick={() => rain(5)} aria-label="Ball-Regen 5 Bälle">×5</button>
+            <button className="cz-sub pk-rain" onClick={() => rain(10)} aria-label="Ball-Regen 10 Bälle">×10</button>
             <button className={`cz-sub sq ${turbo ? 'on' : ''}`} onClick={() => setTurbo(!turbo)} aria-pressed={turbo} aria-label="Turbo"><Icon name="bolt" size={20} /></button>
           </div>
           <div className="pk-auto">
@@ -428,11 +445,9 @@ function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, r: number
   ctx.globalAlpha = 1;
   ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.fill();
-  // Fünfeck in der Mitte
-  ctx.beginPath();
-  for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5; const px = x + Math.cos(a) * r * 0.42; const py = y + Math.sin(a) * r * 0.42; if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py); }
-  ctx.closePath();
-  ctx.fillStyle = gold ? '#8a5a00' : '#15102a';
+  // Glanzpunkt statt Fußball-Muster: ein schlichter, leuchtender Neon-Ball
+  ctx.beginPath(); ctx.arc(x - r * 0.32, y - r * 0.32, r * 0.38, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255, 255, 255, .85)';
   ctx.fill();
   ctx.restore();
 }

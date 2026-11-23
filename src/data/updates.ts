@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-23-casino-klassik',
+    date: '23.11.2026',
+    title: 'Casino aufgeräumt: wie ein echtes Casino',
+    items: [
+      'Der Slot heißt jetzt Mega Fruits und ist ein klassischer Früchte-Automat: Kirsche, Zitrone, Pflaume, Glocke, BAR und Sieben. Der Diamant ist Joker, 3 Sterne bringen 10 Freispiele, in denen jeder Gewinn dreifach zählt. 5 Siebener auf einer Linie = Jackpot.',
+      'Plinko: schlichter Neon-Ball statt Fußball und neuer Ball-Regen – 5 oder 10 Bälle mit einem Tipp.',
+      'Das ganze Casino klingt jetzt übersteuert: Jeder Ton läuft durch eine harte Verzerrung mit Bass-Boost (ein Begrenzer verhindert gefährliche Lautstärke).',
+      'Elfmeter-Crash, Elfmeter-Minen und Sportwetten sind aus dem Casino raus – Fokus auf Plinko, Mega Fruits, Rubbellos, Roulette, Blackjack und Glücksrad.',
+    ],
+  },
+  {
     id: '2026-11-23-pokal-der-legenden',
     date: '23.11.2026',
     title: 'Neuer Slot: Pokal der Legenden',

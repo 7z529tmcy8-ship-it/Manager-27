@@ -57,15 +57,17 @@ it('Spielregeln: Crash, Minen, Plinko, Roulette, Blackjack', () => {
   expect(bjReturn([c(10), c(9), c(5)], [c(10), c(7)], 100).ret).toBe(0);
 });
 
-it('Slots: Linien von links, Krone als Joker', () => {
-  const grid: Sym[][] = [['ball', 'star', 'boot'], ['ball', 'crown', 'boot'], ['ball', 'star', 'shirt'], ['shirt', 'boot', 'shirt'], ['boot', 'boot', 'boot']];
+it('Slot: Linien von links, Diamant als Joker, 5 Siebener = Jackpot', () => {
+  const grid: Sym[][] = [['cherry', 'bell', 'lemon'], ['cherry', 'diamond', 'lemon'], ['cherry', 'bell', 'plum'], ['plum', 'lemon', 'plum'], ['lemon', 'lemon', 'lemon']];
   const e = evalGrid(grid, 100);
-  const top = e.lines.find((l) => l.line === 1)!; // obere Reihe: Ball ×3
-  expect(top.sym).toBe('ball');
+  const top = e.lines.find((l) => l.line === 1)!; // obere Reihe: Kirsche ×3
+  expect(top.sym).toBe('cherry');
   expect(top.count).toBe(3);
-  const mid = e.lines.find((l) => l.line === 0)!; // mittlere Reihe: Stern, Krone, Stern
-  expect(mid.sym).toBe('star');
+  const mid = e.lines.find((l) => l.line === 0)!; // mittlere Reihe: Glocke, Diamant, Glocke
+  expect(mid.sym).toBe('bell');
   expect(mid.count).toBe(3);
+  const sevens: Sym[][] = Array.from({ length: 5 }, () => ['seven', 'cherry', 'lemon'] as Sym[]);
+  expect(evalGrid(sevens, 100).jackpot).toBe(true);
 });
 
 it('Aufgaben, Big Win, Shop', () => {
@@ -246,18 +248,10 @@ it('Alle Coins umtauschen: ganzes Guthaben mit Mengenbonus', async () => {
   expect(buyAllChips({ ...c, coins: 50 })).toBeNull();
 });
 
-it('Pokal der Legenden: Spezialsymbol breitet sich aus, Risiko-Leiter fair, Quote im Rahmen', async () => {
-  const { expandWin, playSlots, gambleSettle } = await import('../casino');
-  const g: Sym[][] = [['ball', 'boot', 'shirt'], ['whistle', 'ball', 'ball'], ['star', 'star', 'ball'], ['boot', 'boot', 'boot'], ['shirt', 'shirt', 'shirt']];
-  expect(expandWin(g, 'ball', 100).reels).toEqual([0, 1, 2]);
-  expect(expandWin(g, 'whistle', 100).win).toBe(0); // nur 1 Walze
-  expect(expandWin(g, 'star', 100).reels).toEqual([]); // Stern braucht 2 Walzen, liegt nur auf einer
+it('Slot: Quote im Rahmen', async () => {
+  const { playSlots } = await import('../casino');
   let bet = 0, win = 0;
   for (let i = 0; i < 60_000; i++) { const r = playSlots(100); bet += 100; win += r.win; }
   expect(win / bet).toBeGreaterThan(0.8);
   expect(win / bet).toBeLessThan(1.1);
-  const c: ClubState = { ...freshClub(), casino: { ...casinoOf(freshClub()), chips: 1_000 } };
-  expect(casinoOf(gambleSettle(c, 400, true)!).chips).toBe(1_400);
-  expect(casinoOf(gambleSettle(c, 400, false)!).chips).toBe(600);
-  expect(gambleSettle(c, 2_000, true)).toBeNull();
 });

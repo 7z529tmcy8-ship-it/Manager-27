@@ -1,9 +1,10 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../../clubStore';
 import { CASHOUT_MIN, CASHOUT_RATE, CHIP_PACKS, allChipsRate, buyAllChips, REFILL, SHOP, VIP, buy, buyChips, cashOutChips, casinoOf, claimDaily, claimQuest, claimRefill, dailyBonus, casinoLevel, cashback, claimCashback, giftSpins, tourBoard, tourReward, claimTour, weekEnds, TOUR_MIN_BET, TOUR_PRIZES, happyHour, boxesReady, roundsToBox, openBox, BOX_ODDS, BOX_EVERY, DROP_CHANCE, DROP_TABLE, type BoxPrize, ownsExtra, questList, refillState, vipLevel } from '../../game/casino';
-import { betsOf, resolveCareerBets } from '../../game/bets';
+import { resolveCareerBets } from '../../game/bets';
 import { listCareers } from '../../game/storage';
 import Icon from '../Icon';
+import { setLoudSound } from '../../sound';
 import { motionReduced } from '../../settings';
 import UtCard from '../UtCard';
 import { buzz, celebrate, fmt, fmtShort, giveXp, onCasinoExtra, onOpenBank, onWinShow, openBank, sfx, useCountUp, type CasinoExtra, type WinShow } from './shared';
@@ -20,19 +21,16 @@ const Games = {
   scratch: lazy(() => import('./scratch')),
 };
 type Playable = keyof typeof Games;
-const GAME_NAME: Record<string, string> = { slots: 'Slots', crash: 'Crash', plinko: 'Plinko', mines: 'Minen', roulette: 'Roulette', blackjack: 'Blackjack', wheel: 'Glücksrad', bets: 'Sportwetten', scratch: 'Rubbellos' };
-const TILES: { id: Playable; name: string; sub: string; icon: string; hue: string; cat: 'slots' | 'instant' | 'table' | 'sport'; badge?: 'hot' | 'neu' | 'live' }[] = [
-  { id: 'slots', name: 'Pokal der Legenden', sub: 'Ausbreitende Freispiele · Risiko', icon: 'star', hue: 'gold', cat: 'slots', badge: 'hot' },
-  { id: 'plinko', name: 'Torwand-Plinko', sub: 'Bis 10.000× · Goldbälle', icon: 'ball', hue: 'cyan', cat: 'instant', badge: 'hot' },
-  { id: 'crash', name: 'Elfmeter-Crash', sub: 'Kassier, bevor er hält', icon: 'rocket', hue: 'pink', cat: 'instant' },
-  { id: 'scratch', name: 'Rubbellos', sub: 'Freirubbeln · bis 500×', icon: 'ticket', hue: 'green', cat: 'instant', badge: 'neu' },
-  { id: 'mines', name: 'Elfmeter-Minen', sub: 'Tor oder Parade', icon: 'target', hue: 'green', cat: 'instant' },
+const GAME_NAME: Record<string, string> = { slots: 'Mega Fruits', crash: 'Crash', plinko: 'Plinko', mines: 'Minen', roulette: 'Roulette', blackjack: 'Blackjack', wheel: 'Glücksrad', bets: 'Sportwetten', scratch: 'Rubbellos' };
+const TILES: { id: Playable; name: string; sub: string; icon: string; hue: string; cat: 'slots' | 'instant' | 'table'; badge?: 'hot' | 'neu' }[] = [
+  { id: 'plinko', name: 'Plinko', sub: 'Bis 10.000× · Ball-Regen', icon: 'target', hue: 'cyan', cat: 'instant', badge: 'hot' },
+  { id: 'slots', name: 'Mega Fruits', sub: 'Klassik-Slot · Freispiele ×3', icon: 'star', hue: 'gold', cat: 'slots', badge: 'hot' },
+  { id: 'scratch', name: 'Rubbellos', sub: 'Freirubbeln · bis 500×', icon: 'ticket', hue: 'green', cat: 'instant' },
   { id: 'roulette', name: 'Roulette', sub: 'Europäisch · 0–36', icon: 'dice', hue: 'red', cat: 'table' },
   { id: 'blackjack', name: 'Blackjack', sub: 'Blackjack zahlt 3:2', icon: 'cards', hue: 'violet', cat: 'table' },
   { id: 'wheel', name: 'Glücksrad', sub: 'Täglich gratis', icon: 'spark', hue: 'gold', cat: 'table' },
-  { id: 'bets', name: 'Sportwetten', sub: 'Live-Spieltag · Kombi-Boost', icon: 'ball', hue: 'cyan', cat: 'sport', badge: 'live' },
 ];
-const CATS: [('all' | 'slots' | 'instant' | 'table' | 'sport'), string][] = [['all', 'Alle'], ['slots', 'Slots'], ['instant', 'Sofort'], ['table', 'Tisch'], ['sport', 'Sport']];
+const CATS: [('all' | 'slots' | 'instant' | 'table'), string][] = [['all', 'Alle'], ['slots', 'Slots'], ['instant', 'Sofort'], ['table', 'Tisch']];
 
 type Slide = { id: string; kicker: string; title: string; text: string; cta: string; tone: 'gold' | 'green' | 'pink' | 'violet'; go: () => void };
 /** Banner wie in Online-Casino-Lobbys: eins zur Zeit, wechselt automatisch, Punkte zum Umschalten. */
@@ -89,7 +87,6 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
     if (won.length) { sfx('cash'); setToast(`Karriere-Wette gewonnen: +${fmt(won.reduce((a, x) => a + x.win, 0))}`); }
   }, []);
   const recent = c.recent ?? [];
-  const round = betsOf(club).round;
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 2400); return () => clearTimeout(t); }, [toast]);
   const quests = questList(club);
   const lvl = casinoLevel(c.vipPts);
@@ -113,10 +110,10 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
   useEffect(() => { document.documentElement.classList.toggle('in-casino-game', !!game); return () => document.documentElement.classList.remove('in-casino-game'); }, [game]);
   const happy = happyHour();
   const [sheet, setSheet] = useState(false);
-  type Cat = 'all' | 'slots' | 'instant' | 'table' | 'sport';
-  const [cat, setCatState] = useState<Cat>(() => { try { return (sessionStorage.getItem('fc-cz-cat') as Cat) || 'all'; } catch { return 'all'; } });
+  type Cat = 'all' | 'slots' | 'instant' | 'table';
+  const [cat, setCatState] = useState<Cat>(() => { try { const x = sessionStorage.getItem('fc-cz-cat') as Cat; return CATS.some(([id]) => id === x) ? x : 'all'; } catch { return 'all'; } });
   const setCat = (x: Cat) => { setCatState(x); try { sessionStorage.setItem('fc-cz-cat', x); } catch { /* egal */ } };
-  const [lastPlayed, setLastPlayed] = useState<Playable[]>(() => { try { return JSON.parse(localStorage.getItem('fc-cz-last') || '[]'); } catch { return []; } });
+  const [lastPlayed, setLastPlayed] = useState<Playable[]>(() => { try { return (JSON.parse(localStorage.getItem('fc-cz-last') || '[]') as Playable[]).filter((g) => TILES.some((t) => t.id === g)); } catch { return []; } });
   const boxes = boxesReady(club);
   const [box, setBox] = useState<BoxPrize | null>(null);
   const openMystery = () => { const r = openBox(getClubState()); if (!r) return; setClubState(r.club); setBox(r.prize); sfx(r.prize.kind === 'card' && r.prize.tier !== 'gold' ? 'walkout' : 'revealRare'); buzz([40, 30, 80]); };
@@ -135,8 +132,9 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
   useEffect(() => {
     const root = document.documentElement;
     root.classList.add('in-casino');
+    setLoudSound(true);
     window.scrollTo(0, 0);
-    return () => { root.classList.remove('in-casino'); window.scrollTo(0, 0); };
+    return () => { root.classList.remove('in-casino'); setLoudSound(false); window.scrollTo(0, 0); };
   }, []);
   const openGame = (g: Playable) => {
     hubY.current = window.scrollY; setGame(g); window.scrollTo(0, 0);
@@ -155,9 +153,9 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
   const questsReady = quests.filter((q) => !q.claimed && q.have >= q.quest.goal).length;
   const rewardCount = (daily.ready ? 1 : 0) + (cb.ready ? 1 : 0) + (tourWin ? 1 : 0) + (boxes > 0 ? 1 : 0) + questsReady;
   const slides: Slide[] = [
-    { id: 'jackpot', kicker: 'Progressiver Jackpot', title: fmt(jackpot), text: '5 Jackpot-Münzen an den Slots oder das Glücksrad – plus Ikonen-Karte', cta: 'Slots spielen', tone: 'gold', go: () => openGame('slots') },
+    { id: 'jackpot', kicker: 'Progressiver Jackpot', title: fmt(jackpot), text: '5 Siebener auf einer Linie bei Mega Fruits oder das Glücksrad – plus Ikonen-Karte', cta: 'Mega Fruits spielen', tone: 'gold', go: () => openGame('slots') },
     ...(happy.active ? [{ id: 'happy', kicker: 'Jetzt', title: 'Happy Hour', text: `Doppelte Level- und VIP-Punkte – noch ${hhTxt}`, cta: 'Spielen', tone: 'pink' as const, go: () => openGame('plinko') }] : []),
-    { id: 'bets', kicker: `Live · Spieltag ${round}`, title: 'Sportwetten', text: 'Bundesliga, Premier League & Co. · Kombi-Boost bis +50 % · Cash-out', cta: 'Jetzt tippen', tone: 'green', go: () => openGame('bets') },
+    { id: 'plinko', kicker: 'Heiß', title: 'Plinko', text: 'Bis 10.000× pro Ball – jetzt mit Ball-Regen', cta: 'Jetzt spielen', tone: 'green', go: () => openGame('plinko') },
     { id: 'tour', kicker: `Wochen-Turnier · ${leftTxt}`, title: board.rank === 1 && board.rows[0].best ? 'Du führst!' : `Platz ${board.rank}`, text: `Höchster Multiplikator gewinnt – Platz 1: ${fmt(TOUR_PRIZES[0])} Chips`, cta: 'Rangliste', tone: 'violet', go: () => setSheet(true) },
   ];
 
@@ -205,7 +203,7 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
           {TILES.filter((t) => cat === 'all' || t.cat === cat).map((t) => (
             <button key={t.id} className={`cz-tile h-${t.hue}`} onClick={() => { sfx('tap'); openGame(t.id); }}>
               {t.id === 'slots' && gift.left > 0 ? <em className="cz-hot b-free">{gift.left} gratis</em>
-                : t.badge && <em className={`cz-hot b-${t.badge}`}>{t.badge === 'neu' ? 'Neu' : t.badge === 'live' ? 'Live' : 'Heiß'}</em>}
+                : t.badge && <em className={`cz-hot b-${t.badge}`}>{t.badge === 'neu' ? 'Neu' : 'Heiß'}</em>}
               <span className="cz-tile-ic"><Icon name={t.icon} size={30} /></span>
               <b>{t.name}</b>
               <small>{t.sub}</small>
@@ -298,7 +296,7 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
           <div className="cz-boxshow-in" onClick={(e) => e.stopPropagation()}>
             <small>Mystery-Box</small>
             {box.kind === 'card' ? <><div className="cz-boxcard"><UtCard card={box.card} size="md" shine /></div><b>{box.tier === 'icon' ? 'Ikone!' : box.tier === 'top' ? 'Top-Karte!' : 'Neue Karte!'}</b><span>{box.card.name} ist jetzt in deiner Sammlung</span></>
-              : box.kind === 'spins' ? <><Icon name="star" size={64} /><b>+10 Gratis-Drehs</b><span>am Pokal der Legenden</span></>
+              : box.kind === 'spins' ? <><Icon name="star" size={64} /><b>+10 Gratis-Drehs</b><span>bei Mega Fruits</span></>
               : <><Icon name="coin" size={64} /><b>+{fmt(box.amount)} Chips</b><span>{box.amount >= 3000 ? 'Großer Fang!' : 'Weiter so!'}</span></>}
             <button className="cz-cta" onClick={() => setBox(null)}>Weiter</button>
           </div>

@@ -5399,3 +5399,8 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .cz-gamble-btns .black { background: linear-gradient(180deg, #3a3a48, #0b0b12); color: #fff; border: 1px solid #555; }
 .cz-gamble-btns .take { background: linear-gradient(180deg, #ffe58a, #e3a92b); color: #2a1a00; }
 .cz-gamble-btns button:disabled { opacity: .5; }
+/* Plinko: Ball-Regen-Knöpfe, Mega-Fruits-Symbole */
+.cz-actions .pk-rain { min-width: 54px; padding: 0 10px; font-weight: 900; color: #3ff0ff; border-color: rgba(63, 240, 255, .5); }
+.cz-actions .pk-rain:active { transform: scale(.94); }
+.slot-sym { display: block; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .5)); }
+.cz-sym.hit .slot-sym { filter: drop-shadow(0 0 10px rgba(255, 210, 74, .9)); animation: cz-breathe .6s ease-in-out 2; }

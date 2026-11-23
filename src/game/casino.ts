@@ -245,83 +245,68 @@ export function takeJackpot(club: ClubState): { club: ClubState; amount: number 
   return { club: withCasino(club, (c) => ({ ...c, jackpot: JACKPOT_SEED })), amount };
 }
 
-// ---------- 1. Stadion-Slots ----------
-export type Sym = 'ball' | 'boot' | 'shirt' | 'whistle' | 'star' | 'crown' | 'trophy' | 'coin';
-const WEIGHTS: [Sym, number][] = [['ball', 28], ['boot', 24], ['shirt', 20], ['whistle', 15], ['star', 9], ['crown', 2], ['trophy', 2.4], ['coin', 3]];
+// ---------- 1. Klassik-Slot (Früchte, 5 Walzen, 10 Linien) ----------
+// Einfach wie am echten Automaten: Diamant ist Joker, 3+ Sterne irgendwo = 10 Freispiele (alle Gewinne ×3),
+// 5 Siebener auf einer Linie = Jackpot.
+export type Sym = 'cherry' | 'lemon' | 'plum' | 'bell' | 'bar' | 'seven' | 'diamond' | 'star';
+const WEIGHTS: [Sym, number][] = [['cherry', 28], ['lemon', 24], ['plum', 20], ['bell', 14], ['bar', 9], ['seven', 4], ['diamond', 2.4], ['star', 2.6]];
 const W_TOTAL = WEIGHTS.reduce((a, [, w]) => a + w, 0);
-/** Linien-Auszahlung (× Linieneinsatz = Einsatz/10) für 3, 4, 5 gleiche von links. Krone ist Joker. */
+/** Linien-Auszahlung (× Linieneinsatz = Einsatz/10) für 3, 4, 5 gleiche von links. Diamant ist Joker. */
 export const PAYTABLE: Partial<Record<Sym, [number, number, number]>> = {
-  ball: [2, 5, 15], boot: [3, 8, 25], shirt: [4, 12, 40], whistle: [6, 20, 75], star: [12, 50, 200], crown: [20, 100, 500],
+  cherry: [2, 5, 15], lemon: [3, 8, 25], plum: [4, 12, 40], bell: [6, 20, 75], bar: [12, 50, 200], seven: [25, 125, 750], diamond: [20, 100, 500],
 };
-/** Gleichmäßiger Faktor auf alle Linien, so eingestellt, dass die Slots ~95 % zurückzahlen. */
-export const SLOT_SCALE = 1.28;
-/** Ausbreitende Symbole sind stark – eigener Faktor, damit die Quote insgesamt bei ~95 % bleibt. */
-export const EXPAND_SCALE = 1.6;
+/** Gleichmäßiger Faktor auf alle Linien, so eingestellt, dass der Slot ~94 % zurückzahlt. */
+export const SLOT_SCALE = 2.45;
 export const LINES: number[][] = [
   [1, 1, 1, 1, 1], [0, 0, 0, 0, 0], [2, 2, 2, 2, 2], [0, 1, 2, 1, 0], [2, 1, 0, 1, 2],
   [0, 0, 1, 2, 2], [2, 2, 1, 0, 0], [1, 0, 0, 0, 1], [1, 2, 2, 2, 1], [1, 0, 1, 2, 1],
 ];
-/** Freispiele: 3+ Pokale (Joker UND Scatter) = 10 Freispiele, im Freispiel erneut 3+ Pokale = +10 (höchstens 50). */
+/** 3+ Sterne irgendwo: 10 Freispiele, im Freispiel erneut auslösbar (höchstens 50). */
 export const FREE_SPINS: Record<number, number> = { 3: 10, 4: 10, 5: 10 };
 export const FREE_MAX = 50;
-/** Pokal-Scatter irgendwo: 3 → 2× Einsatz, 4 → 20×, 5 → 200×. */
-export const SCATTER_PAY: Record<number, number> = { 3: 2, 4: 20, 5: 200 };
-/** Spezialsymbol in den Freispielen: breitet sich auf ganze Walzen aus, wenn es auf so vielen Walzen liegt. */
-export const EXPAND_SYMS: Sym[] = ['ball', 'boot', 'shirt', 'whistle', 'star', 'crown'];
-export const EXPAND_MIN: Partial<Record<Sym, number>> = { ball: 3, boot: 3, shirt: 3, whistle: 3, star: 2, crown: 2 };
-const EXPAND_PAY2: Partial<Record<Sym, number>> = { star: 5, crown: 10 };
-const pickSym = (rand: Rand): Sym => { let r = rand() * W_TOTAL; for (const [s, w] of WEIGHTS) { r -= w; if (r < 0) return s; } return 'ball'; };
+export const FREE_MULT = 3;
+/** Stern-Scatter irgendwo: 3 → 2× Einsatz, 4 → 10×, 5 → 50×. */
+export const SCATTER_PAY: Record<number, number> = { 3: 2, 4: 10, 5: 50 };
+const pickSym = (rand: Rand): Sym => { let r = rand() * W_TOTAL; for (const [s, w] of WEIGHTS) { r -= w; if (r < 0) return s; } return 'cherry'; };
 /** Walzen: 5 Spalten × 3 Reihen. */
 export const spinGrid = (rand: Rand = Math.random): Sym[][] => Array.from({ length: 5 }, () => Array.from({ length: 3 }, () => pickSym(rand)));
 
 export interface LineWin { line: number; sym: Sym; count: number; win: number }
-const isWild = (s: Sym) => s === 'crown' || s === 'trophy';
-export function evalGrid(grid: Sym[][], bet: number): { lines: LineWin[]; win: number; scatters: number; coins: number } {
+export function evalGrid(grid: Sym[][], bet: number): { lines: LineWin[]; win: number; scatters: number; jackpot: boolean } {
   const lineBet = bet / 10;
   const lines: LineWin[] = [];
+  let jackpot = false;
   LINES.forEach((rows, li) => {
     const syms = rows.map((r, reel) => grid[reel][r]);
-    const base = syms.find((s) => !isWild(s)) ?? 'crown';
+    if (syms.every((x) => x === 'seven')) jackpot = true;
+    const base = syms.find((x) => x !== 'diamond') ?? 'diamond';
     if (!PAYTABLE[base]) return;
     let count = 0;
-    for (const s of syms) { if (s === base || isWild(s)) count++; else break; }
+    for (const x of syms) { if (x === base || x === 'diamond') count++; else break; }
     if (count >= 3) lines.push({ line: li, sym: base, count, win: Math.round(lineBet * PAYTABLE[base]![count - 3] * SLOT_SCALE) });
   });
-  const flat = grid.flat();
-  const scatters = flat.filter((s) => s === 'trophy').length;
+  const scatters = grid.flat().filter((x) => x === 'star').length;
   const scatterWin = (SCATTER_PAY[Math.min(5, scatters)] ?? 0) * bet;
-  return { lines, win: lines.reduce((a, l) => a + l.win, 0) + scatterWin, scatters, coins: flat.filter((s) => s === 'coin').length };
+  return { lines, win: lines.reduce((a, l) => a + l.win, 0) + scatterWin, scatters, jackpot };
 }
-/** Ausbreitendes Spezialsymbol: liegt es auf genug Walzen, füllt es diese komplett und zahlt auf allen 10 Linien. */
-export function expandWin(grid: Sym[][], sym: Sym, bet: number): { reels: number[]; win: number } {
-  const reels = grid.map((col, i) => (col.includes(sym) ? i : -1)).filter((i) => i >= 0);
-  const min = EXPAND_MIN[sym] ?? 3;
-  if (reels.length < min) return { reels: [], win: 0 };
-  const pay = reels.length >= 3 ? PAYTABLE[sym]![reels.length - 3] : EXPAND_PAY2[sym] ?? 0;
-  return { reels, win: Math.round((bet / 10) * pay * SLOT_SCALE * 10 * EXPAND_SCALE) };
-}
-/** Münzen irgendwo: 3 → 3× Einsatz, 4 → 20×, 5+ → Jackpot. */
-export const COIN_PAY: Record<number, number> = { 3: 3, 4: 20 };
-export interface FreeSpin { grid: Sym[][]; win: number; expand: { reels: number[]; win: number }; retrigger: number }
-export interface SlotResult { grid: Sym[][]; lines: LineWin[]; win: number; free: FreeSpin[]; special: Sym | null; jackpot: boolean; scatters: number }
+export interface FreeSpin { grid: Sym[][]; win: number; retrigger: number }
+export interface SlotResult { grid: Sym[][]; lines: LineWin[]; win: number; free: FreeSpin[]; jackpot: boolean; scatters: number }
 export function playSlots(bet: number, rand: Rand = Math.random): SlotResult {
   const grid = spinGrid(rand);
   const e = evalGrid(grid, bet);
-  let win = e.win + (COIN_PAY[e.coins] ?? 0) * bet;
+  let win = e.win;
   const free: FreeSpin[] = [];
   let left = e.scatters >= 3 ? FREE_SPINS[3] : 0;
-  const special = left ? EXPAND_SYMS[Math.floor(rand() * EXPAND_SYMS.length)] : null;
   while (left > 0 && free.length < FREE_MAX) {
     left--;
     const g = spinGrid(rand);
     const f = evalGrid(g, bet);
-    const x = expandWin(g, special!, bet);
-    const re = f.scatters >= 3 ? Math.min(FREE_SPINS[3], FREE_MAX - free.length - left - 1) : 0;
-    left += Math.max(0, re);
-    free.push({ grid: g, win: f.win + x.win, expand: x, retrigger: Math.max(0, re) });
-    win += f.win + x.win;
+    const re = f.scatters >= 3 ? Math.max(0, Math.min(FREE_SPINS[3], FREE_MAX - free.length - left - 1)) : 0;
+    left += re;
+    free.push({ grid: g, win: f.win * FREE_MULT, retrigger: re });
+    win += f.win * FREE_MULT;
   }
-  return { grid, lines: e.lines, win, free, special, jackpot: e.coins >= 5, scatters: e.scatters };
+  return { grid, lines: e.lines, win, free, jackpot: e.jackpot, scatters: e.scatters };
 }
 
 // ---------- Risiko-Leiter: Gewinn verdoppeln oder alles verlieren (faire 50 : 50, höchstens 5 Stufen) ----------
@@ -489,15 +474,11 @@ export const markWheel = (club: ClubState, now = new Date()): ClubState => withC
 // ---------- Tagesaufgaben ----------
 export interface Quest { id: string; text: string; goal: number; reward: number; count: (e: PlayEvent) => number; best?: boolean }
 export const QUESTS: Quest[] = [
-  { id: 'slots10', text: '10× am Pokal der Legenden drehen', goal: 10, reward: 400, count: (e) => (e.game === 'slots' ? 1 : 0) },
-  { id: 'crash3', text: 'Beim Crash bei mindestens 3× kassieren', goal: 1, reward: 600, count: (e) => (e.game === 'crash' && e.win > 0 && (e.mult ?? 0) >= 3 ? 1 : 0) },
+  { id: 'slots10', text: '10× am Slot drehen', goal: 10, reward: 400, count: (e) => (e.game === 'slots' ? 1 : 0) },
   { id: 'bj3', text: '3 Blackjack-Hände gewinnen', goal: 3, reward: 500, count: (e) => (e.game === 'blackjack' && e.win > e.bet ? 1 : 0) },
-  { id: 'mines5', text: 'Minen: 5 Tore in einer Runde', goal: 5, reward: 600, best: true, count: (e) => (e.game === 'mines' ? e.safe ?? 0 : 0) },
   { id: 'plinko20', text: '20 Plinko-Bälle fallen lassen', goal: 20, reward: 400, count: (e) => (e.game === 'plinko' ? 1 : 0) },
   { id: 'plinko10x', text: 'Plinko: einen 10×-Treffer landen', goal: 1, reward: 700, count: (e) => (e.game === 'plinko' && (e.mult ?? 0) >= 10 ? 1 : 0) },
   { id: 'roulette5', text: '5 Runden Roulette spielen', goal: 5, reward: 350, count: (e) => (e.game === 'roulette' ? 1 : 0) },
-  { id: 'bet3', text: '3 Wettscheine spielen', goal: 3, reward: 500, count: (e) => (e.game === 'bets' ? 1 : 0) },
-  { id: 'kombi4', text: 'Kombi mit 4+ Tipps gewinnen', goal: 1, reward: 900, count: (e) => (e.game === 'bets' && (e.legs ?? 0) >= 4 && e.win > 0 ? 1 : 0) },
   { id: 'big', text: 'Einen Big Win landen (8× Einsatz)', goal: 1, reward: 800, count: (e) => (bigWinOf(e.bet, e.win) ? 1 : 0) },
 ];
 /** Drei Aufgaben pro Tag, für alle gleich (aus dem Datum). */
@@ -702,8 +683,8 @@ export function openBox(club: ClubState, now = new Date(), rand: Rand = Math.ran
 // ---------- Rubbellos ----------
 /** Gewinnklassen pro Los (Vielfaches vom Lospreis) mit Wahrscheinlichkeit – Auszahlungsquote ca. 95 %. */
 export const SCRATCH_TABLE: { mult: number; p: number; sym: Sym }[] = [
-  { mult: 1, p: 0.2, sym: 'ball' }, { mult: 2, p: 0.12, sym: 'boot' }, { mult: 3, p: 0.05, sym: 'shirt' },
-  { mult: 5, p: 0.03, sym: 'whistle' }, { mult: 10, p: 0.012, sym: 'star' }, { mult: 50, p: 0.0012, sym: 'trophy' }, { mult: 500, p: 0.00005, sym: 'crown' },
+  { mult: 1, p: 0.2, sym: 'cherry' }, { mult: 2, p: 0.12, sym: 'lemon' }, { mult: 3, p: 0.05, sym: 'plum' },
+  { mult: 5, p: 0.03, sym: 'bell' }, { mult: 10, p: 0.012, sym: 'bar' }, { mult: 50, p: 0.0012, sym: 'seven' }, { mult: 500, p: 0.00005, sym: 'diamond' },
 ];
 export const scratchRtp = () => SCRATCH_TABLE.reduce((a, t) => a + t.mult * t.p, 0);
 /** Ein Los: 9 Felder, 3 gleiche Symbole gewinnen. Ergebnis wird zuerst ausgelost, dann verteilt. */
