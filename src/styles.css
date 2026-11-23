@@ -5288,3 +5288,52 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .cz-rain i.s1 { width: 24px; height: 24px; } .cz-rain i.s2 { width: 30px; height: 30px; }
 .cz-game.shake.hard { animation: cz-shake .45s; }
 .cz-party b { will-change: transform, opacity; }
+
+/* ---- Casino-Eingang: Explosion ---- */
+.cz-intro { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; overflow: hidden; cursor: pointer; pointer-events: auto;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 63, 180, .35), rgba(9, 3, 24, .96) 55%); animation: czi-bg 1.9s ease-out forwards; }
+@keyframes czi-bg { 0% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+.cz-intro > * { grid-area: 1 / 1; }
+.cz-intro-flash { width: 100vmax; height: 100vmax; border-radius: 50%; background: radial-gradient(circle, #fff 0%, #fff6c2 18%, rgba(255, 210, 74, .6) 35%, transparent 62%); animation: czi-flash .7s ease-out forwards; }
+@keyframes czi-flash { 0% { transform: scale(.05); opacity: 1; } 60% { opacity: .9; } 100% { transform: scale(1.6); opacity: 0; } }
+.cz-intro-ring { width: 40vmin; height: 40vmin; border-radius: 50%; border: 6px solid #ffd24a; box-shadow: 0 0 30px #ffd24a, inset 0 0 30px #ffd24a; opacity: 0; animation: czi-ring 1s cubic-bezier(.1, .7, .3, 1) forwards; }
+.cz-intro-ring.r2 { border-color: #ff3fb4; box-shadow: 0 0 30px #ff3fb4, inset 0 0 30px #ff3fb4; animation-delay: .12s; }
+.cz-intro-ring.r3 { border-color: #3ff0ff; box-shadow: 0 0 30px #3ff0ff, inset 0 0 30px #3ff0ff; animation-delay: .24s; }
+@keyframes czi-ring { 0% { transform: scale(.1); opacity: 1; border-width: 14px; } 100% { transform: scale(3.6); opacity: 0; border-width: 1px; } }
+.cz-intro-burst, .cz-intro-coins { width: 0; height: 0; position: relative; }
+.cz-intro-burst b { position: absolute; left: 0; top: 0; width: 12px; height: 26px; margin: -13px 0 0 -6px; border-radius: 6px; background: var(--c); box-shadow: 0 0 12px var(--c);
+  transform: rotate(var(--a)) translateY(0) scale(.4); opacity: 0; animation: czi-shard 1.15s cubic-bezier(.12, .8, .25, 1) forwards; }
+@keyframes czi-shard { 0% { transform: rotate(var(--a)) translateY(0) scale(.4); opacity: 1; } 70% { opacity: 1; } 100% { transform: rotate(var(--a)) translateY(calc(var(--d) * -1)) scale(1); opacity: 0; } }
+.cz-intro-coins span { position: absolute; left: 0; top: 0; margin: -13px 0 0 -13px; color: #ffd24a; opacity: 0; transform: rotate(var(--a)) translateY(0); animation: czi-coin 1.4s cubic-bezier(.15, .75, .3, 1) forwards; }
+@keyframes czi-coin { 0% { transform: rotate(var(--a)) translateY(0) rotate(0); opacity: 1; } 80% { opacity: 1; } 100% { transform: rotate(var(--a)) translateY(calc(var(--d) * -1)) rotate(720deg); opacity: 0; } }
+.cz-intro-logo { margin: 0; font-family: 'Rajdhani', var(--display, sans-serif); font-size: clamp(2.6rem, 13vw, 5.5rem); line-height: .9; text-transform: uppercase; text-align: center; color: #fff;
+  text-shadow: 0 0 18px #ff3fb4, 0 0 40px #ff3fb4, 0 6px 0 rgba(0, 0, 0, .4); animation: czi-logo 1.9s cubic-bezier(.2, 1.6, .4, 1) forwards; }
+.cz-intro-logo span { display: block; color: #ffd24a; text-shadow: 0 0 18px #ffd24a, 0 0 40px #ff9f1c; }
+@keyframes czi-logo { 0% { transform: scale(3.2); opacity: 0; } 18% { transform: scale(.9); opacity: 1; } 26% { transform: scale(1.06); } 34%, 78% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.15); opacity: 0; } }
+.cz-intro-sub { align-self: end; margin-bottom: 18vh; font-weight: 900; letter-spacing: .3em; text-transform: uppercase; color: #ffd24a; opacity: 0; animation: czi-sub 1.9s ease-out forwards; }
+@keyframes czi-sub { 30% { opacity: 0; transform: translateY(10px); } 45%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+.cz:has(.cz-intro) .cz-scroll { animation: czi-shake .55s .05s; }
+@keyframes czi-shake { 15%, 55% { transform: translate(-10px, 5px); } 35%, 75% { transform: translate(10px, -5px); } 90% { transform: translate(-3px, 2px); } }
+:root.reduce-motion .cz-intro { animation-duration: .5s; }
+:root.reduce-motion .cz-intro-burst, :root.reduce-motion .cz-intro-coins, :root.reduce-motion .cz-intro-ring { display: none; }
+:root.reduce-motion .cz:has(.cz-intro) .cz-scroll { animation: none; }
+/* Alle Coins umtauschen */
+.cz-allcoins { width: 100%; display: flex; align-items: center; gap: 12px; margin: 12px 0 0; padding: 14px; border: 0; border-radius: 18px; cursor: pointer; text-align: left; color: #2a1a00; font: inherit;
+  background: linear-gradient(135deg, #ffe58a, #ffb020 55%, #ff7a59); box-shadow: 0 0 22px rgba(255, 176, 32, .45); transition: transform .12s ease-out; }
+.cz-allcoins:active { transform: scale(.97); }
+.cz-allcoins:disabled { opacity: .45; cursor: default; box-shadow: none; }
+.cz-allcoins span { display: flex; flex-direction: column; }
+.cz-allcoins b { font-family: 'Rajdhani', var(--display, sans-serif); font-size: 1.25rem; text-transform: uppercase; }
+.cz-allcoins small { font-weight: 800; font-size: .8rem; }
+.cz-allcoins.sure { background: linear-gradient(135deg, #ff4d6d, #ff3fb4); color: #fff; animation: cz-breathe .8s ease-in-out infinite; }
+/* Eingangs-Explosion: alles exakt in der Bildschirmmitte verankern */
+.cz-intro { display: block; }
+.cz-intro > * { position: absolute; grid-area: auto; }
+.cz-intro-flash { left: 50%; top: 50%; margin: -50vmax 0 0 -50vmax; }
+.cz-intro-ring { left: 50%; top: 50%; margin: -20vmin 0 0 -20vmin; }
+.cz-intro-burst, .cz-intro-coins { left: 50%; top: 50%; }
+.cz-intro-logo { left: 0; right: 0; top: 50%; margin-top: -0.95em; }
+.cz-intro-sub { left: 0; right: 0; bottom: 18vh; margin: 0; text-align: center; }
+.cz-intro { background: radial-gradient(circle at 50% 50%, rgba(255, 63, 180, .45), rgba(9, 3, 24, .98) 60%); animation-duration: 2.3s; }
+.cz-intro-logo { animation-duration: 2.3s; }
+.cz-intro-sub { animation-duration: 2.3s; }

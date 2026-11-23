@@ -562,6 +562,16 @@ export function buyChips(club: ClubState, pack: number): ClubState | null {
   if (!p || club.coins < p.coins) return null;
   return withCasino({ ...club, coins: club.coins - p.coins }, (c) => ({ ...c, chips: c.chips + p.chips }));
 }
+/** Alle Coins auf einmal tauschen – mit demselben Mengen-Bonus wie die Pakete (bis +30 %). */
+export function allChipsRate(coins: number): number {
+  return coins >= 100_000 ? 1.3 : coins >= 25_000 ? 1.2 : coins >= 5_000 ? 1.1 : 1;
+}
+export function buyAllChips(club: ClubState): { club: ClubState; coins: number; chips: number } | null {
+  const coins = Math.floor(club.coins);
+  if (!(coins >= 100)) return null;
+  const chips = Math.floor(coins * allChipsRate(coins));
+  return { club: withCasino({ ...club, coins: club.coins - coins }, (c) => ({ ...c, chips: c.chips + chips })), coins, chips };
+}
 export const REFILL = 1_000;
 export const REFILL_MIN = 100;
 export const REFILL_MS = 3 * 60 * 60 * 1000;

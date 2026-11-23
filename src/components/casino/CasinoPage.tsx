@@ -1,9 +1,10 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../../clubStore';
-import { CASHOUT_MIN, CASHOUT_RATE, CHIP_PACKS, REFILL, SHOP, VIP, buy, buyChips, cashOutChips, casinoOf, claimDaily, claimQuest, claimRefill, dailyBonus, casinoLevel, cashback, claimCashback, giftSpins, tourBoard, tourReward, claimTour, weekEnds, TOUR_MIN_BET, TOUR_PRIZES, happyHour, boxesReady, roundsToBox, openBox, BOX_ODDS, BOX_EVERY, DROP_CHANCE, DROP_TABLE, type BoxPrize, ownsExtra, questList, refillState, vipLevel } from '../../game/casino';
+import { CASHOUT_MIN, CASHOUT_RATE, CHIP_PACKS, allChipsRate, buyAllChips, REFILL, SHOP, VIP, buy, buyChips, cashOutChips, casinoOf, claimDaily, claimQuest, claimRefill, dailyBonus, casinoLevel, cashback, claimCashback, giftSpins, tourBoard, tourReward, claimTour, weekEnds, TOUR_MIN_BET, TOUR_PRIZES, happyHour, boxesReady, roundsToBox, openBox, BOX_ODDS, BOX_EVERY, DROP_CHANCE, DROP_TABLE, type BoxPrize, ownsExtra, questList, refillState, vipLevel } from '../../game/casino';
 import { betsOf, resolveCareerBets } from '../../game/bets';
 import { listCareers } from '../../game/storage';
 import Icon from '../Icon';
+import { motionReduced } from '../../settings';
 import UtCard from '../UtCard';
 import { buzz, celebrate, fmt, fmtShort, giveXp, onCasinoExtra, onOpenBank, onWinShow, openBank, sfx, useCountUp, type CasinoExtra, type WinShow } from './shared';
 
@@ -62,6 +63,15 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
   const next = VIP[lv + 1];
   const daily = dailyBonus(club);
   const [game, setGame] = useState<Playable | null>(null);
+  // Großer Auftritt beim Betreten: Explosion, Druckwellen, Funken, Logo knallt rein (Tippen überspringt).
+  const [intro, setIntro] = useState(true);
+  useEffect(() => {
+    const fast = motionReduced();
+    sfx('boom'); buzz([80, 40, 140]);
+    const t1 = setTimeout(() => sfx('jackpot'), fast ? 0 : 260);
+    const t2 = setTimeout(() => setIntro(false), fast ? 500 : 2300);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
   const chips = useCountUp(c.chips, 600, !game);
   const jackpot = useCountUp(c.jackpot, 1200, !game);
   const [shop, setShop] = useState(false);
@@ -272,6 +282,7 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
         </div>
       )}
 
+      {intro && <CasinoIntro onSkip={() => setIntro(false)} />}
       {toast && <div className="cz-toast" role="status">{toast}</div>}
       {shop && <Shop onClose={() => setShop(false)} onDone={setToast} />}
       {Game && <Suspense fallback={<div className="cz-game cz-loading" />}><Game onClose={closeGame} /></Suspense>}
@@ -401,6 +412,18 @@ function Bank({ onClose, onDone }: { onClose: () => void; onDone: (msg: string) 
     sfx('cash'); buzz([20, 40, 20]);
     onDone(`+${fmt(CHIP_PACKS[i].chips)} Chips`);
   };
+  const [sure, setSure] = useState(false);
+  const allIn = () => {
+    if (!sure) { setSure(true); sfx('tap'); setTimeout(() => setSure(false), 3000); return; }
+    const r = buyAllChips(getClubState());
+    setSure(false);
+    if (!r) { sfx('error'); return; }
+    setClubState(r.club);
+    sfx('jackpot'); buzz([40, 30, 40, 30, 120]); celebrate(20);
+    onDone(`${fmt(r.coins)} Coins → +${fmt(r.chips)} Chips`);
+  };
+  const allCoins = Math.floor(club.coins);
+  const allRate = allChipsRate(allCoins);
   const free = () => {
     const next = claimRefill(getClubState());
     if (!next) return;
@@ -419,6 +442,13 @@ function Bank({ onClose, onDone }: { onClose: () => void; onDone: (msg: string) 
           <Icon name="arrow" size={22} />
           <span><small>Chips</small><b className="gold"><Icon name="coin" size={18} />{fmt(c.chips)}</b></span>
         </div>
+        <button className={`cz-allcoins ${sure ? 'sure' : ''}`} disabled={allCoins < 100} onClick={allIn}>
+          <Icon name="bolt" size={22} />
+          <span>
+            <b>{sure ? 'Sicher? Nochmal tippen!' : 'Alle Coins umtauschen'}</b>
+            <small>{allCoins >= 100 ? `${fmt(allCoins)} Coins → ${fmt(Math.floor(allCoins * allRate))} Chips${allRate > 1 ? ` (+${Math.round((allRate - 1) * 100)} %)` : ''}` : 'Mindestens 100 Coins'}</small>
+          </span>
+        </button>
         {refill.broke && (
           <button className={`cz-refill ${refill.ready ? 'ready' : ''}`} disabled={!refill.ready} onClick={free}>
             <Icon name="gift" size={24} />
@@ -448,6 +478,29 @@ function Bank({ onClose, onDone }: { onClose: () => void; onDone: (msg: string) 
         </ul>
         <p className="cz-foot">Coins verdienst du mit Karriere-Saisons, Duell-Siegen und deinem Vermögen. Echtes Geld gibt es hier nicht.</p>
       </div>
+    </div>
+  );
+}
+
+const BURST = ['#ffd24a', '#ff3fb4', '#3ff0ff', '#39ff88', '#8b5cff', '#ff7a59'];
+/** Eingangs-Explosion des Casinos – nur CSS-Bewegung (transform/opacity), damit es auch auf älteren Geräten flüssig bleibt. */
+function CasinoIntro({ onSkip }: { onSkip: () => void }) {
+  return (
+    <div className="cz-intro" onClick={onSkip} role="presentation">
+      <i className="cz-intro-flash" />
+      <i className="cz-intro-ring r1" /><i className="cz-intro-ring r2" /><i className="cz-intro-ring r3" />
+      <div className="cz-intro-burst" aria-hidden="true">
+        {Array.from({ length: 36 }, (_, i) => {
+          const a = (i / 36) * 360 + (i % 3) * 4;
+          const d = 32 + (i % 4) * 14;
+          return <b key={i} style={{ '--a': `${a}deg`, '--d': `${d}vmin`, '--c': BURST[i % BURST.length], animationDelay: `${(i % 5) * 18}ms` } as React.CSSProperties} />;
+        })}
+      </div>
+      <div className="cz-intro-coins" aria-hidden="true">
+        {Array.from({ length: 14 }, (_, i) => <span key={i} style={{ '--a': `${(i / 14) * 360 + 10}deg`, '--d': `${40 + (i % 3) * 12}vmin`, animationDelay: `${60 + (i % 4) * 30}ms` } as React.CSSProperties}><Icon name="coin" size={26} /></span>)}
+      </div>
+      <h1 className="cz-intro-logo">Neon<span>Casino</span></h1>
+      <small className="cz-intro-sub">Viel Glück!</small>
     </div>
   );
 }

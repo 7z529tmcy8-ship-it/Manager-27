@@ -29,6 +29,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-23-casino-boom',
+    date: '23.11.2026',
+    title: 'Casino: Riesen-Explosion beim Betreten + alle Coins auf einmal tauschen',
+    items: [
+      'Beim Betreten des Casinos knallt es: Blitz, drei Druckwellen, Funkenregen, fliegende Münzen, das Logo kracht rein und der Bildschirm bebt. Antippen überspringt.',
+      'Chip-Kasse: „Alle Coins umtauschen“ tauscht dein ganzes Coin-Guthaben mit einem Tipp in Chips – mit Mengenbonus bis +30 %. Zur Sicherheit einmal bestätigen.',
+    ],
+  },
+  {
     id: '2026-11-22-riesen-zahlen',
     date: '22.11.2026',
     title: 'Reparatur: Kein Einfrieren mehr bei riesigem Guthaben',

@@ -235,3 +235,12 @@ it('Casino-Level: direkt berechnet, stimmt mit dem Hochzählen überein und hän
   casinoLevel(Infinity); casinoLevel(Number.NaN);
   expect(Date.now() - t0).toBeLessThan(50);
 });
+
+it('Alle Coins umtauschen: ganzes Guthaben mit Mengenbonus', async () => {
+  const { buyAllChips } = await import('../casino');
+  const c: ClubState = { ...freshClub(), coins: 250_000, casino: { ...casinoOf(freshClub()), chips: 1_000 } };
+  const r = buyAllChips(c)!;
+  expect(r.club.coins).toBe(0);
+  expect(casinoOf(r.club).chips).toBe(1_000 + 325_000);
+  expect(buyAllChips({ ...c, coins: 50 })).toBeNull();
+});
