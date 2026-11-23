@@ -5337,3 +5337,9 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .cz-intro { background: radial-gradient(circle at 50% 50%, rgba(255, 63, 180, .45), rgba(9, 3, 24, .98) 60%); animation-duration: 2.3s; }
 .cz-intro-logo { animation-duration: 2.3s; }
 .cz-intro-sub { animation-duration: 2.3s; }
+/* Schnellwahl für große Einsätze */
+.cz-bet-big { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; }
+.cz-bet-big button { min-height: 38px; border-radius: 12px; border: 1px solid rgba(255, 210, 74, .45); background: rgba(255, 210, 74, .1); color: #ffd24a; font: inherit; font-weight: 900; font-size: .86rem; cursor: pointer; transition: transform .12s ease-out; }
+.cz-bet-big button:active { transform: scale(.95); }
+.cz-bet-big button.on { background: #ffd24a; color: #2a1a00; }
+.cz-bet-big button:disabled { opacity: .35; cursor: default; }

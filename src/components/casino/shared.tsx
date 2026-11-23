@@ -155,6 +155,11 @@ export function BetPicker({ value, onChange, disabled, label = 'Einsatz' }: { va
         <button disabled={disabled} onClick={() => set(value * 2)} aria-label="Verdoppeln">2×</button>
         <button disabled={disabled} onClick={() => set(cap)} aria-label="Maximum">Max</button>
       </div>
+      <div className="cz-bet-big">
+        {([[100_000, '100k'], [1_000_000, '1 Mio'], [10_000_000, '10 Mio']] as const).map(([n, l]) => (
+          <button key={n} disabled={disabled || cap < n} className={value === n ? 'on' : ''} onClick={() => set(n)} title={maxBet(club) < n ? `Ab höherer VIP-Stufe` : undefined}>{l}</button>
+        ))}
+      </div>
       <button className={`cz-allin ${allIn ? 'on' : ''}`} disabled={disabled} onClick={goAllIn} aria-pressed={allIn}>
         <Icon name="fire" size={18} />{allIn ? <>All-in aktiv · {fmt(chips)} <small>tippen zum Beenden</small></> : <>All-in · {fmt(chips)}</>}
       </button>

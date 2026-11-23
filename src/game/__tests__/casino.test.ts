@@ -134,7 +134,8 @@ it('Plinko: alle Reihen/Risiken zahlen inkl. Goldball 94–98 % zurück, Rand is
   expect(d.path).toHaveLength(16);
   expect(d.slot).toBe(16);
   expect(plinkoWin(100, 3, true)).toBe(600);
-  expect(plinkoWin(100_000, 10_000, true)).toBe(PLINKO_MAX_WIN);
+  expect(plinkoWin(10_000_000, 10_000, false)).toBe(100_000_000_000); // 10 Mio · 10.000× zahlt voll
+  expect(plinkoWin(10_000_000, 10_000, true)).toBe(PLINKO_MAX_WIN);
 });
 
 it('Casino-Level: Fortschritt mit jedem Einsatz, aber keine Chips für Aufstiege', () => {

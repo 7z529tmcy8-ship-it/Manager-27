@@ -63,8 +63,8 @@ export const VIP = [
   { name: 'Bronze', min: 0, daily: 250, maxBet: 500, color: '#d08a4f' },
   { name: 'Silber', min: 5_000, daily: 400, maxBet: 1_500, color: '#c9d4e3' },
   { name: 'Gold', min: 25_000, daily: 650, maxBet: 5_000, color: '#ffd24a' },
-  { name: 'Platin', min: 100_000, daily: 1_000, maxBet: 20_000, color: '#7af0ff' },
-  { name: 'Diamant', min: 400_000, daily: 1_600, maxBet: 100_000, color: '#ff7ad9' },
+  { name: 'Platin', min: 100_000, daily: 1_000, maxBet: 1_000_000, color: '#7af0ff' },
+  { name: 'Diamant', min: 400_000, daily: 1_600, maxBet: 10_000_000, color: '#ff7ad9' },
 ] as const;
 export const vipLevel = (pts: number) => VIP.reduce((lv, v, i) => (pts >= v.min ? i : lv), 0);
 export const vipOf = (club: Pick<ClubState, 'casino'>) => VIP[vipLevel(casinoOf(club).vipPts)];
@@ -318,7 +318,8 @@ export const RISKS: Risk[] = ['low', 'mid', 'high', 'extreme'];
 export const GOLD_CHANCE = 0.03;
 export const GOLD_MULT = 2;
 /** Höchstgewinn pro Ball. */
-export const PLINKO_MAX_WIN = 1_000_000;
+/** Obergrenze pro Ball – hoch genug, dass auch 10-Mio-Einsätze voll auszahlen (10.000× · 10 Mio). */
+export const PLINKO_MAX_WIN = 100_000_000_000;
 /** Auszahlung eines Balls (inkl. Goldball, gedeckelt). */
 export const plinkoWin = (stake: number, mult: number, gold: boolean) => Math.min(PLINKO_MAX_WIN, Math.floor(stake * mult * (gold ? GOLD_MULT : 1)));
 /** Form der Tabellen: Mitte (min), Rand (max bei n Reihen); dazwischen exponentiell, zum Rand immer steiler (q). */

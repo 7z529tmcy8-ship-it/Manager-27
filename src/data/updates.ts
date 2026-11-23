@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-23-grosse-einsaetze',
+    date: '23.11.2026',
+    title: 'Casino: Einsätze bis 10 Mio',
+    items: [
+      'Neue Schnellwahl in jedem Spiel: 100k, 1 Mio und 10 Mio Einsatz mit einem Tipp.',
+      'Höhere Limits: VIP Platin bis 1 Mio pro Runde, VIP Diamant bis 10 Mio. All-in geht wie gehabt immer.',
+      'Plinko zahlt auch große Treffer voll aus: Die Gewinngrenze pro Ball liegt jetzt bei 100 Mrd. statt 1 Mio.',
+    ],
+  },
+  {
     id: '2026-11-23-casino-boom',
     date: '23.11.2026',
     title: 'Casino: Riesen-Explosion beim Betreten + alle Coins auf einmal tauschen',
