@@ -29,6 +29,14 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-23-schiffshorn',
+    date: '23.11.2026',
+    title: 'Casino: Schiffshorn bei großen Gewinnen',
+    items: [
+      'Ab 10× Einsatz (und beim Jackpot) dröhnt ein übersteuertes Schiffshorn – in jedem Casino-Spiel. Ab 25× und 100× hält es länger.',
+    ],
+  },
+  {
     id: '2026-11-23-strassen-sprint',
     date: '23.11.2026',
     title: 'Neues Spiel: Straßen-Sprint',

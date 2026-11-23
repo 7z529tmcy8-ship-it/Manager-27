@@ -347,3 +347,36 @@ export function plinkoSound(kind: 'drop' | 'peg' | 'land', v = 0): void {
     // ohne Ton
   }
 }
+
+let lastHorn = 0;
+/** Schiffshorn für große Gewinne: tiefer, übersteuerter Akkord (läuft über den Verzerrer, höchstens alle 2,5 s). */
+export function playHorn(power = 1): void {
+  if (!getSettings().sound) return;
+  const c = audio();
+  if (!c) return;
+  const now = c.currentTime;
+  if (now - lastHorn < 2.5) return;
+  lastHorn = now;
+  try {
+    const bus = crunchBus(c);
+    const dur = 1.6 + Math.min(1.2, power * 0.4);
+    for (const [f, g] of [[55, 0.9], [82.5, 0.7], [110, 0.55], [165, 0.3]] as const) {
+      const t0 = c.currentTime;
+      const osc = c.createOscillator(); const gn = c.createGain();
+      const lfo = c.createOscillator(); const lg = c.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(f * 0.94, t0);
+      osc.frequency.linearRampToValueAtTime(f, t0 + 0.15);
+      lfo.frequency.value = 5.5; lg.gain.value = f * 0.012;
+      lfo.connect(lg).connect(osc.frequency);
+      gn.gain.setValueAtTime(0.0001, t0);
+      gn.gain.exponentialRampToValueAtTime(g, t0 + 0.08);
+      gn.gain.setValueAtTime(g, t0 + dur - 0.35);
+      gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(gn).connect(bus);
+      osc.start(t0); lfo.start(t0); osc.stop(t0 + dur + 0.05); lfo.stop(t0 + dur + 0.05);
+    }
+  } catch {
+    // ohne Ton
+  }
+}

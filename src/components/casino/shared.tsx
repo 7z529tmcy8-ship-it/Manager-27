@@ -4,7 +4,7 @@ import { grantDuelXp, xpTarget } from '../../game/careerDuels';
 import { addCard, bigWinOf, casinoOf, maxBet, payout, placeBet, randomCard, takeJackpot, type BigWin, type PlayEvent } from '../../game/casino';
 import type { CollectCard } from '../../game/club';
 import { listCareers, saveCareer } from '../../game/storage';
-import { play } from '../../sound';
+import { play, playHorn } from '../../sound';
 import Icon from '../Icon';
 
 export const sfx = (id: Parameters<typeof play>[0]) => { try { play(id); } catch { /* kein Ton */ } };
@@ -79,6 +79,8 @@ export function settle(ev: PlayEvent, opts: { quiet?: boolean } = {}): void {
   }
   setClubState(club);
   if (ev.bet > 0) trackDailyGoal('casino');
+  // Großer Gewinn (ab 10× Einsatz oder Jackpot): Schiffshorn
+  if ((ev.bet > 0 && win >= ev.bet * 10) || ev.jackpot) { try { playHorn(win / Math.max(1, ev.bet) >= 100 ? 3 : win / Math.max(1, ev.bet) >= 25 ? 2 : 1); } catch { /* kein Ton */ } }
   // Leise (z. B. Plinko-Dauerfeuer): große Show erst ab 50×, darunter nur Ton und Beben.
   const big = opts.quiet ? (bigWinOf(ev.bet, win) === 'epic' ? 'epic' : null) : bigWinOf(ev.bet, win);
   if (opts.quiet && !big && !ev.jackpot) {
