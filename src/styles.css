@@ -5343,3 +5343,22 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .cz-bet-big button:active { transform: scale(.95); }
 .cz-bet-big button.on { background: #ffd24a; color: #2a1a00; }
 .cz-bet-big button:disabled { opacity: .35; cursor: default; }
+
+/* ---- Plinko Juice: Treffer-Anzeige mit Betrag, Leucht-Rand bei großen Treffern ---- */
+.pk-board { position: relative; }
+.pk-hitfx { position: absolute; left: 50%; top: 38%; z-index: 4; display: flex; flex-direction: column; align-items: center; pointer-events: none; transform: translate(-50%, -50%);
+  animation: pk-hit 1.1s cubic-bezier(.2, 1.5, .4, 1) forwards; }
+.pk-hitfx b { font-family: 'Rajdhani', var(--display, sans-serif); font-size: 2rem; line-height: 1; color: #7dffb2; text-shadow: 0 0 14px rgba(125, 255, 178, .8), 0 3px 0 rgba(0, 0, 0, .45); }
+.pk-hitfx em { font-style: normal; font-weight: 900; font-size: 1rem; color: #fff; text-shadow: 0 2px 0 rgba(0, 0, 0, .5); }
+.pk-hitfx.t1 b { font-size: 2.8rem; color: #ffd24a; text-shadow: 0 0 18px rgba(255, 210, 74, .9), 0 3px 0 rgba(0, 0, 0, .45); }
+.pk-hitfx.t2 b { font-size: 3.6rem; color: #ff3fb4; text-shadow: 0 0 22px rgba(255, 63, 180, .95), 0 4px 0 rgba(0, 0, 0, .45); }
+.pk-hitfx.t3 b { font-size: 4.4rem; color: #fff; text-shadow: 0 0 14px #3ff0ff, 0 0 30px #ff3fb4, 0 4px 0 rgba(0, 0, 0, .45); }
+.pk-hitfx.t1 em, .pk-hitfx.t2 em, .pk-hitfx.t3 em { font-size: 1.3rem; color: #ffd24a; }
+@keyframes pk-hit { 0% { transform: translate(-50%, -50%) scale(.2); opacity: 0; } 18% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; } 30% { transform: translate(-50%, -50%) scale(1); } 75% { opacity: 1; } 100% { transform: translate(-50%, -80%) scale(.95); opacity: 0; } }
+.pk-edge { position: absolute; inset: 0; z-index: 3; border-radius: inherit; pointer-events: none; animation: pk-edge .8s ease-out forwards;
+  box-shadow: inset 0 0 40px 6px rgba(255, 210, 74, .75); }
+.pk-edge.t2 { box-shadow: inset 0 0 50px 10px rgba(255, 63, 180, .8); }
+.pk-edge.t3 { box-shadow: inset 0 0 60px 14px rgba(63, 240, 255, .85), inset 0 0 120px 20px rgba(255, 63, 180, .5); animation-duration: 1.2s; }
+@keyframes pk-edge { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
+:root.reduce-motion .pk-hitfx { animation-duration: .6s; }
+:root.reduce-motion .pk-edge { display: none; }

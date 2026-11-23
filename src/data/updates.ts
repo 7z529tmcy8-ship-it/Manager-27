@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-23-plinko-juice',
+    date: '23.11.2026',
+    title: 'Torwand-Plinko: noch mehr Wumms',
+    items: [
+      'Jeder Ball startet mit einem Lichtring oben am Brett.',
+      'Treffer schlagen eine Druckwelle ins Fach, ab 5× schießt eine Lichtsäule nach oben.',
+      'Ab 10× rollt eine Leuchtwelle vom Treffer aus durch alle Pfosten, und der Rand des Bretts glüht auf (Gold, Pink, ab 100× Regenbogen).',
+      'Ab 3× knallt der Treffer groß in die Mitte – mit Multiplikator UND gewonnenem Betrag („+1,2 Mio.“).',
+    ],
+  },
+  {
     id: '2026-11-23-grosse-einsaetze',
     date: '23.11.2026',
     title: 'Casino: Einsätze bis 10 Mio',

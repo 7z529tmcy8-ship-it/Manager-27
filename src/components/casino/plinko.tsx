@@ -5,7 +5,7 @@ import {
 import { motionReduced } from '../../settings';
 import { playStep } from '../../sound';
 import Icon from '../Icon';
-import { BetPicker, GameFrame, bet, buzz, celebrate, fmt, settle, sfx, shake, useBet } from './shared';
+import { BetPicker, GameFrame, bet, buzz, celebrate, fmt, fmtShort, settle, sfx, shake, useBet } from './shared';
 
 const RISK_NAME: Record<Risk, string> = { low: 'Niedrig', mid: 'Mittel', high: 'Hoch', extreme: 'Extrem' };
 const AUTO_COUNTS = [10, 25, 50, 100];
@@ -13,6 +13,7 @@ const MAX_BALLS = 40;
 const PEG_COLORS = ['#ff3fb4', '#3ff0ff', '#ffd24a', '#39ff88', '#a35cff', '#ff7a59'];
 
 type Ball = { id: number; path: number[]; slot: number; gold: boolean; stake: number; mult: number; start: number; durs: number[]; ends: number[]; peak: boolean; hitRow: number; trail: { x: number; y: number }[] };
+type Ring = { x: number; y: number; at: number; color: string; size: number; beam: boolean };
 type Spark = { x: number; y: number; vx: number; vy: number; born: number; life: number; color: string; size: number };
 const FEVER_AT = 5;
 type Pop = { slot: number; at: number; text: string; color: string };
@@ -45,6 +46,9 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
   const [combo, setCombo] = useState<{ id: number; n: number } | null>(null);
   const [boom, setBoom] = useState(0);
   const sparks = useRef<Spark[]>([]);
+  const rings = useRef<Ring[]>([]);
+  const launches = useRef<number[]>([]);
+  const [hitFx, setHitFx] = useState<{ id: number; tier: number; text: string; amount: string } | null>(null);
   const fever = useRef(false);
   fever.current = sess.streak >= FEVER_AT;
 
@@ -92,6 +96,7 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
     const ends = durs.reduce<number[]>((a, x) => [...a, (a[a.length - 1] ?? 0) + x], []);
     balls.current.push({ id: seq.current++, path: d.path, slot: d.slot, gold: d.gold, stake: st, mult, start: performance.now(), durs, ends, peak, hitRow: -1, trail: [] });
     setInFlight(balls.current.length);
+    launches.current.push(performance.now());
     if (d.gold) sfx('unlock');
     return true;
   };
@@ -151,6 +156,7 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
       ctx.drawImage(board.current.img, 0, 0, w, h);
       // Aufleuchtende Pfosten (nur die gerade getroffenen)
       for (const [id, f] of flashes.current) {
+        if (now < f) continue; // Welle: Pfosten leuchten nacheinander auf
         const glow = Math.max(0, 1 - (now - f) / 260);
         if (glow <= 0) { flashes.current.delete(id); continue; }
         const [r, j] = id.split('-').map(Number);
@@ -235,6 +241,32 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
         drawBall(ctx, x, y, ballR, b.gold, fever.current ? `hsl(${(now / 3) % 360}, 100%, 62%)` : undefined);
       }
       // Funken
+      // Abwurf-Blitz oben
+      launches.current = launches.current.filter((t0) => now - t0 < 320);
+      for (const t0 of launches.current) {
+        const k = (now - t0) / 320;
+        ctx.globalAlpha = 0.55 * (1 - k);
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(w / 2, pegY(0) - sy * 1.1, 4 + k * 22, 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      // Druckwellen und Lichtsäulen über dem Fach
+      rings.current = rings.current.filter((r) => now - r.at < 700);
+      for (const r of rings.current) {
+        const k = (now - r.at) / 700;
+        if (r.beam) {
+          ctx.globalAlpha = 0.45 * (1 - k);
+          const g = ctx.createLinearGradient(0, r.y, 0, 0);
+          g.addColorStop(0, r.color); g.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.fillStyle = g;
+          const bw2 = sx * (0.7 + k * 0.6);
+          ctx.fillRect(r.x - bw2 / 2, 0, bw2, r.y);
+        }
+        ctx.globalAlpha = 0.8 * (1 - k);
+        ctx.strokeStyle = r.color; ctx.lineWidth = 3 * (1 - k) + 1;
+        ctx.beginPath(); ctx.ellipse(r.x, r.y, r.size * (0.3 + k), r.size * 0.45 * (0.3 + k), 0, 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
       sparks.current = sparks.current.filter((sp) => now - sp.born < sp.life);
       if (sparks.current.length > 260) sparks.current = sparks.current.slice(-260);
       for (const sp of sparks.current) {
@@ -273,6 +305,25 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
     const mult = b.mult * (b.gold ? GOLD_MULT : 1);
     const win = plinkoWin(b.stake, b.mult, b.gold);
     binHits.current.set(b.slot, now);
+    {
+      const { w, h } = geo.current; const n = cfg.current.rows;
+      const sx = w / (n + 2); const binH = Math.max(20, Math.min(30, sx * 0.9));
+      const top = 22; const sy = (h - top - binH - 14) / n;
+      const x = w / 2 + (b.slot - n / 2) * sx; const y = top + (n - 1) * sy + sy * 0.7 + binH / 2;
+      const color = b.gold ? '#ffd24a' : mult >= 10 ? '#ff3fb4' : mult >= 2 ? '#ffd24a' : mult >= 1 ? '#7dffb2' : 'rgba(160,170,220,.6)';
+      if (mult >= 1 || b.gold) rings.current.push({ x, y, at: now, color, size: sx * (mult >= 10 ? 4 : mult >= 2 ? 2.6 : 1.6), beam: mult >= 5 || b.gold });
+      // Großer Treffer: Welle durch alle Pfosten, vom Fach aus nach oben
+      if (mult >= 10 && !fast) {
+        for (let r = 0; r < n; r++) for (let j = 0; j < r + 3; j++) {
+          const px = w / 2 + (j - (r + 2) / 2) * sx; const py = top + r * sy;
+          flashes.current.set(`${r}-${j}`, now + Math.hypot(px - x, py - y) * 1.4);
+        }
+      }
+    }
+    if (mult >= 3 || b.gold) {
+      const tier = mult >= 100 ? 3 : mult >= 25 ? 2 : mult >= 10 ? 1 : 0;
+      setHitFx({ id: now, tier, text: `${b.gold ? 'GOLD ' : ''}${multText(mult)}×`, amount: `+${fmtShort(win)}` });
+    }
     if (mult >= 1 || b.gold) pops.current.push({ slot: b.slot, at: now, text: `${b.gold ? 'GOLD ' : ''}${multText(mult)}×`, color: b.gold ? '#ffd24a' : binColor(mult) === '#26315e' ? '#7dffb2' : mult >= 5 ? '#ffd24a' : '#7dffb2' });
     if (mult >= 5) { setBoom(now); setTimeout(() => setBoom((v) => (v === now ? 0 : v)), 480); }
     if (mult >= 50) shake(true);
@@ -310,6 +361,8 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
       <div className={`pk-board ${sess.streak >= FEVER_AT ? 'fever' : ''} ${boom ? 'boom' : ''}`} ref={wrap}>
         <canvas ref={canvas} className="pk-canvas" aria-label={`Plinko-Brett mit ${rows} Reihen`} />
         <span className="pk-top">bis <b>{fmt(top)}×</b></span>
+        {hitFx && <span key={hitFx.id} className={`pk-hitfx t${hitFx.tier}`} aria-hidden="true"><b>{hitFx.text}</b><em>{hitFx.amount}</em></span>}
+        {hitFx && hitFx.tier >= 1 && <i key={`e${hitFx.id}`} className={`pk-edge t${hitFx.tier}`} aria-hidden="true" />}
         {combo && <span key={combo.id} className={`pk-combo ${combo.n >= FEVER_AT ? 'fever' : ''}`}>{combo.n >= FEVER_AT ? `FEVER ×${combo.n}` : `COMBO ×${combo.n}`}</span>}
         <ul className="pk-hist" aria-label="Letzte Treffer">
           {hist.map((x) => <li key={x.id} style={{ background: x.gold ? '#ffd24a' : binColor(x.m) }} className={x.gold ? 'gold' : ''}>{multText(x.m)}×</li>)}
