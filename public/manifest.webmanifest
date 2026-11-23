@@ -1,6 +1,6 @@
 {
-  "name": "Manager Sim",
-  "short_name": "Manager Sim",
+  "name": "UgursCasino",
+  "short_name": "UgursCasino",
   "start_url": "/",
   "display": "fullscreen",
   "display_override": ["fullscreen", "standalone"],

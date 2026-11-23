@@ -3,7 +3,7 @@ import {
   GOLD_CHANCE, GOLD_MULT, PLINKO_ROWS_OPTIONS, RISKS, dropBall, plinkoP, plinkoTable, plinkoWin, type Risk,
 } from '../../game/casino';
 import { motionReduced } from '../../settings';
-import { playStep, plinkoSound } from '../../sound';
+import { playMoo, playStep, plinkoSound } from '../../sound';
 import { plinkoWinArmed, takePlinkoWin } from '../../game/dev';
 import Icon from '../Icon';
 import { BetPicker, GameFrame, bet, buzz, celebrate, fmt, fmtShort, settle, sfx, shake, useBet } from './shared';
@@ -103,6 +103,7 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
     setInFlight(balls.current.length);
     launches.current.push(performance.now());
     plinkoSound('drop');
+    playMoo();
     if (d.gold) sfx('unlock');
     return true;
   };

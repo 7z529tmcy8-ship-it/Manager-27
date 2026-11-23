@@ -29,6 +29,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-23-ugurscasino',
+    date: '23.11.2026',
+    title: 'Willkommen im UgursCasino',
+    items: [
+      'Das Spiel heißt jetzt UgursCasino und startet direkt in der Casino-Lobby.',
+      'Neuer Ladebildschirm: Casino-Chip, Lauflichter wie am Automaten, goldener Ladebalken.',
+      'Karriere, Team, Shop, Duelle und Profil sind ausgeschaltet – nicht gelöscht. Deine Spielstände bleiben gespeichert.',
+      'Einstellungen, Neuigkeiten und „Sichern & Laden“ findest du oben links über das Zahnrad.',
+      'Plinko: Bei jedem fallenden Ball muht eine übersteuerte Kuh.',
+    ],
+  },
+  {
     id: '2026-11-23-strassen-sprint-v2',
     date: '23.11.2026',
     title: 'Straßen-Sprint: neuer Look, kein Ruckeln',

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { motionReduced } from '../settings';
+import { CASINO_ONLY } from '../game/mode';
 
 // Startbildschirm: Beim Öffnen der Seite läuft kurz ein eigener Ladebildschirm (Flutlicht-Stadion, Wappen,
 // Ladebalken), danach geht es ins Spiel. Das Spiel baut sich dahinter schon auf. Pro Tab nur einmal.
@@ -7,6 +8,7 @@ import { motionReduced } from '../settings';
 export const UNLOCK_KEY = 'fc-manager-unlocked';
 export const LOAD_MS = 2200;
 
+export const bootSeen = () => seen();
 const seen = () => { try { return sessionStorage.getItem(UNLOCK_KEY) === '1'; } catch { return false; } };
 const remember = () => { try { sessionStorage.setItem(UNLOCK_KEY, '1'); } catch { /* ohne Speicher eben jedes Mal */ } };
 
@@ -31,7 +33,13 @@ const STEPS: [number, string][] = [
   [70, 'Aufstellung steht …'],
   [100, 'Anpfiff!'],
 ];
-const stepText = (pct: number) => [...STEPS].reverse().find(([at]) => pct >= at)![1];
+const CASINO_STEPS: [number, string][] = [
+  [0, 'Lichter gehen an …'],
+  [30, 'Automaten werden poliert …'],
+  [62, 'Chips werden gezählt …'],
+  [100, 'Viel Glück!'],
+];
+const stepText = (pct: number) => [...(CASINO_ONLY ? CASINO_STEPS : STEPS)].reverse().find(([at]) => pct >= at)![1];
 
 export default function PasswordGate({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(() => !seen());
@@ -70,6 +78,31 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
     return () => { cancelAnimationFrame(raf); clearTimeout(t1); clearTimeout(t2); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const bottom = (
+    <div className="boot2-bottom">
+      <div className="boot2-status"><span key={stepText(pct)}>{stepText(pct)}</span><b>{pct} %</b></div>
+      <div className="boot2-bar"><span ref={bar} /></div>
+    </div>
+  );
+  if (CASINO_ONLY) return (
+    <div className={`boot2 boot-cz ${out ? 'out' : ''}`} role="progressbar" aria-label="UgursCasino wird geladen" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
+      <div className="bcz-glow" aria-hidden="true" />
+      <div className="bcz-lights" aria-hidden="true">{Array.from({ length: 18 }, (_, i) => <i key={i} style={{ animationDelay: `${(i % 6) * 0.12}s` }} />)}</div>
+      <div className="boot2-center">
+        <span className="bcz-chip" aria-hidden="true">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="46" className="c-out" />
+            {Array.from({ length: 8 }, (_, i) => <rect key={i} x="45" y="4" width="10" height="16" rx="2" className="c-notch" transform={`rotate(${i * 45} 50 50)`} />)}
+            <circle cx="50" cy="50" r="31" className="c-in" />
+            <text x="50" y="61" textAnchor="middle" className="c-u">U</text>
+          </svg>
+        </span>
+        <h1 className="boot2-title bcz-title">Ugurs<span>Casino</span></h1>
+        <p className="boot2-tag">Slots · Plinko · Roulette</p>
+      </div>
+      {bottom}
+    </div>
+  );
   return (
     <div className={`boot2 ${out ? 'out' : ''}`} role="progressbar" aria-label="Spiel wird geladen" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
       <div className="boot2-lights" aria-hidden="true"><i className="l1" /><i className="l2" /></div>
@@ -84,10 +117,7 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
         <h1 className="boot2-title">Manager<span>Sim</span></h1>
         <p className="boot2-tag">Karriere · Team · Duelle</p>
       </div>
-      <div className="boot2-bottom">
-        <div className="boot2-status"><span key={stepText(pct)}>{stepText(pct)}</span><b>{pct} %</b></div>
-        <div className="boot2-bar"><span ref={bar} /></div>
-      </div>
+      {bottom}
     </div>
   );
 }

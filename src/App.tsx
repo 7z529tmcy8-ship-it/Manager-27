@@ -24,6 +24,10 @@ import { getClubState, setClubState, trackDailyGoal, useClub } from './clubStore
 import { installClickSound, play } from './sound';
 import Icon, { noEmoji } from './components/Icon';
 import { cashback, dailyBonus, tourReward } from './game/casino';
+import { CASINO_ONLY } from './game/mode';
+import { bootSeen } from './components/PasswordGate';
+const Settings = lazy(() => import('./components/Settings'));
+const Backup = lazy(() => import('./components/Backup'));
 
 // Nur noch vier Bereiche: Karriere (Start), Team, Duelle, Profil.
 type Screen =
@@ -37,7 +41,11 @@ type Screen =
   | { name: 'game'; career: Career };
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>({ name: 'home' });
+  const [screen, setScreen] = useState<Screen>(CASINO_ONLY ? { name: 'casino' } : { name: 'home' });
+  // Casino-Modus: Läuft beim Start noch der Ladebildschirm, braucht es die Casino-Explosion nicht zusätzlich.
+  const [introOnStart] = useState(() => !CASINO_ONLY || bootSeen());
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [backupOpen, setBackupOpen] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const [hintClosed, setHintClosed] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -82,6 +90,7 @@ export default function App() {
   useEffect(() => { migrateSaves(); return onSaveStatus((ok) => setSaveFailed(!ok)); }, []);
   // Die anderen Bereiche im Leerlauf vorladen – dann reagiert jeder Wechsel sofort.
   useEffect(() => {
+    if (CASINO_ONLY) return;
     const t = setTimeout(() => {
       void import('./components/CreateCareer'); void import('./components/CareerScreen');
       void import('./components/TeamScreen'); void import('./components/DuelsPage'); void import('./components/ProfilePage');
@@ -120,7 +129,7 @@ export default function App() {
   const go = (t: NavTarget) => setScreen(t === 'career' ? { name: 'home' } : ({ name: t } as Screen));
   const navActive: NavTarget | null = screen.name === 'home' || screen.name === 'create' ? 'career' : screen.name === 'team' || screen.name === 'shop' || screen.name === 'duels' || screen.name === 'casino' || screen.name === 'profile' ? screen.name : null;
   // In der laufenden Karriere hat das Spiel eigene Leisten – dort keine Hauptnavigation.
-  const showNav = screen.name !== 'game';
+  const showNav = screen.name !== 'game' && !CASINO_ONLY;
 
   return (
     <div className={`app ${showNav ? 'has-nav' : ''}`}>
@@ -156,12 +165,16 @@ export default function App() {
       {screen.name === 'shop' && <ShopPage onCollection={() => setScreen({ name: 'team', tab: 'collection' })} onCasino={() => setScreen({ name: 'casino' })} onDuels={() => setScreen({ name: 'duels' })} />}
       {screen.name === 'duels' && <DuelsPage onTeam={() => setScreen({ name: 'team', tab: 'squad' })} onShop={() => setScreen({ name: 'shop' })} />}
       {screen.name === 'profile' && <ProfilePage />}
-      {screen.name === 'casino' && <CasinoPage onExit={home} />}
+      {screen.name === 'casino' && (CASINO_ONLY
+        ? <CasinoPage intro={introOnStart} onSettings={() => setSettingsOpen(true)} />
+        : <CasinoPage onExit={home} />)}
       {screen.name === 'create' && <CreateCareer onCancel={home} onCreate={update} />}
       {screen.name === 'game' && (
         <CareerScreen career={screen.career} onChange={update} onExit={home} />
       )}
         </div>
+        {settingsOpen && <Settings onClose={() => setSettingsOpen(false)} onNews={() => { setSettingsOpen(false); setNews(UPDATES); }} onBackup={() => { setSettingsOpen(false); setBackupOpen(true); }} />}
+        {backupOpen && <Backup onClose={() => setBackupOpen(false)} />}
       </Suspense>
     </div>
   );

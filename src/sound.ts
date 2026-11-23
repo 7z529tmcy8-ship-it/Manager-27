@@ -380,3 +380,53 @@ export function playHorn(power = 1): void {
     // ohne Ton
   }
 }
+
+let lastMoo = -10;
+/**
+ * Übersteuertes „Muuuh“ beim Fallen eines Plinko-Balls – komplett synthetisch erzeugt (keine Aufnahme).
+ * Tiefe Sägezahn-Stimme mit „M“-Anfang (Filter öffnet sich), Tonhöhe erst rauf, dann runter,
+ * zwei Formant-Filter machen daraus einen Kuh-Vokal. Läuft über den Verzerrer, max. alle 0,7 s.
+ */
+export function playMoo(): void {
+  if (!getSettings().sound) return;
+  const c = audio();
+  if (!c) return;
+  const now = c.currentTime;
+  if (now - lastMoo < 0.7) return;
+  lastMoo = now;
+  try {
+    const bus = crunchBus(c);
+    const t0 = now;
+    const dur = 0.85 + Math.random() * 0.25;
+    const base = 105 + Math.random() * 30;
+    const out = c.createGain();
+    out.gain.setValueAtTime(0.0001, t0);
+    out.gain.exponentialRampToValueAtTime(1.1, t0 + 0.1);
+    out.gain.setValueAtTime(1.1, t0 + dur * 0.7);
+    out.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    // „M“ → „UUH“: Tiefpass öffnet sich am Anfang
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(250, t0); lp.frequency.exponentialRampToValueAtTime(1800, t0 + 0.18);
+    lp.frequency.exponentialRampToValueAtTime(700, t0 + dur);
+    const f1 = c.createBiquadFilter(); f1.type = 'bandpass'; f1.frequency.value = 520; f1.Q.value = 3;
+    const f2 = c.createBiquadFilter(); f2.type = 'bandpass'; f2.frequency.value = 1050; f2.Q.value = 5;
+    const g2 = c.createGain(); g2.gain.value = 0.6;
+    for (const det of [1, 1.006, 0.497]) {
+      const osc = c.createOscillator(); osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(base * 0.8 * det, t0);
+      osc.frequency.linearRampToValueAtTime(base * 1.15 * det, t0 + dur * 0.3);
+      osc.frequency.linearRampToValueAtTime(base * 0.7 * det, t0 + dur);
+      const lfo = c.createOscillator(); const lg = c.createGain();
+      lfo.frequency.value = 6; lg.gain.value = base * 0.02;
+      lfo.connect(lg).connect(osc.frequency);
+      osc.connect(lp);
+      osc.start(t0); lfo.start(t0); osc.stop(t0 + dur + 0.05); lfo.stop(t0 + dur + 0.05);
+    }
+    lp.connect(f1).connect(out);
+    lp.connect(f2).connect(g2).connect(out);
+    lp.connect(out);
+    out.connect(bus);
+  } catch {
+    // ohne Ton
+  }
+}

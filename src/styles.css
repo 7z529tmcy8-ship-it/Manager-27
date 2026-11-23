@@ -5486,3 +5486,32 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 /* Autos sind Spielinhalt: fahren immer, bei reduzierter Bewegung nur langsamer */
 :root.lite .rd-track, :root.reduce-motion .rd-track { animation-duration: 4s !important; animation-iteration-count: infinite !important; }
 @media (prefers-reduced-motion: reduce) { .rd-track { animation-duration: 4s !important; animation-iteration-count: infinite !important; } .rd-plate.next { animation: none; } }
+
+/* ---- UgursCasino: Ladebildschirm ---- */
+.boot2.boot-cz { background: radial-gradient(ellipse at 50% 40%, #3a0f5c 0%, #160a2e 45%, #07040f 100%); }
+.bcz-glow { position: absolute; left: 50%; top: 42%; width: 120vmin; height: 120vmin; margin: -60vmin 0 0 -60vmin; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(255, 63, 180, .35), rgba(255, 210, 74, .12) 50%, transparent 75%); animation: bcz-breathe 2.4s ease-in-out infinite; }
+@keyframes bcz-breathe { 50% { transform: scale(1.08); opacity: .8; } }
+/* Lauflicht-Rahmen wie an einem Spielautomaten */
+.bcz-lights { position: absolute; inset: max(14px, env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom)); pointer-events: none;
+  display: grid; grid-template-columns: repeat(6, 1fr); align-content: space-between; border: 2px solid rgba(255, 210, 74, .25); border-radius: 26px; padding: 10px 18px; }
+.bcz-lights i { justify-self: center; width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle, #fff6c2, #ffc21a 60%, transparent 70%); animation: bcz-blink .72s steps(1) infinite; }
+.bcz-lights i:nth-child(n+7):nth-child(-n+12) { visibility: hidden; }
+@keyframes bcz-blink { 50% { opacity: .2; } }
+.bcz-chip svg { width: 118px; height: 118px; animation: bcz-spin 2.2s cubic-bezier(.4, 0, .2, 1) infinite; }
+@keyframes bcz-spin { 0%, 20% { transform: rotateY(0); } 60%, 100% { transform: rotateY(360deg); } }
+.bcz-chip .c-out { fill: #e0157f; stroke: #ffd24a; stroke-width: 3; }
+.bcz-chip .c-notch { fill: #fff; }
+.bcz-chip .c-in { fill: #7a0a45; stroke: #fff; stroke-width: 2.5; stroke-dasharray: 5 4; }
+.bcz-chip .c-u { fill: #ffd24a; font: 700 34px 'Rajdhani', system-ui, sans-serif; }
+.bcz-title { text-shadow: 0 0 24px rgba(255, 63, 180, .7), 0 4px 0 #7a0a45; }
+.bcz-title span { color: #ffd24a; }
+.boot-cz .boot2-tag { color: #ffb3e0; }
+.boot-cz .boot2-status b { color: #ffd24a; }
+.boot-cz .boot2-bar { background: rgba(255, 210, 74, .15); }
+.boot-cz .boot2-bar span { background: linear-gradient(90deg, #ff3fb4, #ffd24a); }
+@media (prefers-reduced-motion: reduce) { .bcz-glow, .bcz-lights i, .bcz-chip svg { animation: none; } }
+/* Logo im Kopf: zweizeilig, damit „UgursCasino“ nie abgeschnitten wird */
+.cz-lobby .cz-logo { display: flex; flex-direction: column; font-size: 1.3rem; line-height: .95; text-overflow: clip; }
+.cz-lobby .cz-logo span { margin-left: 0; font-size: .68em; letter-spacing: .32em; }
+.boot-cz .boot2-bottom { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }

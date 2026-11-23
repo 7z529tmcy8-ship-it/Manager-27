@@ -55,7 +55,7 @@ function Hero({ slides }: { slides: Slide[] }) {
 }
 
 /** Neon-Casino: Chips, Jackpot, VIP, Tagesbonus, 8 Spiele, Aufgaben und Preis-Shop. */
-export default function CasinoPage({ onExit }: { onExit: () => void }) {
+export default function CasinoPage({ onExit, onSettings, intro: withIntro = true }: { onExit?: () => void; onSettings?: () => void; intro?: boolean }) {
   const club = useClub();
   const c = casinoOf(club);
 
@@ -64,8 +64,9 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
   const daily = dailyBonus(club);
   const [game, setGame] = useState<Playable | null>(null);
   // Großer Auftritt beim Betreten: Explosion, Druckwellen, Funken, Logo knallt rein (Tippen überspringt).
-  const [intro, setIntro] = useState(true);
+  const [intro, setIntro] = useState(withIntro);
   useEffect(() => {
+    if (!withIntro) return;
     const fast = motionReduced();
     sfx('boom'); buzz([80, 40, 140]);
     const t1 = setTimeout(() => sfx('jackpot'), fast ? 0 : 260);
@@ -162,11 +163,13 @@ export default function CasinoPage({ onExit }: { onExit: () => void }) {
   ];
 
   return (
-    <div className="cz" role="dialog" aria-label="Neon-Casino">
+    <div className="cz" role="dialog" aria-label="UgursCasino">
       {!Game && <div className="cz-scroll cz-lobby">
         <header className="cz-top">
-          <button className="cz-round" onClick={onExit} aria-label="Zurück zum Home-Menü"><Icon name="arrow" size={20} /></button>
-          <h1 className="cz-logo">Neon<span>Casino</span></h1>
+          {onExit
+            ? <button className="cz-round" onClick={onExit} aria-label="Zurück zum Home-Menü"><Icon name="arrow" size={20} /></button>
+            : <button className="cz-round" onClick={() => { sfx('tap'); onSettings?.(); }} aria-label="Einstellungen"><Icon name="gear" size={20} /></button>}
+          <h1 className="cz-logo">Ugurs<span>Casino</span></h1>
           <button className={`cz-round cz-bell ${rewardCount ? 'has' : ''}`} onClick={() => { sfx('tap'); setSheet(true); }} aria-label={`Belohnungen${rewardCount ? `, ${rewardCount} bereit` : ''}`}>
             <Icon name="gift" size={20} />{rewardCount > 0 && <em>{rewardCount}</em>}
           </button>
@@ -499,7 +502,7 @@ function CasinoIntro({ onSkip }: { onSkip: () => void }) {
       <div className="cz-intro-coins" aria-hidden="true">
         {Array.from({ length: 14 }, (_, i) => <span key={i} style={{ '--a': `${(i / 14) * 360 + 10}deg`, '--d': `${40 + (i % 3) * 12}vmin`, animationDelay: `${60 + (i % 4) * 30}ms` } as React.CSSProperties}><Icon name="coin" size={26} /></span>)}
       </div>
-      <h1 className="cz-intro-logo">Neon<span>Casino</span></h1>
+      <h1 className="cz-intro-logo">Ugurs<span>Casino</span></h1>
       <small className="cz-intro-sub">Viel Glück!</small>
     </div>
   );

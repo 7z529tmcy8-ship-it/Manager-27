@@ -15,6 +15,9 @@ interface Props {
   career?: Career;
   onChange?: (c: Career) => void;
   onClose: () => void;
+  /** Casino-Modus: Neuigkeiten und Sichern & Laden sind hier statt im (ausgeblendeten) Startmenü. */
+  onNews?: () => void;
+  onBackup?: () => void;
 }
 
 function Choice<T extends string>({ label, value, options, onPick, hint }: { label: string; value: T; options: [T, string][]; onPick: (v: T) => void; hint?: string }) {
@@ -47,7 +50,7 @@ function Toggle({ label, checked, onToggle, hint }: { label: string; checked: bo
   );
 }
 
-export default function Settings({ career, onChange, onClose }: Props) {
+export default function Settings({ career, onChange, onClose, onNews, onBackup }: Props) {
   const app = useSettings();
   const cs = career ? settingsOf(career) : null;
   const set = (patch: Partial<AppSettings>) => updateSettings(patch);
@@ -129,6 +132,8 @@ export default function Settings({ career, onChange, onClose }: Props) {
               onPick={(v) => { set({ volume: Number(v) }); setTimeout(() => play('coin'), 30); }}
             />
           )}
+          {onNews && <button className="btn secondary" onClick={onNews}><Icon name="news" size={18} /> Neuigkeiten</button>}
+          {onBackup && <button className="btn secondary" onClick={onBackup}><Icon name="cloud" size={18} /> Sichern & Laden</button>}
           {!app.dev && <CodeInput onUnlock={() => set({ dev: true })} />}
         </section>
 
