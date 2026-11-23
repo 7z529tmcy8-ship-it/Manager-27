@@ -5459,16 +5459,20 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .rd-cone.l { left: calc(50% - 52px); } .rd-cone.r { left: calc(50% + 38px); }
 /* Autos: Karosserie + Scheiben + Scheinwerfer, nur transform animiert, kein Schatten-Filter */
 .rd-car { --c1: #ff3fb4; --c2: #b3127a; position: absolute; top: 50%; left: 0; width: 64px; height: 30px; margin-top: -15px; z-index: 1; border-radius: 9px 14px 14px 9px;
-  background: linear-gradient(180deg, var(--c1), var(--c2)); box-shadow: none; will-change: transform; animation: rd-ltr 2s linear infinite; }
+  background: linear-gradient(180deg, var(--c1), var(--c2)); box-shadow: none; }
 .rd-car::before { content: ''; position: absolute; left: 18px; top: 4px; width: 26px; height: 22px; border-radius: 6px; background: linear-gradient(90deg, rgba(20, 24, 40, .85), rgba(120, 170, 255, .7)); }
 .rd-car::after { content: ''; position: absolute; right: -26px; top: 2px; width: 28px; height: 26px; background: linear-gradient(90deg, rgba(255, 246, 194, .55), transparent); clip-path: polygon(0 30%, 100% 0, 100% 100%, 0 70%); }
-.rd-car.rtl { animation-name: rd-rtl; transform: scaleX(-1); }
 .rd-car.c1 { --c1: #3ff0ff; --c2: #0b7688; } .rd-car.c2 { --c1: #ffd24a; --c2: #b8860b; } .rd-car.c3 { --c1: #9b6bff; --c2: #4a1ab0; }
-@keyframes rd-ltr { from { transform: translate3d(-90px, 0, 0); } to { transform: translate3d(calc(100cqw + 30px), 0, 0); } }
-@keyframes rd-rtl { from { transform: translate3d(calc(100cqw + 30px), 0, 0) scaleX(-1); } to { transform: translate3d(-90px, 0, 0) scaleX(-1); } }
+.rd-track { position: absolute; inset: 0; z-index: 1; pointer-events: none; will-change: transform; animation: rd-ltr 2s linear infinite; }
+.rd-track .rd-car { left: -100px; }
+.rd-track.rtl { animation-name: rd-rtl; }
+.rd-track.rtl .rd-car { transform: scaleX(-1); }
+/* Prozent = Breite der Fahrbahn: läuft überall, auch ohne Container-Einheiten */
+@keyframes rd-ltr { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(calc(100% + 130px), 0, 0); } }
+@keyframes rd-rtl { from { transform: translate3d(calc(100% + 130px), 0, 0); } to { transform: translate3d(0, 0, 0); } }
 .rd-crash { position: absolute; top: 50%; z-index: 3; --c1: #ff4d4d; --c2: #8a0d0d; left: 0; width: 70px; height: 32px; margin-top: -16px; border-radius: 9px 14px 14px 9px; background: linear-gradient(180deg, var(--c1), var(--c2)); box-shadow: none;
   animation: rd-crash2 .3s cubic-bezier(.5, 0, 1, .6) forwards; }
-@keyframes rd-crash2 { from { transform: translate3d(-90px, 0, 0); } to { transform: translate3d(calc(50cqw - 50px), 0, 0); } }
+@keyframes rd-crash2 { from { left: -90px; } to { left: calc(50% - 50px); } }
 /* Kugel: Position per transform (kein Layout pro Bild), Sprung im Inneren */
 .rd-runner { position: absolute; left: 50%; bottom: 0; z-index: 4; width: 34px; height: 34px; margin: 0 0 -17px 0; background: none; box-shadow: none; animation: none;
   transition: transform .23s cubic-bezier(.2, .9, .3, 1.2); will-change: transform; }
@@ -5479,6 +5483,6 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .rd-runner.hit i { background: radial-gradient(circle at 35% 30%, #fff, #ff8fa3 40%, #ff1f3d); animation: rd-squash .35s .22s forwards; }
 .rd-runner.cash i { background: radial-gradient(circle at 35% 30%, #fff, #b9ffd6 40%, #39ff88); }
 .rd-hud { box-shadow: none; transition: none; }
-:root.lite .rd-car { animation-duration: 5s !important; }
-:root.reduce-motion .rd-car { display: none; }
-@media (prefers-reduced-motion: reduce) { .rd-car { display: none; } .rd-plate.next { animation: none; } }
+/* Autos sind Spielinhalt: fahren immer, bei reduzierter Bewegung nur langsamer */
+:root.lite .rd-track, :root.reduce-motion .rd-track { animation-duration: 4s !important; animation-iteration-count: infinite !important; }
+@media (prefers-reduced-motion: reduce) { .rd-track { animation-duration: 4s !important; animation-iteration-count: infinite !important; } .rd-plate.next { animation: none; } }

@@ -97,7 +97,7 @@ export default function Road({ onClose }: { onClose: () => void }) {
             const kind = lane === 0 ? 'start' : lane === ROAD_LANES ? 'goal' : 'road';
             return (
               <div key={lane} className={`rd-lane k-${kind} ${crossed ? 'done' : ''} ${isNext ? 'next' : ''}`} style={{ transform: `translate3d(0, ${-lane * LANE_H}px, 0)`, height: LANE_H }}>
-                {kind === 'road' && !crossed && <i className={`rd-car c${lane % 4} ${lane % 2 ? 'ltr' : 'rtl'}`} style={{ animationDuration: `${1.5 + (lane % 5) * 0.32}s`, animationDelay: `${-((lane * 0.61) % 2)}s` }} />}
+                {kind === 'road' && !crossed && <i className={`rd-track ${lane % 2 ? 'ltr' : 'rtl'}`} style={{ animationDuration: `${1.6 + (lane % 5) * 0.32}s`, animationDelay: `${-((lane * 0.61) % 2)}s` }}><i className={`rd-car c${lane % 4}`} /></i>}
                 {kind === 'goal' && <span className="rd-goal">Ziel</span>}
                 {lane > 0 && (
                   <span className={`rd-plate ${crossed ? 'done' : ''} ${isNext ? 'next' : ''}`}>

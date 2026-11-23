@@ -37,6 +37,7 @@ export const UPDATES: UpdateNote[] = [
       'Multiplikator steht als Plakette mitten auf jeder Fahrbahn – die nächste leuchtet gold und pulsiert.',
       'Geschaffte Fahrbahnen werden grün mit Haken und Hütchen.',
       'Neue Autos mit Scheiben und Scheinwerfer-Licht.',
+      'Autos fahren jetzt auf jedem Handy – auch wenn „Animationen aus“ an ist (dann nur etwas langsamer).',
       'Flüssiger: nur sichtbare Fahrbahnen werden gezeichnet, Kugel und Autos bewegen sich ohne teure Leucht-Effekte.',
     ],
   },
