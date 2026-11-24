@@ -29,6 +29,19 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-24-spieltag-kabine',
+    date: '24.11.2026',
+    title: 'Karriere-Update: Spieltag-Modus & Kabine',
+    items: [
+      'Die Saison läuft jetzt in 6 Etappen: Gegner, Form und Fortschritt siehst du vor jeder Etappe.',
+      'Szene des Spieltags: Nach jeder Etappe entscheidest du einen Moment selbst (z. B. Lupfer oder flach ins Eck) – mit sichtbarer Chance aus deinen Attributen. Tore zählen wirklich, auch in der Tabelle.',
+      'Kabine: Deine Rolle im Team (Tribüne bis Unverzichtbar), Startelf-Chance und das Vertrauen des Trainers mit Gründen.',
+      'Trainergespräch einmal pro Etappe: Spielzeit fordern, einen Auftrag holen oder Teamgeist zeigen.',
+      'Konkurrent um deinen Platz (echte Mitspieler, wenn es welche gibt) und Trainerwechsel, wenn es im Verein schlecht läuft.',
+      'Wer lieber schnell spielt: „Durchsimulieren“ gibt es weiter, und in den Einstellungen lässt sich der Spieltag-Modus ausschalten.',
+    ],
+  },
+  {
     id: '2026-11-24-karriere-zurueck',
     date: '24.11.2026',
     title: 'Die Karriere ist zurück – Casino mit Fokus',

@@ -102,3 +102,24 @@ function replayCore(prev: Career, next: Career): Replay | null {
   }
   return null;
 }
+
+/** Spieltag-Modus: nur die Spiele der gerade gespielten Etappe zeigen. */
+export function stageReplayOf(prev: Career, next: Career): Replay | null {
+  if (prev.phase !== 'season') return null;
+  const stage = prev.progress?.stage ?? 0;
+  const before = prev.progress?.matches ?? [];
+  const seasonDone = next.history.length > prev.history.length;
+  const src = seasonDone ? next.simReplay : next.progress ? { matches: next.progress.matches, table: null, clubId: currentClubId(next.player) } : null;
+  if (!src) return null;
+  const ms = src.matches.filter((m) => m.stage === stage && (seasonDone || !before.includes(m)));
+  if (!ms.length) return null;
+  const clubId = ms[ms.length - 1].clubId;
+  const rows = sortTable(src.table ?? next.progress?.rows[clubLeagueId(next, clubId)] ?? []);
+  const pos = rows.findIndex((r) => r.clubId === clubId);
+  const done = seasonDone ? next.history[next.history.length - 1].goalResults : next.progress ? evaluateGoals(next.seasonGoals ?? [], next.progress.matches) : undefined;
+  return {
+    title: `Etappe ${stage + 1} von 6`, clubId, steps: steps(ms, leaguePts(before), leagueRec(before)),
+    position: pos >= 0 ? pos + 1 : null, teams: rows.length, startPoints: leaguePts(before),
+    ovrFrom: prev.player.ovr, ovrTo: next.player.ovr, goals: done?.length ? done : undefined,
+  };
+}

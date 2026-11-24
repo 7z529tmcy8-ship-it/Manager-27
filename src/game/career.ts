@@ -292,7 +292,7 @@ export function restartFirstSeason(career: Career): void {
   ensureProgress(career);
 }
 
-function ensureProgress(career: Career) {
+export function ensureProgress(career: Career) {
   if (career.progress) {
     career.progress.stage ??= career.phase === 'winter' ? STAGES_PER_HALF : 0;
     return career.progress;
@@ -321,6 +321,20 @@ export function playNextStage(prev: Career): Career {
   career.phase = 'season';
   // Zwischen den Etappen lädt manchmal die Presse ein.
   if (!career.player.absent && chance(PRESS_FREQUENCIES[settingsOf(career).press].chance)) career.decision = pressConference(career);
+  career.updatedAt = Date.now();
+  return career;
+}
+
+/**
+ * Spieltag-Modus: Nach einer gespielten Etappe weiter – Winterpause nach Etappe 3, Saisonende nach Etappe 6,
+ * sonst geht die Saison weiter (ohne Pressekonferenz-Unterbrechung; dafür gibt es das Trainergespräch).
+ */
+export function afterStage(prev: Career): Career {
+  const career: Career = structuredClone(prev);
+  const prog = ensureProgress(career);
+  if (prog.stage === STAGES_PER_HALF) return winterTransition(career, true);
+  if ((prog.stage ?? 0) >= STAGES) return finishSecondHalf(career);
+  career.phase = 'season';
   career.updatedAt = Date.now();
   return career;
 }
@@ -711,10 +725,12 @@ function applyGoalConsequences(career: Career, record: SeasonRecord) {
   const met = results.filter((r) => r.met).length;
   if (met === results.length) {
     p.morale = Math.min(3, (p.morale ?? 0) + 2);
+    p.trustLog = [{ text: 'Alle Saisonziele erreicht', d: 2 }, ...(p.trustLog ?? [])].slice(0, 5);
     p.contract.wage = Math.round((p.contract.wage * 1.1) / 500) * 500;
     record.notes.push('Alle Saisonziele erreicht: Der Trainer vertraut dir mehr, dazu gibt es 10 % Gehaltsbonus.');
   } else if (met === 0) {
     p.morale = Math.max(-3, (p.morale ?? 0) - 2);
+    p.trustLog = [{ text: 'Kein Saisonziel erreicht', d: -2 }, ...(p.trustLog ?? [])].slice(0, 5);
     record.notes.push('Kein Saisonziel erreicht – der Trainer ist enttäuscht.');
   } else {
     record.notes.push('Saisonziele teilweise erreicht.');

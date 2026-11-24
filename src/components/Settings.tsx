@@ -79,6 +79,9 @@ export default function Settings({ career, onChange, onClose, onNews, onBackup }
               onPick={(difficulty) => onChange(setCareerSettings(career, { difficulty }))}
               hint={DIFFICULTIES[cs.difficulty].hint}
             />
+            <Toggle label="Spieltag-Modus (6 Etappen mit Szenen)" checked={career.settings?.stageMode !== false}
+              onToggle={() => onChange(setCareerSettings(career, { stageMode: career.settings?.stageMode === false }))}
+              hint="Saison Etappe für Etappe: Szenen mit eigenen Entscheidungen, Trainergespräch, Rolle im Team. Aus = bis zur Pause durchsimulieren." />
             <Toggle label="Live-Simulation (Spiel für Spiel)" checked={career.settings?.simShow !== false}
               onToggle={() => onChange(setCareerSettings(career, { simShow: career.settings?.simShow === false }))}
               hint="Aus: Die Halbserie springt sofort ans Ende." />

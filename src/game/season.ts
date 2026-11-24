@@ -125,6 +125,24 @@ export function sortTable(rows: TableRow[]): TableRow[] {
   );
 }
 
+/**
+ * Wie sehr der Trainer auf dich setzt (vor dem Zufall): Stärke im Team, Rolle laut Vertrag, Form, Vertrauen,
+ * Kapitänsamt usw. Wird für die Aufstellung genutzt – und in der Oberfläche als Startelf-Chance angezeigt.
+ */
+export function selectionValue(career: Career, form: number, ownStrength: number, load: StageLoad = 'normal', rotation = 0): number {
+  const player = career.player;
+  const clubId = currentClubId(player);
+  const captain = player.captainOf === clubId ? 1 : 0;
+  // Der Präsident stellt sich selbst auf.
+  const president = career.owner?.clubId === clubId ? 4 : 0;
+  return (player.ovr - ownStrength) + ROLE_BONUS[currentRole(player)] + (form - 6.8) * 2 + (player.morale ?? 0) + captain + president + rotation
+    + LOADS[load].selection + difficultyOf(career).selection + skillMods(player).selection;
+}
+/** Chance, in der Startelf zu stehen. */
+export function startProbability(position: Position, selection: number): number {
+  return position === 'TW' ? sigmoid((selection + 1) / 1.2) : sigmoid((selection + 1.5) / 2.2);
+}
+
 function injuryWeeks(): number {
   return weightedPick([1, 2, 3, 4, 6, 8, 12, 20, 30], (w) => ({ 1: 30, 2: 25, 3: 15, 4: 10, 6: 8, 8: 5, 12: 4, 20: 2, 30: 1 })[w]!);
 }
@@ -133,7 +151,6 @@ function injuryWeeks(): number {
  * Ein Spiel der eigenen Mannschaft inklusive Einsatz, Toren, Vorlagen und Note des Spielers.
  * `rotation` gibt Ergänzungsspielern z. B. im Pokal bessere Einsatzchancen.
  */
-const ownsCurrentClub = (ctx: SeasonContext) => ctx.career.owner?.clubId === ctx.clubId;
 
 function playerMatch(
   ctx: SeasonContext,
@@ -158,12 +175,8 @@ function playerMatch(
     prog.injuredFor--;
     status = 'injured';
   } else {
-    const captain = player.captainOf === ctx.clubId ? 1 : 0;
-    // Der Präsident stellt sich selbst auf.
-    const president = ownsCurrentClub(ctx) ? 4 : 0;
-    const load = LOADS[prog.load ?? 'normal'];
-    const selection = rel + ROLE_BONUS[currentRole(player)] + (prog.form - 6.8) * 2 + (player.morale ?? 0) + captain + president + rotation + load.selection + difficultyOf(ctx.career).selection + mods.selection;
-    const startP = player.position === 'TW' ? sigmoid((selection + 1) / 1.2) : sigmoid((selection + 1.5) / 2.2);
+    const selection = selectionValue(ctx.career, prog.form, own, prog.load ?? 'normal', rotation);
+    const startP = startProbability(player.position, selection);
     if (chance(startP)) {
       status = 'start';
       minutes = chance(0.45 + clamp(rel * 0.05, -0.2, 0.4) + mods.fullGame) || player.position === 'TW' ? 90 : randInt(55, 85);

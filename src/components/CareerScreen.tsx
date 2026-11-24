@@ -14,9 +14,10 @@ import LiveMatch from './LiveMatch';
 import SimShow, { GoalBars } from './SimShow';
 import { evaluateGoals } from '../game/goals';
 import { YOUTH_ORDER, sortTable, upcomingFixtures } from '../game/season';
-import { replayOf, type Replay } from '../game/simReplay';
+import { replayOf, stageReplayOf, type Replay } from '../game/simReplay';
+import { Kabine, SceneCard, StageCard, StageRecap } from './Matchday';
 import { advanceFinal, autoFinal } from '../game/final';
-import { autoPlayFinal, keyMatchFor, playFinalStep, setKeyMatch, startKeyMatch } from '../game/career';
+import { autoPlayFinal, keyMatchFor, playFinalStep, setKeyMatch, startKeyMatch, stayInWinter } from '../game/career';
 import { setCareerSettings } from '../game/difficulty';
 import { detectMoments, type Moment } from '../game/moments';
 import SkillTree, { ArchetypePicker, LevelChip } from './SkillTree';
@@ -33,7 +34,7 @@ import { motionReduced } from '../settings';
 import { play } from '../sound';
 import { isBroke } from '../game/gambling';
 import { useClub } from '../clubStore';
-import { applyChoice, applyWinterChoice, choiceClub, choiceClubId, finishLiveFinal, seasonChoices, simulateToBreak, winterChoices, type Choice } from '../game/simple';
+import { applyChoice, applyWinterChoice, choiceClub, choiceClubId, finishLiveFinal, sceneStep, seasonChoices, simulateToBreak, stageStep, winterChoices, type Choice } from '../game/simple';
 import { STAGES_PER_HALF } from '../game/season';
 import type { Career, FinalState, NlzProgram, SeasonRecord } from '../game/types';
 import LookPanel from './LookPanel';
@@ -109,8 +110,29 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   // Zu Beginn jeder Karriere: Topspiele und Finals selbst spielen oder alles simulieren?
   const askLive = career.settings?.liveMatches === undefined && career.history.length === 0 && career.phase === 'season' && (prog?.stage ?? 0) === 0 && !career.coach;
   const [keyLive, setKeyLive] = useState<{ key: NonNullable<ReturnType<typeof keyMatchFor>>; state: FinalState; started: boolean } | null>(null);
+  // Spieltag-Modus: Saison in 6 Etappen mit Szenen (Standard), sonst bis zur Pause durchsimulieren.
+  const stageMode = career.settings?.stageMode !== false;
+  const keyMode = useRef<'break' | 'stage'>('break');
+  const playStageNow = (from: Career) => {
+    const next = stageStep(from, live);
+    if (career.settings?.simShow !== false) setReplay(stageReplayOf(from, next));
+    onChange(next);
+  };
+  const runStage = () => {
+    setPicked(null);
+    const key = keyMatchFor(career);
+    const pr = career.progress;
+    // Topspiel der Halbserie: erst, wenn es in der kommenden Etappe ansteht
+    if (key && pr && upcomingFixtures(career, pr, pr.stage ?? 0).some((f) => f.opponentId === key.opponentId)) {
+      keyMode.current = 'stage';
+      setKeyLive({ key, state: startKeyMatch(career, key), started: false });
+      return;
+    }
+    playStageNow(career);
+  };
   const run = () => {
     setPicked(null);
+    keyMode.current = 'break';
     const key = keyMatchFor(career);
     if (key) {
       setKeyLive({ key, state: startKeyMatch(career, key), started: false });
@@ -129,7 +151,8 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
     if (!keyLive) return;
     const next = setKeyMatch(career, keyLive.key, state);
     setKeyLive(null);
-    simulate(next);
+    if (keyMode.current === 'stage') playStageNow(next);
+    else simulate(next);
   };
   // Transferfenster: ein Tipp entscheidet.
   const [nego, setNego] = useState<string | null>(null);
@@ -317,6 +340,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         </div>
       )}
 
+      {!needType && stageMode && !askLive && (career.phase === 'season' || career.phase === 'winter') && !p.absent && <Kabine career={career} onChange={onChange} />}
       {!needType && (career.phase === 'season' || career.phase === 'winter' || career.phase === 'final') && (
         <section className="cs-window">
           {career.phase === 'winter' && <h2>Winterpause</h2>}
@@ -343,6 +367,15 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
               </div>
               <p className="hint">Du kannst das später jederzeit in den Einstellungen ändern.</p>
             </div>
+          ) : stageMode && career.phase === 'season' ? (
+            prog?.scene
+              ? <SceneCard scene={prog.scene} onPick={(id) => onChange(sceneStep(career, id, live))} />
+              : <><StageRecap career={career} /><StageCard career={career} onPlay={runStage} onQuick={run} /></>
+          ) : stageMode && career.phase === 'winter' ? (
+            <>
+              <button className="btn primary big cs-go" onClick={() => onChange(stayInWinter(career))}>Rückrunde starten</button>
+              <button className="cs-link md-quick" onClick={run}>Bis Saisonende durchsimulieren</button>
+            </>
           ) : (
             <button className="btn primary big cs-go" onClick={run}>
               {secondHalf ? 'Bis Saisonende simulieren' : 'Bis zur Winterpause simulieren'}

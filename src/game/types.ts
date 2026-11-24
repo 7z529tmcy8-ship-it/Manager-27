@@ -111,6 +111,8 @@ export interface PlayerState {
   nominated?: string[];
   /** Vertrauen des Trainers (−3 … +3): beeinflusst die Einsatzchancen, klingt pro Halbserie ab. */
   morale?: number;
+  /** Warum sich das Vertrauen zuletzt verändert hat (neueste zuerst). */
+  trustLog?: { text: string; d: number }[];
   /** Verein, bei dem der Spieler Kapitän ist. */
   captainOf?: string | null;
   /** Vereine, bei denen der Spieler Legendenstatus hat. */
@@ -357,6 +359,16 @@ export interface SeasonProgress {
   winterMove: WinterMove | null;
   /** Selbst gespieltes Topspiel der Halbserie – fließt in die Simulation ein. */
   keyMatch?: KeyMatch | null;
+  /** Spieltag-Modus: offene Szene der gerade gespielten Etappe. */
+  scene?: import('./matchday').Scene | null;
+  /** Spieltag-Modus: Ausgang der letzten Szenen (für den Rückblick). */
+  sceneLog?: import('./matchday').SceneOutcome[];
+  /** Rolle und Vertrauen vor der zuletzt gespielten Etappe (für den Rückblick). */
+  recap?: { stage: number; roleFrom: import('./matchday').TeamRoleId; trustFrom: number } | null;
+  /** Etappe, in der schon mit dem Trainer gesprochen wurde. */
+  talkedStage?: number;
+  /** Auftrag des Trainers für die nächste Etappe. */
+  coachTask?: import('./matchday').CoachTask | null;
 }
 
 export interface KeyMatch {
@@ -520,6 +532,10 @@ export interface Career {
   gram?: import('./kickgram').Gram;
   /** LARP-Modus: Kleiderschrank, getragener Look, wie oft aufgeflogen. */
   larp?: import('./larp').LarpState;
+  /** Konkurrent um den Stammplatz im eigenen Verein. */
+  competitor?: import('./matchday').Competitor | null;
+  /** Aktueller Cheftrainer des eigenen Vereins (Spieltag-Modus). */
+  trainer?: import('./matchday').Trainer | null;
   /** Offenes Angebot zum Hochziehen (U17 → U19, NLZ → Profis, Zweite → Profis) – der Spieler entscheidet. */
   nlzPending?: import('./nlz').NlzOffer | null;
 }
@@ -727,6 +743,8 @@ export interface CareerSettings {
   liveMatches?: boolean;
   /** Halbserie als Live-Simulation (Spiel für Spiel) zeigen – Standard an. */
   simShow?: boolean;
+  /** Spieltag-Modus: Saison in 6 Etappen mit Szenen und Trainergespräch (Standard an). */
+  stageMode?: boolean;
 }
 
 export type InboxKind = 'national' | 'welcome' | 'goals' | 'season' | 'offer' | 'contract' | 'transfer' | 'event' | 'decision' | 'press' | 'achievement' | 'lotto' | 'casino' | 'holiday' | 'retire';

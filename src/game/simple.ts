@@ -11,6 +11,7 @@ import { closeYear } from './household';
 import { refreshKitOffers } from './kit';
 import { resolveNlzOffer } from './nlz';
 import type { Career, Offer } from './types';
+import { closeStage, playEtappe, resolveScene } from './matchday';
 
 // Vereinfachter Spielablauf: immer bis zur nächsten Pause simulieren (Winterpause, dann Saisonende),
 // am Saisonende genau drei Möglichkeiten. Finals und ein Topspiel pro Halbserie spielt man selbst (oder automatisch).
@@ -36,6 +37,40 @@ export function simulateToBreak(input: Career, liveFinals = false): Career {
     return withXp(ensureOffers({ ...c, decision: null }));
   }
   return prev;
+}
+
+/**
+ * Spieltag-Modus: nach einer Etappe (bzw. nach der Szene) weiter. An Pausen gibt es wie beim Durchsimulieren
+ * Erfahrungspunkte und am Saisonende garantierte Angebote; Finals hält die Oberfläche zum Selbstspielen an.
+ */
+export function finishStage(input: Career, liveFinals = false): Career {
+  const c = closeStage(input);
+  if (c.phase === 'season') return c;
+  if (c.phase === 'final') {
+    if (liveFinals) return { ...c, decision: null };
+    let f: Career = { ...c, decision: null };
+    while (f.phase === 'final') f = finishFinal(autoPlayFinal(f));
+    return withXp(ensureOffers({ ...f, decision: null }));
+  }
+  if (c.phase === 'winter') return withXp({ ...c, decision: null });
+  return withXp(ensureOffers({ ...c, decision: null }));
+}
+
+/** Etappe spielen; ohne Szene geht es direkt weiter. */
+export function stageStep(input: Career, liveFinals = false): Career {
+  const c = playEtappe(input);
+  return c.progress?.scene ? c : finishStage(c, liveFinals);
+}
+
+/** Szene entscheiden (oder überspringen) und die Etappe abschließen. */
+export function sceneStep(input: Career, optionId: string | null, liveFinals = false): Career {
+  const { career, outcome } = resolveScene(input, optionId);
+  const withNote: Career = outcome
+    ? { ...career, decisionResult: { title: outcome.title, text: `${outcome.text}${career.decisionResult ? ` ${career.decisionResult.text}` : ''}`, tone: outcome.good ? 'good' : 'bad' } }
+    : career;
+  const next = finishStage(withNote, liveFinals);
+  // Szene soll auch nach dem Wechsel in die Pause sichtbar bleiben
+  return outcome && !next.decisionResult ? { ...next, decisionResult: withNote.decisionResult } : next;
 }
 
 /** Live-Finale abgeschlossen: nächstes Finale oder Saisonende (mit Angeboten und Erfahrungspunkten). */
