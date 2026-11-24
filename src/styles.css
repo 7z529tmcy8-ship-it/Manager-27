@@ -5793,3 +5793,54 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 /* Schmale Handys: Profil oben nur als Wappen (statt halb abgeschnittenem Namen) */
 @media (max-width: 430px) { .ch3 .ch-profile > span { display: none; } .ch3 .ch-profile { flex: none; padding: 3px; } }
 .dv2-tabs button { min-width: 0; font-size: clamp(.74rem, 3.5vw, .9rem); gap: 4px; padding-left: 6px; padding-right: 6px; }
+
+/* =====================================================================
+   KARTEN v4 (Nov 2026): nichts abgeschnitten, Sonderkarten mit eigenem Charakter
+   ===================================================================== */
+.ucard { --j1: color-mix(in srgb, var(--ink) 22%, var(--a)); --j2: color-mix(in srgb, var(--ink) 40%, var(--b)); }
+.ucard.special { --j1: color-mix(in srgb, var(--a) 80%, #fff 20%); --j2: color-mix(in srgb, var(--b) 70%, #000 30%); }
+
+/* Trikot: eingefärbt mit Verlauf, zwei feine Streifen, kräftige Kontur */
+.ucard-jersey { filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .25)); }
+:root .ucard-jersey .j-body { stroke: color-mix(in srgb, var(--ink) 75%, transparent); stroke-width: 2; }
+.ucard-jersey .j-stripe { fill: none; stroke: color-mix(in srgb, var(--ink) 16%, transparent); stroke-width: 3; }
+:root .ucard-jersey text { paint-order: stroke; stroke: color-mix(in srgb, var(--a) 70%, transparent); stroke-width: 3px; }
+
+/* Wasserzeichen-Emblem hinter dem Bild */
+.ucard-mark { position: absolute; z-index: 0; top: 13%; right: -14%; width: 74%; aspect-ratio: 1; color: var(--ink); opacity: .1; transform: rotate(-14deg); pointer-events: none; }
+.ucard-mark .ic, .ucard-mark svg { width: 100%; height: 100%; display: block; }
+.ucard-name, .ucard-attrs, .ucard-club, .ucard-badge { position: relative; z-index: 1; }
+.ucard-top { z-index: 2; }
+
+/* Kartenart als Schleifenband (Sonderkarten) */
+:root .ucard.special .ucard-badge { opacity: 1; margin-top: 3px; padding: 2px 13px 2px; font-size: .5rem; letter-spacing: .13em; line-height: 1.25;
+  color: var(--a); background: color-mix(in srgb, var(--ink) 90%, transparent);
+  clip-path: polygon(0 0, 100% 0, 93% 50%, 100% 100%, 0 100%, 7% 50%); }
+:root .ucard.special.lg .ucard-badge { font-size: .64rem; padding: 3px 16px; }
+
+/* Lichtkante bei Top-Karten: ein heller Streifen wandert an der Kante entlang (nur transform) */
+.ucard-rim { position: absolute; inset: 0; z-index: 3; pointer-events: none; padding: 3px; overflow: hidden;
+  -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+.ucard-rim::before { content: ''; position: absolute; top: -50%; bottom: -50%; left: -60%; width: 60%; transform: translateX(0) rotate(20deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .95), transparent); animation: ucard-rim 3.6s ease-in-out infinite; will-change: transform; }
+@keyframes ucard-rim { 0%, 15% { transform: translateX(0) rotate(20deg); } 70%, 100% { transform: translateX(380%) rotate(20deg); } }
+:root.reduce-motion .ucard-rim::before, :root.lite .ucard-rim::before, :root.paused .ucard-rim::before { animation: none; display: none; }
+@media (prefers-reduced-motion: reduce) { .ucard-rim::before { animation: none; display: none; } }
+
+/* Namen: auf mittleren und großen Karten bis zu zwei Zeilen statt winziger Schrift */
+:root .ucard.md .ucard-name, :root .ucard.lg .ucard-name {
+  white-space: normal; overflow: visible; text-overflow: clip; max-width: 100%; text-wrap: balance; line-height: 1.02;
+  font-size: clamp(.7rem, calc(100cqi * 2.2 / var(--nl, 8)), .95rem); }
+:root .ucard.lg .ucard-name { font-size: clamp(.95rem, calc(100cqi * 2.2 / var(--nl, 8)), 1.25rem); }
+/* Verein / Titel-Zeile: umbrechen statt „…“ */
+:root .ucard .ucard-club { white-space: nowrap; overflow: visible; text-overflow: clip; max-width: none; letter-spacing: 0;
+  font-size: min(.56rem, calc(100cqi * 1.45 / var(--cl, 14))); }
+:root .ucard.lg .ucard-club { font-size: min(.72rem, calc(100cqi * 1.45 / var(--cl, 14))); }
+/* Zweizeiliger Name: etwas enger, damit unten alles in die Karte passt */
+:root .ucard.md .ucard-name { margin-top: 2px; margin-bottom: 3px; }
+/* Band liegt über dem Trikot-Saum – spart Höhe, wirkt wie ein echtes Kartenband */
+:root .ucard.md .ucard-badge, :root .ucard.lg .ucard-badge { margin-top: -9%; }
+:root .ucard.md .ucard-art:not(.photo) { margin-bottom: 0; }
+:root .ucard.md .ucard-attrs { margin-top: 1px; }
+:root .ucard.special .ucard-badge { white-space: nowrap; font-size: min(.5rem, calc(100cqi * 1.25 / var(--bl, 10))); }
+:root .ucard.special.lg .ucard-badge { font-size: min(.64rem, calc(100cqi * 1.25 / var(--bl, 10))); }

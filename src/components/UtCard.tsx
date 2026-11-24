@@ -1,6 +1,6 @@
 import type React from 'react';
 import { useCardArt } from '../cardArt';
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { getSettings, motionReduced } from '../settings';
 import { onTilt } from '../tilt';
 import Icon, { type IconName } from './Icon';
@@ -47,6 +47,8 @@ const EMBLEM: Partial<Record<CollectCard['variant'], IconName>> = {
   tots: 'star', potm: 'calendar', record: 'chart', champion: 'trophy',
   ballondor: 'medal', worldcup: 'globe', ucl: 'star', poty: 'mic', topscorer: 'boot', goldenboy: 'spark', totw: 'stadium',
 };
+/** Top-Karten bekommen eine wandernde Lichtkante. */
+const TOP_TIER = new Set<CollectCard['variant']>(['icon', 'ballondor', 'worldcup', 'ucl', 'ewig', 'unvergessen', 'gig']);
 const OUTFIELD = ['TEM', 'SCH', 'PAS', 'DRI', 'DEF', 'PHY'];
 const KEEPER = ['HEC', 'HAN', 'ABS', 'REF', 'TEM', 'STE'];
 
@@ -92,13 +94,16 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick,
       ref={tiltRef as never}
       className={`ucard v-${card.variant} ${card.era ? `era-${card.era}` : ''} ${size} ${size === 'lg' || size === 'md' ? 'tilt' : ''} ${emblem ? 'special' : ''} ${card.boost ? 'evo' : ''} ${shine ? 'shine' : ''} ${onClick ? 'clickable' : ''}`}
       aria-label={mask === 'ovr' ? `${card.name}, ${card.position}` : `${card.name}, ${card.ovr} ${card.position}`}
-      style={{ '--nl': Math.max(5, (big ? card.name : lastName).length) } as React.CSSProperties}
+      style={{ '--nl': Math.max(5, (big ? card.name : lastName).length), '--cl': Math.max(14, (card.label ?? card.club).length), '--bl': Math.max(10, (VARIANT_LABEL[card.variant] ?? 'Silber').length) } as React.CSSProperties}
       onClick={onClick}
     >
       {emblem && <span className="ucard-foil" aria-hidden="true" />}
       {(size === 'lg' || size === 'md') && <span className="ucard-glare" aria-hidden="true" />}
       {!!card.boost && size !== 'xs' && <span className="ucard-evo" aria-label={`Evolution +${card.boost}`}>{Array.from({ length: 5 }, (_, i) => <i key={i} className={i < card.boost! ? 'on' : ''} />)}</span>}
       {emblem && size !== 'xs' && <span className="ucard-emblem" aria-hidden="true"><Icon name={emblem} /></span>}
+      {/* Wasserzeichen: das Symbol der Kartenart groß hinter dem Bild – macht jede Sonderkarte auf einen Blick erkennbar */}
+      {emblem && big && <span className="ucard-mark" aria-hidden="true"><Icon name={emblem} /></span>}
+      {TOP_TIER.has(card.variant) && big && <span className="ucard-rim" aria-hidden="true" />}
       <div className="ucard-top">
         <span className={`ucard-ovr ${mask === 'ovr' ? 'masked' : ''} ${focus === 'ovr' ? 'focused' : ''}`}>{mask === 'ovr' ? '?' : card.ovr}</span>
         <span className="ucard-pos">{card.position}</span>
@@ -130,11 +135,19 @@ export default function UtCard({ card, size = 'md', count, shine, chem, onClick,
   );
 }
 
-/** Trikot-Symbol statt eines Porträts (keine Gesichter auf Karten). */
+/** Trikot-Symbol statt eines Porträts (keine Gesichter auf Karten) – eingefärbt in den Farben der Kartenart. */
 function Jersey({ text }: { text: string }) {
+  const id = `jg${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   return (
     <svg className="ucard-jersey" viewBox="0 0 100 100" aria-hidden="true">
-      <path className="j-body" d="M34 14 L22 18 L8 32 L18 46 L26 40 L26 88 L74 88 L74 40 L82 46 L92 32 L78 18 L66 14 Q58 24 50 24 Q42 24 34 14Z" />
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="0.4" y2="1">
+          <stop offset="0" style={{ stopColor: 'var(--j1)' }} />
+          <stop offset="1" style={{ stopColor: 'var(--j2)' }} />
+        </linearGradient>
+      </defs>
+      <path className="j-body" style={{ fill: `url(#${id})` }} d="M34 14 L22 18 L8 32 L18 46 L26 40 L26 88 L74 88 L74 40 L82 46 L92 32 L78 18 L66 14 Q58 24 50 24 Q42 24 34 14Z" />
+      <path className="j-stripe" d="M44 25 L44 88 M56 25 L56 88" />
       <path className="j-trim" d="M34 14 Q42 26 50 26 Q58 26 66 14" />
       <text x="50" y="67" textAnchor="middle">{text}</text>
     </svg>

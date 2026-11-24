@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-24-karten-v4',
+    date: '24.11.2026',
+    title: 'Neues Karten-Design',
+    items: [
+      'Sonderkarten mit eigenem Charakter: Das Symbol der Kartenart steht groß als Wasserzeichen hinter dem Trikot, die Kartenart auf einem Schleifenband.',
+      'Trikots in den Farben der Kartenart statt grau – mit Streifen und Schatten.',
+      'Top-Karten (Ikone, Ballon d’Or, Weltmeister, Königsklasse …) haben eine wandernde Lichtkante.',
+      'Nichts mehr abgeschnitten: Lange Namen stehen zweizeilig, lange Vereins- und Titelzeilen passen sich an, statt mit „…“ zu enden.',
+    ],
+  },
+  {
     id: '2026-11-24-karten-nur-karriere',
     date: '24.11.2026',
     title: 'Karten nur noch aus der Karriere',
