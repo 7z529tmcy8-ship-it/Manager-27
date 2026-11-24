@@ -293,6 +293,8 @@ export interface SeasonRecord {
   goalResults?: GoalResult[];
   /** In dieser Saison freigeschaltete Erfolge (Namen). */
   achievements?: string[];
+  /** Turnier der Nationalmannschaft in diesem Sommer (WM/EM), falls dabei. */
+  tournament?: { name: string; reachedFinal: boolean; won: boolean; stage?: string } | null;
 }
 
 export interface WinterMove {

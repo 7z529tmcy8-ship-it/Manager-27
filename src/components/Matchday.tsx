@@ -7,6 +7,7 @@ import {
   TALKS, TRAINER_STYLE, canTalk, ensureCompetitor, ensureTrainer, coachTalk, demandChance, duelText, roleLabel, roleRank, stageMatchdays, teamRole, trustInfo,
   type Scene, type TalkId,
 } from '../game/matchday';
+import { compShort } from '../game/simReplay';
 import type { Career } from '../game/types';
 
 const pct = (x: number) => `${Math.round(x * 100)} %`;
@@ -140,6 +141,8 @@ export function StageRecap({ career }: { career: Career }) {
   const role = teamRole(career);
   const dTrust = (career.player.morale ?? 0) - rc.trustFrom;
   const moved = roleRank(role.id) - roleRank(rc.roleFrom);
+  // Flutlicht: Pokal- und Europapokal-Spiele der Etappe extra zeigen
+  const nights = prog.matches.filter((m) => m.stage === rc.stage && m.competition !== 'Liga' && m.status !== 'injured');
   return (
     <div className="md-recap" aria-label="Rückblick Etappe">
       <small>Rückblick Etappe {rc.stage + 1}</small>
@@ -150,6 +153,18 @@ export function StageRecap({ career }: { career: Career }) {
         <div><dt>Ø-Note</dt><dd>{log.avgRating != null ? log.avgRating.toFixed(1).replace('.', ',') : '–'}</dd></div>
         <div><dt>Platz</dt><dd>{log.position || '–'}</dd></div>
       </dl>
+      {nights.length > 0 && (
+        <ul className="md-nights" aria-label="Flutlicht-Spiele">
+          {nights.map((m, i) => (
+            <li key={i} className={m.goalsFor > m.goalsAgainst ? 'w' : m.goalsFor < m.goalsAgainst ? 'l' : ''}>
+              <small>{compShort(m.competition)}</small>
+              <span>{m.home ? 'vs' : 'bei'} {nm(m.opponent)}</span>
+              <b>{m.goalsFor}:{m.goalsAgainst}</b>
+              {(m.goals > 0 || m.assists > 0) && <em>{m.goals > 0 ? `${m.goals} Tor${m.goals > 1 ? 'e' : ''}` : ''}{m.goals > 0 && m.assists > 0 ? ' · ' : ''}{m.assists > 0 ? `${m.assists} Vorl.` : ''}</em>}
+            </li>
+          ))}
+        </ul>
+      )}
       <p className="md-recap-line">
         {moved > 0 ? <span className="up">Aufgestiegen: {roleLabel(rc.roleFrom)} → {role.label}</span>
           : moved < 0 ? <span className="down">Abgerutscht: {roleLabel(rc.roleFrom)} → {role.label}</span>

@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-24-grosse-buehne',
+    date: '24.11.2026',
+    title: 'Karriere-Update: Große Bühne',
+    items: [
+      'Saison-Gala: Am Saisonende öffnest du die Umschläge – Torjägerkanone, Spieler der Saison, Team der Saison, Golden Boy, Weltfußballer-Wahl und das Turnier mit der Nationalelf.',
+      'Weltfußballer-Ranking: Ab Wertung 78 siehst du während der Saison, wo du im Vergleich zu den Stars der Welt stehst.',
+      'Flutlicht: Im Etappen-Rückblick stehen Pokal- und Europapokal-Spiele extra – mit deinen Toren und Vorlagen.',
+    ],
+  },
+  {
     id: '2026-11-24-spieltag-kabine',
     date: '24.11.2026',
     title: 'Karriere-Update: Spieltag-Modus & Kabine',

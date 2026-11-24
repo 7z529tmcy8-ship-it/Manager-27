@@ -838,6 +838,7 @@ export function finishSeason(career: Career, prog: SeasonProgress): SeasonOutcom
   if (national.youth?.title) allTrophies.push(national.youth.title);
 
   const record: SeasonRecord = {
+    tournament: national.tournament ?? null,
     season: seasonLabel(career.year),
     age: player.age,
     clubId,

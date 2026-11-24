@@ -16,6 +16,8 @@ import { evaluateGoals } from '../game/goals';
 import { YOUTH_ORDER, sortTable, upcomingFixtures } from '../game/season';
 import { replayOf, stageReplayOf, type Replay } from '../game/simReplay';
 import { Kabine, SceneCard, StageCard, StageRecap } from './Matchday';
+import { Gala, WorldRaceCard } from './BigStage';
+import { galaWorthy } from '../game/bigstage';
 import { advanceFinal, autoFinal } from '../game/final';
 import { autoPlayFinal, keyMatchFor, playFinalStep, setKeyMatch, startKeyMatch, stayInWinter } from '../game/career';
 import { setCareerSettings } from '../game/difficulty';
@@ -74,6 +76,13 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   };
   const p = career.player;
   const clubId = currentClubId(p);
+  // Saison-Gala: nach jedem Saisonende (wenn Feier und Live-Simulation vorbei sind)
+  const histLen = useRef(career.history.length);
+  const [gala, setGala] = useState<SeasonRecord | null>(null);
+  useEffect(() => {
+    if (career.history.length > histLen.current && career.history.length > 0 && galaWorthy(career.history[career.history.length - 1])) setGala(career.history[career.history.length - 1]);
+    histLen.current = career.history.length;
+  }, [career.history.length]); // eslint-disable-line react-hooks/exhaustive-deps
   const [picked, setPicked] = useState<number | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const [tree, setTree] = useState(false);
@@ -180,6 +189,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
 
   return (
     <main className="cs">
+      {gala && !moments.length && !replay && <Gala career={career} record={gala} onClose={() => setGala(null)} />}
       {keyLive && (
         <LiveMatch
           title={`Topspiel · ${keyLive.key.home ? 'Heimspiel' : 'Auswärtsspiel'}`}
@@ -352,6 +362,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           )}
           {note && <p className={`cs-note ${note.tone}`}><b>{note.title}:</b> {note.text}</p>}
           <SeasonPanel career={career} />
+          <WorldRaceCard career={career} />
           {askLive ? (
             <div className="live-ask">
               <h3>Wie willst du deine Karriere spielen?</h3>
