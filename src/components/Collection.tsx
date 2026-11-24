@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { CARDS_FROM_CAREER_ONLY } from '../game/mode';
 import { createPortal } from 'react-dom';
 import { cardArtIds, removeCardArt, setCardArt, shrinkImage, useCardArt } from '../cardArt';
 import { getClubState, setClubState, useClub } from '../clubStore';
@@ -66,7 +67,7 @@ export default function Collection({ onShop, onCasino }: { onShop: () => void; o
 
       <div className="col-actions">
         <button className="btn secondary small" disabled={!dupes} onClick={sellAll}><Icon name="coin" size={15} /> Doppelte verkaufen{dupes ? ` · ${fmt(dupes)}` : ''}</button>
-        <button className="btn secondary small" onClick={onShop}><Icon name="pack" size={15} /> Packs kaufen</button>
+        {!CARDS_FROM_CAREER_ONLY && <button className="btn secondary small" onClick={onShop}><Icon name="pack" size={15} /> Packs kaufen</button>}
       </div>
 
       <ArtInfo onCasino={onCasino} />

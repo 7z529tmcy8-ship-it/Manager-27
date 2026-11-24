@@ -1,3 +1,4 @@
+import { CARDS_FROM_CAREER_ONLY } from './mode';
 import { CARD_POOL, cardReleased, collectionProgress, getCard, openPack, packTier, type ClubState, type CollectCard, type PackResult, type PackTier } from './club';
 import { casinoOf, vipLevel, VIP } from './casino';
 import { autoSquad, seasonId } from './squad';
@@ -74,7 +75,7 @@ export function canSetArt(club: ClubState, cardId: string, used: string[]): { ok
 
 // ---------- Willkommens-Pack: eine komplette Start-Elf ----------
 const WELCOME_POS: Position[] = ['TW', 'AV', 'IV', 'IV', 'AV', 'ZM', 'ZDM', 'ZM', 'FL', 'ST', 'FL'];
-export const welcomeReady = (club: Pick<ClubState, 'welcomeClaimed' | 'cards'>) => !club.welcomeClaimed && Object.keys(club.cards).length < 11;
+export const welcomeReady = (club: Pick<ClubState, 'welcomeClaimed' | 'cards'>) => !CARDS_FROM_CAREER_ONLY && !club.welcomeClaimed && Object.keys(club.cards).length < 11;
 /** 11 Karten (eine pro Position, Wertung 66–79) – direkt als Haupt-Team aufgestellt. Nur einmal. */
 export function claimWelcome(club: ClubState, rand = Math.random): { club: ClubState; result: PackResult } | null {
   if (!welcomeReady(club)) return null;

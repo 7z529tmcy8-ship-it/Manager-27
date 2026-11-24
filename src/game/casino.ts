@@ -1,3 +1,4 @@
+import { CARDS_FROM_CAREER_ONLY } from './mode';
 import { CARD_POOL, type ClubState, type CollectCard } from './club';
 import { seasonId } from './squad';
 
@@ -554,13 +555,15 @@ export const SHOP: ShopItem[] = [
   { id: 'col-champ', kind: 'color', value: '#e8c36a', name: 'Farbe Champagner', text: 'Exklusive Profilfarbe', price: 5_000 },
   { id: 'col-neon', kind: 'color', value: '#ff5e3a', name: 'Farbe Roulette-Rot', text: 'Exklusive Profilfarbe', price: 5_000 },
 ];
+/** Preis-Shop wie angezeigt: Karten nur, wenn es Karten nicht ausschließlich über die Karriere gibt. */
+export const shopItems = () => SHOP.filter((s) => !(CARDS_FROM_CAREER_ONLY && s.kind === 'card'));
 export const CASINO_EMBLEMS = SHOP.filter((s) => s.kind === 'emblem').map((s) => (s as { value: string }).value);
 export const CASINO_COLORS = SHOP.filter((s) => s.kind === 'color').map((s) => (s as { value: string }).value);
 export const ownsExtra = (club: Pick<ClubState, 'casino'>, value: string) => (casinoOf(club).owned ?? []).includes(value);
 
 /** Kaufen. Karten landen direkt im Haupt-Team-Bestand; XP vergibt die Oberfläche an die aktive Karriere. */
 export function buy(club: ClubState, id: string, rand: Rand = Math.random): { club: ClubState; card?: CollectCard; xp?: number } | null {
-  const item = SHOP.find((s) => s.id === id);
+  const item = shopItems().find((s) => s.id === id);
   const c = casinoOf(club);
   if (!item || c.chips < item.price) return null;
   if ((item.kind === 'emblem' || item.kind === 'color') && ((c.owned ?? []).includes(item.value) || vipLevel(c.vipPts) < (item.minVip ?? 0))) return null;
@@ -665,7 +668,9 @@ export const BOX_EVERY = 30;
 export type BoxPrize = { kind: 'chips'; amount: number } | { kind: 'spins'; amount: number } | { kind: 'card'; card: CollectCard; tier: ShopCardTier };
 export const BOX_ODDS: { label: string; w: number }[] = [
   { label: '500–1.500 Chips', w: 48 }, { label: '10 Gratis-Drehs', w: 22 }, { label: '3.000–8.000 Chips', w: 17 },
-  { label: 'Karte 80–86', w: 9 }, { label: 'Top-Karte 87–91', w: 3 }, { label: 'Ikone oder 92+', w: 1 },
+  ...(CARDS_FROM_CAREER_ONLY
+    ? [{ label: '8.000 Chips', w: 9 }, { label: '25.000 Chips', w: 3 }, { label: '60.000 Chips', w: 1 }]
+    : [{ label: 'Karte 80–86', w: 9 }, { label: 'Top-Karte 87–91', w: 3 }, { label: 'Ikone oder 92+', w: 1 }]),
 ];
 export function boxesReady(club: Pick<ClubState, 'casino'>): number {
   const c = casinoOf(club);
@@ -682,6 +687,7 @@ export function openBox(club: ClubState, now = new Date(), rand: Rand = Math.ran
   if (i === 0) prize = { kind: 'chips', amount: 500 + Math.round(rand() * 10) * 100 };
   else if (i === 1) prize = { kind: 'spins', amount: 10 };
   else if (i === 2) prize = { kind: 'chips', amount: 3_000 + Math.round(rand() * 10) * 500 };
+  else if (CARDS_FROM_CAREER_ONLY) prize = { kind: 'chips', amount: i === 3 ? 8_000 : i === 4 ? 25_000 : 60_000 };
   else { const tier: ShopCardTier = i === 3 ? 'gold' : i === 4 ? 'top' : 'icon'; prize = { kind: 'card', card: randomCard(tier, rand), tier }; }
   if (prize.kind === 'chips') next = withCasino(next, (c) => ({ ...c, chips: c.chips + (prize as { amount: number }).amount }));
   if (prize.kind === 'spins') next = withCasino(next, (c) => { const g = giftSpins(next, now); return { ...c, gift: { day: seasonId(now), left: g.left + 10 } }; });

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { CARDS_FROM_CAREER_ONLY } from '../mode';
 import { freshClub } from '../club';
 import { claimDaily, claimDailyBonus, dailyView, trackDaily } from '../daily';
 
@@ -19,12 +20,14 @@ describe('Tagesziele', () => {
     c = trackDaily(c, 'duel', 2, day);
     c = trackDaily(c, 'casino', 5, day);
     const r = claimDaily(c, day);
-    expect(r.coins).toBe(4500);
+    // Ohne Karten-Shop gibt es kein Pack-Ziel (1.000 Coins weniger) und der Bonus sind Coins
+    expect(r.coins).toBe(CARDS_FROM_CAREER_ONLY ? 3500 : 4500);
     expect(r.chips).toBe(750);
     expect(claimDaily(r.club, day).coins).toBe(0);
     const b = claimDailyBonus(r.club, day, () => 0.5);
     expect(b).not.toBeNull();
-    expect(b!.result.cards.length).toBeGreaterThan(0);
+    if (CARDS_FROM_CAREER_ONLY) { expect(b!.result.cards).toHaveLength(0); expect(b!.club.coins).toBe(r.club.coins + 5000); }
+    else expect(b!.result.cards.length).toBeGreaterThan(0);
     expect(claimDailyBonus(b!.club, day)).toBeNull();
   });
 });

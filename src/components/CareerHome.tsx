@@ -1,13 +1,14 @@
 import { Suspense, lazy, useState } from 'react';
+import { CARDS_FROM_CAREER_ONLY } from '../game/mode';
 import { HallOfFame } from './Legacy';
 import { getClub } from '../data/leagues';
 import { collectionProgress, creditCareer, rewardPending } from '../game/club';
 import { divName, divReward, divisionOf } from '../game/divisions';
-import { claimDaily, claimDailyBonus, dailyView, type DailyId } from '../game/daily';
+import { DAILY_BONUS_COINS, claimDaily, claimDailyBonus, dailyView, type DailyId } from '../game/daily';
 import { play } from '../sound';
 import { currentClubId, seasonLabel } from '../game/player';
 import { profileOf } from '../game/profile';
-import { deleteCareer, listCareers, saveCareer } from '../game/storage';
+import { deleteAllCareers, deleteCareer, listCareers, saveCareer } from '../game/storage';
 import type { Career } from '../game/types';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import Icon from './Icon';
@@ -28,6 +29,9 @@ const statusOf = (c: Career) =>
   c.phase === 'retired' ? `Karriere beendet · ${c.history.length} ${c.history.length === 1 ? 'Saison' : 'Saisons'}` : `${getClub(currentClubId(c.player)).name} · ${seasonLabel(c.year)} · ${c.player.age} Jahre`;
 
 /** Startseite = Karriere: weiterspielen, neue Karriere, alle Spielstände. */
+/** Kompakte Anzeige in der Kopfzeile: ab 100.000 als „1,2 Mio.“ usw. – damit nichts abgeschnitten wird. */
+const short = (n: number) => (n >= 1e9 ? `${(n / 1e9).toFixed(1).replace('.', ',')} Mrd.` : n >= 1e6 ? `${(n / 1e6).toFixed(1).replace('.', ',')} Mio.` : n >= 1e5 ? `${Math.round(n / 1e3)} Tsd.` : Math.round(n).toLocaleString('de-DE'));
+
 export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile, onCasino, onShop, onDuels, onCollection }: {
   onNew: () => void; onLoad: (c: Career) => void; onNews: () => void; onReward: (c: Career) => void; onProfile: () => void; onCasino: () => void; onShop: () => void; onDuels: () => void; onCollection: () => void;
 }) {
@@ -42,6 +46,15 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile,
   const sorted = [...saves].sort((a, b) => b.updatedAt - a.updatedAt);
   const latest = sorted.find((c) => c.phase !== 'retired') ?? sorted[0];
   const pending = saves.find((c) => rewardPending(club, c));
+  const removeAll = () => {
+    const open = saves.filter((c) => rewardPending(club, c)).length;
+    const warn = open ? `\n\nAchtung: Bei ${open} ${open === 1 ? 'Karriere' : 'Karrieren'} ist die Karriereende-Belohnung noch nicht abgeholt – sie geht verloren.` : '';
+    if (!window.confirm(`${saves.length === 1 ? 'Deine Karriere' : `Alle ${saves.length} Karrieren`} löschen?\n\nDeine gesammelten Karten, Coins und Casino-Chips bleiben erhalten.${warn}`)) return;
+    if (!window.confirm('Wirklich alle Karrieren löschen? Das lässt sich nicht rückgängig machen.')) return;
+    deleteAllCareers();
+    setSaves(listCareers());
+    setList(false);
+  };
   const remove = (c: Career) => {
     if (!window.confirm(`Karriere von ${c.player.name} wirklich löschen?`)) return;
     deleteCareer(c.id);
@@ -63,7 +76,8 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile,
     const r = claimDailyBonus(getClubState());
     if (!r) return;
     setClubState(r.club);
-    setWelcome({ name: 'Tages-Pack', result: r.result });
+    if (r.result.cards.length) setWelcome({ name: 'Tages-Pack', result: r.result });
+    else sfx('fanfare');
   };
   const goTo: Record<DailyId, () => void> = { career: () => (latest && latest.phase !== 'retired' ? onLoad(latest) : onNew()), duel: onDuels, pack: onShop, casino: onCasino };
 
@@ -75,8 +89,8 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile,
           <span><strong>{me.name}</strong><small>{divName(div.div)}</small></span>
         </button>
         <span className="ch-wallet">
-          <button className="ch-coins" onClick={onShop} aria-label={`${fmt(club.coins)} Coins – zum Shop`}><Icon name="coin" size={16} />{fmt(club.coins)}</button>
-          <button className="ch-chips" onClick={onCasino} aria-label={`${fmt(casinoOf(club).chips)} Chips – zum Casino`}><Icon name="dice" size={15} />{fmt(casinoOf(club).chips)}</button>
+          <button className="ch-coins" onClick={onShop} aria-label={`${fmt(club.coins)} Coins – ${CARDS_FROM_CAREER_ONLY ? 'zur Sammlung' : 'zum Shop'}`}><Icon name="coin" size={16} />{short(club.coins)}</button>
+          <button className="ch-chips" onClick={onCasino} aria-label={`${fmt(casinoOf(club).chips)} Chips – zum Casino`}><Icon name="dice" size={15} />{short(casinoOf(club).chips)}</button>
         </span>
         <button className="hub-icon ch-news" onClick={onNews} aria-label="Neuigkeiten" title="Neuigkeiten"><Icon name="news" size={20} /></button>
         <button className="hub-icon" onClick={() => setSettings(true)} aria-label="Einstellungen"><Icon name="gear" size={20} /></button>
@@ -114,7 +128,7 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile,
           </>
         ) : (
           <>
-            <span className="ch3-hero-text"><small>Spielerkarriere</small><b>Vom Talent zur Legende</b><span>Jede Saison bringt Coins für Packs, Duelle und Casino.</span></span>
+            <span className="ch3-hero-text"><small>Spielerkarriere</small><b>Vom Talent zur Legende</b><span>{CARDS_FROM_CAREER_ONLY ? 'Karten gibt es nur hier: Jede starke Saison bringt neue Karten für dein Team.' : 'Jede Saison bringt Coins für Packs, Duelle und Casino.'}</span></span>
             <div className="ch3-hero-btns"><button className="btn primary big ch3-play ch-new" onClick={onNew}><Icon name="plus" size={20} /> Karriere starten</button></div>
           </>
         )}
@@ -127,12 +141,12 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile,
           <b>Duelle</b>
           <small>{divName(div.div)} · +{fmt(divReward(div.div))} pro Sieg</small>
         </button>
-        <button className="ch3-mode m-shop" onClick={onShop}>
+        {!CARDS_FROM_CAREER_ONLY && <button className="ch3-mode m-shop" onClick={onShop}>
           <span className="ch3-mode-ic"><Icon name="pack" size={26} /></span>
           <b>Shop</b>
           <small>{free ? 'Gratis-Pack wartet' : 'Packs & Pack der Woche'}</small>
           {free && <em className="ch3-badge">Gratis</em>}
-        </button>
+        </button>}
         <button className="ch3-mode m-col" onClick={onCollection}>
           <span className="ch3-mode-ic"><Icon name="cards" size={26} /></span>
           <b>Sammlung</b>
@@ -151,7 +165,7 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile,
       <section className="ch3-goals" aria-label="Tagesziele">
         <header>
           <b><Icon name="target" size={18} /> Tagesziele</b>
-          <small>{daily.tasks.filter((t) => t.done).length} / {daily.tasks.length} · alle schaffen = Gold-Pack</small>
+          <small>{daily.tasks.filter((t) => t.done).length} / {daily.tasks.length} · alle schaffen = {CARDS_FROM_CAREER_ONLY ? `+${fmt(DAILY_BONUS_COINS)} Coins` : "Gold-Pack"}</small>
         </header>
         <ul>
           {daily.tasks.map((t) => (
@@ -165,13 +179,13 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile,
           ))}
         </ul>
         {daily.ready > 0 && <button className="btn primary ch3-claim" onClick={claimGoals}><Icon name="gift" size={18} /> {daily.ready === 1 ? 'Belohnung' : `${daily.ready} Belohnungen`} abholen</button>}
-        {daily.bonusReady && <button className="btn primary ch3-claim gold" onClick={claimGoalPack}><Icon name="pack" size={18} /> Gold-Pack öffnen</button>}
+        {daily.bonusReady && <button className="btn primary ch3-claim gold" onClick={claimGoalPack}><Icon name={CARDS_FROM_CAREER_ONLY ? 'coin' : 'pack'} size={18} /> {CARDS_FROM_CAREER_ONLY ? `Bonus abholen (+${fmt(DAILY_BONUS_COINS)} Coins)` : 'Gold-Pack öffnen'}</button>}
         {daily.bonusTaken && <p className="ch3-goals-done">Alles geschafft – morgen gibt es neue Ziele.</p>}
       </section>
 
       <div className="ch3-more">
-        {sorted.length > 1 && (
-          <button className="ch-row" onClick={() => setList(true)}><Icon name="folder" size={20} /><span><b>Spielstände</b><small>{sorted.length} Karrieren gespeichert</small></span><Icon name="arrow" size={18} /></button>
+        {sorted.length > 0 && (
+          <button className="ch-row" onClick={() => setList(true)}><Icon name="folder" size={20} /><span><b>Spielstände</b><small>{sorted.length} {sorted.length === 1 ? "Karriere" : "Karrieren"} gespeichert</small></span><Icon name="arrow" size={18} /></button>
         )}
         <button className="ch-row" onClick={() => setHof(true)}><Icon name="crown" size={20} /><span><b>Ruhmeshalle</b><small>Deine Karrieren im Vergleich, Bestwerte</small></span><Icon name="arrow" size={18} /></button>
         <button className="ch-row ch-news-row" onClick={onNews}><Icon name="news" size={20} /><span><b>Neuigkeiten</b><small>Was sich im Spiel geändert hat</small></span><Icon name="arrow" size={18} /></button>
@@ -196,6 +210,12 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile,
                 </li>
               ))}
             </ul>
+            {sorted.length > 0 && (
+              <div className="save-all">
+                <button className="btn danger" onClick={removeAll}><Icon name="close" size={16} /> Alle Karrieren löschen</button>
+                <small>Deine Karten, Coins und Chips bleiben erhalten.</small>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-24-karten-nur-karriere',
+    date: '24.11.2026',
+    title: 'Karten nur noch aus der Karriere',
+    items: [
+      'Den Karten-Shop gibt es nicht mehr: Neue Karten (weiter mit echten Spielern) bekommst du nur noch durch deine Karrieren.',
+      'Statt Karten gibt es jetzt Coins bzw. Chips: Tagesziel-Bonus (+5.000 Coins), Duell-Saison (Coins statt Rivals-Karten), Casino-Mystery-Box (Chips). Im Casino-Preis-Shop gibt es nur noch XP und Profil-Extras.',
+      'Neu unter „Spielstände“: Alle Karrieren auf einmal löschen. Deine gesammelten Karten, Coins und Chips bleiben dabei erhalten.',
+      'Design: Lange Namen und Werte werden nicht mehr abgeschnitten – sie brechen sauber um. Kopfzeile mit kompakten Zahlen (z. B. 1,2 Mio.), aufgeräumte Startseite.',
+    ],
+  },
+  {
     id: '2026-11-24-klarheit',
     date: '24.11.2026',
     title: 'Karriere-Update: Mehr Klarheit',

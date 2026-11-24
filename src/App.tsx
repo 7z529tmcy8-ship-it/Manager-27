@@ -24,7 +24,7 @@ import { getClubState, setClubState, trackDailyGoal, useClub } from './clubStore
 import { installClickSound, play } from './sound';
 import Icon, { noEmoji } from './components/Icon';
 import { cashback, dailyBonus, tourReward } from './game/casino';
-import { CASINO_ONLY } from './game/mode';
+import { CARDS_FROM_CAREER_ONLY, CASINO_ONLY } from './game/mode';
 import { bootSeen } from './components/PasswordGate';
 const Settings = lazy(() => import('./components/Settings'));
 const Backup = lazy(() => import('./components/Backup'));
@@ -126,6 +126,8 @@ export default function App() {
   const [reward, setReward] = useState<Career | null>(null);
   const home = () => setScreen({ name: 'home' });
   const load = (career: Career) => setScreen({ name: 'game', career });
+  // Kein Karten-Shop mehr: Verweise auf den Shop führen zur Sammlung
+  const toShop = () => setScreen(CARDS_FROM_CAREER_ONLY ? { name: 'team', tab: 'collection' } : { name: 'shop' });
   const go = (t: NavTarget) => setScreen(t === 'career' ? { name: 'home' } : ({ name: t } as Screen));
   const navActive: NavTarget | null = screen.name === 'home' || screen.name === 'create' ? 'career' : screen.name === 'team' || screen.name === 'shop' || screen.name === 'duels' || screen.name === 'casino' || screen.name === 'profile' ? screen.name : null;
   // In der laufenden Karriere hat das Spiel eigene Leisten – dort keine Hauptnavigation.
@@ -156,14 +158,14 @@ export default function App() {
           onReward={setReward}
           onProfile={() => setScreen({ name: 'profile' })}
           onCasino={() => setScreen({ name: 'casino' })}
-          onShop={() => setScreen({ name: 'shop' })}
+          onShop={toShop}
           onDuels={() => setScreen({ name: 'duels' })}
           onCollection={() => setScreen({ name: 'team', tab: 'collection' })}
         />
       )}
-      {screen.name === 'team' && <TeamScreen key={screen.tab ?? 'x'} tab={screen.tab} onDuels={() => setScreen({ name: 'duels' })} onShop={() => setScreen({ name: 'shop' })} onCasino={() => setScreen({ name: 'casino' })} />}
-      {screen.name === 'shop' && <ShopPage onCollection={() => setScreen({ name: 'team', tab: 'collection' })} onCasino={() => setScreen({ name: 'casino' })} onDuels={() => setScreen({ name: 'duels' })} />}
-      {screen.name === 'duels' && <DuelsPage onTeam={() => setScreen({ name: 'team', tab: 'squad' })} onShop={() => setScreen({ name: 'shop' })} />}
+      {screen.name === 'team' && <TeamScreen key={screen.tab ?? 'x'} tab={screen.tab} onDuels={() => setScreen({ name: 'duels' })} onShop={toShop} onCasino={() => setScreen({ name: 'casino' })} />}
+      {screen.name === 'shop' && !CARDS_FROM_CAREER_ONLY && <ShopPage onCollection={() => setScreen({ name: 'team', tab: 'collection' })} onCasino={() => setScreen({ name: 'casino' })} onDuels={() => setScreen({ name: 'duels' })} />}
+      {screen.name === 'duels' && <DuelsPage onTeam={() => setScreen({ name: 'team', tab: 'squad' })} onShop={CARDS_FROM_CAREER_ONLY ? home : toShop} />}
       {screen.name === 'profile' && <ProfilePage />}
       {screen.name === 'casino' && (CASINO_ONLY
         ? <CasinoPage intro={introOnStart} onSettings={() => setSettingsOpen(true)} />

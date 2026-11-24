@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+import { CARDS_FROM_CAREER_ONLY } from '../mode';
 import { CARD_POOL, freshClub, type ClubState } from '../club';
 import { FORMATION, TASKS, autoSquad, cardAttrs, cardById, chemistry, completeTask, opponent, playDuel, taskPick, teamRating } from '../squad';
 
@@ -103,6 +104,13 @@ it('Rivals-Pack: Teamkarte kommt verbessert zurück, dazu Extrakarten und Packs 
   let club = { ...freshClub(), cards: Object.fromEntries(ids.map((id) => [id, 1])), duelSeasons: { '2026-W45': 1500 } };
   club = { ...club, squad: autoSquad(club) };
   const res = claimDuelSeason(club, '2026-W45', new Date(2026, 10, 9));
+  if (CARDS_FROM_CAREER_ONLY) {
+    // Statt Rivals-Karten und Packs gibt es Coins (2 × 3.000 + 1 × 2.000 zusätzlich)
+    expect(res.club.coins).toBe(club.coins + 20_000 + 2 * 3_000 + 2_000);
+    expect(res.rivals).toBeNull();
+    expect(res.club.specials.filter((c) => c.variant === 'rivals')).toHaveLength(0);
+    return;
+  }
   expect(res.club.coins).toBe(club.coins + 20_000);
   expect(res.club.storedPacks?.length).toBe(1);
   expect(res.rivals?.cards).toHaveLength(2 * 3); // Legende: 2 Rivals-Packs à 1 Teamkarte + 2 Extrakarten

@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { CARDS_FROM_CAREER_ONLY } from '../game/mode';
 import Icon, { type IconName } from './Icon';
 
 export type NavTarget = 'career' | 'team' | 'shop' | 'duels' | 'casino' | 'profile';
 
-const ITEMS: { id: NavTarget; icon: IconName; label: string }[] = [
+const ALL_ITEMS: { id: NavTarget; icon: IconName; label: string }[] = [
   { id: 'career', icon: 'ball', label: 'Karriere' },
   { id: 'team', icon: 'tactics', label: 'Team' },
   { id: 'shop', icon: 'pack', label: 'Shop' },
@@ -11,6 +12,9 @@ const ITEMS: { id: NavTarget; icon: IconName; label: string }[] = [
   { id: 'casino', icon: 'dice', label: 'Casino' },
   { id: 'profile', icon: 'shield', label: 'Profil' },
 ];
+
+// Ohne Karten-Shop (Karten nur aus der Karriere) fällt der Shop-Reiter weg.
+const ITEMS = ALL_ITEMS.filter((it) => !(CARDS_FROM_CAREER_ONLY && it.id === 'shop'));
 
 /** Feste Navigation mit den vier Bereichen: am Handy unten, im Querformat und auf großen Bildschirmen links. */
 export default function NavBar({ active, onGo, dots }: { active: NavTarget | null; onGo: (t: NavTarget) => void; dots?: Partial<Record<NavTarget, boolean>> }) {

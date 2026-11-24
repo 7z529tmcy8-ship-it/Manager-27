@@ -5760,3 +5760,36 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .side-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .side-chips button { padding: 6px 11px; border-radius: 99px; border: 1px solid var(--hairline); background: var(--surface); color: var(--muted); font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; text-decoration: line-through; }
 .side-chips button.on { color: inherit; text-decoration: none; border-color: #6d5dfc; }
+
+/* ---------- Nichts mehr abschneiden: lange Namen und Werte umbrechen statt kürzen ---------- */
+.cs-next span { overflow: visible; overflow-wrap: anywhere; hyphens: auto; }
+.cs-life-btn { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.2; font-size: clamp(.74rem, 3.4vw, .86rem); padding-left: 6px; padding-right: 6px; }
+.cs-clubcell { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.15; overflow-wrap: anywhere; }
+.cz-game-top b { white-space: normal; overflow: visible; text-overflow: clip; font-size: clamp(.95rem, 4.6vw, 1.3rem); line-height: 1.05; }
+.cz-lobby .cz-logo { font-size: clamp(1.05rem, 5vw, 1.3rem); }
+.kb-people span { grid-template-columns: 20px 1fr; row-gap: 1px; }
+.kb-people small { grid-column: 2; text-align: left; white-space: normal; overflow: visible; }
+.tw-head { grid-template-columns: 18px 1fr 16px; row-gap: 2px; }
+.tw-head small { grid-column: 2; grid-row: 2; text-align: left; white-space: normal; overflow: visible; }
+.tw-head > svg:last-child { grid-column: 3; grid-row: 1; }
+.cs-clubcell { overflow-wrap: break-word; hyphens: auto; font-size: clamp(.8rem, 3.7vw, .95rem); }
+.cs-next span { overflow-wrap: break-word; }
+.save-all { margin-top: 18px; display: grid; gap: 6px; justify-items: center; text-align: center; }
+.save-all small { color: var(--muted); font-size: .78rem; }
+.save-all .btn.danger { display: inline-flex; gap: 6px; align-items: center; background: rgba(224, 52, 79, .15); color: #ff6b81; border: 1px solid rgba(224, 52, 79, .55); }
+
+/* Startseite: Kopfzeile luftiger, ungerade Kachelzahl ohne Lücke */
+.ch3 .ch-top { gap: 6px; }
+.ch3 .ch-wallet { display: flex; gap: 6px; flex: 0 1 auto; min-width: 0; }
+.ch3 .ch-coins, .ch3 .ch-chips { height: 36px; padding: 0 10px; font-size: clamp(.78rem, 3.6vw, .95rem); gap: 4px; white-space: nowrap; }
+.ch3 .ch-profile { min-width: 0; }
+.ch3-modes > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+.ch3 .ch-coins, .ch3 .ch-chips { flex: none; height: 38px !important; padding: 0 11px; }
+.ch3 .ch-wallet { flex: none; }
+.ch3 .ch-profile { flex: 1 1 auto; overflow: hidden; }
+.ch3 .ch-profile > span { min-width: 0; overflow: hidden; }
+/* Große Knöpfe dürfen umbrechen statt abzuschneiden */
+.btn.big, .dv2-empty .btn { white-space: normal; height: auto; min-height: 48px; line-height: 1.2; text-align: center; }
+/* Schmale Handys: Profil oben nur als Wappen (statt halb abgeschnittenem Namen) */
+@media (max-width: 430px) { .ch3 .ch-profile > span { display: none; } .ch3 .ch-profile { flex: none; padding: 3px; } }
+.dv2-tabs button { min-width: 0; font-size: clamp(.74rem, 3.5vw, .9rem); gap: 4px; padding-left: 6px; padding-right: 6px; }

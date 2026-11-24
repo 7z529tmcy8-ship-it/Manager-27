@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { CARDS_FROM_CAREER_ONLY } from '../../game/mode';
 import { getClubState, setClubState, useClub } from '../../clubStore';
-import { CASHOUT_MIN, CASHOUT_RATE, CHIP_PACKS, allChipsRate, buyAllChips, REFILL, SHOP, VIP, buy, buyChips, cashOutChips, casinoOf, claimDaily, claimQuest, claimRefill, dailyBonus, casinoLevel, cashback, claimCashback, giftSpins, tourBoard, tourReward, claimTour, weekEnds, TOUR_MIN_BET, TOUR_PRIZES, happyHour, boxesReady, roundsToBox, openBox, BOX_ODDS, BOX_EVERY, DROP_CHANCE, DROP_TABLE, type BoxPrize, ownsExtra, questList, refillState, vipLevel } from '../../game/casino';
+import { CASHOUT_MIN, CASHOUT_RATE, CHIP_PACKS, allChipsRate, buyAllChips, REFILL, shopItems, VIP, buy, buyChips, cashOutChips, casinoOf, claimDaily, claimQuest, claimRefill, dailyBonus, casinoLevel, cashback, claimCashback, giftSpins, tourBoard, tourReward, claimTour, weekEnds, TOUR_MIN_BET, TOUR_PRIZES, happyHour, boxesReady, roundsToBox, openBox, BOX_ODDS, BOX_EVERY, DROP_CHANCE, DROP_TABLE, type BoxPrize, ownsExtra, questList, refillState, vipLevel } from '../../game/casino';
 import { resolveCareerBets } from '../../game/bets';
 import { listCareers } from '../../game/storage';
 import Icon from '../Icon';
@@ -349,7 +350,7 @@ function BigWinShow({ w, onClose }: { w: WinShow; onClose: () => void }) {
   );
 }
 
-/** Preis-Shop: Chips gegen Karten, XP und Profil-Extras. */
+/** Preis-Shop: Chips gegen XP und Profil-Extras (Karten nur, wenn nicht ausschließlich über die Karriere). */
 function Shop({ onClose, onDone }: { onClose: () => void; onDone: (msg: string) => void }) {
   const club = useClub();
   const c = casinoOf(club);
@@ -369,7 +370,7 @@ function Shop({ onClose, onDone }: { onClose: () => void; onDone: (msg: string) 
       <div className="cz-sheet-inner">
         <header><b>Preis-Shop</b><span className="cz-chips"><Icon name="coin" size={16} />{fmt(c.chips)}</span><button className="cz-round" onClick={onClose} aria-label="Schließen"><Icon name="close" size={18} /></button></header>
         <ul className="cz-shop">
-          {SHOP.map((s) => {
+          {shopItems().map((s) => {
             const owned = (s.kind === 'emblem' || s.kind === 'color') && ownsExtra(club, s.value);
             const vipLock = (s.kind === 'emblem' || s.kind === 'color') && (s.minVip ?? 0) > lv;
             return (
@@ -393,7 +394,7 @@ function Shop({ onClose, onDone }: { onClose: () => void; onDone: (msg: string) 
     </div>
   );
 }
-const s_note = <p className="cz-foot">Karten kommen in deinen Bestand und sind im Haupt-Team spielbar.</p>;
+const s_note = <p className="cz-foot">{CARDS_FROM_CAREER_ONLY ? 'Karten gibt es nur in der Karriere – hier tauschst du Chips gegen XP und Profil-Extras.' : 'Karten kommen in deinen Bestand und sind im Haupt-Team spielbar.'}</p>;
 
 /** Chip-Kasse: Spiel-Coins in Chips tauschen (mit Bonus) und Gratis-Nachschub, wenn man pleite ist. */
 function Bank({ onClose, onDone }: { onClose: () => void; onDone: (msg: string) => void }) {

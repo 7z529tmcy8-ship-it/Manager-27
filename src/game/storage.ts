@@ -171,6 +171,16 @@ export function deleteCareer(id: string): void {
   writeIndex();
 }
 
+/**
+ * Alle Karrieren auf einmal löschen. Die Karten, Coins und Chips liegen im Club (eigener Speicher)
+ * und bleiben vollständig erhalten.
+ */
+export function deleteAllCareers(): number {
+  const ids = listCareers().map((c) => c.id);
+  for (const id of ids) deleteCareer(id);
+  return ids.length;
+}
+
 /** Alle Spielstände als normales JSON – für Sicherungen (lesbar und mit alten Sicherungen kompatibel). */
 export function exportCareersJson(): string {
   if (dirty.size) flushNow();

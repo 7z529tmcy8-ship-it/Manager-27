@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { CARDS_FROM_CAREER_ONLY } from '../game/mode';
 import { createPortal } from 'react-dom';
 import { getClubState, setClubState, trackDailyGoal, useClub } from '../clubStore';
 import { DUEL_XP_PER_DAY, RANK_XP, duelXp, grantDuelXp, takeDuelXp, xpLeftToday, xpTarget } from '../game/careerDuels';
@@ -6,7 +7,7 @@ import {
   CHAMPIONS, ELITE, LOWEST, PROMOTE_AT, SAFE_DIVISIONS, STYLE_LABEL, TACTIC_TEXT, TOP, divLevel, divName, divStrength, divisionOf, placeDivision, placementFor, playDivisionDuel,
   resolveTactic, squadFit, withOpponent, divReward, type Tactic, type TacticChoice,
 } from '../game/divisions';
-import { claimDuelSeason } from '../game/rivals';
+import { RIVALS_COINS, claimDuelSeason } from '../game/rivals';
 import { levelInfo } from '../game/skills';
 import {
   SEASON_RANKS, TEAM_NAMES, activeTeam, autoSquad, teamCards, cardById, nextRank, seasonHoursLeft, seasonId, seasonName, seasonPoints, seasonRank, slotsOf, switchTeam,
@@ -148,7 +149,7 @@ function Play({ onTeam, onShop, onLeagues }: { onTeam: () => void; onShop: () =>
           {teamCards(club).length >= 11 ? (
             <button className="btn primary big" onClick={() => setClubState({ ...getClubState(), squad: autoSquad(getClubState()) })}>Automatisch aufstellen</button>
           ) : (
-            <button className="btn primary big" onClick={onShop}>{teamCards(club).length} von 11 Spielern – Packs im Shop</button>
+            <button className="btn primary big" onClick={onShop}>{CARDS_FROM_CAREER_ONLY ? `${teamCards(club).length}/11 – Karten in der Karriere holen` : `${teamCards(club).length} von 11 Spielern – Packs im Shop`}</button>
           )}
           <button className="btn secondary" onClick={onTeam}>Zur Aufstellung</button>
         </section>
@@ -231,7 +232,7 @@ function Season() {
   const progress = next ? ((pts - rank.min) / (next.min - rank.min)) * 100 : 100;
   const hours = seasonHoursLeft();
   const [got, setGot] = useState<{ cards: CollectCard[]; xp: number; who?: string } | null>(null);
-  const reward = (r: SeasonRank) => [RANK_XP[r.name] ? `+${RANK_XP[r.name]} XP` : '', r.rivals ? `${r.rivals}× Rivals-Karte (+${r.boost})` : ''].filter(Boolean).join(' · ');
+  const reward = (r: SeasonRank) => [RANK_XP[r.name] ? `+${RANK_XP[r.name]} XP` : '', r.rivals ? (CARDS_FROM_CAREER_ONLY ? `+${(r.rivals * RIVALS_COINS).toLocaleString('de-DE')} Coins` : `${r.rivals}× Rivals-Karte (+${r.boost})`) : ''].filter(Boolean).join(' · ');
   const claim = (id: string) => {
     const s = open.find((x) => x.id === id);
     const res = claimDuelSeason(getClubState(), id);
@@ -262,7 +263,7 @@ function Season() {
           <li key={r.name} className={r.name === rank.name ? 'on' : ''}><span><Glyph e={r.icon} size={18} /> {r.name}</span><span>ab {r.min}</span><span>{reward(r) || '–'}</span></li>
         ))}
       </ul>
-      <p className="season-rivals"><Icon name="duel" size={16} /> <b>Rivals-Karte:</b> Ein Spieler aus deiner Elf kommt verbessert zurück (+2 bis +5).</p>
+      <p className="season-rivals"><Icon name="duel" size={16} /> <b>{CARDS_FROM_CAREER_ONLY ? 'Saison-Belohnung:' : 'Rivals-Karte:'}</b> {CARDS_FROM_CAREER_ONLY ? `Statt Rivals-Karten gibt es ${RIVALS_COINS.toLocaleString('de-DE')} Coins je Karte – Karten kommen nur aus der Karriere.` : 'Ein Spieler aus deiner Elf kommt verbessert zurück (+2 bis +5).'}</p>
       {got && createPortal(
         <div className="reward" role="dialog" aria-modal="true" aria-label="Saison-Belohnung">
           <div className="reward-card">

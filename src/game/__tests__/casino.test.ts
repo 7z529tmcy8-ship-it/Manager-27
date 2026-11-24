@@ -1,7 +1,8 @@
 import { expect, it } from 'vitest';
+import { CARDS_FROM_CAREER_ONLY } from '../mode';
 import { freshClub, type ClubState } from '../club';
 import {
-  JACKPOT_SEED, PLINKO, PLINKO_P, RTP, SHOP, START_CHIPS, VIP, bigWinOf, bjReturn, buy, casinoOf, claimDaily, claimQuest, crashPoint, dailyBonus,
+  JACKPOT_SEED, shopItems, PLINKO, PLINKO_P, RTP, SHOP, START_CHIPS, VIP, bigWinOf, bjReturn, buy, casinoOf, claimDaily, claimQuest, crashPoint, dailyBonus,
   scratchRtp, scratchTicket, openBox, boxesReady, happyHour, BOX_EVERY, levelNeed,
   casinoLevel, cashback, claimCashback, giftSpins, takeGiftSpin, tourBoard, tourReward, claimTour, weekId,
   evalGrid, handValue, minesMult, payout, placeBet, placeMines, questList, rouletteReturn, takeJackpot, vipLevel, type BjCard, type Sym,
@@ -99,9 +100,15 @@ it('Aufgaben, Big Win, Shop', () => {
   expect(casinoOf(c).chips).toBe(before + done[0].quest.reward);
   expect(claimQuest(c, done[0].quest.id, now)).toBe(c);
   // Shop: Karte landet im Bestand, Extras nur einmal, VIP-Sperre
-  const r = buy(c, 'card-gold')!;
-  expect(r.card!.ovr).toBeGreaterThanOrEqual(80);
-  expect(r.club.cards[r.card!.id]).toBeGreaterThanOrEqual(1);
+  if (CARDS_FROM_CAREER_ONLY) {
+    // Karten gibt es nur in der Karriere: Karten-Artikel sind im Preis-Shop ausgeschaltet
+    expect(buy(c, 'card-gold')).toBeNull();
+    expect(shopItems().some((s) => s.kind === 'card')).toBe(false);
+  } else {
+    const r = buy(c, 'card-gold')!;
+    expect(r.card!.ovr).toBeGreaterThanOrEqual(80);
+    expect(r.club.cards[r.card!.id]).toBeGreaterThanOrEqual(1);
+  }
   const em = buy(c, 'em-dice')!;
   expect(buy(em.club, 'em-dice')).toBeNull();
   expect(buy(c, 'em-key')).toBeNull(); // erst ab Platin

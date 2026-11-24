@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { CARDS_FROM_CAREER_ONLY } from '../game/mode';
 import { getClubState, setClubState, useClub } from '../clubStore';
 import { rarity, type CollectCard } from '../game/club';
 import {
@@ -34,7 +35,7 @@ export default function TeamScreen({ onDuels, onShop, onCasino, tab: startTab }:
           </button>
         ))}
       </div>
-      <p className="tm-hint">{on === 'career' ? 'Spieler aus deinen Karrieren und SBC-Karten.' : 'Alle deine Karten – Packs, Events, SBCs.'}</p>
+      <p className="tm-hint">{on === 'career' ? 'Spieler aus deinen Karrieren und SBC-Karten.' : (CARDS_FROM_CAREER_ONLY ? 'Alle deine Karten – verdient in deinen Karrieren.' : 'Alle deine Karten – Packs, Events, SBCs.')}</p>
       <div className="team-stats">
         <div><small>Wertung</small><strong>{teamRating(cards) || '–'}</strong></div>
         <div><small>Chemie</small><strong>{chem.total}<em>/33</em></strong></div>

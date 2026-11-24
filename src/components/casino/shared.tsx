@@ -1,3 +1,4 @@
+import { CARDS_FROM_CAREER_ONLY } from '../../game/mode';
 import { useEffect, useRef, useState } from 'react';
 import { getClubState, setClubState, trackDailyGoal, useClub } from '../../clubStore';
 import { grantDuelXp, xpTarget } from '../../game/careerDuels';
@@ -73,8 +74,10 @@ export function settle(ev: PlayEvent, opts: { quiet?: boolean } = {}): void {
   let card: CollectCard | undefined;
   if (ev.jackpot) {
     const j = takeJackpot(club);
-    card = randomCard('icon');
-    club = addCard(payout(j.club, { game: ev.game, bet: 0, win: j.amount }), card);
+    // Ikonen-Karte zum Jackpot nur, wenn es Karten nicht ausschließlich über die Karriere gibt
+    card = CARDS_FROM_CAREER_ONLY ? undefined : randomCard('icon');
+    club = payout(j.club, { game: ev.game, bet: 0, win: j.amount });
+    if (card) club = addCard(club, card);
     win += j.amount;
   }
   setClubState(club);

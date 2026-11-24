@@ -1,5 +1,10 @@
 import { CARD_POOL, cardForGifts, storePacks, type ClubState, type CollectCard, type PackResult } from './club';
 import { cardById, claimSeason, seasonName, unclaimedSeasons } from './squad';
+import { CARDS_FROM_CAREER_ONLY } from './mode';
+
+/** Ohne Karten außerhalb der Karriere: Coins statt Rivals-Karten und Packs. */
+export const RIVALS_COINS = 3_000;
+export const DUEL_PACK_COINS = 2_000;
 
 // ---------- Rivals-Pack (Belohnung der Tages-Saison) ----------
 // Eine zufällige Karte aus deiner Elf kommt als „Rivals“-Karte zurück: gleicher Spieler, höhere Wertung
@@ -22,6 +27,10 @@ export function claimDuelSeason(club: ClubState, id: string, now = new Date(), r
   const s = unclaimedSeasons(club, now).find((x) => x.id === id);
   if (!s) return { club, rivals: null };
   let c = claimSeason(club, id, now);
+  if (CARDS_FROM_CAREER_ONLY) {
+    const coins = (s.rank.rivals ?? 0) * RIVALS_COINS + (s.rank.packs?.length ?? 0) * DUEL_PACK_COINS;
+    return { club: { ...c, coins: c.coins + coins }, rivals: null };
+  }
   if (s.rank.packs?.length) c = storePacks(c, s.rank.packs, `Duell-Saison ${seasonName(id)}`, now.getTime());
   if (!s.rank.rivals) return { club: c, rivals: null };
   const result: PackResult = { cards: [], items: [] };

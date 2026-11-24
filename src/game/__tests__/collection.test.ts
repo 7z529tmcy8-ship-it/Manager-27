@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+import { CARDS_FROM_CAREER_ONLY } from '../mode';
 import { CARD_POOL, collectionProgress, freshClub, type ClubState } from '../club';
 import { ART_VIP, MILESTONES, artSlots, canSetArt, claimFreePack, claimMilestones, collectable, freePackReady, milestoneState } from '../collection';
 import { VIP, casinoOf, cashOutChips } from '../casino';
@@ -57,6 +58,7 @@ it('Casino → Shop: Chips 2:1 in Coins tauschen, erst ab 1.000 Chips', () => {
 it('Willkommens-Pack: komplette Start-Elf, sofort aufgestellt, nur einmal', async () => {
   const { claimWelcome, welcomeReady } = await import('../collection');
   const c = freshClub();
+  if (CARDS_FROM_CAREER_ONLY) { expect(welcomeReady(c)).toBe(false); expect(claimWelcome(c)).toBeNull(); return; }
   expect(welcomeReady(c)).toBe(true);
   const r = claimWelcome(c)!;
   expect(r.result.cards).toHaveLength(11);
