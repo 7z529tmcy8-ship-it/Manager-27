@@ -5,7 +5,7 @@ import { play } from '../sound';
 import { motionReduced } from '../settings';
 import { CLUBS, LEAGUES, getClub, youthClubOf } from '../data/leagues';
 import { NATIONS, POSITIONS, REAL_PLAYERS, type RealPlayerTemplate } from '../data/players';
-import { CHELSEA_2014, CULT_LEGENDS, FAILED_TALENTS, HANNOVER_2018, HANNOVER_U23_2024, ICON_LEGENDS, LEGENDS, type LegendTemplate } from '../data/legends';
+import { CHELSEA_2014, CULT_LEGENDS, FAILED_TALENTS, HANNOVER_2018, HANNOVER_U23_2024, ICON_LEGENDS, LEGENDS, type LegendTemplate, SPECIAL_STARTS, SPECIAL_INTRO } from '../data/legends';
 import { createCareer } from '../game/career';
 import { SCENARIOS, SCENARIO_REWARD, createScenarioCareer, type ScenarioId } from '../game/scenario';
 import Icon, { type IconName } from './Icon';
@@ -29,11 +29,12 @@ interface Props {
 }
 
 
-type Tab = 'own' | 'real' | 'scenario' | 'icons' | 'legends' | 'cult' | 'failed' | 'h96' | 'chelsea' | 'h96u23';
+type Tab = 'own' | 'real' | 'special' | 'scenario' | 'icons' | 'legends' | 'cult' | 'failed' | 'h96' | 'chelsea' | 'h96u23';
 /** Reiter: [ID, langer Name, kurzer Name fürs Handy]. */
 const TABS: [Tab, string, string][] = [
   ['own', 'Eigener Spieler', 'Eigener'],
   ['real', 'Echter Spieler', 'Echter'],
+  ['special', 'Specials', 'Specials'],
   ['scenario', 'Szenario', 'Szenario'],
   ['icons', 'Ikonen', 'Ikonen'],
   ['legends', 'Legenden', 'Legenden'],
@@ -62,6 +63,7 @@ export default function CreateCareer({ onCancel, onCreate }: Props) {
       </div>
       {tab === 'own' && <OwnPlayer onCreate={onCreate} />}
       {tab === 'real' && <RealPlayer onCreate={onCreate} />}
+      {tab === 'special' && <LegendPicker onCreate={onCreate} list={SPECIAL_STARTS} intro={SPECIAL_INTRO} />}
       {tab === 'scenario' && <ScenarioPicker onCreate={onCreate} />}
       {tab === 'icons' && <LegendPicker onCreate={onCreate} list={ICON_LEGENDS} intro={ICON_INTRO} />}
       {tab === 'legends' && <LegendPicker onCreate={onCreate} list={LEGENDS} intro={LEGEND_INTRO} />}

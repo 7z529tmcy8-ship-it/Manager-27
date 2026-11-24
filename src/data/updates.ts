@@ -29,6 +29,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-24-special-sane',
+    date: '24.11.2026',
+    title: 'Neu: Specials – Leroy Sané',
+    items: [
+      'Neuer Reiter „Specials“ bei „Neue Karriere“: Spiel die Karriere eines echten Stars ab seinem Startverein.',
+      'Erster Special: Leroy Sané – 18 Jahre, Flügelspieler, Start beim FC Schalke 04. Am Karriereende kommt er als Spezialkarte in deine Sammlung.',
+    ],
+  },
+  {
     id: '2026-11-24-karriere-karten',
     date: '24.11.2026',
     title: 'Deine Spezialkarte nach jeder Karriere',

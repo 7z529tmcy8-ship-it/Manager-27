@@ -490,3 +490,15 @@ const ICON_RAW: typeof RAW = [
 export const ICON_LEGENDS: LegendTemplate[] = ICON_RAW.map(([name, nation, position, age, ovr, potential, club, traits, bio]) => ({
   name, nation, position, age, ovr, potential, clubId: slugify(club), traits, bio,
 }));
+
+// Specials: einzelne echte Spieler mit besonderem Startpunkt ihrer Karriere.
+// Leroy Sané: Eigengewächs von Schalke 04 (aus Essen), Bundesliga-Debüt 2014 mit 18 Jahren.
+// Wertung und Potenzial sind eigene Schätzungen, keine offiziellen Werte.
+export const SPECIAL_STARTS: LegendTemplate[] = [
+  {
+    name: 'Leroy Sané', nation: 'Deutschland', position: 'FL', age: 18, ovr: 67, potential: 90,
+    clubId: slugify('FC Schalke 04'), traits: ['showman', 'wildcard'],
+    bio: 'Schalker Eigengewächs mit Tempo, Dribblings und starkem linken Fuß – debütierte 2014 als 18-Jähriger in der Bundesliga. Wohin führt dein Weg?',
+  },
+];
+export const SPECIAL_INTRO = 'Specials: Spiel die Karriere eines echten Stars ab seinem ersten Profijahr – beim Verein, wo alles begann.';
