@@ -519,51 +519,10 @@ export function careerDrops(r: SeasonRecord): { drops: number; mega: number } {
  * Noch nicht ausgezahlte Saisons (als Spieler und als Trainer) gutschreiben.
  * Eigene Karten gibt es nicht mehr – nach dem Karriereende gibt es Packs je nach Bilanz (claimCareerReward).
  */
-/** Karriere-Karte deines Spielers: kommt nach der ersten Saison in die Sammlung und wächst jede Saison mit. */
-export const playerCardId = (career: Career) => `own-${career.id}-karte`;
-export function careerPlayerCard(career: Career): CollectCard {
-  const p = career.player;
-  const last = career.history[career.history.length - 1];
-  const clubId = career.phase === 'retired' && last ? last.clubId : p.loan?.clubId ?? p.contract.clubId;
-  const club = getClub(clubId);
-  const ovr = Math.max(p.ovr, last?.ovrEnd ?? 0);
-  const first = career.history[0]?.season.slice(0, 4) ?? '';
-  const end = last?.season.slice(-2) ?? '';
-  return {
-    id: playerCardId(career), name: p.name, position: p.position, nation: p.nation,
-    club: club.name, league: getLeague(club.leagueId).name, ovr: Math.min(99, ovr),
-    variant: ovr >= 86 ? 'gold-rare' : ovr >= 75 ? 'gold' : 'silver',
-    label: career.phase === 'retired' ? `Karriere ${first}–${end}` : `Deine Karriere · ${career.history.length} ${career.history.length === 1 ? 'Saison' : 'Saisons'}`,
-    avatar: p.avatar,
-  };
-}
-/** Karriere-Karte einfügen oder aktualisieren (gleiche ID – bleibt in der Aufstellung stehen). */
-export function upsertPlayerCard(club: ClubState, career: Career): { club: ClubState; isNew: boolean } {
-  if (!career.history.length) return { club, isNew: false };
-  const card = careerPlayerCard(career);
-  const i = club.specials.findIndex((c) => c.id === card.id);
-  if (i >= 0) {
-    const old = club.specials[i];
-    if (old.ovr === card.ovr && old.label === card.label && old.club === card.club && old.variant === card.variant) return { club, isNew: false };
-    const specials = [...club.specials]; specials[i] = card;
-    return { club: { ...club, specials }, isNew: false };
-  }
-  return { club: { ...club, specials: [...club.specials, card] }, isNew: true };
-}
-
-/** Saison-Packs (Karten nur aus der Karriere): je besser die Saison, desto besser das Pack; Titel und Auszeichnungen bringen Weltstar-Packs. */
-export function seasonPackIds(r: SeasonRecord): string[] {
-  const rating = r.avgRating ?? 6.5;
-  const base = rating >= 7.3 && r.apps >= 20 ? 'premium' : rating >= 6.9 && r.apps >= 10 ? 'gold' : 'standard';
-  const extra = Math.min(2, r.trophies.length + r.awards.length);
-  return [base, ...Array<string>(extra).fill('worldstar')];
-}
-
 export function creditCareer(
   club: ClubState,
   career: Career,
-  rand = Math.random,
-): { club: ClubState; gained: number; seasons: number; icon: CollectCard | null; drops: number; mega: number; meteor?: boolean; playerCard?: CollectCard | null; seasonPacks?: { names: string[]; result: PackResult } | null } {
+): { club: ClubState; gained: number; seasons: number; icon: CollectCard | null; drops: number; mega: number; meteor?: boolean } {
   const done = club.credited[career.id] ?? 0;
   const fresh = career.history.slice(done);
   let gained = 0;
@@ -600,29 +559,8 @@ export function creditCareer(
   const mtKey = `${career.id}:meteor`;
   const meteor = meteorGoals(career) >= METEOR_GOALS && !club.credited[mtKey];
 
-  // Karten nur aus der Karriere: Dein Spieler kommt nach jeder Saison (aktualisiert) in die Sammlung.
-  const pc = CARDS_FROM_CAREER_ONLY ? upsertPlayerCard(club, career) : { club, isNew: false };
-  if (!fresh.length && !coachFresh.length && !hhFresh && !scenarioWon && !meteor) return { club: pc.club, gained: 0, seasons: 0, icon: null, drops: 0, mega: 0, meteor: false, playerCard: null };
-  club = pc.club;
-  // Karten nur aus der Karriere: Jede neue Saison öffnet Saison-Packs mit echten Spielern
-  let seasonPacks: { names: string[]; result: PackResult } | null = null;
-  if (CARDS_FROM_CAREER_ONLY && fresh.length) {
-    const result: PackResult = { cards: [], items: [] };
-    const names: string[] = [];
-    for (const r of fresh) for (const id of seasonPackIds(r)) {
-      const res = openPack(club, id, rand, true);
-      if (!res) continue;
-      club = res.club;
-      result.cards.push(...res.result.cards);
-      result.items.push(...res.result.items);
-      names.push(PACKS.find((p) => p.id === id)?.name ?? id);
-    }
-    result.cards.sort((a, b) => rarity(b.card) - rarity(a.card));
-    if (result.cards.length) seasonPacks = { names, result };
-  }
+  if (!fresh.length && !coachFresh.length && !hhFresh && !scenarioWon && !meteor) return { club, gained: 0, seasons: 0, icon: null, drops: 0, mega: 0, meteor: false };
   return {
-    seasonPacks,
-    playerCard: pc.isNew ? careerPlayerCard(career) : null,
     club: addShards({
       ...club,
       coins: Math.max(0, club.coins + gained),
@@ -893,6 +831,22 @@ export const careerIdOfOwnCard = (id: string): string | null => {
  * Selbst erstellte Spieler bekommen keine Karten mehr: deren bisher vergebene Karten (Ikone, Auszeichnungs- und
  * Saison-Karten) einmalig entfernen – die Karriere bekommt dafür ihre Packs. Karten echter Spieler bleiben.
  */
+/**
+ * Aufräumen: Zwischendurch gab es eine mitwachsende Saison-Karte (ID endet auf „-karte“). Gewollt ist nur die
+ * Spezialkarte am Karriereende – die Saison-Karten werden entfernt (auch aus den Aufstellungen).
+ */
+export function removeSeasonPlayerCards(club: ClubState): ClubState {
+  const isSeasonCard = (id: string | null | undefined) => !!id && id.startsWith('own-') && id.endsWith('-karte');
+  if (!club.specials.some((c) => isSeasonCard(c.id))) return club;
+  const clean = (sq: (string | null)[]) => sq.map((id) => (isSeasonCard(id) ? null : id));
+  return {
+    ...club,
+    specials: club.specials.filter((c) => !isSeasonCard(c.id)),
+    squad: clean(club.squad),
+    ...(club.altTeam ? { altTeam: { ...club.altTeam, squad: clean(club.altTeam.squad) } } : {}),
+  };
+}
+
 export function removeOwnCareerCards(club: ClubState, careers: Career[]): ClubState {
   if (club.ownCardsRemoved) return club;
   // Karten kommen nur noch aus der Karriere – eigene Karriere-Karten bleiben dann natürlich erhalten.

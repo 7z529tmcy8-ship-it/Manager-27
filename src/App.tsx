@@ -1,5 +1,4 @@
 import { enterFullscreen, getSettings, lockLandscape, updateSettings } from './settings';
-import type { PackResult } from './game/club';
 import { autoStartMotion } from './tilt';
 import { cleanStorage, migrateSaves, onSaveStatus, storageBreakdown } from './game/storage';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
@@ -17,7 +16,7 @@ const CasinoPage = lazy(() => import('./components/casino/CasinoPage'));
 const ShopPage = lazy(() => import('./components/ShopPage'));
 import UpdateBanner, { unseenUpdates } from './components/UpdateBanner';
 import { UPDATES, type UpdateNote } from './data/updates';
-import { creditCareer, removeOwnCareerCards, rewardPending, upsertPlayerCard } from './game/club';
+import { creditCareer, removeOwnCareerCards, removeSeasonPlayerCards, rewardPending } from './game/club';
 import CareerReward from './components/CareerReward';
 import { saveCareer } from './game/storage';
 import type { Career } from './game/types';
@@ -61,12 +60,9 @@ export default function App() {
   useEffect(() => {
     const c = getClubState();
     if (!c.ownCardsRemoved) setClubState(removeOwnCareerCards(c, listCareers()));
-    // Karten nur aus der Karriere: Jeder Spieler aus deinen Karrieren liegt als Karte in der Sammlung (auch alte Spielstände).
-    if (CARDS_FROM_CAREER_ONLY) {
-      let club = getClubState();
-      for (const career of listCareers()) club = upsertPlayerCard(club, career).club;
-      if (club !== getClubState()) setClubState(club);
-    }
+    // Nur die Spezialkarte am Karriereende zählt: zwischenzeitliche Saison-Karten wieder entfernen
+    const cleaned = removeSeasonPlayerCards(getClubState());
+    if (cleaned !== getClubState()) setClubState(cleaned);
   }, []);
   // Karriere-Einstellungen gelten jetzt für alle Karrieren: einmalig die der zuletzt gespielten Karriere übernehmen.
   useEffect(() => {
@@ -122,9 +118,6 @@ export default function App() {
     const res = creditCareer(before, career);
     // Still gutschreiben – keine Einblendung nach jeder Saison (der Kontostand zeigt es ohnehin).
     if (res.club !== before) setClubState(res.club);
-    // Erste Saison gespielt: Dein Spieler liegt jetzt als Karte in der Sammlung
-    if (res.seasonPacks) setSeasonPack({ name: res.seasonPacks.names.length > 1 ? `Saison-Belohnung · ${res.seasonPacks.names.length} Packs` : `Saison-Belohnung · ${res.seasonPacks.names[0]}`, result: res.seasonPacks.result });
-    if (res.playerCard) setToast(`${res.playerCard.name} ist jetzt als Karte (${res.playerCard.ovr}) in deiner Sammlung – sie wächst jede Saison mit.`);
     // Karriere vorbei: Belohnungskarte wählen (Ikone oder Auszeichnung).
     if (rewardPending(getClubState(), career)) setReward(career);
     // Verborgene Abhängigkeit: Das ganze Geld ist weg – ohne Erklärung.
@@ -141,8 +134,6 @@ export default function App() {
     setScreen({ name: 'game', career });
   };
   const [reward, setReward] = useState<Career | null>(null);
-  // Saison-Pack mit echten Spielern (Karten nur aus der Karriere) – öffnet sich in der Karriere nach der Gala
-  const [seasonPack, setSeasonPack] = useState<{ name: string; result: PackResult } | null>(null);
   const home = () => setScreen({ name: 'home' });
   const load = (career: Career) => setScreen({ name: 'game', career });
   // Kein Karten-Shop mehr: Verweise auf den Shop führen zur Sammlung
@@ -191,7 +182,7 @@ export default function App() {
         : <CasinoPage onExit={home} />)}
       {screen.name === 'create' && <CreateCareer onCancel={home} onCreate={update} />}
       {screen.name === 'game' && (
-        <CareerScreen career={screen.career} onChange={update} onExit={home} seasonPack={seasonPack} onSeasonPackSeen={() => setSeasonPack(null)} onCollection={() => { setSeasonPack(null); setScreen({ name: 'team', tab: 'collection' }); }} />
+        <CareerScreen career={screen.career} onChange={update} onExit={home} />
       )}
         </div>
         {settingsOpen && <Settings onClose={() => setSettingsOpen(false)} onNews={() => { setSettingsOpen(false); setNews(UPDATES); }} onBackup={() => { setSettingsOpen(false); setBackupOpen(true); }} />}

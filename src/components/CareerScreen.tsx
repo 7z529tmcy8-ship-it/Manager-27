@@ -1,6 +1,4 @@
 import ClubCrest from './ClubCrest';
-import PackOpen from './PackOpen';
-import type { PackResult } from '../game/club';
 import Icon from './Icon';
 import { useEffect, useRef, useState } from 'react';
 import ScorerRace from './ScorerRace';
@@ -54,10 +52,6 @@ interface Props {
   career: Career;
   onChange: (c: Career) => void;
   onExit: () => void;
-  /** Saison-Pack mit echten Spielern, das nach der Saison geöffnet wird. */
-  seasonPack?: { name: string; result: PackResult } | null;
-  onSeasonPackSeen?: () => void;
-  onCollection?: () => void;
 }
 
 /** Farbe der Wertungs-Pille: Weltklasse hellblau, sonst Gold/Silber/Bronze. */
@@ -71,7 +65,7 @@ const money = (v: number) => (v >= 1e6 ? `€${Math.round(v / 1e6)}M` : `€${Ma
  * Karriere als Zeitleiste: eine Zeile pro Saison (Alter, Verein, Wertung, Spiele, Tore, Vorlagen).
  * Ein Knopf simuliert bis zur nächsten Pause; am Saisonende gibt es drei Möglichkeiten.
  */
-export default function CareerScreen({ career, onChange: commit, onExit, seasonPack, onSeasonPackSeen, onCollection }: Props) {
+export default function CareerScreen({ career, onChange: commit, onExit }: Props) {
   // Jede Änderung läuft hier durch: große Momente (Titel, Wechsel, Wertungssprünge) werden gefeiert.
   const [moments, setMoments] = useState<Moment[]>([]);
   const onChange = (next: Career) => {
@@ -208,9 +202,6 @@ export default function CareerScreen({ career, onChange: commit, onExit, seasonP
   return (
     <main className="cs">
       {gala && !moments.length && !replay && <Gala career={career} record={gala} onClose={() => setGala(null)} />}
-      {seasonPack && !gala && !moments.length && !replay && (
-        <PackOpen name={seasonPack.name} result={seasonPack.result} onClose={() => onSeasonPackSeen?.()} onCollection={() => (onCollection ? onCollection() : onSeasonPackSeen?.())} />
-      )}
       {keyLive && (
         <LiveMatch
           title={`Topspiel · ${keyLive.key.home ? 'Heimspiel' : 'Auswärtsspiel'}`}

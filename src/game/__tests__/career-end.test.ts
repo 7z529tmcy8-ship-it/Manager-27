@@ -43,8 +43,7 @@ it('Heimkehr und Abenteuer erscheinen als eigene Möglichkeiten', () => {
 it('Karriereende: selbst erstellter Spieler bekommt Packs je nach Bilanz, nur einmal', () => {
   const active = simulateToBreak(simulateToBreak(createCareer({ name: 'Aktiv', nation: 'Deutschland', position: 'ST', age: 24, ovr: 86, potential: 90, clubId: slugify('FC Bayern München') })));
   const a = creditCareer(freshClub(), active);
-  // Karten nur aus der Karriere: die mitwachsende Spielerkarte ist schon da, sonst nichts
-  expect(a.club.specials.filter((x) => !x.id.endsWith('-karte'))).toHaveLength(0);
+  expect(a.club.specials).toHaveLength(0);
   expect(rewardPending(a.club, active)).toBe(false);
   const done = { ...retire(active), player: { ...retire(active).player, origin: 'academy' as const } };
   expect(careerRewardKind(done)).toBe('packs');
@@ -57,7 +56,7 @@ it('Karriereende: selbst erstellter Spieler bekommt Packs je nach Bilanz, nur ei
   const res = claimCareerReward(b.club, done)!;
   expect(res.tier.id).toBe(tier.id);
   expect(res.result.cards.length).toBeGreaterThan(0);
-  expect(res.club.specials.some((c) => c.id.startsWith('own-') && !c.id.endsWith('-karte'))).toBe(false); // außer der mitwachsenden Spielerkarte
+  expect(res.club.specials.some((c) => c.id.startsWith('own-'))).toBe(false);
   expect(rewardPending(res.club, done)).toBe(false);
   expect(claimCareerReward(res.club, done)).toBeNull();
   // Bessere Karriere → stärkere Stufe
@@ -79,7 +78,7 @@ it('Karriereende: echter Spieler mit Auszeichnung wählt eine Auszeichnungs-Kart
   const opts = careerRewardOptions(awarded);
   expect(opts.map((o) => o.variant)).toEqual(['ballondor']);
   const c = chooseCareerReward(club, awarded, opts[0].id);
-  expect(c.specials.filter((x) => !x.id.endsWith('-karte')).map((x) => x.variant)).toEqual(['ballondor']);
+  expect(c.specials.map((x) => x.variant)).toEqual(['ballondor']);
   expect(rewardPending(c, awarded)).toBe(false);
   // Zufall statt Wahl: zwei verdiente Karten, gezogen wird je nach Zufallszahl – und nur einmal.
   awarded.history[0].trophies.push('Champions League');

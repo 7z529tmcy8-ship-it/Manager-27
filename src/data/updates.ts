@@ -31,13 +31,10 @@ export const UPDATES: UpdateNote[] = [
   {
     id: '2026-11-24-karriere-karten',
     date: '24.11.2026',
-    title: 'Dein Karriere-Spieler kommt in die Sammlung',
+    title: 'Deine Spezialkarte nach jeder Karriere',
     items: [
-      'Nach jeder gespielten Saison liegt dein Karriere-Spieler als Karte in der Sammlung – sie wächst jede Saison mit (Wertung, Verein, Kartenstufe).',
-      'Saison-Pack mit echten Spielern nach jeder Saison: schwache Saison Standard-Pack, gute Saison Gold-Pack, starke Saison Premium-Pack – jeder Titel und jede Auszeichnung bringt zusätzlich ein Weltstar-Pack (höchstens 2).',
-      'Auch alte Karrieren bekommen ihre Spielerkarte sofort.',
-      'Die Sammlung zeigt unter „Meine“ jetzt alle deine Karten aus den Karrieren, sie zählen auch für die Meilensteine.',
-      'Im Haupt-Team darfst du alle Karriere-Karten aufstellen. Hinweise auf den Shop sind entfernt.',
+      'Karten gibt es nur noch so: Am Ende jeder Karriere kommt dein Spieler als Spezialkarte in die Sammlung – sonst nichts, keine Packs während der Karriere.',
+      'Die Sammlung zeigt unter „Meine“ deine Karriere-Karten, und du kannst sie im Haupt-Team aufstellen.',
     ],
   },
   {

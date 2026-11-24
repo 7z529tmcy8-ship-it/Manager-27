@@ -89,7 +89,7 @@ export default function Collection({ onShop, onCasino }: { onShop: () => void; o
       </div>
       <input className="col-search" type="search" placeholder="Spieler oder Verein suchen" value={q} onChange={(e) => { setQ(e.target.value); setLimit(PAGE); }} />
 
-      {list.length === 0 ? <p className="hub-empty">{show === 'mine' ? (CARDS_FROM_CAREER_ONLY ? 'Noch keine Karten – spiel eine Saison in deiner Karriere: Danach kommt dein Spieler als Karte hierher.' : 'Noch keine Karten – öffne Packs im Shop!') : 'Keine Karten gefunden.'}</p> : (
+      {list.length === 0 ? <p className="hub-empty">{show === 'mine' ? (CARDS_FROM_CAREER_ONLY ? 'Noch keine Karten – beende eine Karriere: Dann kommt dein Spieler als Spezialkarte hierher.' : 'Noch keine Karten – öffne Packs im Shop!') : 'Keine Karten gefunden.'}</p> : (
         <div className="col-grid">
           {list.slice(0, limit).map((c) => {
             const n = club.cards[c.id] ?? (ownIdsAll.has(c.id) ? 1 : 0);
