@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { ROAD_LANES, ROAD_LEVELS, RTP, roadMult, roadStep, type RoadLevel } from '../../game/casino';
+import { ROAD_LANES, ROAD_LEVELS, RTP, casinoOf, roadMult, roadStep, type RoadLevel } from '../../game/casino';
+import { useClub } from '../../clubStore';
 import { motionReduced } from '../../settings';
 import { playStep } from '../../sound';
 import Icon from '../Icon';
@@ -7,6 +8,10 @@ import { BetPicker, GameFrame, bet, buzz, celebrate, fmt, fmtShort, settle, sfx,
 
 const LANE_H = 66;
 const LEVELS = Object.keys(ROAD_LEVELS) as RoadLevel[];
+/** Auto-Kassieren: ab diesem Multiplikator wird automatisch ausgezahlt (0 = aus). */
+const AUTO_STOPS = [0, 2, 5, 10, 50] as const;
+/** Alle 5 Fahrbahnen ein Checkpoint – nur zur Orientierung, ändert keine Chancen. */
+const isCheckpoint = (lane: number) => lane > 0 && lane < ROAD_LANES && lane % 5 === 0;
 const multTxt = (m: number) => (m >= 1000 ? `${fmtShort(Math.round(m))}` : m.toFixed(2).replace('.', ','));
 
 /** Straßen-Sprint: Die Neon-Figur hüpft Fahrbahn für Fahrbahn nach oben, der Multiplikator steigt – kassieren, bevor ein Auto kommt. */
@@ -17,6 +22,10 @@ export default function Road({ onClose }: { onClose: () => void }) {
   const [pop, setPop] = useState<{ id: number; text: string } | null>(null);
   const [hist, setHist] = useState<{ id: number; m: number; ok: boolean }[]>([]);
   const busy = useRef(false);
+  const record = casinoOf(useClub()).best?.road ?? 0;
+  const [newRecord, setNewRecord] = useState(false);
+  const [autoStop, setAutoStopState] = useState<number>(() => { try { return Number(sessionStorage.getItem('fc-road-auto')) || 0; } catch { return 0; } });
+  const setAutoStop = (v: number) => { setAutoStopState(v); try { sessionStorage.setItem('fc-road-auto', String(v)); } catch { /* egal */ } };
   const fast = motionReduced();
   const playing = run?.state === 'go';
   const step = run?.step ?? 0;
@@ -28,6 +37,7 @@ export default function Road({ onClose }: { onClose: () => void }) {
   const start = () => {
     if (playing || !bet(stake)) return;
     setRun({ stake, step: 0, state: 'go', hop: 0 });
+    setNewRecord(false);
     sfx('whistle'); buzz(20);
   };
   const go = async () => {
@@ -41,7 +51,7 @@ export default function Road({ onClose }: { onClose: () => void }) {
     if (!ok) {
       setRun({ ...run, step: s, state: 'hit', hop: run.hop + 1 });
       sfx('boom'); sfx('fall'); buzz([80, 40, 160]); shake(true);
-      settle({ game: 'road', bet: run.stake, win: 0, mult: roadMult(level, s) });
+      settle({ game: 'road', bet: run.stake, win: 0, mult: roadMult(level, s), safe: s - 1 });
       setHist((h) => [{ id: Date.now(), m: roadMult(level, s), ok: false }, ...h].slice(0, 8));
       setTimeout(() => setRun((r) => (r && r.state === 'hit' ? { ...r, state: 'done' } : r)), 1200);
     } else {
@@ -49,17 +59,22 @@ export default function Road({ onClose }: { onClose: () => void }) {
       playStep(Math.min(20, s + 2)); buzz(15);
       setPop({ id: Date.now(), text: `${multTxt(m)}×` });
       if (m >= 10 && roadMult(level, s - 1) < 10) { sfx('revealRare'); celebrate(10); }
-      if (s >= ROAD_LANES) { setRun({ ...run, step: s, state: 'go', hop: run.hop + 1 }); busy.current = false; cash(s); return; }
+      else if (isCheckpoint(s)) { sfx('levelUp'); buzz([20, 30, 40]); }
+      // Ziel erreicht oder Auto-Kassieren-Marke geknackt: sofort auszahlen
+      if (s >= ROAD_LANES || (autoStop > 0 && m >= autoStop)) { setRun({ ...run, step: s, state: 'go', hop: run.hop + 1 }); busy.current = false; cash(s, { ...run, step: s }); return; }
       setRun({ ...run, step: s, state: 'go', hop: run.hop + 1 });
     }
     busy.current = false;
   };
-  const cash = (s = step) => {
-    if (!run || run.state !== 'go' || s <= 0) return;
+  const cash = (s = step, cur = run) => {
+    if (!cur || cur.state !== 'go' || s <= 0) return;
+    const run = cur;
     const m = roadMult(level, s);
     const win = Math.floor(run.stake * m);
     setRun({ ...run, step: s, state: 'cash' });
-    settle({ game: 'road', bet: run.stake, win, mult: m });
+    // Neuer persönlicher Rekord (bester Multiplikator) wird extra gefeiert
+    if (m > record && record > 0) { setNewRecord(true); setTimeout(() => sfx('fanfare'), 350); }
+    settle({ game: 'road', bet: run.stake, win, mult: m, safe: s });
     setHist((h) => [{ id: Date.now(), m, ok: true }, ...h].slice(0, 8));
     if (m >= 3) celebrate(m);
     setTimeout(() => setRun((r) => (r && r.state === 'cash' ? { ...r, state: 'done' } : r)), 1400);
@@ -96,9 +111,10 @@ export default function Road({ onClose }: { onClose: () => void }) {
             const isNext = lane === step + 1 && playing;
             const kind = lane === 0 ? 'start' : lane === ROAD_LANES ? 'goal' : 'road';
             return (
-              <div key={lane} className={`rd-lane k-${kind} ${crossed ? 'done' : ''} ${isNext ? 'next' : ''}`} style={{ transform: `translate3d(0, ${-lane * LANE_H}px, 0)`, height: LANE_H }}>
+              <div key={lane} className={`rd-lane k-${kind} ${crossed ? 'done' : ''} ${isNext ? 'next' : ''} ${isCheckpoint(lane) ? 'cp' : ''}`} style={{ transform: `translate3d(0, ${-lane * LANE_H}px, 0)`, height: LANE_H }}>
                 {kind === 'road' && !crossed && <i className={`rd-track ${lane % 2 ? 'ltr' : 'rtl'}`} style={{ animationDuration: `${1.6 + (lane % 5) * 0.32}s`, animationDelay: `${-((lane * 0.61) % 2)}s` }}><i className={`rd-car c${lane % 4}`} /></i>}
                 {kind === 'goal' && <span className="rd-goal">Ziel</span>}
+                {isCheckpoint(lane) && <span className="rd-cp">Checkpoint {lane}</span>}
                 {lane > 0 && (
                   <span className={`rd-plate ${crossed ? 'done' : ''} ${isNext ? 'next' : ''}`}>
                     {crossed ? <Icon name="check" size={18} /> : <>{multTxt(roadMult(level, lane))}<small>×</small></>}
@@ -115,10 +131,14 @@ export default function Road({ onClose }: { onClose: () => void }) {
           </span>
         </div>
         {pop && <span key={pop.id} className="rd-pop">{pop.text}</span>}
-        {run?.state === 'cash' && <div className="rd-banner win"><small>Kassiert</small><b>+{fmt(Math.floor(run.stake * roadMult(level, run.step)))}</b></div>}
+        {run?.state === 'cash' && <div className={`rd-banner win ${newRecord ? 'rec' : ''}`}><small>{newRecord ? 'Neuer Rekord!' : 'Kassiert'}</small><b>+{fmt(Math.floor(run.stake * roadMult(level, run.step)))}</b></div>}
         {lost && <div className="rd-banner lose"><small>Erwischt auf Fahrbahn {run?.step}</small><b>Nochmal!</b></div>}
       </div>
 
+      <div className="rd-meta">
+        <span><Icon name="trophy" size={14} /> Rekord {record > 0 ? `${multTxt(record)}×` : '–'}</span>
+        {autoStop > 0 && <span className="on"><Icon name="bolt" size={14} /> Auto-Kassieren bei {autoStop}×</span>}
+      </div>
       <div className="cz-history">{hist.map((h) => <span key={h.id} className={h.ok ? 'hi' : 'lo'}>{multTxt(h.m)}×</span>)}</div>
 
       <div className="cz-actions">
@@ -132,6 +152,10 @@ export default function Road({ onClose }: { onClose: () => void }) {
       <div className="cz-chipsel" role="radiogroup" aria-label="Schwierigkeit">
         <small>Schwierigkeit</small>
         {LEVELS.map((l) => <button key={l} className={`rl-${l} ${level === l ? 'on' : ''}`} disabled={playing} onClick={() => pickLevel(l)}>{ROAD_LEVELS[l].label}</button>)}
+      </div>
+      <div className="cz-chipsel rd-auto" role="radiogroup" aria-label="Auto-Kassieren">
+        <small>Auto-Kassieren</small>
+        {AUTO_STOPS.map((v) => <button key={v} className={autoStop === v ? 'on' : ''} disabled={playing} onClick={() => setAutoStop(v)}>{v ? `${v}×` : 'Aus'}</button>)}
       </div>
       {!playing && <BetPicker value={stake} onChange={setStake} />}
     </GameFrame>

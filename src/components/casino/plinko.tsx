@@ -1,8 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
-  GOLD_CHANCE, GOLD_MULT, PLINKO_ROWS_OPTIONS, RISKS, dropBall, plinkoP, plinkoTable, plinkoWin, type Risk,
+  GOLD_CHANCE, GOLD_MULT, PLINKO_ROWS_OPTIONS, RISKS, dropBall, plinkoP, plinkoTable, plinkoWin, casinoOf, type Risk,
 } from '../../game/casino';
 import { motionReduced } from '../../settings';
+import { getClubState } from '../../clubStore';
 import { playMoo, playStep, plinkoSound } from '../../sound';
 import { plinkoWinArmed, takePlinkoWin } from '../../game/dev';
 import Icon from '../Icon';
@@ -46,6 +47,8 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
   const [autoN, setAutoN] = useState(25);
   const [hist, setHist] = useState<{ id: number; m: number; gold: boolean }[]>([]);
   const [sess, setSess] = useState<Session>({ best: 0, streak: 0 });
+  const [recordHit, setRecordHit] = useState(0);
+  useEffect(() => { if (!recordHit) return; const t = setTimeout(() => setRecordHit(0), 2200); return () => clearTimeout(t); }, [recordHit]);
   const [combo, setCombo] = useState<{ id: number; n: number } | null>(null);
   const [boom, setBoom] = useState(0);
   const sparks = useRef<Spark[]>([]);
@@ -351,6 +354,9 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
     if (mult >= 5) { setBoom(now); setTimeout(() => setBoom((v) => (v === now ? 0 : v)), 480); }
     if (mult >= 50) shake(true);
     else if (mult >= 10) buzz([30, 40, 30]);
+    // Allzeit-Rekord geknackt (ab 5×): eigener Moment mit Fanfare
+    const rec = casinoOf(getClubState()).best?.plinko ?? 0;
+    if (rec > 0 && mult > rec && mult >= 5) { setRecordHit(now); sfx('fanfare'); }
     settle({ game: 'plinko', bet: b.stake, win, mult }, { quiet: true });
     // Verlauf zeigt nur Treffer ab 1× – kein Frust-Ticker.
     if (mult >= 1) setHist((hs) => [{ id: b.id, m: mult, gold: b.gold }, ...hs].slice(0, 6));
@@ -379,13 +385,15 @@ export default function Plinko({ onClose }: { onClose: () => void }) {
       <div className={`pk-hud ${sess.streak >= FEVER_AT ? 'fever' : ''}`}>
         <span className="pk-fever-label"><Icon name="fire" size={18} />{sess.streak >= FEVER_AT ? 'FEVER!' : 'Fever'}</span>
         <span className="pk-fever" aria-label={`Treffer-Serie ${sess.streak}`}><i style={{ width: `${Math.min(100, (sess.streak / FEVER_AT) * 100)}%` }} /></span>
-        <span className="pk-best"><small>Bester</small><b>{sess.best ? `${multText(sess.best)}×` : '–'}</b></span>
+        <span className="pk-best"><small>Heute</small><b>{sess.best ? `${multText(sess.best)}×` : '–'}</b></span>
+        <span className="pk-best rec"><small>Rekord</small><b>{casinoOf(getClubState()).best?.plinko ? `${multText(casinoOf(getClubState()).best!.plinko!)}×` : '–'}</b></span>
       </div>
       <div className={`pk-board ${sess.streak >= FEVER_AT ? 'fever' : ''} ${boom ? 'boom' : ''}`} ref={wrap}>
         <canvas ref={canvas} className="pk-canvas" aria-label={`Plinko-Brett mit ${rows} Reihen`} />
         <span className="pk-top">bis <b>{fmt(top)}×</b></span>
         {hitFx && <span key={hitFx.id} className={`pk-hitfx t${hitFx.tier}`} aria-hidden="true"><b>{hitFx.text}</b><em>{hitFx.amount}</em></span>}
         {hitFx && hitFx.tier >= 1 && <i key={`e${hitFx.id}`} className={`pk-edge t${hitFx.tier}`} aria-hidden="true" />}
+        {recordHit > 0 && <span key={`r${recordHit}`} className="pk-record">Neuer Rekord!</span>}
         {combo && <span key={combo.id} className={`pk-combo ${combo.n >= FEVER_AT ? 'fever' : ''}`}>{combo.n >= FEVER_AT ? `FEVER ×${combo.n}` : `COMBO ×${combo.n}`}</span>}
         <ul className="pk-hist" aria-label="Letzte Treffer">
           {hist.map((x) => <li key={x.id} style={{ background: x.gold ? '#ffd24a' : binColor(x.m) }} className={x.gold ? 'gold' : ''}>{multText(x.m)}×</li>)}

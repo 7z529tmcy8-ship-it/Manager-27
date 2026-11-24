@@ -25,6 +25,8 @@ export interface CasinoState {
   bets?: import('./bets').BetState;
   /** Letzte große Gewinne (für das Laufband im Casino). */
   recent?: { game: GameId; win: number; mult: number }[];
+  /** Bester Gewinn-Multiplikator je Spiel (für Rekorde in der Lobby). */
+  best?: Partial<Record<GameId, number>>;
   /** Zeitpunkt des letzten Gratis-Nachschubs (ms). */
   refillAt?: number;
   /** Höchstes Casino-Level, dessen Belohnung schon ausgezahlt ist. */
@@ -236,7 +238,9 @@ export function payout(club: ClubState, ev: PlayEvent, now = new Date(), rand: R
     };
     const recent = ev.bet > 0 && ev.win >= ev.bet * 2 && ev.win >= 100
       ? [{ game: ev.game, win: Math.round(ev.win), mult: Math.round((ev.win / ev.bet) * 100) / 100 }, ...(c.recent ?? [])].slice(0, 12) : c.recent;
-    return { ...c, chips: c.chips + Math.max(0, Math.round(ev.win)), stats, quests: trackQuests(c, ev, now), recent, ...(ev.bet > 0 ? cbTrack(c, 0, Math.max(0, Math.round(ev.win)), now) : {}), ...tourTrack(c, ev, now) };
+    const m = ev.bet > 0 && ev.win > 0 ? (ev.mult ?? Math.round((ev.win / ev.bet) * 100) / 100) : 0;
+    const best = m > (c.best?.[ev.game] ?? 0) ? { ...c.best, [ev.game]: m } : c.best;
+    return { ...c, chips: c.chips + Math.max(0, Math.round(ev.win)), stats, quests: trackQuests(c, ev, now), recent, best, ...(ev.bet > 0 ? cbTrack(c, 0, Math.max(0, Math.round(ev.win)), now) : {}), ...tourTrack(c, ev, now) };
   });
 }
 /** Jackpot leeren (wird ausgezahlt) und neu befüllen. */
@@ -472,20 +476,25 @@ export function spinWheel(rand: Rand = Math.random): number {
 export const markWheel = (club: ClubState, now = new Date()): ClubState => withCasino(club, (c) => ({ ...c, wheelDay: seasonId(now) }));
 
 // ---------- Tagesaufgaben ----------
-export interface Quest { id: string; text: string; goal: number; reward: number; count: (e: PlayEvent) => number; best?: boolean }
+export interface Quest { id: string; text: string; goal: number; reward: number; count: (e: PlayEvent) => number; best?: boolean; off?: boolean }
 export const QUESTS: Quest[] = [
-  { id: 'slots10', text: '10× am Slot drehen', goal: 10, reward: 400, count: (e) => (e.game === 'slots' ? 1 : 0) },
-  { id: 'bj3', text: '3 Blackjack-Hände gewinnen', goal: 3, reward: 500, count: (e) => (e.game === 'blackjack' && e.win > e.bet ? 1 : 0) },
+  // Ausgeblendete Spiele (Slot, Blackjack, Roulette): Aufgaben bleiben im Code, kommen aber nicht mehr dran.
+  { id: 'slots10', text: '10× am Slot drehen', goal: 10, reward: 400, off: true, count: (e) => (e.game === 'slots' ? 1 : 0) },
+  { id: 'bj3', text: '3 Blackjack-Hände gewinnen', goal: 3, reward: 500, off: true, count: (e) => (e.game === 'blackjack' && e.win > e.bet ? 1 : 0) },
+  { id: 'road10', text: '10 Runden Straßen-Sprint', goal: 10, reward: 400, count: (e) => (e.game === 'road' ? 1 : 0) },
+  { id: 'road5x', text: 'Straßen-Sprint: mit 5× oder mehr kassieren', goal: 1, reward: 700, count: (e) => (e.game === 'road' && e.win > 0 && (e.mult ?? 0) >= 5 ? 1 : 0) },
+  { id: 'road8', text: 'Straßen-Sprint: 8 Fahrbahnen in einer Runde', goal: 8, reward: 600, best: true, count: (e) => (e.game === 'road' ? e.safe ?? 0 : 0) },
+  { id: 'plinko100', text: '100 Plinko-Bälle fallen lassen', goal: 100, reward: 900, count: (e) => (e.game === 'plinko' ? 1 : 0) },
   { id: 'plinko20', text: '20 Plinko-Bälle fallen lassen', goal: 20, reward: 400, count: (e) => (e.game === 'plinko' ? 1 : 0) },
   { id: 'plinko10x', text: 'Plinko: einen 10×-Treffer landen', goal: 1, reward: 700, count: (e) => (e.game === 'plinko' && (e.mult ?? 0) >= 10 ? 1 : 0) },
-  { id: 'roulette5', text: '5 Runden Roulette spielen', goal: 5, reward: 350, count: (e) => (e.game === 'roulette' ? 1 : 0) },
+  { id: 'roulette5', text: '5 Runden Roulette spielen', goal: 5, reward: 350, off: true, count: (e) => (e.game === 'roulette' ? 1 : 0) },
   { id: 'big', text: 'Einen Big Win landen (8× Einsatz)', goal: 1, reward: 800, count: (e) => (bigWinOf(e.bet, e.win) ? 1 : 0) },
 ];
 /** Drei Aufgaben pro Tag, für alle gleich (aus dem Datum). */
 export function questsFor(day: string): Quest[] {
   let h = 0;
   for (const ch of day) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  const idx = QUESTS.map((_, i) => i);
+  const idx = QUESTS.map((_, i) => i).filter((i) => !QUESTS[i].off);
   const out: Quest[] = [];
   while (out.length < 3) { h = (h * 1103515245 + 12345) >>> 0; out.push(QUESTS[idx.splice(h % idx.length, 1)[0]]); }
   return out;

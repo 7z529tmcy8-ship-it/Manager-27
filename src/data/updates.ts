@@ -29,6 +29,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-24-karriere-zurueck',
+    date: '24.11.2026',
+    title: 'Die Karriere ist zurück – Casino mit Fokus',
+    items: [
+      'Karriere, Team, Shop, Duelle und Profil sind wieder da. Das Spiel startet wieder im Hauptmenü.',
+      'UgursCasino konzentriert sich jetzt auf zwei Spiele: Plinko und Straßen-Sprint. Die anderen Spiele sind nur ausgeblendet.',
+      'Rekorde: Dein bester Multiplikator steht auf jeder Kachel – wer ihn knackt, bekommt „Neuer Rekord!“ mit Fanfare.',
+      'Straßen-Sprint: Auto-Kassieren bei 2×, 5×, 10× oder 50× und goldene Checkpoints alle 5 Fahrbahnen.',
+      'Neue Tagesaufgaben für Straßen-Sprint und Plinko.',
+    ],
+  },
+  {
     id: '2026-11-23-ugurscasino',
     date: '23.11.2026',
     title: 'Willkommen im UgursCasino',

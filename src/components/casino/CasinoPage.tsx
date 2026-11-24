@@ -23,15 +23,17 @@ const Games = {
 };
 type Playable = keyof typeof Games;
 const GAME_NAME: Record<string, string> = { slots: 'Mega Fruits', crash: 'Crash', plinko: 'Plinko', mines: 'Minen', roulette: 'Roulette', blackjack: 'Blackjack', wheel: 'Glücksrad', bets: 'Sportwetten', scratch: 'Rubbellos', road: 'Straßen-Sprint' };
-const TILES: { id: Playable; name: string; sub: string; icon: string; hue: string; cat: 'slots' | 'instant' | 'table'; badge?: 'hot' | 'neu' }[] = [
+// Fokus auf zwei Spiele: Plinko und Straßen-Sprint. Die anderen Spiele sind nur ausgeblendet (off), nicht gelöscht.
+const ALL_TILES: { id: Playable; name: string; sub: string; icon: string; hue: string; cat: 'slots' | 'instant' | 'table'; badge?: 'hot' | 'neu'; off?: boolean }[] = [
   { id: 'plinko', name: 'Plinko', sub: 'Bis 10.000× · Ball-Regen', icon: 'target', hue: 'cyan', cat: 'instant', badge: 'hot' },
   { id: 'road', name: 'Straßen-Sprint', sub: 'Schritt für Schritt · bis 26.000×', icon: 'car', hue: 'green', cat: 'instant', badge: 'neu' },
-  { id: 'slots', name: 'Mega Fruits', sub: 'Klassik-Slot · Freispiele ×3', icon: 'star', hue: 'gold', cat: 'slots', badge: 'hot' },
-  { id: 'scratch', name: 'Rubbellos', sub: 'Freirubbeln · bis 500×', icon: 'ticket', hue: 'green', cat: 'instant' },
-  { id: 'roulette', name: 'Roulette', sub: 'Europäisch · 0–36', icon: 'dice', hue: 'red', cat: 'table' },
-  { id: 'blackjack', name: 'Blackjack', sub: 'Blackjack zahlt 3:2', icon: 'cards', hue: 'violet', cat: 'table' },
-  { id: 'wheel', name: 'Glücksrad', sub: 'Täglich gratis', icon: 'spark', hue: 'gold', cat: 'table' },
+  { id: 'slots', name: 'Mega Fruits', sub: 'Klassik-Slot · Freispiele ×3', icon: 'star', hue: 'gold', cat: 'slots', badge: 'hot', off: true },
+  { id: 'scratch', name: 'Rubbellos', sub: 'Freirubbeln · bis 500×', icon: 'ticket', hue: 'green', cat: 'instant', off: true },
+  { id: 'roulette', name: 'Roulette', sub: 'Europäisch · 0–36', icon: 'dice', hue: 'red', cat: 'table', off: true },
+  { id: 'blackjack', name: 'Blackjack', sub: 'Blackjack zahlt 3:2', icon: 'cards', hue: 'violet', cat: 'table', off: true },
+  { id: 'wheel', name: 'Glücksrad', sub: 'Täglich gratis', icon: 'spark', hue: 'gold', cat: 'table', off: true },
 ];
+const TILES = ALL_TILES.filter((t) => !t.off);
 const CATS: [('all' | 'slots' | 'instant' | 'table'), string][] = [['all', 'Alle'], ['slots', 'Slots'], ['instant', 'Sofort'], ['table', 'Tisch']];
 
 type Slide = { id: string; kicker: string; title: string; text: string; cta: string; tone: 'gold' | 'green' | 'pink' | 'violet'; go: () => void };
@@ -74,7 +76,6 @@ export default function CasinoPage({ onExit, onSettings, intro: withIntro = true
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
   const chips = useCountUp(c.chips, 600, !game);
-  const jackpot = useCountUp(c.jackpot, 1200, !game);
   const [shop, setShop] = useState(false);
   const [win, setWin] = useState<WinShow | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -155,10 +156,11 @@ export default function CasinoPage({ onExit, onSettings, intro: withIntro = true
 
   const questsReady = quests.filter((q) => !q.claimed && q.have >= q.quest.goal).length;
   const rewardCount = (daily.ready ? 1 : 0) + (cb.ready ? 1 : 0) + (tourWin ? 1 : 0) + (boxes > 0 ? 1 : 0) + questsReady;
+  const best = c.best ?? {};
   const slides: Slide[] = [
-    { id: 'jackpot', kicker: 'Progressiver Jackpot', title: fmt(jackpot), text: '5 Siebener auf einer Linie bei Mega Fruits oder das Glücksrad – plus Ikonen-Karte', cta: 'Mega Fruits spielen', tone: 'gold', go: () => openGame('slots') },
+    { id: 'road', kicker: 'Mutprobe', title: 'Straßen-Sprint', text: best.road ? `Dein Rekord: ${best.road.toFixed(2).replace('.', ',')}× – knackst du ihn?` : 'Fahrbahn für Fahrbahn – kassier, bevor es kracht', cta: 'Losrennen', tone: 'gold', go: () => openGame('road') },
     ...(happy.active ? [{ id: 'happy', kicker: 'Jetzt', title: 'Happy Hour', text: `Doppelte Level- und VIP-Punkte – noch ${hhTxt}`, cta: 'Spielen', tone: 'pink' as const, go: () => openGame('plinko') }] : []),
-    { id: 'plinko', kicker: 'Heiß', title: 'Plinko', text: 'Bis 10.000× pro Ball – jetzt mit Ball-Regen', cta: 'Jetzt spielen', tone: 'green', go: () => openGame('plinko') },
+    { id: 'plinko', kicker: 'Heiß', title: 'Plinko', text: best.plinko ? `Dein Rekord: ${best.plinko.toFixed(1).replace('.', ',')}× – bis 10.000× pro Ball` : 'Bis 10.000× pro Ball – jetzt mit Ball-Regen', cta: 'Jetzt spielen', tone: 'green', go: () => openGame('plinko') },
     { id: 'tour', kicker: `Wochen-Turnier · ${leftTxt}`, title: board.rank === 1 && board.rows[0].best ? 'Du führst!' : `Platz ${board.rank}`, text: `Höchster Multiplikator gewinnt – Platz 1: ${fmt(TOUR_PRIZES[0])} Chips`, cta: 'Rangliste', tone: 'violet', go: () => setSheet(true) },
   ];
 
@@ -193,25 +195,26 @@ export default function CasinoPage({ onExit, onSettings, intro: withIntro = true
           </div>
         )}
 
-        <nav className="cz-cats" role="tablist" aria-label="Spiele-Kategorien">
+        {TILES.length > 3 && <nav className="cz-cats" role="tablist" aria-label="Spiele-Kategorien">
           {CATS.map(([id, label]) => <button key={id} role="tab" aria-selected={cat === id} className={cat === id ? 'on' : ''} onClick={() => { setCat(id); sfx('tap'); }}>{label}</button>)}
-        </nav>
+        </nav>}
 
-        {cat === 'all' && lastPlayed.length > 0 && (
+        {TILES.length > 3 && cat === 'all' && lastPlayed.length > 0 && (
           <section className="cz-recentgames" aria-label="Zuletzt gespielt">
             <h2 className="cz-h">Zuletzt gespielt</h2>
             <div>{lastPlayed.map((id) => { const t = TILES.find((x) => x.id === id); return t ? <button key={id} className={`cz-mini h-${t.hue}`} onClick={() => { sfx('tap'); openGame(t.id); }}><Icon name={t.icon} size={22} /><span>{t.name}</span></button> : null; })}</div>
           </section>
         )}
 
-        <div className="cz-grid">
-          {TILES.filter((t) => cat === 'all' || t.cat === cat).map((t) => (
+        <div className={`cz-grid ${TILES.length <= 2 ? 'duo' : ''}`}>
+          {TILES.filter((t) => TILES.length <= 3 || cat === 'all' || t.cat === cat).map((t) => (
             <button key={t.id} className={`cz-tile h-${t.hue}`} onClick={() => { sfx('tap'); openGame(t.id); }}>
               {t.id === 'slots' && gift.left > 0 ? <em className="cz-hot b-free">{gift.left} gratis</em>
                 : t.badge && <em className={`cz-hot b-${t.badge}`}>{t.badge === 'neu' ? 'Neu' : 'Heiß'}</em>}
               <span className="cz-tile-ic"><Icon name={t.icon} size={30} /></span>
               <b>{t.name}</b>
               <small>{t.sub}</small>
+              {(best[t.id] ?? 0) > 0 && <span className="cz-tile-rec"><Icon name="trophy" size={13} />Rekord {best[t.id]!.toFixed(best[t.id]! >= 100 ? 0 : 2).replace('.', ',')}×</span>}
             </button>
           ))}
         </div>
@@ -238,7 +241,7 @@ export default function CasinoPage({ onExit, onSettings, intro: withIntro = true
               </button>
               {cb.ready && <button className="cz-bonus-card b-cb" onClick={claimCb}><Icon name="rewind" size={22} /><b>+{fmt(cb.amount)}</b><small>Cashback {Math.round(cb.pct * 100)} % von gestern</small></button>}
               {tourWin && <button className="cz-bonus-card b-tour" onClick={claimT}><Icon name="trophy" size={22} /><b>+{fmt(tourWin.prize)}</b><small>Turnier · Platz {tourWin.rank}</small></button>}
-              {gift.left > 0 && <button className="cz-bonus-card b-gift" onClick={() => { setSheet(false); openGame('slots'); }}><Icon name="star" size={22} /><b>{gift.left} Gratis-Drehs</b><small>Slots · je {fmt(gift.bet)} Einsatz</small></button>}
+              {gift.left > 0 && TILES.some((t) => t.id === 'slots') && <button className="cz-bonus-card b-gift" onClick={() => { setSheet(false); openGame('slots'); }}><Icon name="star" size={22} /><b>{gift.left} Gratis-Drehs</b><small>Slots · je {fmt(gift.bet)} Einsatz</small></button>}
             </div>
 
             <section className="cz-sec">

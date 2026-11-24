@@ -5515,3 +5515,27 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .cz-lobby .cz-logo { display: flex; flex-direction: column; font-size: 1.3rem; line-height: .95; text-overflow: clip; }
 .cz-lobby .cz-logo span { margin-left: 0; font-size: .68em; letter-spacing: .32em; }
 .boot-cz .boot2-bottom { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
+
+/* ---- Casino-Fokus: zwei Spiele, Rekorde, Straßen-Sprint-Extras ---- */
+.cz-lobby .cz-grid.duo { grid-template-columns: repeat(2, 1fr); }
+.cz-lobby .cz-grid.duo .cz-tile { min-height: 170px; align-content: end; }
+.cz-lobby .cz-grid.duo .cz-tile b { font-size: 1.3rem; }
+.cz-tile-rec { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; padding: 2px 8px; border-radius: 99px; background: rgba(255, 210, 74, .14); color: #ffd24a; font-size: .72rem; font-weight: 800; }
+.rd-lane.cp.k-road { background:
+  linear-gradient(90deg, rgba(255, 210, 74, .8) 50%, transparent 50%) 0 0 / 36px 3px repeat-x,
+  linear-gradient(180deg, #3d3a2a, #2f2c22); }
+.rd-lane.cp.done.k-road { background:
+  linear-gradient(90deg, rgba(255, 210, 74, .8) 50%, transparent 50%) 0 0 / 36px 3px repeat-x,
+  linear-gradient(180deg, #3f5a34, #2e4528); }
+.rd-cp { position: absolute; left: 10px; top: 6px; font-size: .6rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; color: #ffd24a; opacity: .85; }
+.rd-lane.cp .rd-plate:not(.done):not(.next) { border-color: #ffd24a; }
+.rd-meta { display: flex; justify-content: space-between; gap: 8px; margin: 8px 2px 0; font-size: .78rem; font-weight: 800; color: rgba(255, 255, 255, .7); }
+.rd-meta span { display: inline-flex; align-items: center; gap: 5px; }
+.rd-meta span.on { color: #39ff88; }
+.rd-banner.rec { background: linear-gradient(135deg, #ffd24a, #ff3fb4); color: #2a0014; }
+.cz-road .rd-auto button { min-width: 0; }
+.pk-best.rec b { color: #ffd24a; }
+.pk-record { position: absolute; left: 50%; top: 30%; z-index: 7; transform: translate(-50%, -50%); padding: 8px 18px; border-radius: 14px; pointer-events: none;
+  background: linear-gradient(135deg, #ffd24a, #ff3fb4); color: #2a0014; font-family: 'Rajdhani', var(--display, sans-serif); font-weight: 700; font-size: 1.6rem; text-transform: uppercase; letter-spacing: .06em;
+  animation: pk-hit 1.6s cubic-bezier(.2, 1.5, .4, 1) forwards; }
+.pk-hud { grid-template-columns: auto 1fr auto auto; }

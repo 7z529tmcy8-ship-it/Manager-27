@@ -18,7 +18,7 @@ it('Start: 1.000 Chips, Einsatz-Limit nach VIP-Stufe, Jackpot wächst mit', () =
   expect(placeBet(c, 600)).toBeNull(); // Bronze: max. 500
   const b = placeBet(c, 500)!;
   expect(casinoOf(b).chips).toBe(9_500); // Level-Aufstiege bringen keine Chips
-  expect(casinoOf(b).vipPts).toBe(500);
+  expect(casinoOf(b).vipPts).toBe(happyHour().active ? 1000 : 500); // Happy Hour zählt doppelt
   expect(casinoOf(b).jackpot).toBe(JACKPOT_SEED + 5);
   expect(vipLevel(VIP[2].min)).toBe(2);
   const { club, amount } = takeJackpot(b);
@@ -85,6 +85,10 @@ it('Aufgaben, Big Win, Shop', () => {
     ...Array.from({ length: 3 }, () => ({ game: 'blackjack' as const, bet: 10, win: 20 })),
     { game: 'crash' as const, bet: 10, win: 40, mult: 4 }, { game: 'mines' as const, bet: 10, win: 30, safe: 6 },
     { game: 'slots' as const, bet: 10, win: 200 },
+    ...Array.from({ length: 100 }, () => ({ game: 'plinko' as const, bet: 10, win: 0 })),
+    ...Array.from({ length: 9 }, () => ({ game: 'road' as const, bet: 10, win: 0, mult: 2, safe: 1 })),
+    { game: 'road' as const, bet: 10, win: 60, mult: 6, safe: 8 },
+    { game: 'plinko' as const, bet: 10, win: 120, mult: 12 },
     ...Array.from({ length: 3 }, () => ({ game: 'bets' as const, bet: 10, win: 50, legs: 5 })),
   ];
   for (const e of evs) c = payout(c, e, now);
@@ -268,3 +272,22 @@ it('Straßen-Sprint: Multiplikator so, dass jeder Ausstieg 97 % zurückzahlt', a
   expect(roadStep('mid', () => 0.5)).toBe(true);
   expect(roadStep('mid', () => 0.05)).toBe(false);
 });
+
+{ // Casino-Fokus: Rekorde und Aufgaben
+  it('merkt sich den besten Multiplikator je Spiel', async () => {
+    let club = freshClub();
+    club = payout(club, { game: 'road', bet: 100, win: 511, mult: 5.11 });
+    club = payout(club, { game: 'road', bet: 100, win: 0, mult: 9 });
+    club = payout(club, { game: 'road', bet: 100, win: 300, mult: 3 });
+    expect(casinoOf(club).best?.road).toBe(5.11);
+  });
+  it('vergibt keine Aufgaben mehr für ausgeblendete Spiele', async () => {
+    const { QUESTS } = await import('../casino');
+    expect(QUESTS.some((q) => q.id === 'slots10')).toBe(true); // bleibt im Code
+    const { questsFor } = await import('../casino');
+    for (let d = 1; d <= 28; d++) {
+      const ids = questsFor(`2026-11-${String(d).padStart(2, '0')}`).map((q) => q.id);
+      expect(ids.some((id) => ['slots10', 'bj3', 'roulette5'].includes(id))).toBe(false);
+    }
+  });
+}
