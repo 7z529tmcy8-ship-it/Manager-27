@@ -20,6 +20,7 @@ import { deadlineOpen } from '../game/agent';
 import { Gala, WorldRaceCard } from './BigStage';
 import { Chapters, RivalCard } from './Story';
 import { TrainingWeek } from './Training';
+import { Farewell, RecordHunt } from './Legacy';
 import { galaWorthy } from '../game/bigstage';
 import { advanceFinal, autoFinal } from '../game/final';
 import { autoPlayFinal, keyMatchFor, playFinalStep, setKeyMatch, startKeyMatch, stayInWinter } from '../game/career';
@@ -371,6 +372,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           <SeasonPanel career={career} />
           <WorldRaceCard career={career} />
           {stageMode && <RivalCard career={career} />}
+          {stageMode && <RecordHunt career={career} />}
           {askLive ? (
             <div className="live-ask">
               <h3>Wie willst du deine Karriere spielen?</h3>
@@ -428,6 +430,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         <section className="cs-window">
           <h2>Karriereende</h2>
           {career.retiredReason && <p className="cs-sub">{career.retiredReason}</p>}
+          <Farewell career={career} />
           <button className="btn secondary big cs-go" onClick={onExit}>Zum Hauptmenü</button>
         </section>
       )}

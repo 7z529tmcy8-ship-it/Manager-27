@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-24-vermaechtnis',
+    date: '24.11.2026',
+    title: 'Karriere-Update: Vermächtnis & Rekorde',
+    items: [
+      'Ruhmeshalle im Karriere-Menü: alle deine Karrieren nach Legendenpunkten, dazu Bestwerte (meiste Tore, Vorlagen, beste Note …).',
+      'Rekordjagd während der Saison: Knackst du deinen eigenen Tor- oder Vorlagen-Rekord aus allen Karrieren?',
+      'Abschiedsspiel zum Karriereende: Bilanz, beste Saison, deine Karriere-Kapitel und dein Platz in der Ruhmeshalle.',
+    ],
+  },
+  {
     id: '2026-11-24-trainingswoche',
     date: '24.11.2026',
     title: 'Karriere-Update: Trainingswoche',

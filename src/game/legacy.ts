@@ -93,7 +93,7 @@ export function careerRecords(careers: Career[]): CareerRecord[] {
   const rated = seasons.filter(({ s }) => s.avgRating !== null && s.apps >= 20);
   const rating = best(rated, ({ s }) => s.avgRating!);
   if (rating) {
-    records.push({ label: 'Beste Saisonnote (ab 20 Spielen)', value: rating.s.avgRating!.toFixed(2), holder: rating.c.player.name, detail: `${rating.s.season} · ${getClub(rating.s.clubId).name}` });
+    records.push({ label: 'Beste Saisonnote (ab 20 Spielen)', value: rating.s.avgRating!.toFixed(2).replace('.', ','), holder: rating.c.player.name, detail: `${rating.s.season} · ${getClub(rating.s.clubId).name}` });
   }
   const eighty5 = seasons.filter(({ s }) => s.ovrEnd >= 85);
   const youngest = best(eighty5, ({ s }) => -s.age);
@@ -106,4 +106,27 @@ export function careerRecords(careers: Career[]): CareerRecord[] {
     records.push({ label: 'Meiste Titel', value: `${titles.titles}`, holder: titles.career.player.name, detail: `in ${titles.seasons} Saisons` });
   }
   return records;
+}
+
+export interface Hunt { label: string; record: number; holder: string; mine: number; you: boolean }
+/**
+ * Rekordjagd in der laufenden Saison – gegen die eigenen Bestwerte aus allen gespeicherten Karrieren
+ * (keine echten Rekorde aus der Wirklichkeit, die könnten veraltet oder falsch sein).
+ */
+export function recordHunt(careers: Career[], current: Career, live: { goals: number; assists: number }): Hunt[] {
+  const seasons = careers.flatMap((c) => c.history.map((s) => ({ name: c.player.name, id: c.id, s })));
+  const out: Hunt[] = [];
+  const add = (label: string, val: (s: Career['history'][number]) => number, mine: number) => {
+    const best = seasons.reduce<{ name: string; id: string; v: number } | null>((b, x) => (val(x.s) > (b?.v ?? 0) ? { name: x.name, id: x.id, v: val(x.s) } : b), null);
+    if (!best || best.v < 3) return;
+    out.push({ label, record: best.v, holder: best.name, mine, you: best.id === current.id });
+  };
+  if (current.player.position !== 'TW') add('Meiste Tore in einer Saison', (s) => s.goals, live.goals);
+  add('Meiste Vorlagen in einer Saison', (s) => s.assists, live.assists);
+  return out;
+}
+
+/** Rang einer Karriere in der Ruhmeshalle (nach Legendenpunkten). */
+export function hallOfFame(careers: Career[]): CareerSummary[] {
+  return careers.filter((c) => c.history.length > 0).map(summarizeCareer).sort((a, b) => b.score - a.score);
 }

@@ -5713,3 +5713,38 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .dr-dots i { width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 1px solid var(--muted); }
 .dr-dots i.hit { background: #1f9a57; border-color: #1f9a57; } .dr-dots i.miss { background: #e0344f; border-color: #e0344f; }
 .dr-go { min-width: 120px; }
+
+/* ---------- Vermächtnis: Ruhmeshalle, Rekordjagd, Abschied ---------- */
+.hof { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.hof li { display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center; padding: 12px; border-radius: 16px; background: var(--surface); border: 1px solid var(--hairline); }
+.hof li.top { border-color: #d4a017; background: linear-gradient(135deg, rgba(212, 160, 23, .18), transparent); }
+.hof i { font-style: normal; font-weight: 900; font-size: 1.1rem; text-align: center; }
+.hof span { display: grid; gap: 2px; min-width: 0; }
+.hof small { color: var(--muted); font-size: .74rem; }
+.hof em { font-style: normal; font-weight: 900; font-size: 1.2rem; display: grid; text-align: right; }
+.hof em small { font-weight: 600; font-size: .62rem; }
+.hof-h { margin: 18px 0 8px; font-size: 1.05rem; }
+.hof-rec { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.hof-rec li { display: grid; grid-template-columns: 1fr auto; column-gap: 8px; padding: 10px 12px; border-radius: 14px; background: var(--hairline); }
+.hof-rec small { color: var(--muted); font-size: .74rem; }
+.hof-rec b { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-size: 1.2rem; }
+.hof-rec span { font-size: .8rem; }
+.rh { margin-top: 12px; padding: 12px 14px; border-radius: 16px; background: var(--hairline); display: grid; gap: 8px; }
+.rh header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.rh header b { display: inline-flex; gap: 6px; align-items: center; }
+.rh header small { color: var(--muted); font-size: .72rem; }
+.rh-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; }
+.rh-row > span:first-child { display: grid; font-size: .84rem; }
+.rh-row small { color: var(--muted); font-size: .72rem; }
+.rh-bar { grid-column: 1; height: 6px; border-radius: 99px; background: var(--surface); overflow: hidden; }
+.rh-bar i { display: block; height: 100%; background: linear-gradient(90deg, #6d5dfc, #ffc21a); }
+.rh-row em { grid-column: 2; grid-row: 1 / span 2; font-style: normal; font-weight: 900; font-size: .9rem; }
+.rh-row.done em { color: #1f9a57; }
+.fw { margin: 12px 0; padding: 16px; border-radius: 18px; background: linear-gradient(160deg, #2a1f05, #120c02); color: #fff; display: grid; gap: 8px; }
+.fw-kicker { font-size: .7rem; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; color: #ffd24a; }
+.fw h3 { margin: 0; font-size: 1.4rem; }
+.fw dl { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 0; text-align: center; }
+.fw dt { font-size: .64rem; color: rgba(255, 255, 255, .6); }
+.fw dd { margin: 0; font-weight: 900; font-size: 1.1rem; }
+.fw p { margin: 0; font-size: .84rem; color: rgba(255, 255, 255, .8); }
+.fw-rank { display: flex; gap: 6px; align-items: center; color: #ffd24a !important; font-weight: 800; }

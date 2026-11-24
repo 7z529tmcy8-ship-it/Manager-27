@@ -1,4 +1,5 @@
 import { Suspense, lazy, useState } from 'react';
+import { HallOfFame } from './Legacy';
 import { getClub } from '../data/leagues';
 import { collectionProgress, creditCareer, rewardPending } from '../game/club';
 import { divName, divReward, divisionOf } from '../game/divisions';
@@ -35,6 +36,7 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile,
   const [saves, setSaves] = useState(listCareers);
   const [settings, setSettings] = useState(false);
   const [backup, setBackup] = useState(false);
+  const [hof, setHof] = useState(false);
   const [list, setList] = useState(false);
   const [welcome, setWelcome] = useState<{ name: string; result: PackResult } | null>(null);
   const sorted = [...saves].sort((a, b) => b.updatedAt - a.updatedAt);
@@ -171,11 +173,13 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile,
         {sorted.length > 1 && (
           <button className="ch-row" onClick={() => setList(true)}><Icon name="folder" size={20} /><span><b>Spielstände</b><small>{sorted.length} Karrieren gespeichert</small></span><Icon name="arrow" size={18} /></button>
         )}
+        <button className="ch-row" onClick={() => setHof(true)}><Icon name="crown" size={20} /><span><b>Ruhmeshalle</b><small>Deine Karrieren im Vergleich, Bestwerte</small></span><Icon name="arrow" size={18} /></button>
         <button className="ch-row ch-news-row" onClick={onNews}><Icon name="news" size={20} /><span><b>Neuigkeiten</b><small>Was sich im Spiel geändert hat</small></span><Icon name="arrow" size={18} /></button>
         <button className="ch-row" onClick={() => setBackup(true)}><Icon name="cloud" size={20} /><span><b>Sichern & Laden</b><small>Spielstände exportieren und einspielen</small></span><Icon name="arrow" size={18} /></button>
       </div>
       <p className="hub-foot">Private Fan-Seite ohne Verbindung zu EA SPORTS. Werte sind eigene Schätzungen.</p>
 
+      {hof && <HallOfFame onClose={() => setHof(false)} />}
       {list && (
         <div className="overlay" role="dialog" aria-modal="true" aria-label="Spielstände">
           <div className="overlay-inner">
