@@ -367,6 +367,8 @@ export interface SeasonProgress {
   sceneLog?: import('./matchday').SceneOutcome[];
   /** Rolle und Vertrauen vor der zuletzt gespielten Etappe (für den Rückblick). */
   recap?: { stage: number; roleFrom: import('./matchday').TeamRoleId; trustFrom: number } | null;
+  /** Etappe, in der die Trainingsübung schon gemacht wurde. */
+  drillStage?: number;
   /** Etappe, in der schon mit dem Trainer gesprochen wurde. */
   talkedStage?: number;
   /** Auftrag des Trainers für die nächste Etappe. */

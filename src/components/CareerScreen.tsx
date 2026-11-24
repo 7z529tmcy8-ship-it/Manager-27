@@ -19,6 +19,7 @@ import { DeadlineDay, Kabine, SceneCard, StageCard, StageRecap } from './Matchda
 import { deadlineOpen } from '../game/agent';
 import { Gala, WorldRaceCard } from './BigStage';
 import { Chapters, RivalCard } from './Story';
+import { TrainingWeek } from './Training';
 import { galaWorthy } from '../game/bigstage';
 import { advanceFinal, autoFinal } from '../game/final';
 import { autoPlayFinal, keyMatchFor, playFinalStep, setKeyMatch, startKeyMatch, stayInWinter } from '../game/career';
@@ -388,7 +389,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           ) : stageMode && career.phase === 'season' ? (
             prog?.scene
               ? <SceneCard scene={prog.scene} onPick={(id) => onChange(sceneStep(career, id, live))} />
-              : <><StageRecap career={career} /><StageCard career={career} onPlay={runStage} onQuick={run} /></>
+              : <><StageRecap career={career} /><TrainingWeek career={career} onChange={onChange} /><StageCard career={career} onPlay={runStage} onQuick={run} /></>
           ) : stageMode && career.phase === 'winter' ? (
             <>
               <button className="btn primary big cs-go" onClick={() => onChange(stayInWinter(career))}>Rückrunde starten</button>

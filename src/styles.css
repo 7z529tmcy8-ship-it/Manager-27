@@ -5688,3 +5688,28 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .chap i { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 900; font-size: .8rem; background: linear-gradient(160deg, #6d5dfc, #3a2aa8); color: #fff; }
 .chap span { display: grid; gap: 2px; min-width: 0; }
 .chap small { display: inline-flex; gap: 5px; align-items: center; color: var(--muted); font-size: .74rem; }
+
+/* ---------- Trainingswoche ---------- */
+.tw { margin-top: 12px; padding: 10px 12px; border-radius: 16px; background: var(--hairline); display: grid; gap: 8px; }
+.tw-head { display: grid; grid-template-columns: 18px auto 1fr 16px; gap: 8px; align-items: center; width: 100%; padding: 2px 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.tw-head small { color: var(--muted); text-align: right; font-size: .76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tw-head .tw-open { transform: rotate(90deg); }
+.tw-body { display: grid; gap: 6px; }
+.tw-label { font-size: .7rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.tw-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tw-chips button { padding: 6px 11px; border-radius: 99px; border: 1px solid var(--hairline); background: var(--surface); color: inherit; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; }
+.tw-chips button.key { border-color: rgba(255, 194, 26, .6); }
+.tw-chips button.on { background: #6d5dfc; border-color: #6d5dfc; color: #fff; }
+.tw-hint { margin: 0; font-size: .76rem; color: var(--muted); }
+.tw-result { font-weight: 800; color: var(--text); }
+.tw-drill-btn { justify-self: start; display: inline-flex; gap: 6px; align-items: center; }
+.dr { display: grid; gap: 8px; }
+.dr-track { position: relative; height: 26px; border-radius: 99px; background: #1b1d2c; overflow: hidden; }
+.dr-zone { position: absolute; top: 0; bottom: 0; background: rgba(34, 192, 106, .55); }
+.dr-rail { position: absolute; inset: 0; will-change: transform; }
+.dr-rail b { position: absolute; left: -3px; top: 2px; bottom: 2px; width: 6px; border-radius: 3px; background: #ffd24a; }
+.dr-foot { display: flex; justify-content: space-between; align-items: center; }
+.dr-dots { display: flex; gap: 6px; }
+.dr-dots i { width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 1px solid var(--muted); }
+.dr-dots i.hit { background: #1f9a57; border-color: #1f9a57; } .dr-dots i.miss { background: #e0344f; border-color: #e0344f; }
+.dr-go { min-width: 120px; }

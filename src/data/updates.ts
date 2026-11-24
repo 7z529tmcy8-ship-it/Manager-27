@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-24-trainingswoche',
+    date: '24.11.2026',
+    title: 'Karriere-Update: Trainingswoche',
+    items: [
+      'Vor jeder Etappe stellst du die Belastung ein: Normal, Extra-Schichten, Volle Kraft oder Schonen – mehr Einsätze gegen mehr Verletzungsrisiko.',
+      'Trainingsschwerpunkt frei wählbar (wichtige Attribute deiner Position sind markiert).',
+      'Timing-Übung (freiwillig, einmal pro Etappe): Stoppe die Markierung im grünen Bereich – bis zu +0,3 Form. Je besser dein Schlüsselattribut, desto größer der grüne Bereich.',
+    ],
+  },
+  {
     id: '2026-11-24-story-rivalen',
     date: '24.11.2026',
     title: 'Karriere-Update: Story & Rivalen',
