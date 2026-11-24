@@ -79,6 +79,16 @@ export default function Settings({ career, onChange, onClose, onNews, onBackup }
               onPick={(difficulty) => onChange(setCareerSettings(career, { difficulty }))}
               hint={DIFFICULTIES[cs.difficulty].hint}
             />
+            <div className="setting-row side-row">
+              <span className="setting-label">Bereiche im Leben-Tab</span>
+              <span className="side-chips">
+                {([['invest', 'Vermögen'], ['clinic', 'Klinik'], ['look', 'Look'], ['gram', 'Kickgram'], ['kit', 'Ausrüster']] as const).map(([id, label]) => {
+                  const hidden = (career.settings?.hideSide ?? []).includes(id);
+                  return <button key={id} className={hidden ? '' : 'on'} onClick={() => onChange(setCareerSettings(career, { hideSide: hidden ? (career.settings?.hideSide ?? []).filter((x) => x !== id) : [...(career.settings?.hideSide ?? []), id] }))}>{label}</button>;
+                })}
+              </span>
+              <small className="hint">Ausgeblendet heißt nur: nicht angezeigt. Nichts wird gelöscht – einfach wieder antippen.</small>
+            </div>
             <Toggle label="Spieltag-Modus (6 Etappen mit Szenen)" checked={career.settings?.stageMode !== false}
               onToggle={() => onChange(setCareerSettings(career, { stageMode: career.settings?.stageMode === false }))}
               hint="Saison Etappe für Etappe: Szenen mit eigenen Entscheidungen, Trainergespräch, Rolle im Team. Aus = bis zur Pause durchsimulieren." />

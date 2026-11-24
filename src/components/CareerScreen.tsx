@@ -15,7 +15,8 @@ import SimShow, { GoalBars } from './SimShow';
 import { evaluateGoals } from '../game/goals';
 import { YOUTH_ORDER, sortTable, upcomingFixtures } from '../game/season';
 import { replayOf, stageReplayOf, type Replay } from '../game/simReplay';
-import { DeadlineDay, Kabine, SceneCard, StageCard, StageRecap } from './Matchday';
+import { DeadlineDay, Kabine, MdIntro, SceneCard, StageCard, StageRecap } from './Matchday';
+import { nextGoal } from '../game/matchday';
 import { deadlineOpen } from '../game/agent';
 import { Gala, WorldRaceCard } from './BigStage';
 import { Chapters, RivalCard } from './Story';
@@ -117,8 +118,11 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   const secondHalf = career.phase === 'winter' || (career.phase === 'season' && (prog?.stage ?? 0) >= STAGES_PER_HALF);
   const half = secondHalf && prog ? halfStats(prog.matches) : null;
   const note = career.decisionResult;
+  const goalText = nextGoal(career, prog ? evaluateGoals(career.seasonGoals ?? [], prog.matches) : []);
   const totals = career.history.reduce((a, r) => ({ apps: a.apps + r.apps, goals: a.goals + r.goals, assists: a.assists + r.assists }), { apps: 0, goals: 0, assists: 0 });
   const retired = career.phase === 'retired';
+  // Ausgeblendete Neben-Bereiche (Einstellungen) – die Daten bleiben erhalten
+  const off = (id: 'invest' | 'clinic' | 'look' | 'gram' | 'kit') => (career.settings?.hideSide ?? []).includes(id);
   const coins = useClub().coins;
 
   // Topspiel der Halbserie: vor dem Simulieren selbst spielen (oder automatisch).
@@ -272,15 +276,15 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
 
       {/* Familie und Vermögen */}
       {show('life') && <div className="cs-life">
-        <button className="cs-life-btn" onClick={() => setPanel('invest')}>Vermögen</button>
-        <button className="cs-life-btn" onClick={() => setPanel('clinic')}>Klinik{career.glam ? ` · ${career.glam}` : ''}</button>
-        {!retired && (
+        {!off('invest') && <button className="cs-life-btn" onClick={() => setPanel('invest')}>Vermögen</button>}
+        {!off('clinic') && <button className="cs-life-btn" onClick={() => setPanel('clinic')}>Klinik{career.glam ? ` · ${career.glam}` : ''}</button>}
+        {!retired && !off('look') && (
           <button className={`cs-life-btn cs-look-btn ${larpRisk(career) >= 40 ? 'alarm' : ''} ${canFlexNow(career) ? 'can-flex' : ''}`} onClick={() => setPanel('look')}>
             Look · Aura {auraOf(career)}{larpRisk(career) > 0 ? ` · ${larpRisk(career)} %` : ''}
           </button>
         )}
-        <button className="cs-life-btn cs-kg-btn" onClick={() => setPanel('gram')}>Kickgram · {fmtFollowers(gramOf(career).followers)}</button>
-        {!retired && (
+        {!off('gram') && <button className="cs-life-btn cs-kg-btn" onClick={() => setPanel('gram')}>Kickgram · {fmtFollowers(gramOf(career).followers)}</button>}
+        {!retired && !off('kit') && (
           <button className={`cs-life-btn ${(career.kitOffers?.length ?? 0) > 0 ? 'cs-kit-new' : ''}`} onClick={() => setPanel('kit')}>
             {career.kit ? BRANDS[career.kit.brand].name : 'Ausrüster'}{(career.kitOffers?.length ?? 0) > 0 ? ` · ${career.kitOffers!.length} neu` : ''}
           </button>
@@ -295,7 +299,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       {show('dev') && career.history.length > 0 && <CareerPulse career={career} />}
       {show('dev') && <AttrPanel career={career} />}
 
-      {show('play') && !retired && (career.kitOffers?.length ?? 0) > 0 && (
+      {show('play') && !retired && !off('kit') && (career.kitOffers?.length ?? 0) > 0 && (
         <button className="cs-note good sk-note kit-note" onClick={() => setPanel('kit')}>
           {career.kitOffers!.length === 1 ? `${BRANDS[career.kitOffers![0].brand].name} will dich als Ausrüster` : `${career.kitOffers!.length} Ausrüster wollen dich`} – Angebot ansehen
         </button>
@@ -358,6 +362,8 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         </div>
       )}
 
+      {!needType && stageMode && !askLive && <MdIntro career={career} />}
+      {!needType && stageMode && !askLive && goalText && <p className="ng"><Icon name="target" size={16} /><span><small>Nächstes Ziel</small>{goalText}</span></p>}
       {!needType && stageMode && !askLive && (career.phase === 'season' || career.phase === 'winter') && !p.absent && <Kabine career={career} onChange={onChange} />}
       {!needType && (career.phase === 'season' || career.phase === 'winter' || career.phase === 'final') && (
         <section className="cs-window">

@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-24-klarheit',
+    date: '24.11.2026',
+    title: 'Karriere-Update: Mehr Klarheit',
+    items: [
+      '„Nächstes Ziel“ steht jetzt immer oben in der Karriere: Trainer-Auftrag, nächste Rolle im Team oder offenes Saisonziel.',
+      'Kurze Einführung in der ersten Saison: So funktionieren Etappen, Szenen und Kabine.',
+      'Leben-Tab aufräumen: In den Einstellungen der Karriere kannst du Vermögen, Klinik, Look, Kickgram und Ausrüster einzeln ausblenden. Es wird nichts gelöscht.',
+    ],
+  },
+  {
     id: '2026-11-24-vermaechtnis',
     date: '24.11.2026',
     title: 'Karriere-Update: Vermächtnis & Rekorde',

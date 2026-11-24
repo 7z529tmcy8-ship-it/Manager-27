@@ -145,3 +145,12 @@ it('Berater: Haifisch treibt Gehälter, Familienfreund bringt Vertrauen, nur ein
   rumorTick(s, 0, () => 0);
   expect((s.rumors?.length ?? 0) + (s.rumors?.some((r) => r.heat > 1) ? 1 : 0)).toBeGreaterThanOrEqual(before);
 });
+
+it('Nächstes Ziel: Trainer-Auftrag hat Vorrang, sonst Rolle oder Saisonziel', async () => {
+  const { nextGoal } = await import('../matchday');
+  const c = base();
+  const g = nextGoal(c, [{ label: '10 Tore', value: 3, target: 10, met: false }]);
+  expect(g).toBeTruthy();
+  const withTask = coachTalk(playEtappe(c), 'task', seq(0.5)).career;
+  if (withTask.phase === 'season' && withTask.progress?.coachTask) expect(nextGoal(withTask)).toContain('Trainer-Auftrag');
+});

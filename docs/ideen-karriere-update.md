@@ -1,6 +1,6 @@
 # Großes Karriere-Update – Ideen-Pakete
 
-Stand: 24.11.2026 · Fokus: **Spielerkarriere** (Casino bleibt als Nebenbereich mit Plinko und Straßen-Sprint)
+Stand: 24.11.2026 · **Alle 8 Pakete umgesetzt (24.11.2026)** · Fokus: **Spielerkarriere** (Casino bleibt als Nebenbereich mit Plinko und Straßen-Sprint)
 
 ## Ausgangslage (was es schon gibt)
 
@@ -25,7 +25,7 @@ Die Pakete unten setzen genau dort an. Reihenfolge = meine Empfehlung.
 
 ---
 
-## Paket 1 – Spieltag-Modus (Kern-Gameplay) ⭐ zuerst
+## Paket 1 – Spieltag-Modus (Kern-Gameplay) ✅ umgesetzt
 
 **Ziel:** Jede Saison fühlt sich an wie eine Saison, nicht wie zwei Klicks.
 
@@ -39,7 +39,7 @@ Die Pakete unten setzen genau dort an. Reihenfolge = meine Empfehlung.
 **Warum Spaß:** Mehr kleine Entscheidungen mit spürbarer Wirkung, Spannung vor jedem Spieltag.
 **Aufwand:** groß (M–L). **Risiko:** Balance der Werte – braucht Tests, damit Karrieren nicht leichter werden.
 
-## Paket 2 – Trainer & Kabine
+## Paket 2 – Trainer & Kabine ✅ umgesetzt
 
 **Ziel:** Spielzeit erkämpfen statt zugeteilt bekommen.
 
@@ -54,7 +54,7 @@ Die Pakete unten setzen genau dort an. Reihenfolge = meine Empfehlung.
 **Warum Spaß:** Ein Ziel, das man jede Etappe sieht und knapp verfehlen oder schaffen kann.
 **Aufwand:** mittel. Passt perfekt zu Paket 1.
 
-## Paket 3 – Große Bühne (Höhepunkte)
+## Paket 3 – Große Bühne (Höhepunkte) ✅ umgesetzt (Gala, Weltfußballer-Ranking, Flutlicht im Rückblick – eigene Live-Spiele im Europapokal noch offen)
 
 **Ziel:** Die besonderen Abende fühlen sich besonders an.
 
@@ -68,7 +68,7 @@ Die Pakete unten setzen genau dort an. Reihenfolge = meine Empfehlung.
 
 **Aufwand:** mittel. **Warum Spaß:** Die großen Momente sind die, an die man sich erinnert.
 
-## Paket 4 – Berater & Transfermarkt 2.0
+## Paket 4 – Berater & Transfermarkt 2.0 ✅ umgesetzt (Klauseln waren schon da)
 
 - **Berater wählen** (eigene Figuren, keine echten Personen): gierig (mehr Gehalt, Vereine genervt),
   loyal (weniger Geld, mehr Vertrauen), Großmaul (mehr Angebote, mehr Presse-Ärger).
@@ -78,7 +78,7 @@ Die Pakete unten setzen genau dort an. Reihenfolge = meine Empfehlung.
 
 **Aufwand:** mittel.
 
-## Paket 5 – Story & Rivalen
+## Paket 5 – Story & Rivalen ✅ umgesetzt (Presse mit Langzeitfolgen noch offen)
 
 - **Rivale 2.0:** ein festes Gegenstück über die ganze Karriere (gleicher Jahrgang, gleiche Position),
   direkte Duelle in Topspielen, Vergleich in jeder Etappe.
@@ -89,7 +89,7 @@ Die Pakete unten setzen genau dort an. Reihenfolge = meine Empfehlung.
 
 **Aufwand:** mittel.
 
-## Paket 6 – Trainingswoche (optional spielbar)
+## Paket 6 – Trainingswoche (optional spielbar) ✅ umgesetzt (eine Übung: Timing-Schuss)
 
 - Zwischen den Etappen **ein Trainingsplan**: Schwerpunkt, Belastung, Pause.
 - **Kurze Übungen** (10–15 Sekunden, z. B. Timing-Schuss, Pass-Präzision): gutes Ergebnis = etwas
@@ -98,7 +98,7 @@ Die Pakete unten setzen genau dort an. Reihenfolge = meine Empfehlung.
 
 **Aufwand:** mittel bis groß (Mini-Spiele). **Risiko:** darf nicht zur Pflicht werden.
 
-## Paket 7 – Vermächtnis & Rekorde
+## Paket 7 – Vermächtnis & Rekorde ✅ umgesetzt (Rekordjagd nur mit eigenen Bestwerten)
 
 - **Ruhmeshalle** über alle Karrieren (Bestwerte gibt es schon in `legacy.ts`): beste Karrieren, Titel, Rekorde.
 - **Rekordjagd:** z. B. „meiste Tore in einer Bundesliga-Saison“ – mit Fortschrittsbalken in der Saison.
@@ -108,7 +108,7 @@ Die Pakete unten setzen genau dort an. Reihenfolge = meine Empfehlung.
 
 **Aufwand:** klein bis mittel.
 
-## Paket 8 – Aufräumen & Klarheit (läuft nebenher)
+## Paket 8 – Aufräumen & Klarheit ✅ umgesetzt
 
 - **Leben-Tab ordnen:** Neben-Systeme (Look, Klinik, Abseits-Aktionen, Kickgram, Vermögen) in
   Gruppen sortieren und in den Einstellungen **einzeln ausschaltbar** machen. Nichts löschen –

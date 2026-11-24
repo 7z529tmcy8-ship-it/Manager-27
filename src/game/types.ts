@@ -761,6 +761,8 @@ export interface CareerSettings {
   simShow?: boolean;
   /** Spieltag-Modus: Saison in 6 Etappen mit Szenen und Trainergespräch (Standard an). */
   stageMode?: boolean;
+  /** Ausgeblendete Neben-Bereiche im Leben-Tab (nichts wird gelöscht, nur nicht angezeigt). */
+  hideSide?: ('invest' | 'clinic' | 'look' | 'gram' | 'kit')[];
 }
 
 export type InboxKind = 'national' | 'welcome' | 'goals' | 'season' | 'offer' | 'contract' | 'transfer' | 'event' | 'decision' | 'press' | 'achievement' | 'lotto' | 'casino' | 'holiday' | 'retire';

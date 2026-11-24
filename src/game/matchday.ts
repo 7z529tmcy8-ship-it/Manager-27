@@ -459,3 +459,18 @@ export function closeStage(prev: Career): Career {
 
 /** Ist die Etappe, die gerade gespielt wurde, die letzte vor einer Pause? */
 export const breakAfter = (stagePlayed: number) => stagePlayed + 1 === STAGES_PER_HALF || stagePlayed + 1 === STAGES;
+
+// ---------- Nächstes Ziel (Paket 8: Klarheit) ----------
+
+/** Ein konkretes, kurzfristiges Ziel für die Kopfzeile – das, was als Nächstes erreichbar ist. */
+export function nextGoal(career: Career, goals: { label: string; value: number; target: number; met: boolean }[] = []): string | null {
+  if (career.phase !== 'season' && career.phase !== 'winter') return null;
+  const task = career.progress?.coachTask;
+  if (task) return `Trainer-Auftrag: ${task.label}`;
+  const role = teamRole(career);
+  if (role.next && role.next.gap <= 25) return `${role.next.label} werden: noch ${role.next.gap} Prozentpunkte Startelf-Chance`;
+  const open = goals.find((g) => !g.met);
+  if (open) return `Saisonziel ${open.label}: ${Math.round(open.value * 10) / 10} von ${open.target}`;
+  if (!role.next) return 'Unverzichtbar – halte dein Niveau und jage Rekorde';
+  return null;
+}

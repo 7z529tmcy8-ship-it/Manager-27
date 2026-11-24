@@ -223,3 +223,22 @@ export function DeadlineDay({ career, onChange }: { career: Career; onChange: (c
     </div>
   );
 }
+
+/** Kurze Einführung in der ersten Saison (einmal pro Gerät, wegklickbar). */
+const INTRO_KEY = 'fc-md-intro-v1';
+export function MdIntro({ career }: { career: Career }) {
+  const [hidden, setHidden] = useState(() => { try { return localStorage.getItem(INTRO_KEY) === '1'; } catch { return true; } });
+  if (hidden || career.history.length > 0 || (career.progress?.stage ?? 0) > 1 || career.phase !== 'season') return null;
+  const close = () => { try { localStorage.setItem(INTRO_KEY, '1'); } catch { /* egal */ } setHidden(true); };
+  return (
+    <section className="mdi" aria-label="So funktioniert die Saison">
+      <b>So läuft deine Saison</b>
+      <ol>
+        <li><b>6 Etappen:</b> Vor jeder Etappe Training einstellen, dann „Etappe spielen“.</li>
+        <li><b>Szene des Spieltags:</b> Danach entscheidest du einen Moment selbst – die Chance steht dran.</li>
+        <li><b>Kabine:</b> Startelf-Chance, Vertrauen und Trainergespräch zeigen, wie du dir deinen Platz erkämpfst.</li>
+      </ol>
+      <button className="btn secondary small" onClick={close}>Verstanden</button>
+    </section>
+  );
+}
