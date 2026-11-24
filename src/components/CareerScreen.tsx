@@ -18,6 +18,7 @@ import { replayOf, stageReplayOf, type Replay } from '../game/simReplay';
 import { DeadlineDay, Kabine, SceneCard, StageCard, StageRecap } from './Matchday';
 import { deadlineOpen } from '../game/agent';
 import { Gala, WorldRaceCard } from './BigStage';
+import { Chapters, RivalCard } from './Story';
 import { galaWorthy } from '../game/bigstage';
 import { advanceFinal, autoFinal } from '../game/final';
 import { autoPlayFinal, keyMatchFor, playFinalStep, setKeyMatch, startKeyMatch, stayInWinter } from '../game/career';
@@ -368,6 +369,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           {note && <p className={`cs-note ${note.tone}`}><b>{note.title}:</b> {note.text}</p>}
           <SeasonPanel career={career} />
           <WorldRaceCard career={career} />
+          {stageMode && <RivalCard career={career} />}
           {askLive ? (
             <div className="live-ask">
               <h3>Wie willst du deine Karriere spielen?</h3>
@@ -432,6 +434,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       </>}
       {/* Zeitleiste: standardmäßig nur die letzten Saisons, damit Entscheidungen oben bleiben */}
       {show('history') && <>
+      <Chapters career={career} />
       <div className="cs-timeline-head">
         <h2>Karriereverlauf</h2>
         {full && career.history.length > COLLAPSED && <button className="cs-link" onClick={() => setFull(false)}>Einklappen ▴</button>}

@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-24-story-rivalen',
+    date: '24.11.2026',
+    title: 'Karriere-Update: Story & Rivalen',
+    items: [
+      'Dein Rivale ist jetzt sichtbar: gleiche Position, ähnliches Alter – mit Bilanz über alle Saisons und Zwischenstand im laufenden Jahr.',
+      'Rivalen-Duell: Spielst du gegen seinen Verein, wird die Szene des Spieltags zum direkten Duell.',
+      'Fan-Stimmung pro Verein (Pfiffe bis Fan-Liebling): gute Spiele, Treue und Titel zählen – ein schneller Abgang wird nicht vergessen, bei der Rückkehr gibt es Applaus oder Pfiffe.',
+      'Karriere-Kapitel im Verlauf: automatische Überschriften wie „Durchbruch bei …“ oder „Titelsammler bei …“.',
+    ],
+  },
+  {
     id: '2026-11-24-berater',
     date: '24.11.2026',
     title: 'Karriere-Update: Berater & Transfermarkt',

@@ -7,6 +7,7 @@ import { transferOffer, EXOTIC_AGE } from './offers';
 import { postInbox } from './inbox';
 import { changeTrust } from './matchday';
 import { halfStats } from './season';
+import { fanSeasonEnd } from './story';
 import type { Career, Offer } from './types';
 
 type Rand = () => number;
@@ -79,6 +80,8 @@ export function applyAgentWindow(prev: Career, rand: Rand = Math.random): Career
   if (prev.phase !== 'window' || !season || prev.agentWindow === season) return prev;
   const career: Career = structuredClone(prev);
   career.agentWindow = season;
+  // Fans: Treue und Titel der abgelaufenen Saison (einmal pro Sommer, darum hier)
+  fanSeasonEnd(career, career.history[career.history.length - 1]);
   const p = career.player;
   const notes: string[] = [];
   // Heiße Gerüchte → Angebote

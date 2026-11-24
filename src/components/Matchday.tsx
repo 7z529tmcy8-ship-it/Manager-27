@@ -8,6 +8,7 @@ import {
   type Scene, type TalkId,
 } from '../game/matchday';
 import { compShort } from '../game/simReplay';
+import { fanMood } from '../game/story';
 import { AGENTS, canChangeAgent, deadlineDay, heatWord, setAgent, type AgentId } from '../game/agent';
 import type { Career } from '../game/types';
 
@@ -19,6 +20,7 @@ const signed = (d: number) => `${d > 0 ? '+' : ''}${String(Math.round(d * 10) / 
 export function Kabine({ career, onChange }: { career: Career; onChange: (c: Career) => void }) {
   const role = teamRole(career);
   const trust = trustInfo(career);
+  const fans = fanMood(career);
   const t = career.trainer;
   const comp = career.competitor?.clubId === currentClubId(career.player) ? career.competitor : null;
   const [talk, setTalk] = useState(false);
@@ -60,6 +62,7 @@ export function Kabine({ career, onChange }: { career: Career; onChange: (c: Car
         )}
       </div>
 
+      <div className="kb-fans"><small>Fans</small><span className="kb-trust-bar fans"><i style={{ width: `${Math.max(4, fans.pct * 100)}%` }} /></span><b>{fans.word}</b></div>
       <div className="kb-people">
         {t && <span><Icon name="whistle" size={16} /><b>{t.name}</b><small>{TRAINER_STYLE[t.style]}</small></span>}
         {comp && <span><Icon name="duel" size={16} /><b>{comp.name}</b><small>OVR {comp.ovr} · {duelText(career)}</small></span>}

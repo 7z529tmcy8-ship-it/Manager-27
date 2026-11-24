@@ -3,7 +3,7 @@ import { bonusOvr } from './development';
 import { getClub, youthClubOf } from '../data/leagues';
 import { acceptOffer, acceptWinterOffer, autoPlayFinal, canStay, finishFinal, playFirstHalf, playSeasonUntilFinal, requestOffers, retire, stayAtClub } from './career';
 import { chance, randInt } from './random';
-import { clubStrength } from './player';
+import { clubStrength, currentClubId } from './player';
 import { STAGES_PER_HALF, halfStats } from './season';
 import { grantXp, levelInfo, xpFor, xpForSeason } from './skills';
 import { coolDownScandal } from './vices';
@@ -13,6 +13,7 @@ import { resolveNlzOffer } from './nlz';
 import type { Career, Offer } from './types';
 import { closeStage, playEtappe, resolveScene } from './matchday';
 import { applyAgentWindow, rumorTick } from './agent';
+import { fanLeave, fanTick } from './story';
 
 // Vereinfachter Spielablauf: immer bis zur nächsten Pause simulieren (Winterpause, dann Saisonende),
 // am Saisonende genau drei Möglichkeiten. Finals und ein Topspiel pro Halbserie spielt man selbst (oder automatisch).
@@ -62,6 +63,8 @@ export function stageStep(input: Career, liveFinals = false): Career {
   const c = playEtappe(input);
   // Gerüchte: Nach starken Etappen beobachten größere Vereine
   const rumor = rumorTick(c, input.progress?.stage ?? 0);
+  const fan = fanTick(c, input.progress?.stage ?? 0);
+  if (fan) c.decisionResult = { title: c.decisionResult?.title ?? 'Fans', text: [c.decisionResult?.text, fan].filter(Boolean).join(' '), tone: c.decisionResult?.tone ?? 'good' };
   if (rumor) c.decisionResult = { title: c.decisionResult?.title ?? 'Gerücht', text: [c.decisionResult?.text, rumor].filter(Boolean).join(' '), tone: c.decisionResult?.tone ?? 'good' };
   return c.progress?.scene ? c : finishStage(c, liveFinals);
 }
@@ -204,6 +207,9 @@ export function applyChoice(input: Career, choice: Choice): Career {
     choice.kind === 'retire' ? retire(prev)
       : choice.kind === 'stay' ? stayAtClub(prev)
         : acceptOffer(prev, choice.offer!);
+  // Fans: Abschied und Rückkehr
+  const from = currentClubId(prev.player); const to = currentClubId(next.player);
+  if (next !== prev && from !== to && next.phase !== 'retired') fanLeave(next, from, to);
   return { ...next, decision: null };
 }
 
@@ -244,6 +250,7 @@ export function winterChoices(career: Career): Choice[] {
 export function applyWinterChoice(prev: Career, c: Choice): Career {
   if (c.kind === 'camp') return winterCamp(prev);
   const next = acceptWinterOffer(prev, c.offer!);
+  fanLeave(next, currentClubId(prev.player), currentClubId(next.player));
   return {
     ...next,
     decision: null,

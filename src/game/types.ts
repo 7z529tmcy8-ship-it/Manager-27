@@ -534,6 +534,8 @@ export interface Career {
   gram?: import('./kickgram').Gram;
   /** LARP-Modus: Kleiderschrank, getragener Look, wie oft aufgeflogen. */
   larp?: import('./larp').LarpState;
+  /** Fan-Stimmung je Verein (−3 Pfiffe … +3 Liebling). */
+  fans?: Record<string, number>;
   /** Berater (Karriere-Update Paket 4). */
   agent?: import('./agent').AgentId | null;
   /** Saison, in der der Berater zuletzt gewechselt wurde (einmal pro Saison). */

@@ -337,8 +337,13 @@ export function makeScene(career: Career, stage: number, rand: Rand = Math.rando
   if (!prog) return null;
   const idx = prog.matches.map((m, i) => [m, i] as const).filter(([m]) => m.stage === stage && m.competition === 'Liga' && m.minutes >= 20);
   if (!idx.length) return null;
-  const [line, i] = idx[Math.floor(rand() * idx.length)];
-  return { stage, match: i, ...sceneFor(career, line, rand) };
+  // Duell mit dem Rivalen hat Vorrang
+  const rivalClub = career.rival && !career.rival.retired ? career.rival.clubId : null;
+  const derby = rivalClub ? idx.find(([m]) => m.opponent === rivalClub) : undefined;
+  const [line, i] = derby ?? idx[Math.floor(rand() * idx.length)];
+  const sc = sceneFor(career, line, rand);
+  if (derby && career.rival) return { stage, match: i, ...sc, title: `Rivalen-Duell: ${sc.title}`, text: `${sc.text} Drüben steht ${career.rival.name} – alle schauen auf euch beide.` };
+  return { stage, match: i, ...sc };
 }
 
 function unResult(row: TableRow, gf: number, ga: number) {
