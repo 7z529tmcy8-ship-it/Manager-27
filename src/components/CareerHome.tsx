@@ -2,7 +2,7 @@ import { Suspense, lazy, useState } from 'react';
 import { CARDS_FROM_CAREER_ONLY } from '../game/mode';
 import { HallOfFame } from './Legacy';
 import { getClub } from '../data/leagues';
-import { collectionProgress, creditCareer, rewardPending } from '../game/club';
+import { collectionProgress, rewardPending } from '../game/club';
 import { divName, divReward, divisionOf } from '../game/divisions';
 import { DAILY_BONUS_COINS, claimDaily, claimDailyBonus, dailyView, type DailyId } from '../game/daily';
 import { play } from '../sound';
@@ -223,7 +223,7 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile,
         {settings && (
           <Settings
             career={latest}
-            onChange={(c) => { const res = creditCareer(getClubState(), c); if (res.gained > 0 || res.icon) setClubState(res.club); saveCareer(c); setSaves(listCareers()); }}
+            onChange={(c) => { saveCareer(c); setSaves(listCareers()); }}
             onClose={() => setSettings(false)}
             onBackup={() => { setSettings(false); setBackup(true); }}
           />

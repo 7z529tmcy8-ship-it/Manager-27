@@ -35,6 +35,9 @@ it('Karriere-Spieler kommt nach der ersten Saison als Karte in die Sammlung und 
   c = simulateToBreak(simulateToBreak(c));
   const r = creditCareer(club, c);
   expect(r.playerCard?.name).toBe('Karten Test');
+  // Saison-Pack mit echten Spielern landet in der Sammlung
+  expect(r.seasonPacks?.result.cards.length ?? 0).toBeGreaterThanOrEqual(3);
+  expect(Object.values(r.club.cards).reduce((x, n) => x + n, 0)).toBeGreaterThanOrEqual(3);
   club = r.club;
   const card = ownedCards(club).find((x) => x.id === playerCardId(c))!;
   expect(card).toBeTruthy();

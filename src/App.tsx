@@ -1,4 +1,5 @@
 import { enterFullscreen, getSettings, lockLandscape, updateSettings } from './settings';
+import type { PackResult } from './game/club';
 import { autoStartMotion } from './tilt';
 import { cleanStorage, migrateSaves, onSaveStatus, storageBreakdown } from './game/storage';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
@@ -122,6 +123,7 @@ export default function App() {
     // Still gutschreiben – keine Einblendung nach jeder Saison (der Kontostand zeigt es ohnehin).
     if (res.club !== before) setClubState(res.club);
     // Erste Saison gespielt: Dein Spieler liegt jetzt als Karte in der Sammlung
+    if (res.seasonPacks) setSeasonPack({ name: res.seasonPacks.names.length > 1 ? `Saison-Belohnung · ${res.seasonPacks.names.length} Packs` : `Saison-Belohnung · ${res.seasonPacks.names[0]}`, result: res.seasonPacks.result });
     if (res.playerCard) setToast(`${res.playerCard.name} ist jetzt als Karte (${res.playerCard.ovr}) in deiner Sammlung – sie wächst jede Saison mit.`);
     // Karriere vorbei: Belohnungskarte wählen (Ikone oder Auszeichnung).
     if (rewardPending(getClubState(), career)) setReward(career);
@@ -139,6 +141,8 @@ export default function App() {
     setScreen({ name: 'game', career });
   };
   const [reward, setReward] = useState<Career | null>(null);
+  // Saison-Pack mit echten Spielern (Karten nur aus der Karriere) – öffnet sich in der Karriere nach der Gala
+  const [seasonPack, setSeasonPack] = useState<{ name: string; result: PackResult } | null>(null);
   const home = () => setScreen({ name: 'home' });
   const load = (career: Career) => setScreen({ name: 'game', career });
   // Kein Karten-Shop mehr: Verweise auf den Shop führen zur Sammlung
@@ -187,7 +191,7 @@ export default function App() {
         : <CasinoPage onExit={home} />)}
       {screen.name === 'create' && <CreateCareer onCancel={home} onCreate={update} />}
       {screen.name === 'game' && (
-        <CareerScreen career={screen.career} onChange={update} onExit={home} />
+        <CareerScreen career={screen.career} onChange={update} onExit={home} seasonPack={seasonPack} onSeasonPackSeen={() => setSeasonPack(null)} onCollection={() => { setSeasonPack(null); setScreen({ name: 'team', tab: 'collection' }); }} />
       )}
         </div>
         {settingsOpen && <Settings onClose={() => setSettingsOpen(false)} onNews={() => { setSettingsOpen(false); setNews(UPDATES); }} onBackup={() => { setSettingsOpen(false); setBackupOpen(true); }} />}

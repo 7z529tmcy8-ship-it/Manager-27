@@ -34,6 +34,7 @@ export const UPDATES: UpdateNote[] = [
     title: 'Dein Karriere-Spieler kommt in die Sammlung',
     items: [
       'Nach jeder gespielten Saison liegt dein Karriere-Spieler als Karte in der Sammlung – sie wächst jede Saison mit (Wertung, Verein, Kartenstufe).',
+      'Saison-Pack mit echten Spielern nach jeder Saison: schwache Saison Standard-Pack, gute Saison Gold-Pack, starke Saison Premium-Pack – jeder Titel und jede Auszeichnung bringt zusätzlich ein Weltstar-Pack (höchstens 2).',
       'Auch alte Karrieren bekommen ihre Spielerkarte sofort.',
       'Die Sammlung zeigt unter „Meine“ jetzt alle deine Karten aus den Karrieren, sie zählen auch für die Meilensteine.',
       'Im Haupt-Team darfst du alle Karriere-Karten aufstellen. Hinweise auf den Shop sind entfernt.',

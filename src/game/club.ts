@@ -551,10 +551,19 @@ export function upsertPlayerCard(club: ClubState, career: Career): { club: ClubS
   return { club: { ...club, specials: [...club.specials, card] }, isNew: true };
 }
 
+/** Saison-Packs (Karten nur aus der Karriere): je besser die Saison, desto besser das Pack; Titel und Auszeichnungen bringen Weltstar-Packs. */
+export function seasonPackIds(r: SeasonRecord): string[] {
+  const rating = r.avgRating ?? 6.5;
+  const base = rating >= 7.3 && r.apps >= 20 ? 'premium' : rating >= 6.9 && r.apps >= 10 ? 'gold' : 'standard';
+  const extra = Math.min(2, r.trophies.length + r.awards.length);
+  return [base, ...Array<string>(extra).fill('worldstar')];
+}
+
 export function creditCareer(
   club: ClubState,
   career: Career,
-): { club: ClubState; gained: number; seasons: number; icon: CollectCard | null; drops: number; mega: number; meteor?: boolean; playerCard?: CollectCard | null } {
+  rand = Math.random,
+): { club: ClubState; gained: number; seasons: number; icon: CollectCard | null; drops: number; mega: number; meteor?: boolean; playerCard?: CollectCard | null; seasonPacks?: { names: string[]; result: PackResult } | null } {
   const done = club.credited[career.id] ?? 0;
   const fresh = career.history.slice(done);
   let gained = 0;
@@ -595,7 +604,24 @@ export function creditCareer(
   const pc = CARDS_FROM_CAREER_ONLY ? upsertPlayerCard(club, career) : { club, isNew: false };
   if (!fresh.length && !coachFresh.length && !hhFresh && !scenarioWon && !meteor) return { club: pc.club, gained: 0, seasons: 0, icon: null, drops: 0, mega: 0, meteor: false, playerCard: null };
   club = pc.club;
+  // Karten nur aus der Karriere: Jede neue Saison öffnet Saison-Packs mit echten Spielern
+  let seasonPacks: { names: string[]; result: PackResult } | null = null;
+  if (CARDS_FROM_CAREER_ONLY && fresh.length) {
+    const result: PackResult = { cards: [], items: [] };
+    const names: string[] = [];
+    for (const r of fresh) for (const id of seasonPackIds(r)) {
+      const res = openPack(club, id, rand, true);
+      if (!res) continue;
+      club = res.club;
+      result.cards.push(...res.result.cards);
+      result.items.push(...res.result.items);
+      names.push(PACKS.find((p) => p.id === id)?.name ?? id);
+    }
+    result.cards.sort((a, b) => rarity(b.card) - rarity(a.card));
+    if (result.cards.length) seasonPacks = { names, result };
+  }
   return {
+    seasonPacks,
     playerCard: pc.isNew ? careerPlayerCard(career) : null,
     club: addShards({
       ...club,
