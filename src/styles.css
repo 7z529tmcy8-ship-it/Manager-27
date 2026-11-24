@@ -5844,3 +5844,6 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 :root .ucard.md .ucard-attrs { margin-top: 1px; }
 :root .ucard.special .ucard-badge { white-space: nowrap; font-size: min(.5rem, calc(100cqi * 1.25 / var(--bl, 10))); }
 :root .ucard.special.lg .ucard-badge { font-size: min(.64rem, calc(100cqi * 1.25 / var(--bl, 10))); }
+.danger-zone { border-color: rgba(224, 52, 79, .4) !important; display: grid; gap: 10px; }
+.danger-zone .btn { justify-self: start; display: inline-flex; gap: 6px; align-items: center; }
+.reset-btn { background: rgba(224, 52, 79, .15) !important; color: #ff6b81 !important; border: 1px solid rgba(224, 52, 79, .55) !important; }

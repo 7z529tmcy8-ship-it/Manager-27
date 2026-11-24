@@ -225,6 +225,7 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile,
             career={latest}
             onChange={(c) => { const res = creditCareer(getClubState(), c); if (res.gained > 0 || res.icon) setClubState(res.club); saveCareer(c); setSaves(listCareers()); }}
             onClose={() => setSettings(false)}
+            onBackup={() => { setSettings(false); setBackup(true); }}
           />
         )}
         {backup && <Backup onClose={() => { setBackup(false); setSaves(listCareers()); }} />}

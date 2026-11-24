@@ -9,6 +9,7 @@ import type { Career, CareerSettings, Difficulty } from '../game/types';
 import { canFullscreen, enterFullscreen, exitFullscreen, updateSettings, useSettings, type AppSettings, lockLandscape, unlockOrientation } from '../settings';
 import { play } from '../sound';
 import Icon from './Icon';
+import { resetAccount } from '../backup';
 
 interface Props {
   /** Ohne Karriere (z. B. im Startmenü) gibt es nur die Geräte-Einstellungen. */
@@ -57,6 +58,12 @@ export default function Settings({ career, onChange, onClose, onNews, onBackup }
   const cs = settingsOf(career);
   const setC = (patch: CareerSettings) => (career && onChange ? onChange(setCareerSettings(career, patch)) : setGlobalCareerSettings(patch));
   const set = (patch: Partial<AppSettings>) => updateSettings(patch);
+  const resetNow = () => {
+    if (!window.confirm('Account wirklich zurücksetzen?\n\nAlle Karrieren, Karten, Coins, Chips, Profil und Fortschritt werden gelöscht. Tipp: Vorher unter „Sichern & Laden“ eine Sicherung machen.')) return;
+    if (!window.confirm('Letzte Sicherheitsfrage: Wirklich alles löschen? Das lässt sich nicht rückgängig machen.')) return;
+    if (resetAccount()) window.location.reload();
+    else window.alert('Zurücksetzen hat nicht geklappt – der Browser lässt keinen Zugriff auf den Speicher zu.');
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -150,6 +157,13 @@ export default function Settings({ career, onChange, onClose, onNews, onBackup }
           {onNews && <button className="btn secondary" onClick={onNews}><Icon name="news" size={18} /> Neuigkeiten</button>}
           {onBackup && <button className="btn secondary" onClick={onBackup}><Icon name="cloud" size={18} /> Sichern & Laden</button>}
           {!app.dev && <CodeInput onUnlock={() => set({ dev: true })} />}
+        </section>
+
+        <section className="panel danger-zone">
+          <h2>Account</h2>
+          <p className="hint">Setzt das ganze Spiel zurück: alle Karrieren, Karten, Coins, Chips, Profil und Fortschritt. Design, Ton und Karriere-Einstellungen bleiben.</p>
+          {onBackup && <button className="btn secondary" onClick={onBackup}><Icon name="cloud" size={18} /> Vorher sichern</button>}
+          <button className="btn danger reset-btn" onClick={resetNow}><Icon name="close" size={18} /> Account zurücksetzen</button>
         </section>
 
         {app.dev && <DevPanel career={career} onChange={onChange} onLock={() => set({ dev: false })} />}

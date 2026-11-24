@@ -84,3 +84,30 @@ export function restoreBackup(b: Backup): boolean {
     return false;
   }
 }
+
+/** Geräte-Einstellungen (Design, Ton, Karriere-Einstellungen) bleiben beim Zurücksetzen erhalten. */
+const KEEP_ON_RESET = new Set(['fc-manager-settings', 'fc-manager-unlocked']);
+/** Datenbanken mit eigenen Bildern (Kartenbilder, Kickgram-Fotos). */
+const IMAGE_DBS = ['fc-card-art', 'fc-kickgram'];
+
+/**
+ * Account zurücksetzen: alle Karrieren, Club (Karten, Coins, Chips), Profil, Casino und Fortschritt löschen.
+ * Danach muss die Seite neu geladen werden. Nicht rückgängig zu machen (außer mit einer Sicherung).
+ */
+export function resetAccount(): boolean {
+  try {
+    freezeClubSaves(); // der alte Club darf nach dem Löschen nicht wieder gespeichert werden
+    clearCareerStore();
+    const keys: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k) keys.push(k); }
+    for (const k of keys) {
+      if (KEEP_ON_RESET.has(k)) continue;
+      if (k.startsWith('fc-') || KEYS.includes(k)) localStorage.removeItem(k);
+    }
+    try { for (const db of IMAGE_DBS) indexedDB.deleteDatabase(db); } catch { /* ohne IndexedDB egal */ }
+    try { sessionStorage.clear(); } catch { /* egal */ }
+    return true;
+  } catch {
+    return false;
+  }
+}

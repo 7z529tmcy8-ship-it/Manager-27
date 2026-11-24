@@ -29,6 +29,15 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-24-account-reset',
+    date: '24.11.2026',
+    title: 'Account zurücksetzen',
+    items: [
+      'Neu in den Einstellungen unter „Account“: Account zurücksetzen – alle Karrieren, Karten, Coins, Chips, Profil und Fortschritt werden gelöscht, das Spiel startet frisch.',
+      'Design, Ton und Karriere-Einstellungen bleiben erhalten. Mit „Vorher sichern“ kannst du vorher eine Sicherung machen. Zwei Sicherheitsabfragen schützen vor Versehen.',
+    ],
+  },
+  {
     id: '2026-11-24-einstellungen-global',
     date: '24.11.2026',
     title: 'Karriere-Einstellungen für alle Karrieren',
