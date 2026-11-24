@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-24-berater',
+    date: '24.11.2026',
+    title: 'Karriere-Update: Berater & Transfermarkt',
+    items: [
+      'Berater wählen (in der Kabine): Haifisch (mehr Gehalt, Verein genervt), Familienfreund (bessere Verlängerung, mehr Vertrauen) oder Großmaul (Zusatzangebot, mehr Schlagzeilen).',
+      'Gerüchte: Nach starken Etappen beobachten größere Vereine dich. Wird ein Gerücht heiß, kommt im Sommer oft ein echtes Angebot.',
+      'Deadline-Day im Transferfenster: bis Mitternacht warten – manchmal kommt ein Last-Minute-Angebot oder ein Verein bessert nach.',
+    ],
+  },
+  {
     id: '2026-11-24-grosse-buehne',
     date: '24.11.2026',
     title: 'Karriere-Update: Große Bühne',

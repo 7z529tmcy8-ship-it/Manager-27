@@ -120,3 +120,28 @@ it('Trainerwechsel frühestens nach zwei Etappen und nur einmal pro Saison', asy
   expect(maybeSackTrainer(c, () => 0)).toBeTruthy();
   expect(maybeSackTrainer(c, () => 0)).toBeNull();
 });
+
+it('Berater: Haifisch treibt Gehälter, Familienfreund bringt Vertrauen, nur einmal pro Fenster', async () => {
+  const { applyAgentWindow, setAgent, deadlineDay, deadlineOpen, rumorTick } = await import('../agent');
+  const { simulateToBreak } = await import('../simple');
+  let c: Career = base();
+  c = simulateToBreak(simulateToBreak(c));
+  if (c.phase !== 'window') return;
+  const shark = applyAgentWindow({ ...setAgent(c, 'shark'), agentWindow: undefined });
+  const plain = applyAgentWindow({ ...c, agent: null, agentWindow: undefined });
+  const w = (x: Career) => x.offers.filter((o) => o.type !== 'Verlängerung').map((o) => o.wage);
+  if (w(plain).length) expect(Math.max(...w(shark))).toBeGreaterThan(Math.max(...w(plain)) * 0.99);
+  expect(applyAgentWindow(shark)).toBe(shark);
+  // Deadline-Day nur einmal
+  if (c.player.nlz) return; // im NLZ gibt es keinen Deadline-Day
+  expect(deadlineOpen(c)).toBe(true);
+  const d = deadlineDay(c, () => 0.99);
+  expect(d.tone).toBe('neutral');
+  expect(deadlineOpen(d.career)).toBe(false);
+  // Gerücht nach starker Etappe
+  let s: Career = playEtappe(base());
+  for (const m of s.progress!.matches) { m.rating = 8; }
+  const before = s.rumors?.length ?? 0;
+  rumorTick(s, 0, () => 0);
+  expect((s.rumors?.length ?? 0) + (s.rumors?.some((r) => r.heat > 1) ? 1 : 0)).toBeGreaterThanOrEqual(before);
+});

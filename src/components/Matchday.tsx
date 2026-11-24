@@ -8,6 +8,7 @@ import {
   type Scene, type TalkId,
 } from '../game/matchday';
 import { compShort } from '../game/simReplay';
+import { AGENTS, canChangeAgent, deadlineDay, heatWord, setAgent, type AgentId } from '../game/agent';
 import type { Career } from '../game/types';
 
 const pct = (x: number) => `${Math.round(x * 100)} %`;
@@ -21,6 +22,7 @@ export function Kabine({ career, onChange }: { career: Career; onChange: (c: Car
   const t = career.trainer;
   const comp = career.competitor?.clubId === currentClubId(career.player) ? career.competitor : null;
   const [talk, setTalk] = useState(false);
+  const [agentOpen, setAgentOpen] = useState(false);
   const [answer, setAnswer] = useState<{ text: string; tone: string } | null>(null);
   const task = career.progress?.coachTask;
   // Trainer und Konkurrent gibt es ab dem ersten Blick in die Kabine (bei Vereinswechsel neu)
@@ -63,6 +65,25 @@ export function Kabine({ career, onChange }: { career: Career; onChange: (c: Car
         {comp && <span><Icon name="duel" size={16} /><b>{comp.name}</b><small>OVR {comp.ovr} · {duelText(career)}</small></span>}
       </div>
 
+      <div className="kb-agent">
+        <span><Icon name="handshake" size={16} /><b>{career.agent ? AGENTS[career.agent].name : 'Kein Berater'}</b><small>{career.agent ? AGENTS[career.agent].title : 'Du verhandelst selbst'}</small></span>
+        {canChangeAgent(career) && !agentOpen && <button className="cs-link" onClick={() => setAgentOpen(true)}>{career.agent ? 'Wechseln' : 'Berater wählen'}</button>}
+      </div>
+      {agentOpen && (
+        <div className="kb-talk" role="group" aria-label="Berater wählen">
+          {(Object.keys(AGENTS) as AgentId[]).map((id) => (
+            <button key={id} className={`cs-choice kb-opt ${career.agent === id ? 'on' : ''}`} onClick={() => { onChange(setAgent(career, id)); setAgentOpen(false); }}>
+              <strong>{AGENTS[id].name} · {AGENTS[id].title}</strong>
+              <small><span className="up">+ {AGENTS[id].plus}</span><br /><span className="down">− {AGENTS[id].minus}</span></small>
+            </button>
+          ))}
+          <button className="cs-choice kb-opt" onClick={() => { onChange(setAgent(career, null)); setAgentOpen(false); }}><strong>Ohne Berater</strong><small>Keine Vor- und Nachteile</small></button>
+          <p className="hint">Einmal pro Saison wechselbar. Wirkt im nächsten Transferfenster.</p>
+        </div>
+      )}
+      {(career.rumors?.length ?? 0) > 0 && (
+        <div className="kb-rumors"><small>Gerüchte</small>{career.rumors!.map((r) => <span key={r.clubId} className={`h${r.heat}`}>{nm(r.clubId)} · {heatWord(r.heat)}</span>)}</div>
+      )}
       {task && <p className="kb-task"><Icon name="target" size={16} /> Auftrag: {task.label}</p>}
       {answer && <p className={`kb-answer ${answer.tone}`}>{answer.text}</p>}
       {canTalk(career) && !talk && (
@@ -171,6 +192,31 @@ export function StageRecap({ career }: { career: Career }) {
             : <span>Rolle: {role.label}</span>}
         {Math.abs(dTrust) >= 0.1 && <span className={dTrust > 0 ? 'up' : 'down'}> · Vertrauen {signed(dTrust)}</span>}
       </p>
+    </div>
+  );
+}
+
+/** Deadline-Day: Ticker läuft ab, am Ende vielleicht ein Last-Minute-Angebot. */
+export function DeadlineDay({ career, onChange }: { career: Career; onChange: (c: Career) => void }) {
+  const [lines, setLines] = useState<string[] | null>(null);
+  const [shown, setShown] = useState(0);
+  const [pending, setPending] = useState<Career | null>(null);
+  useEffect(() => {
+    if (!lines || shown >= lines.length) return;
+    const t = setTimeout(() => setShown((n) => n + 1), shown === lines.length - 1 ? 900 : 650);
+    return () => clearTimeout(t);
+  }, [lines, shown]);
+  useEffect(() => { if (lines && shown >= lines.length && pending) { onChange(pending); setPending(null); } }, [shown]); // eslint-disable-line react-hooks/exhaustive-deps
+  const start = () => { const r = deadlineDay(career); setLines(r.lines); setShown(1); setPending(r.career); };
+  return (
+    <div className="dd">
+      {!lines ? (
+        <button className="btn secondary small dd-btn" onClick={start}><Icon name="clock" size={16} /> Deadline-Day abwarten</button>
+      ) : (
+        <ul className="dd-ticker" aria-live="polite">
+          {lines.slice(0, shown).map((l, i) => <li key={i} className={i === lines.length - 1 ? 'last' : ''}>{l}</li>)}
+        </ul>
+      )}
     </div>
   );
 }

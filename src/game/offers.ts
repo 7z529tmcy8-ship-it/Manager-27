@@ -318,7 +318,7 @@ export function answerApplication(career: Career, clubId: string): { accepted: b
   return { accepted: true, offer, message: `${club.name} hat zugesagt – das Angebot steht oben in der Liste.` };
 }
 
-function transferOffer(career: Career, clubId: string, s: number, freeAgent: boolean, message: string): Offer {
+export function transferOffer(career: Career, clubId: string, s: number, freeAgent: boolean, message: string): Offer {
   const p = career.player;
   // Vereine locken gern mit etwas mehr Einsatzzeit, als sie am Ende geben.
   const role = roleFor(p.ovr + (chance(0.3) ? 2 : 0), s, p.age);

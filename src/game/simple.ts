@@ -12,6 +12,7 @@ import { refreshKitOffers } from './kit';
 import { resolveNlzOffer } from './nlz';
 import type { Career, Offer } from './types';
 import { closeStage, playEtappe, resolveScene } from './matchday';
+import { applyAgentWindow, rumorTick } from './agent';
 
 // Vereinfachter Spielablauf: immer bis zur nächsten Pause simulieren (Winterpause, dann Saisonende),
 // am Saisonende genau drei Möglichkeiten. Finals und ein Topspiel pro Halbserie spielt man selbst (oder automatisch).
@@ -59,6 +60,9 @@ export function finishStage(input: Career, liveFinals = false): Career {
 /** Etappe spielen; ohne Szene geht es direkt weiter. */
 export function stageStep(input: Career, liveFinals = false): Career {
   const c = playEtappe(input);
+  // Gerüchte: Nach starken Etappen beobachten größere Vereine
+  const rumor = rumorTick(c, input.progress?.stage ?? 0);
+  if (rumor) c.decisionResult = { title: c.decisionResult?.title ?? 'Gerücht', text: [c.decisionResult?.text, rumor].filter(Boolean).join(' '), tone: c.decisionResult?.tone ?? 'good' };
   return c.progress?.scene ? c : finishStage(c, liveFinals);
 }
 
@@ -118,7 +122,8 @@ function ensureOffers(c: Career): Career {
   const count = (k: 'move' | 'loan') => out.offers.filter((o) => (k === 'loan' ? o.type === 'Leihe' : o.type === 'Transfer' || o.type === 'Ablösefrei')).length;
   if (count('move') < 2) out = requestOffers({ ...out, requestsLeft: Math.max(1, out.requestsLeft) }, 'transfer');
   if (count('loan') < 1 && out.player.age <= 27) out = requestOffers({ ...out, requestsLeft: Math.max(1, out.requestsLeft) }, 'loan');
-  return out;
+  // Berater verhandelt, heiße Gerüchte werden zu Angeboten (einmal pro Fenster)
+  return applyAgentWindow(out);
 }
 
 export type ChoiceKind = 'transfer' | 'loan' | 'stay' | 'extend' | 'retire' | 'camp' | 'home' | 'exotic' | 'nlz' | 'u23';

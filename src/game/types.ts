@@ -534,6 +534,16 @@ export interface Career {
   gram?: import('./kickgram').Gram;
   /** LARP-Modus: Kleiderschrank, getragener Look, wie oft aufgeflogen. */
   larp?: import('./larp').LarpState;
+  /** Berater (Karriere-Update Paket 4). */
+  agent?: import('./agent').AgentId | null;
+  /** Saison, in der der Berater zuletzt gewechselt wurde (einmal pro Saison). */
+  agentSeason?: string;
+  /** Fenster (Saison), in dem der Berater schon verhandelt hat. */
+  agentWindow?: string;
+  /** Gerüchte: Vereine, die dich beobachten (Hitze steigt mit guten Etappen). */
+  rumors?: { clubId: string; heat: number }[];
+  /** Deadline-Day in diesem Fenster schon abgewartet. */
+  deadlineSeason?: string;
   /** Konkurrent um den Stammplatz im eigenen Verein. */
   competitor?: import('./matchday').Competitor | null;
   /** Aktueller Cheftrainer des eigenen Vereins (Spieltag-Modus). */

@@ -15,7 +15,8 @@ import SimShow, { GoalBars } from './SimShow';
 import { evaluateGoals } from '../game/goals';
 import { YOUTH_ORDER, sortTable, upcomingFixtures } from '../game/season';
 import { replayOf, stageReplayOf, type Replay } from '../game/simReplay';
-import { Kabine, SceneCard, StageCard, StageRecap } from './Matchday';
+import { DeadlineDay, Kabine, SceneCard, StageCard, StageRecap } from './Matchday';
+import { deadlineOpen } from '../game/agent';
 import { Gala, WorldRaceCard } from './BigStage';
 import { galaWorthy } from '../game/bigstage';
 import { advanceFinal, autoFinal } from '../game/final';
@@ -79,6 +80,9 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   // Saison-Gala: nach jedem Saisonende (wenn Feier und Live-Simulation vorbei sind)
   const histLen = useRef(career.history.length);
   const [gala, setGala] = useState<SeasonRecord | null>(null);
+  // Deadline-Day bleibt sichtbar, bis der Ticker durch ist (auch wenn er danach „verbraucht“ ist)
+  const [ddRun, setDdRun] = useState(false);
+  useEffect(() => { setDdRun(false); }, [career.history.length]);
   useEffect(() => {
     if (career.history.length > histLen.current && career.history.length > 0 && galaWorthy(career.history[career.history.length - 1])) setGala(career.history[career.history.length - 1]);
     histLen.current = career.history.length;
@@ -329,6 +333,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
             ))}
           </div>
           <p className="hint cs-tap-hint">Tippe auf ein Angebot. Mit „Verhandeln“ stellst du vorher Forderungen.</p>
+          {(deadlineOpen(career) || ddRun) && <span onClick={() => setDdRun(true)}><DeadlineDay career={career} onChange={onChange} /></span>}
           {nego && (
             <Negotiation career={career} offerId={nego} onChange={onChange} onClose={() => setNego(null)}
               onSign={(cur, o) => {
