@@ -31,6 +31,8 @@ export interface AppSettings {
   perf?: 'auto' | 'on' | 'off';
   /** Ergebnis der automatischen Messung (true = Gerät ruckelt). */
   perfAuto?: boolean;
+  /** Karriere-Einstellungen für ALLE Karrieren (Schwierigkeit, Spieltag-Modus, Live-Spiele …). */
+  careerSettings?: import('./game/types').CareerSettings;
 }
 
 const KEY = 'fc-manager-settings';
@@ -58,6 +60,7 @@ const listeners = new Set<() => void>();
 
 /** Design und Animationen auf die Seite anwenden. */
 export function applySettings(s: AppSettings = current): void {
+  if (typeof document === 'undefined') return; // z. B. in Tests ohne Browser
   const root = document.documentElement;
   const look = s.look ?? 'neon';
   // Aqua ist ein heller Look, Bunt baut auf der Arena auf; nur bei Neon gilt die Design-Wahl.

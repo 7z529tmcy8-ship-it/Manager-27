@@ -1,3 +1,4 @@
+import { getSettings, updateSettings } from '../settings';
 import { chance } from './random';
 import type { Career, CareerSettings, Difficulty, PressFrequency } from './types';
 
@@ -14,14 +15,29 @@ export const PRESS_FREQUENCIES: Record<PressFrequency, { label: string; chance: 
   often: { label: 'Oft', chance: 0.75 },
 };
 
-export const settingsOf = (c: Career): Required<CareerSettings> => ({
-  difficulty: c.settings?.difficulty ?? 'normal',
-  press: c.settings?.press ?? 'normal',
-  liveMatches: c.settings?.liveMatches !== false,
-  simShow: c.settings?.simShow !== false,
-  stageMode: c.settings?.stageMode !== false,
-  hideSide: c.settings?.hideSide ?? [],
-});
+/**
+ * Karriere-Einstellungen gelten für alle Karrieren: Was in den Einstellungen gewählt wurde (geräteweit),
+ * hat Vorrang. Alte Spielstände bringen noch eigene Werte mit – die gelten nur, solange nichts Globales gesetzt ist.
+ */
+export const rawCareerSettings = (c?: Career | null): CareerSettings => ({ ...(c?.settings ?? {}), ...stripUndefined(getSettings().careerSettings ?? {}) });
+function stripUndefined(o: CareerSettings): CareerSettings { return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as CareerSettings; }
+
+export const settingsOf = (c?: Career | null): Required<CareerSettings> => {
+  const s = rawCareerSettings(c);
+  return {
+    difficulty: s.difficulty ?? 'normal',
+    press: s.press ?? 'normal',
+    liveMatches: s.liveMatches !== false,
+    simShow: s.simShow !== false,
+    stageMode: s.stageMode !== false,
+    hideSide: s.hideSide ?? [],
+  };
+};
+
+/** Einstellung für alle Karrieren speichern (geräteweit). */
+export function setGlobalCareerSettings(patch: CareerSettings): void {
+  updateSettings({ careerSettings: { ...(getSettings().careerSettings ?? {}), ...patch } });
+}
 
 export const difficultyOf = (c: Career) => DIFFICULTIES[settingsOf(c).difficulty];
 
@@ -36,5 +52,6 @@ export function adjustGrowth(career: Career, before: number, after: number, pote
 }
 
 export function setCareerSettings(prev: Career, patch: CareerSettings): Career {
+  setGlobalCareerSettings(patch);
   return { ...prev, settings: { ...prev.settings, ...patch }, updatedAt: Date.now() };
 }

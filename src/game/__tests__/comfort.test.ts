@@ -47,18 +47,18 @@ it('Urlaubsmodus: spielt mehrere Saisons und hält mit Grund an', () => {
 });
 
 it('Schwierigkeit: leicht gibt manchmal einen Punkt extra, schwer nimmt einen – nie über das Potenzial', () => {
+  // Die Schwierigkeit gilt für alle Karrieren – darum nacheinander prüfen.
   const easy = setCareerSettings(base(), { difficulty: 'easy' });
-  const hard = setCareerSettings(base(), { difficulty: 'hard' });
   let extra = 0;
-  let less = 0;
   for (let i = 0; i < 400; i++) {
-    const e = adjustGrowth(easy, 70, 72, 80);
-    const h = adjustGrowth(hard, 70, 72, 80);
-    if (e === 73) extra++;
-    if (h === 71) less++;
+    if (adjustGrowth(easy, 70, 72, 80) === 73) extra++;
     expect(adjustGrowth(easy, 70, 72, 72)).toBe(72);
     expect(adjustGrowth(easy, 70, 69, 80)).toBe(69);
   }
+  const hard = setCareerSettings(base(), { difficulty: 'hard' });
+  let less = 0;
+  for (let i = 0; i < 400; i++) if (adjustGrowth(hard, 70, 72, 80) === 71) less++;
+  setCareerSettings(base(), { difficulty: 'normal' });
   expect(extra).toBeGreaterThan(80);
   expect(less).toBeGreaterThan(80);
 });

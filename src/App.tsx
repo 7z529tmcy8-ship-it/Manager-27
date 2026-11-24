@@ -1,4 +1,4 @@
-import { enterFullscreen, getSettings, lockLandscape } from './settings';
+import { enterFullscreen, getSettings, lockLandscape, updateSettings } from './settings';
 import { autoStartMotion } from './tilt';
 import { cleanStorage, migrateSaves, onSaveStatus, storageBreakdown } from './game/storage';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
@@ -60,6 +60,12 @@ export default function App() {
   useEffect(() => {
     const c = getClubState();
     if (!c.ownCardsRemoved) setClubState(removeOwnCareerCards(c, listCareers()));
+  }, []);
+  // Karriere-Einstellungen gelten jetzt für alle Karrieren: einmalig die der zuletzt gespielten Karriere übernehmen.
+  useEffect(() => {
+    if (getSettings().careerSettings) return;
+    const latest = [...listCareers()].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+    updateSettings({ careerSettings: { ...(latest?.settings ?? {}) } });
   }, []);
 
   // Sounds: Klick bei jedem Knopf, Münzen beim Verdienen, Kasse beim Ausgeben.

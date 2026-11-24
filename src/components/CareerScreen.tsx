@@ -25,7 +25,7 @@ import { Farewell, RecordHunt } from './Legacy';
 import { galaWorthy } from '../game/bigstage';
 import { advanceFinal, autoFinal } from '../game/final';
 import { autoPlayFinal, keyMatchFor, playFinalStep, setKeyMatch, startKeyMatch, stayInWinter } from '../game/career';
-import { setCareerSettings } from '../game/difficulty';
+import { rawCareerSettings, setCareerSettings, settingsOf } from '../game/difficulty';
 import { detectMoments, type Moment } from '../game/moments';
 import SkillTree, { ArchetypePicker, LevelChip } from './SkillTree';
 import { flagOf, nationCode } from '../data/flags';
@@ -122,20 +122,21 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   const totals = career.history.reduce((a, r) => ({ apps: a.apps + r.apps, goals: a.goals + r.goals, assists: a.assists + r.assists }), { apps: 0, goals: 0, assists: 0 });
   const retired = career.phase === 'retired';
   // Ausgeblendete Neben-Bereiche (Einstellungen) – die Daten bleiben erhalten
-  const off = (id: 'invest' | 'clinic' | 'look' | 'gram' | 'kit') => (career.settings?.hideSide ?? []).includes(id);
+  const cset = settingsOf(career);
+  const off = (id: 'invest' | 'clinic' | 'look' | 'gram' | 'kit') => cset.hideSide.includes(id);
   const coins = useClub().coins;
 
   // Topspiel der Halbserie: vor dem Simulieren selbst spielen (oder automatisch).
-  const live = career.settings?.liveMatches !== false;
+  const live = cset.liveMatches;
   // Zu Beginn jeder Karriere: Topspiele und Finals selbst spielen oder alles simulieren?
-  const askLive = career.settings?.liveMatches === undefined && career.history.length === 0 && career.phase === 'season' && (prog?.stage ?? 0) === 0 && !career.coach;
+  const askLive = rawCareerSettings(career).liveMatches === undefined && career.history.length === 0 && career.phase === 'season' && (prog?.stage ?? 0) === 0 && !career.coach;
   const [keyLive, setKeyLive] = useState<{ key: NonNullable<ReturnType<typeof keyMatchFor>>; state: FinalState; started: boolean } | null>(null);
   // Spieltag-Modus: Saison in 6 Etappen mit Szenen (Standard), sonst bis zur Pause durchsimulieren.
-  const stageMode = career.settings?.stageMode !== false;
+  const stageMode = cset.stageMode;
   const keyMode = useRef<'break' | 'stage'>('break');
   const playStageNow = (from: Career) => {
     const next = stageStep(from, live);
-    if (career.settings?.simShow !== false) setReplay(stageReplayOf(from, next));
+    if (cset.simShow) setReplay(stageReplayOf(from, next));
     onChange(next);
   };
   const runStage = () => {
@@ -164,7 +165,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   const [replay, setReplay] = useState<Replay | null>(null);
   const simulate = (from: Career) => {
     const next = simulateToBreak(from, live);
-    if (career.settings?.simShow !== false) setReplay(replayOf(career, next));
+    if (cset.simShow) setReplay(replayOf(career, next));
     onChange(next);
   };
   const finishKey = (state: FinalState) => {

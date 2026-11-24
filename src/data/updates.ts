@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-24-einstellungen-global',
+    date: '24.11.2026',
+    title: 'Karriere-Einstellungen für alle Karrieren',
+    items: [
+      'Schwierigkeit, Spieltag-Modus, Live-Simulation, Topspiele selbst spielen und ausgeblendete Bereiche stellst du jetzt einmal ein – sie gelten für alle Karrieren, auch für neue.',
+      'Die Einstellungen findest du unter „Karriere“ in den Einstellungen, auch wenn gerade keine Karriere läuft.',
+      'Beim ersten Start werden die Einstellungen deiner zuletzt gespielten Karriere übernommen.',
+    ],
+  },
+  {
     id: '2026-11-24-karten-v4',
     date: '24.11.2026',
     title: 'Neues Karten-Design',

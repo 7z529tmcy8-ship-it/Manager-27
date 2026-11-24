@@ -4,8 +4,8 @@ import { getClubState, setClubState, useClub } from '../clubStore';
 import { INFINITE_COINS, devAdvance, devAllCards, devCoins, devFlags, devLevels, devMaxCards, devOvr, devTransfer, isDevCode, isWinCode, armPlinkoWin } from '../game/dev';
 import { CLUBS, LEAGUES, getClub } from '../data/leagues';
 import { currentClubId } from '../game/player';
-import { DIFFICULTIES, setCareerSettings, settingsOf } from '../game/difficulty';
-import type { Career, Difficulty } from '../game/types';
+import { DIFFICULTIES, setCareerSettings, setGlobalCareerSettings, settingsOf } from '../game/difficulty';
+import type { Career, CareerSettings, Difficulty } from '../game/types';
 import { canFullscreen, enterFullscreen, exitFullscreen, updateSettings, useSettings, type AppSettings, lockLandscape, unlockOrientation } from '../settings';
 import { play } from '../sound';
 import Icon from './Icon';
@@ -52,7 +52,10 @@ function Toggle({ label, checked, onToggle, hint }: { label: string; checked: bo
 
 export default function Settings({ career, onChange, onClose, onNews, onBackup }: Props) {
   const app = useSettings();
-  const cs = career ? settingsOf(career) : null;
+  // Karriere-Einstellungen gelten für alle Karrieren (geräteweit); app.careerSettings sorgt fürs Neuzeichnen.
+  void app.careerSettings;
+  const cs = settingsOf(career);
+  const setC = (patch: CareerSettings) => (career && onChange ? onChange(setCareerSettings(career, patch)) : setGlobalCareerSettings(patch));
   const set = (patch: Partial<AppSettings>) => updateSettings(patch);
 
   useEffect(() => {
@@ -69,37 +72,36 @@ export default function Settings({ career, onChange, onClose, onNews, onBackup }
         </header>
         <h1 className="overlay-title">Einstellungen</h1>
 
-        {career && cs && onChange && (
-          <section className="panel">
-            <h2>Diese Karriere</h2>
-            <Choice<Difficulty>
-              label="Schwierigkeit"
-              value={cs.difficulty}
-              options={(Object.keys(DIFFICULTIES) as Difficulty[]).map((d) => [d, DIFFICULTIES[d].label])}
-              onPick={(difficulty) => onChange(setCareerSettings(career, { difficulty }))}
-              hint={DIFFICULTIES[cs.difficulty].hint}
-            />
-            <div className="setting-row side-row">
-              <span className="setting-label">Bereiche im Leben-Tab</span>
-              <span className="side-chips">
-                {([['invest', 'Vermögen'], ['clinic', 'Klinik'], ['look', 'Look'], ['gram', 'Kickgram'], ['kit', 'Ausrüster']] as const).map(([id, label]) => {
-                  const hidden = (career.settings?.hideSide ?? []).includes(id);
-                  return <button key={id} className={hidden ? '' : 'on'} onClick={() => onChange(setCareerSettings(career, { hideSide: hidden ? (career.settings?.hideSide ?? []).filter((x) => x !== id) : [...(career.settings?.hideSide ?? []), id] }))}>{label}</button>;
-                })}
-              </span>
-              <small className="hint">Ausgeblendet heißt nur: nicht angezeigt. Nichts wird gelöscht – einfach wieder antippen.</small>
-            </div>
-            <Toggle label="Spieltag-Modus (6 Etappen mit Szenen)" checked={career.settings?.stageMode !== false}
-              onToggle={() => onChange(setCareerSettings(career, { stageMode: career.settings?.stageMode === false }))}
-              hint="Saison Etappe für Etappe: Szenen mit eigenen Entscheidungen, Trainergespräch, Rolle im Team. Aus = bis zur Pause durchsimulieren." />
-            <Toggle label="Live-Simulation (Spiel für Spiel)" checked={career.settings?.simShow !== false}
-              onToggle={() => onChange(setCareerSettings(career, { simShow: career.settings?.simShow === false }))}
-              hint="Aus: Die Halbserie springt sofort ans Ende." />
-            <Toggle label="Topspiele & Finals selbst spielen" checked={career.settings?.liveMatches !== false}
-              onToggle={() => onChange(setCareerSettings(career, { liveMatches: career.settings?.liveMatches === false }))}
-              hint="Aus: Die Karriere läuft komplett automatisch, ohne Live-Spiele." />
-          </section>
-        )}
+        <section className="panel">
+          <h2>Karriere</h2>
+          <p className="hint settings-scope">Gilt für alle Karrieren – auch für neue.</p>
+          <Choice<Difficulty>
+            label="Schwierigkeit"
+            value={cs.difficulty}
+            options={(Object.keys(DIFFICULTIES) as Difficulty[]).map((d) => [d, DIFFICULTIES[d].label])}
+            onPick={(difficulty) => setC({ difficulty })}
+            hint={DIFFICULTIES[cs.difficulty].hint}
+          />
+          <div className="setting-row side-row">
+            <span className="setting-label">Bereiche im Leben-Tab</span>
+            <span className="side-chips">
+              {([['invest', 'Vermögen'], ['clinic', 'Klinik'], ['look', 'Look'], ['gram', 'Kickgram'], ['kit', 'Ausrüster']] as const).map(([id, label]) => {
+                const hidden = cs.hideSide.includes(id);
+                return <button key={id} className={hidden ? '' : 'on'} onClick={() => setC({ hideSide: hidden ? cs.hideSide.filter((x) => x !== id) : [...cs.hideSide, id] })}>{label}</button>;
+              })}
+            </span>
+            <small className="hint">Ausgeblendet heißt nur: nicht angezeigt. Nichts wird gelöscht – einfach wieder antippen.</small>
+          </div>
+          <Toggle label="Spieltag-Modus (6 Etappen mit Szenen)" checked={cs.stageMode}
+            onToggle={() => setC({ stageMode: !cs.stageMode })}
+            hint="Saison Etappe für Etappe: Szenen mit eigenen Entscheidungen, Trainergespräch, Rolle im Team. Aus = bis zur Pause durchsimulieren." />
+          <Toggle label="Live-Simulation (Spiel für Spiel)" checked={cs.simShow}
+            onToggle={() => setC({ simShow: !cs.simShow })}
+            hint="Aus: Die Halbserie springt sofort ans Ende." />
+          <Toggle label="Topspiele & Finals selbst spielen" checked={cs.liveMatches}
+            onToggle={() => setC({ liveMatches: !cs.liveMatches })}
+            hint="Aus: Die Karriere läuft komplett automatisch, ohne Live-Spiele." />
+        </section>
 
         <section className="panel">
           <h2>Dieses Gerät</h2>
