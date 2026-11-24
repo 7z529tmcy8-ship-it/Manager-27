@@ -492,6 +492,7 @@ export const ICON_LEGENDS: LegendTemplate[] = ICON_RAW.map(([name, nation, posit
 }));
 
 // Specials: einzelne echte Spieler mit besonderem Startpunkt ihrer Karriere.
+// Startverein = erster Profiverein laut bekannter Karrieredaten, Alter = Alter in der Debütsaison.
 // Leroy Sané: Eigengewächs von Schalke 04 (aus Essen), Bundesliga-Debüt 2014 mit 18 Jahren.
 // Wertung und Potenzial sind eigene Schätzungen, keine offiziellen Werte.
 export const SPECIAL_STARTS: LegendTemplate[] = [
@@ -499,6 +500,105 @@ export const SPECIAL_STARTS: LegendTemplate[] = [
     name: 'Leroy Sané', nation: 'Deutschland', position: 'FL', age: 18, ovr: 67, potential: 90,
     clubId: slugify('FC Schalke 04'), traits: ['showman', 'wildcard'],
     bio: 'Schalker Eigengewächs mit Tempo, Dribblings und starkem linken Fuß – debütierte 2014 als 18-Jähriger in der Bundesliga. Wohin führt dein Weg?',
+  },  {
+    name: 'Thomas Müller', nation: 'Deutschland', position: 'ZOM', age: 18, ovr: 64, potential: 88,
+    clubId: slugify('FC Bayern München'), traits: ['professional', 'clutch'],
+    bio: 'Bayern-Eigengewächs aus Pähl, 2008 als 18-Jähriger zu den Profis. Kein Tempo-Spieler – aber immer da, wo der Ball hinkommt.',
+  },
+  {
+    name: 'Manuel Neuer', nation: 'Deutschland', position: 'TW', age: 20, ovr: 68, potential: 92,
+    clubId: slugify('FC Schalke 04'), traits: ['leader', 'professional'],
+    bio: 'Schalker Junge aus Gelsenkirchen, 2006 mit 20 im Bundesliga-Tor. Torwart, der mitspielt wie ein Feldspieler.',
+  },
+  {
+    name: 'Toni Kroos', nation: 'Deutschland', position: 'ZM', age: 17, ovr: 66, potential: 91,
+    clubId: slugify('FC Bayern München'), traits: ['professional'],
+    bio: 'Aus Greifswald über Rostock nach München, 2007 mit 17 Bundesliga-Debüt. Pässe wie mit dem Lineal gezogen.',
+  },
+  {
+    name: 'Mats Hummels', nation: 'Deutschland', position: 'IV', age: 18, ovr: 64, potential: 88,
+    clubId: slugify('FC Bayern München'), traits: ['leader'],
+    bio: 'Aus der Bayern-Jugend, 2007 Profi-Debüt – Abwehrchef mit Spielaufbau.',
+  },
+  {
+    name: 'Mario Götze', nation: 'Deutschland', position: 'ZOM', age: 17, ovr: 67, potential: 90,
+    clubId: slugify('Borussia Dortmund'), traits: ['showman'],
+    bio: 'BVB-Eigengewächs, 2009 mit 17 in der Bundesliga. Technik, Wendigkeit – und ein Gespür für große Momente.',
+  },
+  {
+    name: 'İlkay Gündoğan', nation: 'Deutschland', position: 'ZM', age: 18, ovr: 62, potential: 87,
+    clubId: slugify('VfL Bochum'), traits: ['professional'],
+    bio: 'Aus Gelsenkirchen, Profi-Start beim VfL Bochum. Ruhig am Ball, klug im Kopf.',
+  },
+  {
+    name: 'Leon Goretzka', nation: 'Deutschland', position: 'ZM', age: 17, ovr: 63, potential: 87,
+    clubId: slugify('VfL Bochum'), traits: ['professional', 'leader'],
+    bio: 'Bochumer Talent, 2012 mit 17 in der 2. Bundesliga. Box-to-Box mit Kraft und Torgefahr.',
+  },
+  {
+    name: 'Joshua Kimmich', nation: 'Deutschland', position: 'ZM', age: 18, ovr: 62, potential: 89,
+    clubId: slugify('RB Leipzig'), traits: ['professional', 'leader'],
+    bio: 'Aus der VfB-Jugend nach Leipzig, 2013 Profi-Start in der 3. Liga. Ehrgeiz ohne Pause.',
+  },
+  {
+    name: 'Kai Havertz', nation: 'Deutschland', position: 'ZOM', age: 17, ovr: 66, potential: 89,
+    clubId: slugify('Bayer 04 Leverkusen'), traits: ['clutch'],
+    bio: 'Leverkusener Eigengewächs, 2016 mit 17 in der Bundesliga. Elegant, torgefährlich, eiskalt in großen Spielen.',
+  },
+  {
+    name: 'Florian Wirtz', nation: 'Deutschland', position: 'ZOM', age: 17, ovr: 68, potential: 93,
+    clubId: slugify('Bayer 04 Leverkusen'), traits: ['showman', 'professional'],
+    bio: 'Kam aus der Kölner Jugend nach Leverkusen, 2020 mit 17 Bundesliga-Debüt. Dribblings und Spielwitz.',
+  },
+  {
+    name: 'Jamal Musiala', nation: 'Deutschland', position: 'ZOM', age: 17, ovr: 67, potential: 93,
+    clubId: slugify('FC Bayern München'), traits: ['showman'],
+    bio: 'Aus der Chelsea-Jugend zu Bayern, 2020 mit 17 Profi-Debüt. Tänzelt durch jede Abwehr.',
+  },
+  {
+    name: 'Lionel Messi', nation: 'Argentinien', position: 'FL', age: 17, ovr: 70, potential: 97,
+    clubId: slugify('FC Barcelona'), traits: ['showman', 'clutch'],
+    bio: 'Aus Rosario nach La Masia, 2004 mit 17 Debüt für Barcelona. Der Ball klebt am linken Fuß.',
+  },
+  {
+    name: 'Cristiano Ronaldo', nation: 'Portugal', position: 'FL', age: 17, ovr: 66, potential: 96,
+    clubId: slugify('Sporting Lissabon'), traits: ['showman', 'professional'],
+    bio: 'Aus Madeira zu Sporting, 2002 mit 17 Profi-Debüt. Tempo, Tricks – und ein Ehrgeiz, der nie aufhört.',
+  },
+  {
+    name: 'Kylian Mbappé', nation: 'Frankreich', position: 'ST', age: 16, ovr: 65, potential: 95,
+    clubId: slugify('AS Monaco'), traits: ['showman'],
+    bio: 'Aus Bondy nach Monaco, 2015 mit 16 Profi-Debüt. Antritt wie ein Sprinter.',
+  },
+  {
+    name: 'Jude Bellingham', nation: 'England', position: 'ZM', age: 16, ovr: 63, potential: 93,
+    clubId: slugify('Birmingham City'), traits: ['leader', 'professional'],
+    bio: '2019 mit 16 Profi bei Birmingham City – Anführer schon als Teenager.',
+  },
+  {
+    name: 'Neymar', nation: 'Brasilien', position: 'FL', age: 17, ovr: 67, potential: 94,
+    clubId: slugify('Santos FC'), traits: ['showman', 'diva'],
+    bio: 'Santos-Eigengewächs, 2009 mit 17 Profi-Debüt. Zauberfüße und große Bühne.',
+  },
+  {
+    name: 'Wayne Rooney', nation: 'England', position: 'ST', age: 16, ovr: 66, potential: 91,
+    clubId: slugify('Everton FC'), traits: ['hothead', 'showman'],
+    bio: 'Everton-Eigengewächs, 2002 mit 16 Premier-League-Debüt. Wucht, Wille, Wahnsinnstore.',
+  },
+  {
+    name: 'Gareth Bale', nation: 'Wales', position: 'AV', age: 16, ovr: 62, potential: 91,
+    clubId: slugify('Southampton FC'), traits: ['professional'],
+    bio: 'Startete 2006 mit 16 bei Southampton als Linksverteidiger – später wurde ein Flügelstürmer daraus.',
+  },
+  {
+    name: 'Karim Benzema', nation: 'Frankreich', position: 'ST', age: 17, ovr: 64, potential: 92,
+    clubId: slugify('Olympique Lyon'), traits: ['professional'],
+    bio: 'Lyoner Eigengewächs, 2005 mit 17 Profi-Debüt. Stürmer, der auch Tore vorbereitet.',
+  },
+  {
+    name: 'Harry Kane', nation: 'England', position: 'ST', age: 18, ovr: 62, potential: 92,
+    clubId: slugify('Tottenham Hotspur'), traits: ['professional', 'clutch'],
+    bio: 'Tottenham-Eigengewächs, 2011 Profi-Debüt nach vielen Leihen der Weltklasse-Stürmer.',
   },
 ];
 export const SPECIAL_INTRO = 'Specials: Spiel die Karriere eines echten Stars ab seinem ersten Profijahr – beim Verein, wo alles begann.';

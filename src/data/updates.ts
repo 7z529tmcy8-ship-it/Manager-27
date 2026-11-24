@@ -29,6 +29,16 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-24-specials-20',
+    date: '24.11.2026',
+    title: '20 neue Specials',
+    items: [
+      'Neu unter „Specials“: Thomas Müller, Manuel Neuer, Toni Kroos, Mats Hummels, Mario Götze, İlkay Gündoğan, Leon Goretzka, Joshua Kimmich, Kai Havertz, Florian Wirtz, Jamal Musiala.',
+      'International: Lionel Messi (Barcelona), Cristiano Ronaldo (Sporting), Kylian Mbappé (Monaco), Jude Bellingham (Birmingham), Neymar (Santos), Wayne Rooney (Everton), Gareth Bale (Southampton), Karim Benzema (Lyon), Harry Kane (Tottenham).',
+      'Jeder startet in seiner Debütsaison bei seinem ersten Profiverein – Werte sind eigene Schätzungen.',
+    ],
+  },
+  {
     id: '2026-11-24-special-sane',
     date: '24.11.2026',
     title: 'Neu: Specials – Leroy Sané',
