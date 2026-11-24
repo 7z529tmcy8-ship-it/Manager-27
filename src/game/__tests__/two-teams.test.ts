@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+import { CARDS_FROM_CAREER_ONLY } from '../mode';
 import { CARD_POOL, freshClub, type CollectCard } from '../club';
 import { activeTeam, allSquadIds, autoSquad, switchTeam, teamCards } from '../squad';
 
@@ -9,7 +10,8 @@ it('Zwei Teams: Haupt-Team ohne Karriere-Karten, Karriere-Team mit Karriere- und
   const packCards = CARD_POOL.filter((c) => c.variant === 'gold').slice(0, 15);
   let club = { ...freshClub(), cards: Object.fromEntries(packCards.map((c) => [c.id, 1])), specials: [own, sbc] };
   expect(activeTeam(club)).toBe('main');
-  expect(teamCards(club).some((c) => c.id === own.id)).toBe(false);
+  // Karten nur aus der Karriere: Karriere-Karten dürfen auch ins Haupt-Team
+  expect(teamCards(club).some((c) => c.id === own.id)).toBe(CARDS_FROM_CAREER_ONLY);
   expect(teamCards(club).some((c) => c.id === sbc.id)).toBe(true);
   // Alt-Spielstand: Karriere-Karte steht im Haupt-Team → zieht beim ersten Wechsel um
   club = { ...club, squad: [own.id, packCards[0].id, ...Array(9).fill(null)] };

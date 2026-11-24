@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-24-karriere-karten',
+    date: '24.11.2026',
+    title: 'Dein Karriere-Spieler kommt in die Sammlung',
+    items: [
+      'Nach jeder gespielten Saison liegt dein Karriere-Spieler als Karte in der Sammlung – sie wächst jede Saison mit (Wertung, Verein, Kartenstufe).',
+      'Auch alte Karrieren bekommen ihre Spielerkarte sofort.',
+      'Die Sammlung zeigt unter „Meine“ jetzt alle deine Karten aus den Karrieren, sie zählen auch für die Meilensteine.',
+      'Im Haupt-Team darfst du alle Karriere-Karten aufstellen. Hinweise auf den Shop sind entfernt.',
+    ],
+  },
+  {
     id: '2026-11-24-account-reset',
     date: '24.11.2026',
     title: 'Account zurücksetzen',

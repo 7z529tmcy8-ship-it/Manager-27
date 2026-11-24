@@ -24,3 +24,25 @@ it('Alle Karrieren löschen lässt den Club (Karten) unberührt', () => {
   expect(listCareers().length).toBe(0);
   expect(JSON.parse(localStorage.getItem('fc-club')!).specials).toHaveLength(1);
 });
+
+it('Karriere-Spieler kommt nach der ersten Saison als Karte in die Sammlung und wächst mit', async () => {
+  const { creditCareer, freshClub, playerCardId } = await import('../club');
+  const { ownedCards, fitsTeam } = await import('../squad');
+  const { simulateToBreak } = await import('../simple');
+  let c = createCareer({ name: 'Karten Test', nation: 'Deutschland', position: 'ST', age: 20, ovr: 72, potential: 88, clubId: slugify('Hamburger SV') });
+  let club = freshClub();
+  expect(creditCareer(club, c).playerCard ?? null).toBeNull(); // noch keine Saison
+  c = simulateToBreak(simulateToBreak(c));
+  const r = creditCareer(club, c);
+  expect(r.playerCard?.name).toBe('Karten Test');
+  club = r.club;
+  const card = ownedCards(club).find((x) => x.id === playerCardId(c))!;
+  expect(card).toBeTruthy();
+  expect(fitsTeam(card.id, 'main')).toBe(true); // darf ins Haupt-Team
+  // Nächste Saison: gleiche Karte, aktualisiert – keine zweite
+  c = { ...c, player: { ...c.player, ovr: 90 } };
+  const r2 = creditCareer(club, c);
+  expect(r2.playerCard ?? null).toBeNull();
+  expect(r2.club.specials.filter((x) => x.id === playerCardId(c))).toHaveLength(1);
+  expect(r2.club.specials.find((x) => x.id === playerCardId(c))!.ovr).toBe(90);
+});

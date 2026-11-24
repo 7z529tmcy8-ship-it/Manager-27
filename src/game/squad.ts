@@ -1,4 +1,5 @@
 import { getCard, withUpgrade, type ClubState, type CollectCard } from './club';
+import { CARDS_FROM_CAREER_ONLY } from './mode';
 import { clamp, poisson, randInt } from './random';
 import type { Position } from './types';
 
@@ -98,7 +99,8 @@ export const TEAM_NAMES: Record<TeamKind, string> = { main: 'Haupt-Team', career
 export const activeTeam = (club: Pick<ClubState, 'activeTeam'>): TeamKind => club.activeTeam ?? 'main';
 const isCareerCard = (id: string) => id.startsWith('own-');
 const isSbcCard = (id: string) => id.startsWith('moment-');
-export const fitsTeam = (id: string, kind: TeamKind) => (kind === 'career' ? isCareerCard(id) || isSbcCard(id) : !isCareerCard(id));
+// Karten nur aus der Karriere: Im Haupt-Team darf dann jede Karte stehen.
+export const fitsTeam = (id: string, kind: TeamKind) => (kind === 'career' ? isCareerCard(id) || isSbcCard(id) : CARDS_FROM_CAREER_ONLY || !isCareerCard(id));
 
 /** Karten, die im aktiven Team aufgestellt werden dürfen. */
 export function teamCards(club: ClubState, kind: TeamKind = activeTeam(club)): CollectCard[] {

@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { ownedCards } from '../game/squad';
 import { CARDS_FROM_CAREER_ONLY } from '../game/mode';
 import { createPortal } from 'react-dom';
 import { cardArtIds, removeCardArt, setCardArt, shrinkImage, useCardArt } from '../cardArt';
@@ -32,13 +33,19 @@ export default function Collection({ onShop, onCasino }: { onShop: () => void; o
 
   const list = useMemo(() => {
     const term = q.trim().toLowerCase();
-    return all
-      .filter((c) => (show === 'mine' ? club.cards[c.id] > 0 : show === 'missing' ? !(club.cards[c.id] > 0) : true))
+    // „Meine“: alle Karten, die du besitzt – auch Karriere-Karten (dein Spieler, Ikonen, Auszeichnungen)
+    const mine = ownedCards(club);
+    const ownIds = new Set(mine.map((c) => c.id));
+    const seen = new Set<string>();
+    const pool = (show === 'mine' ? mine : show === 'all' ? [...club.specials, ...all] : all).filter((c) => (seen.has(c.id) ? false : (seen.add(c.id), true)));
+    return pool
+      .filter((c) => (show === 'missing' ? !ownIds.has(c.id) : true))
       .filter((c) => !tier || tierOf(c) === tier)
       .filter((c) => !term || c.name.toLowerCase().includes(term) || c.club.toLowerCase().includes(term))
       .sort((a, b) => b.ovr - a.ovr);
-  }, [all, club.cards, show, tier, q]);
+  }, [all, club, show, tier, q]);
 
+  const ownIdsAll = useMemo(() => new Set(ownedCards(club).map((c) => c.id)), [club]);
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(null), 2200); };
   const claim = () => {
     const r = claimMilestones(getClubState());
@@ -82,10 +89,10 @@ export default function Collection({ onShop, onCasino }: { onShop: () => void; o
       </div>
       <input className="col-search" type="search" placeholder="Spieler oder Verein suchen" value={q} onChange={(e) => { setQ(e.target.value); setLimit(PAGE); }} />
 
-      {list.length === 0 ? <p className="hub-empty">{show === 'mine' ? 'Noch keine Karten – öffne Packs im Shop!' : 'Keine Karten gefunden.'}</p> : (
+      {list.length === 0 ? <p className="hub-empty">{show === 'mine' ? (CARDS_FROM_CAREER_ONLY ? 'Noch keine Karten – spiel eine Saison in deiner Karriere: Danach kommt dein Spieler als Karte hierher.' : 'Noch keine Karten – öffne Packs im Shop!') : 'Keine Karten gefunden.'}</p> : (
         <div className="col-grid">
           {list.slice(0, limit).map((c) => {
-            const n = club.cards[c.id] ?? 0;
+            const n = club.cards[c.id] ?? (ownIdsAll.has(c.id) ? 1 : 0);
             return (
               <div key={c.id} className={`col-item ${n ? '' : 'missing'}`}>
                 <UtCard card={c} size="sm" count={n} onClick={() => setSel(c)} />

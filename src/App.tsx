@@ -16,7 +16,7 @@ const CasinoPage = lazy(() => import('./components/casino/CasinoPage'));
 const ShopPage = lazy(() => import('./components/ShopPage'));
 import UpdateBanner, { unseenUpdates } from './components/UpdateBanner';
 import { UPDATES, type UpdateNote } from './data/updates';
-import { creditCareer, removeOwnCareerCards, rewardPending } from './game/club';
+import { creditCareer, removeOwnCareerCards, rewardPending, upsertPlayerCard } from './game/club';
 import CareerReward from './components/CareerReward';
 import { saveCareer } from './game/storage';
 import type { Career } from './game/types';
@@ -60,6 +60,12 @@ export default function App() {
   useEffect(() => {
     const c = getClubState();
     if (!c.ownCardsRemoved) setClubState(removeOwnCareerCards(c, listCareers()));
+    // Karten nur aus der Karriere: Jeder Spieler aus deinen Karrieren liegt als Karte in der Sammlung (auch alte Spielstände).
+    if (CARDS_FROM_CAREER_ONLY) {
+      let club = getClubState();
+      for (const career of listCareers()) club = upsertPlayerCard(club, career).club;
+      if (club !== getClubState()) setClubState(club);
+    }
   }, []);
   // Karriere-Einstellungen gelten jetzt für alle Karrieren: einmalig die der zuletzt gespielten Karriere übernehmen.
   useEffect(() => {
@@ -111,9 +117,12 @@ export default function App() {
   const update = (next: Career) => {
     let career = next;
     // Neue Saisons bringen Coins für den Club.
-    const res = creditCareer(getClubState(), career);
+    const before = getClubState();
+    const res = creditCareer(before, career);
     // Still gutschreiben – keine Einblendung nach jeder Saison (der Kontostand zeigt es ohnehin).
-    if (res.gained > 0 || res.drops > 0 || res.meteor || res.icon) setClubState(res.club);
+    if (res.club !== before) setClubState(res.club);
+    // Erste Saison gespielt: Dein Spieler liegt jetzt als Karte in der Sammlung
+    if (res.playerCard) setToast(`${res.playerCard.name} ist jetzt als Karte (${res.playerCard.ovr}) in deiner Sammlung – sie wächst jede Saison mit.`);
     // Karriere vorbei: Belohnungskarte wählen (Ikone oder Auszeichnung).
     if (rewardPending(getClubState(), career)) setReward(career);
     // Verborgene Abhängigkeit: Das ganze Geld ist weg – ohne Erklärung.

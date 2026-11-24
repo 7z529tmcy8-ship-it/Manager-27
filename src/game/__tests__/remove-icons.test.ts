@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+import { CARDS_FROM_CAREER_ONLY } from '../mode';
 import { freshClub, removeOwnCareerCards, type CollectCard } from '../club';
 
 const icon: CollectCard = { id: 'own-icon-abc', name: 'Ich', position: 'ST', nation: 'Deutschland', club: 'BVB', ovr: 91, variant: 'icon', label: 'Karriere-Ikone' };
@@ -11,6 +12,8 @@ it('Nur Karten selbst erstellter Spieler werden entfernt – Karten echter Spiel
     { id: 'xyz', player: {} },
   ] as unknown as Parameters<typeof removeOwnCareerCards>[1];
   const c = removeOwnCareerCards(old, careers);
+  // Karten nur aus der Karriere: Eigene Karriere-Karten bleiben jetzt immer erhalten
+  if (CARDS_FROM_CAREER_ONLY) { expect(c.specials).toHaveLength(2); expect(c.ownCardsRemoved).toBe(true); return; }
   // abc = eigener Spieler → Ikone weg; xyz = echter Spieler → Auszeichnungs-Karte bleibt
   expect(c.specials.map((x) => x.id)).toEqual([award.id]);
   expect(c.squad[0]).toBeNull();

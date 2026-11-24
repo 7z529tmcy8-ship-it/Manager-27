@@ -4,7 +4,7 @@ import { casinoOf, vipLevel, VIP } from './casino';
 import { autoSquad, seasonId } from './squad';
 import type { Position } from './types';
 
-// Sammlung als Mittelpunkt: Packs aus dem Shop füllen sie, Meilensteine belohnen mit Coins (für den Shop)
+// Sammlung als Mittelpunkt: Karten aus deinen Karrieren füllen sie, Meilensteine belohnen mit Coins
 // und Chips (fürs Casino), und Casino-VIPs dürfen eigenen Karten ein eigenes Bild geben.
 
 /** Sammelbare Karten (ohne eigene Karriere-Karten und noch nicht erschienene Event-Karten). */

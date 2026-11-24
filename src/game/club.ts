@@ -1,4 +1,5 @@
 import { ERA_NAME, ERA_PLAYERS, eraCardId, eraToday, type Era } from '../data/eraCards';
+import { CARDS_FROM_CAREER_ONLY } from './mode';
 import { ERA_END, ERA_START, JUNGLE_END, JUNGLE_START, SHARDS, addShards, type EraState, type JungleState } from './eraTime';
 import { JUNGLE_BOOST, JUNGLE_PLAYERS, jungleCardId } from '../data/jungleCards';
 import { METEOR_GOALS, meteorGoals } from './achievements';
@@ -242,8 +243,10 @@ export const getCard = (id: string) => CARD_POOL.find((c) => c.id === id);
 
 /** Sammel-Fortschritt: wie viele verschiedene Karten aus dem Kartenpool man hat (eigene Sonderkarten zählen nicht). */
 export function collectionProgress(club: ClubState): { have: number; total: number; percent: number; label: string } {
-  const have = Object.keys(club.cards).filter((id) => (club.cards[id] ?? 0) > 0 && getCard(id)).length;
-  const total = CARD_POOL.length;
+  // Karten aus der Karriere (eigene Spieler, Auszeichnungen) zählen mit
+  const extra = CARDS_FROM_CAREER_ONLY ? club.specials.filter((c) => !getCard(c.id)).length : 0;
+  const have = Object.keys(club.cards).filter((id) => (club.cards[id] ?? 0) > 0 && getCard(id)).length + extra;
+  const total = CARD_POOL.length + extra;
   const percent = total ? (have / total) * 100 : 0;
   // Unter 10 % mit einer Nachkommastelle, damit man auch kleine Fortschritte sieht.
   const label = `${percent < 10 && percent > 0 ? percent.toFixed(1).replace('.', ',') : Math.floor(percent)} %`;
@@ -516,10 +519,42 @@ export function careerDrops(r: SeasonRecord): { drops: number; mega: number } {
  * Noch nicht ausgezahlte Saisons (als Spieler und als Trainer) gutschreiben.
  * Eigene Karten gibt es nicht mehr – nach dem Karriereende gibt es Packs je nach Bilanz (claimCareerReward).
  */
+/** Karriere-Karte deines Spielers: kommt nach der ersten Saison in die Sammlung und wächst jede Saison mit. */
+export const playerCardId = (career: Career) => `own-${career.id}-karte`;
+export function careerPlayerCard(career: Career): CollectCard {
+  const p = career.player;
+  const last = career.history[career.history.length - 1];
+  const clubId = career.phase === 'retired' && last ? last.clubId : p.loan?.clubId ?? p.contract.clubId;
+  const club = getClub(clubId);
+  const ovr = Math.max(p.ovr, last?.ovrEnd ?? 0);
+  const first = career.history[0]?.season.slice(0, 4) ?? '';
+  const end = last?.season.slice(-2) ?? '';
+  return {
+    id: playerCardId(career), name: p.name, position: p.position, nation: p.nation,
+    club: club.name, league: getLeague(club.leagueId).name, ovr: Math.min(99, ovr),
+    variant: ovr >= 86 ? 'gold-rare' : ovr >= 75 ? 'gold' : 'silver',
+    label: career.phase === 'retired' ? `Karriere ${first}–${end}` : `Deine Karriere · ${career.history.length} ${career.history.length === 1 ? 'Saison' : 'Saisons'}`,
+    avatar: p.avatar,
+  };
+}
+/** Karriere-Karte einfügen oder aktualisieren (gleiche ID – bleibt in der Aufstellung stehen). */
+export function upsertPlayerCard(club: ClubState, career: Career): { club: ClubState; isNew: boolean } {
+  if (!career.history.length) return { club, isNew: false };
+  const card = careerPlayerCard(career);
+  const i = club.specials.findIndex((c) => c.id === card.id);
+  if (i >= 0) {
+    const old = club.specials[i];
+    if (old.ovr === card.ovr && old.label === card.label && old.club === card.club && old.variant === card.variant) return { club, isNew: false };
+    const specials = [...club.specials]; specials[i] = card;
+    return { club: { ...club, specials }, isNew: false };
+  }
+  return { club: { ...club, specials: [...club.specials, card] }, isNew: true };
+}
+
 export function creditCareer(
   club: ClubState,
   career: Career,
-): { club: ClubState; gained: number; seasons: number; icon: CollectCard | null; drops: number; mega: number; meteor?: boolean } {
+): { club: ClubState; gained: number; seasons: number; icon: CollectCard | null; drops: number; mega: number; meteor?: boolean; playerCard?: CollectCard | null } {
   const done = club.credited[career.id] ?? 0;
   const fresh = career.history.slice(done);
   let gained = 0;
@@ -556,8 +591,12 @@ export function creditCareer(
   const mtKey = `${career.id}:meteor`;
   const meteor = meteorGoals(career) >= METEOR_GOALS && !club.credited[mtKey];
 
-  if (!fresh.length && !coachFresh.length && !hhFresh && !scenarioWon && !meteor) return { club, gained: 0, seasons: 0, icon: null, drops: 0, mega: 0, meteor: false };
+  // Karten nur aus der Karriere: Dein Spieler kommt nach jeder Saison (aktualisiert) in die Sammlung.
+  const pc = CARDS_FROM_CAREER_ONLY ? upsertPlayerCard(club, career) : { club, isNew: false };
+  if (!fresh.length && !coachFresh.length && !hhFresh && !scenarioWon && !meteor) return { club: pc.club, gained: 0, seasons: 0, icon: null, drops: 0, mega: 0, meteor: false, playerCard: null };
+  club = pc.club;
   return {
+    playerCard: pc.isNew ? careerPlayerCard(career) : null,
     club: addShards({
       ...club,
       coins: Math.max(0, club.coins + gained),
@@ -830,6 +869,8 @@ export const careerIdOfOwnCard = (id: string): string | null => {
  */
 export function removeOwnCareerCards(club: ClubState, careers: Career[]): ClubState {
   if (club.ownCardsRemoved) return club;
+  // Karten kommen nur noch aus der Karriere – eigene Karriere-Karten bleiben dann natürlich erhalten.
+  if (CARDS_FROM_CAREER_ONLY) return { ...club, ownCardsRemoved: true };
   const created = new Set(careers.filter(isCreatedPlayer).map((c) => c.id));
   const drop = (id: string | null | undefined) => !!id && id.startsWith('own-') && created.has(careerIdOfOwnCard(id) ?? '');
   const rewardChosen = Object.fromEntries(Object.entries(club.rewardChosen ?? {}).filter(([cid, id]) => !(created.has(cid) && id.startsWith('own-'))));
