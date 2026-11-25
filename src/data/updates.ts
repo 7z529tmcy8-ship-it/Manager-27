@@ -29,6 +29,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-25-skills-handy',
+    date: '25.11.2026',
+    title: 'Fähigkeiten: einfach fürs Handy',
+    items: [
+      'Fähigkeiten sind jetzt eine einfache Liste statt eines Baums zum Zoomen und Schieben.',
+      'Oben „Jetzt“: alles, was du gerade lernen kannst, mit Preis. Antippen und auf „Lernen“ tippen, kein Gedrückthalten mehr.',
+      'Die vier Bereiche (Torgefahr, Kreativität, Athletik, Mentalität) als große Knöpfe, sortiert nach Stufe 1 bis 4.',
+      'Spielertyp-Auswahl kürzer und mit großen Zeilen.',
+      'Der runde Baum ist noch da: unten „Als Baum anzeigen“.',
+    ],
+  },
+  {
     id: '2026-11-24-specials-20',
     date: '24.11.2026',
     title: '20 neue Specials',

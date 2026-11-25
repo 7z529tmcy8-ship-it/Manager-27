@@ -17,24 +17,24 @@ const U = 50;
 const NODE_R: Record<Skill['kind'], number> = { stat: 12, star: 13, style: 15, ult: 19 };
 const ICON_S: Record<Skill['kind'], number> = { stat: 13, star: 13, style: 15, ult: 19 };
 
-/** Auswahl des Spielertyps (einmal pro Karriere). */
+/** Auswahl des Spielertyps (einmal pro Karriere) – kurz und mit großen Zeilen fürs Handy. */
 export function ArchetypePicker({ career, onChange }: { career: Career; onChange: (c: Career) => void }) {
   const fitting = archetypesFor(career.player.position);
   const list = fitting.length ? fitting : ARCHETYPES;
   return (
-    <section className="cs-window">
+    <section className="cs-window sk-pick">
       <h2>Wähle deinen Spielertyp</h2>
-      <p className="cs-sub">
-        Dein Typ ist die Mitte deines Skill-Universums. In seiner Heimat-Richtung ist alles am günstigsten – mischen geht, kostet aber mehr.
-        Erfahrungspunkte aus Spielen, Toren, Vorlagen, Noten und Titeln bringen Level, jedes Level einen Punkt.
-      </p>
-      <div className={`cs-choices n${Math.min(3, list.length)} sk-types`}>
+      <p className="cs-sub">Bestimmt, welche Fähigkeiten für dich am günstigsten sind. Jedes Level bringt 1 Punkt.</p>
+      <div className="sk-pick-list">
         {list.map((a) => (
-          <button key={a.id} className="cs-choice k-transfer" onClick={() => onChange(chooseArchetype(career, a.id))}>
-            <small><Icon name={a.icon} size={16} /> Spielertyp</small>
-            <strong>{a.name}</strong>
-            <span className="cs-choice-meta">{a.text}</span>
-            <span className="cs-choice-league">Heimat: {DIR_NAME[a.home]} · {NODES.filter((n) => n.dir === a.home && n.kind === 'ult').map((n) => n.name).join(' · ')}</span>
+          <button key={a.id} className={`sk-pick-row d-${a.home}`} onClick={() => { sfx('tap'); onChange(chooseArchetype(career, a.id)); }}>
+            <span className="sk-pick-ic"><Icon name={a.icon} size={22} /></span>
+            <span className="sk-pick-txt">
+              <b>{a.name}</b>
+              <small>{a.text}</small>
+              <em><Icon name={DIR_ICON[a.home]} size={13} /> Stark in {DIR_NAME[a.home]}</em>
+            </span>
+            <Icon name="arrow" size={18} className="sk-pick-go" />
           </button>
         ))}
       </div>
@@ -70,8 +70,169 @@ const dirCenter = (d: Dir, w = 360, h = 560): View => {
 };
 const ALL: View = { x: 0, y: 0, z: 1 };
 
+const VIEW_KEY = 'fc-skill-view';
+const readView = (): 'list' | 'tree' => { try { return localStorage.getItem(VIEW_KEY) === 'tree' ? 'tree' : 'list'; } catch { return 'list'; } };
+const saveView = (v: 'list' | 'tree') => { try { localStorage.setItem(VIEW_KEY, v); } catch { /* egal */ } };
+
+/** Fähigkeiten: einfache Liste (Standard, fürs Handy) oder der runde Baum. */
+export default function SkillTree(props: { career: Career; onChange: (c: Career) => void; onClose: () => void }) {
+  const [mode, setMode] = useState(readView);
+  const flip = (v: 'list' | 'tree') => { saveView(v); setMode(v); sfx('tap'); };
+  return mode === 'tree'
+    ? <SkillUniverse {...props} onList={() => flip('list')} />
+    : <SkillList {...props} onTree={() => flip('tree')} />;
+}
+
+const RING_NAME = ['', 'Stufe 1 · Grundlagen', 'Stufe 2 · Aufbau', 'Stufe 3 · Profi', 'Stufe 4 · Ultimativ'];
+type Tab = 'now' | Dir;
+
+/** Einfache Liste: oben was du jetzt lernen kannst, darunter je Richtung alle Fähigkeiten nach Stufen. Antippen öffnet, ein Knopf lernt. */
+function SkillList({ career, onChange, onClose, onTree }: { career: Career; onChange: (c: Career) => void; onClose: () => void; onTree: () => void }) {
+  const p = career.player;
+  const sk = p.skills!;
+  const type = getArchetype(sk.archetype);
+  const info = levelInfo(sk.xp);
+  const free = freePoints(p);
+  const owned = new Set(sk.unlocked);
+  const styles = sk.styles ?? [];
+  const [tab, setTab] = useState<Tab>(() => (free > 0 ? 'now' : type.home));
+  const [open, setOpen] = useState<string | null>(null);
+  const [menu, setMenu] = useState(false);
+  const [just, setJust] = useState<string | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (!just) return; const t = setTimeout(() => setJust(null), 900); return () => clearTimeout(t); }, [just]);
+  useEffect(() => { listRef.current?.scrollTo?.({ top: 0 }); }, [tab]);
+
+  const stateOf = (n: Skill) => owned.has(n.id) ? 'own' : lockReason(career, n.id) === null ? 'can' : 'lock';
+  const learn = (n: Skill) => {
+    sfx('unlock'); sfx('levelUp');
+    try { navigator.vibrate?.(40); } catch { /* kein Vibrieren */ }
+    setJust(n.id);
+    onChange(unlockSkill(career, n.id));
+  };
+  const home = type.home;
+  const ready = NODES.filter((n) => stateOf(n) === 'can')
+    .sort((a, b) => costOf(p, a) - costOf(p, b) || (a.dir === home ? -1 : 0) - (b.dir === home ? -1 : 0) || a.ring - b.ring);
+  const countIn = (d: Dir) => NODES.filter((n) => n.dir === d && owned.has(n.id)).length;
+  const totalIn = (d: Dir) => NODES.filter((n) => n.dir === d).length;
+
+  const row = (n: Skill) => {
+    const st = stateOf(n);
+    const cost = costOf(p, n);
+    const isOpen = open === n.id;
+    const worn = styles.includes(n.id);
+    const m = masteryProgress(n, usesOf(p, n.id));
+    const reason = st === 'lock' ? lockReason(career, n.id) : null;
+    return (
+      <li key={n.id} className={`sl-row d-${n.dir} k-${n.kind} ${st} ${isOpen ? 'open' : ''} ${just === n.id ? 'pop' : ''}`}>
+        <button className="sl-head" onClick={() => { setOpen(isOpen ? null : n.id); sfx('tap'); }} aria-expanded={isOpen}>
+          <span className="sl-ic"><Icon name={st === 'lock' ? 'lock' : n.icon} size={20} /></span>
+          <span className="sl-txt">
+            <b>{n.name}</b>
+            <small>{n.kind === 'stat' ? n.text : KIND_NAME[n.kind]}{worn ? ' · ausgerüstet' : ''}</small>
+          </span>
+          <span className="sl-tag">
+            {st === 'own' ? <Icon name="check" size={18} /> : st === 'can' ? <>{cost} FP</> : <Icon name="lock" size={16} />}
+          </span>
+        </button>
+        {isOpen && (
+          <div className="sl-body">
+            {n.kind !== 'stat' && <p>{n.text}</p>}
+            {st === 'own' && (
+              <p className={`su-mast m${m.level}`}>
+                <b>{MASTERY_NAME[m.level]}</b>
+                {m.next !== null ? <><span><i style={{ width: `${Math.min(100, (usesOf(p, n.id) / m.next) * 100)}%` }} /></span><small>{usesOf(p, n.id)}/{m.next} {m.word}</small></> : <small>Maximale Stufe</small>}
+              </p>
+            )}
+            {st === 'own' ? (
+              n.kind === 'style' ? (
+                <button className={`btn ${worn ? 'secondary' : 'primary'} sl-act`} disabled={!worn && styles.length >= STYLE_SLOTS}
+                  onClick={() => { sfx('tap'); onChange(toggleStyle(career, n.id)); }}>
+                  {worn ? 'Ablegen' : styles.length >= STYLE_SLOTS ? `Alle ${STYLE_SLOTS} Plätze belegt` : 'Ausrüsten'}
+                </button>
+              ) : <p className="sl-ok"><Icon name="check" size={16} /> Gelernt – wirkt in jedem Spiel</p>
+            ) : st === 'can' ? (
+              <>
+                <button className="btn primary sl-act sl-learn" onClick={() => learn(n)}>Lernen · {cost} FP</button>
+                {cost > n.cost && <small className="sl-extra">+{cost - n.cost} FP, weil es nicht deine Stärke ist</small>}
+              </>
+            ) : <p className="sl-lock"><Icon name="lock" size={16} /> {reason}</p>}
+          </div>
+        )}
+      </li>
+    );
+  };
+
+  return (
+    <div className="su sl" role="dialog" aria-modal="true" aria-label="Fähigkeiten">
+      <header className="su-top">
+        <button className="su-back" onClick={onClose} aria-label="Zurück"><Icon name="arrow" size={20} /></button>
+        <div className="su-title">
+          <b>{type.name} · Level {info.level}</b>
+          <span className="su-xp" aria-label={`${info.into} von ${info.need} EP`}><i style={{ width: `${Math.round((info.into / info.need) * 100)}%` }} /></span>
+        </div>
+        <span className={`su-fp ${free > 0 ? 'has' : ''}`}><b>{free}</b> FP</span>
+        <button className="su-menu" onClick={() => setMenu(true)} aria-label="Boni, Baupläne, Umbau"><Icon name="tactics" size={20} /></button>
+      </header>
+
+      <nav className="sl-tabs" aria-label="Bereiche">
+        <button className={tab === 'now' ? 'on' : ''} onClick={() => setTab('now')}>
+          <Icon name="bolt" size={18} /><span>Jetzt</span>{ready.length > 0 && free > 0 && <i>{ready.length}</i>}
+        </button>
+        {DIRS.map((d) => (
+          <button key={d} className={`d-${d} ${tab === d ? 'on' : ''}`} onClick={() => setTab(d)} aria-label={DIR_NAME[d]}>
+            <Icon name={DIR_ICON[d]} size={18} /><span>{DIR_NAME[d]}</span><small>{countIn(d)}/{totalIn(d)}</small>
+          </button>
+        ))}
+      </nav>
+
+      <div className="sl-list" ref={listRef}>
+        {tab === 'now' ? (
+          <>
+            <p className="sl-hint">
+              {free > 0
+                ? <>Du hast <b>{free} {free === 1 ? 'Punkt' : 'Punkte'}</b>. Tippe eine Fähigkeit an und dann auf „Lernen“.</>
+                : <>Keine freien Punkte. Spiele weiter – jedes Level bringt 1 Punkt.</>}
+            </p>
+            {ready.length ? <ul>{ready.map(row)}</ul> : free > 0 && <p className="sl-hint">Gerade ist nichts lernbar. Schau in die Bereiche, was noch fehlt.</p>}
+          </>
+        ) : (
+          <>
+            {!milestone(career, tab).open && (
+              <p className="sl-hint"><Icon name="lock" size={14} /> Stufe 3+ öffnet bei {milestone(career, tab).have}/{milestone(career, tab).need} {milestone(career, tab).word}</p>
+            )}
+            {[1, 2, 3, 4].map((r) => (
+              <section key={r} className="sl-ring">
+                <h3>{RING_NAME[r]}</h3>
+                <ul>{NODES.filter((n) => n.dir === tab && n.ring === r).map(row)}</ul>
+              </section>
+            ))}
+          </>
+        )}
+        <button className="sl-tree-btn" onClick={onTree}><Icon name="globe" size={16} /> Als Baum anzeigen</button>
+      </div>
+
+      <footer className="su-slots" aria-label="Spielstile">
+        <small>Spielstile {styles.length}/{STYLE_SLOTS}</small>
+        <div>
+          {Array.from({ length: STYLE_SLOTS }, (_, i) => {
+            const n = styles[i] ? nodeById(styles[i]) : null;
+            return n ? (
+              <button key={i} className={`su-slot d-${n.dir}`} onClick={() => { setTab(n.dir); setOpen(n.id); }}>
+                <Icon name={n.icon} size={16} /><span>{n.name}</span>
+              </button>
+            ) : <span key={i} className="su-slot empty">frei</span>;
+          })}
+        </div>
+      </footer>
+
+      {menu && <Menu career={career} onChange={onChange} onClose={() => setMenu(false)} />}
+    </div>
+  );
+}
+
 /** Skill-Universum: ein runder Baum auf einem Bildschirm – verschieben, zoomen, antippen. */
-export default function SkillTree({ career, onChange, onClose }: { career: Career; onChange: (c: Career) => void; onClose: () => void }) {
+function SkillUniverse({ career, onChange, onClose, onList }: { career: Career; onChange: (c: Career) => void; onClose: () => void; onList: () => void }) {
   const p = career.player;
   const sk = p.skills!;
   const type = getArchetype(sk.archetype);
@@ -203,6 +364,7 @@ export default function SkillTree({ career, onChange, onClose }: { career: Caree
       </header>
 
       <nav className="su-dirs" aria-label="Richtungen">
+        <button className="su-to-list" onClick={onList}><Icon name="cards" size={16} /> Liste</button>
         <button className={view === ALL ? 'on' : ''} onClick={() => go(ALL)}><Icon name="globe" size={16} /> Alle</button>
         {DIRS.map((d) => (
           <button key={d} className={`d-${d}`} onClick={() => go(dirCenter(d, size.w, size.h))}>
