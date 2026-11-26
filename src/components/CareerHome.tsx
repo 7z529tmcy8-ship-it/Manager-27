@@ -32,8 +32,21 @@ const statusOf = (c: Career) =>
 /** Kompakte Anzeige in der Kopfzeile: ab 100.000 als „1,2 Mio.“ usw. – damit nichts abgeschnitten wird. */
 const short = (n: number) => (n >= 1e9 ? `${(n / 1e9).toFixed(1).replace('.', ',')} Mrd.` : n >= 1e6 ? `${(n / 1e6).toFixed(1).replace('.', ',')} Mio.` : n >= 1e5 ? `${Math.round(n / 1e3)} Tsd.` : Math.round(n).toLocaleString('de-DE'));
 
-export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile, onCasino, onShop, onDuels, onCollection }: {
-  onNew: () => void; onLoad: (c: Career) => void; onNews: () => void; onReward: (c: Career) => void; onProfile: () => void; onCasino: () => void; onShop: () => void; onDuels: () => void; onCollection: () => void;
+/** Kurzinfo zum Vereinsboss-Spielstand (ohne die ganze Logik zu laden). */
+function bossTeaser(): string {
+  try {
+    const raw = localStorage.getItem('fc-boss-v1');
+    if (!raw) return 'Leite einen Verein: Geld, NLZ, Stadion';
+    const b = JSON.parse(raw) as { cash?: number; fired?: boolean; m?: { season?: number } };
+    if (b.fired) return 'Entlassen – neuer Verein?';
+    const c = b.cash ?? 0;
+    const a = Math.abs(c);
+    return `Kasse ${c < 0 ? '−' : ''}${a >= 1e6 ? `${(a / 1e6).toLocaleString('de-DE', { maximumFractionDigits: 1 })} Mio.` : `${Math.round(a / 1e3)} Tsd.`} €`;
+  } catch { return 'Leite einen Verein: Geld, NLZ, Stadion'; }
+}
+
+export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile, onCasino, onShop, onDuels, onCollection, onBoss }: {
+  onNew: () => void; onLoad: (c: Career) => void; onNews: () => void; onReward: (c: Career) => void; onProfile: () => void; onCasino: () => void; onShop: () => void; onDuels: () => void; onCollection: () => void; onBoss?: () => void;
 }) {
   const club = useClub();
   const me = profileOf(club);
@@ -153,6 +166,11 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile,
           <small>{prog.have} / {prog.total} Karten</small>
           <span className="ch3-bar"><i style={{ width: `${Math.max(2, prog.percent)}%` }} /></span>
         </button>
+        {onBoss && <button className="ch3-mode m-boss" onClick={onBoss}>
+          <span className="ch3-mode-ic"><Icon name="money" size={26} /></span>
+          <b>Vereinsboss</b>
+          <small>{bossTeaser()}</small>
+        </button>}
         <button className="ch3-mode m-casino" onClick={onCasino}>
           <span className="ch3-mode-ic"><Icon name="dice" size={26} /></span>
           <b>Casino</b>

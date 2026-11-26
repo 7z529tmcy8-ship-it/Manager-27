@@ -29,6 +29,19 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-26-vereinsboss',
+    date: '26.11.2026',
+    title: 'Neuer Modus: Vereinsboss',
+    items: [
+      'Leite einen Verein als Geschäftsführer – alle Vereine des Spiels sind wählbar. Die Spiele laufen automatisch, du machst das Geschäft.',
+      'Jeden Monat eine Vorstandssitzung: Sponsoren, Trainer, Transfers freigeben, Angebote für deine Spieler, Ereignisse.',
+      'Finanzen wie bei echten Vereinen: TV-Geld (gleich, Leistung, Nachwuchs, Interesse), Spieltag, Sponsoren, Fanartikel – gegen Gehälter, Ablösen, Stadion und NLZ.',
+      'NLZ ausbauen für eigene Talente, Stadion und VIP-Logen bauen, Kredite aufnehmen.',
+      'Fans, Mitgliederversammlung, Investoren (50+1), UEFA-70-%-Regel und ein Aufsichtsrat, der dich entlassen kann.',
+      'Beträge sind an echten Ligen angelehnt, aber vereinfacht.',
+    ],
+  },
+  {
     id: '2026-11-25-skills-handy',
     date: '25.11.2026',
     title: 'Fähigkeiten: einfach fürs Handy',

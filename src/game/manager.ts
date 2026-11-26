@@ -39,6 +39,8 @@ export interface MPlayer {
   motm?: number;
   /** Seit dieser Saison im Verein (für „Neuzugang“). */
   joined?: number;
+  /** Eigengewächs aus dem eigenen NLZ (Vereinsboss). */
+  own?: boolean;
 }
 
 export interface MarketPlayer extends MPlayer {
@@ -547,7 +549,7 @@ export interface SeasonSummary {
 /** Preisgeld nach Platz und Liga. */
 export const prizeFor = (tier: number, pos: number, n: number) => roundMoney((tier === 1 ? 30e6 : 8e6) * (0.35 + (n - pos) / n));
 
-export function finishSeason(m: ManagerState): { m: ManagerState; summary: SeasonSummary } {
+export function finishSeason(m: ManagerState, allowed: string[] = MANAGER_LEAGUES): { m: ManagerState; summary: SeasonSummary } {
   const lg = myLeague(m);
   const table = sortTable(m.rows);
   const pos = table.findIndex((r) => r.clubId === m.clubId) + 1;
@@ -565,8 +567,8 @@ export function finishSeason(m: ManagerState): { m: ManagerState; summary: Seaso
     leagueOf = { ...leagueOf, [m.clubId]: target, ...(other ? { [other]: lg.id } : {}) };
     newLeague = target;
   };
-  if (lg.up && pos <= lg.up.spots && MANAGER_LEAGUES.includes(lg.up.leagueId)) { move = 'up'; swap(lg.up.leagueId, false); }
-  else if (lg.down && pos > n - lg.down.spots && MANAGER_LEAGUES.includes(lg.down.leagueId)) { move = 'down'; swap(lg.down.leagueId, true); }
+  if (lg.up && pos <= lg.up.spots && allowed.includes(lg.up.leagueId)) { move = 'up'; swap(lg.up.leagueId, false); }
+  else if (lg.down && pos > n - lg.down.spots && allowed.includes(lg.down.leagueId)) { move = 'down'; swap(lg.down.leagueId, true); }
   const prize = prizeFor(lg.tier, pos, n) + (reached ? roundMoney(prizeFor(lg.tier, 1, n) * 0.15) : 0);
   const coins = Math.round((2000 + (n - pos) * 400 + (title ? 15000 : 0) + (move === 'up' ? 8000 : 0)) / 100) * 100;
   const scorer = [...m.squad].sort((a, b) => b.goals - a.goals)[0];

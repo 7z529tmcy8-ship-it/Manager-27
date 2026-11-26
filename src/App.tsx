@@ -14,6 +14,7 @@ const DuelsPage = lazy(() => import('./components/DuelsPage'));
 const ProfilePage = lazy(() => import('./components/ProfilePage'));
 const CasinoPage = lazy(() => import('./components/casino/CasinoPage'));
 const ShopPage = lazy(() => import('./components/ShopPage'));
+const BossPage = lazy(() => import('./components/Boss'));
 import UpdateBanner, { unseenUpdates } from './components/UpdateBanner';
 import { UPDATES, type UpdateNote } from './data/updates';
 import { creditCareer, removeOwnCareerCards, removeSeasonPlayerCards, rewardPending } from './game/club';
@@ -37,6 +38,7 @@ type Screen =
   | { name: 'duels' }
   | { name: 'profile' }
   | { name: 'casino' }
+  | { name: 'boss' }
   | { name: 'create' }
   | { name: 'game'; career: Career };
 
@@ -171,6 +173,7 @@ export default function App() {
           onShop={toShop}
           onDuels={() => setScreen({ name: 'duels' })}
           onCollection={() => setScreen({ name: 'team', tab: 'collection' })}
+          onBoss={() => setScreen({ name: 'boss' })}
         />
       )}
       {screen.name === 'team' && <TeamScreen key={screen.tab ?? 'x'} tab={screen.tab} onDuels={() => setScreen({ name: 'duels' })} onShop={toShop} onCasino={() => setScreen({ name: 'casino' })} />}
@@ -180,6 +183,7 @@ export default function App() {
       {screen.name === 'casino' && (CASINO_ONLY
         ? <CasinoPage intro={introOnStart} onSettings={() => setSettingsOpen(true)} />
         : <CasinoPage onExit={home} />)}
+      {screen.name === 'boss' && <BossPage onExit={home} />}
       {screen.name === 'create' && <CreateCareer onCancel={home} onCreate={update} />}
       {screen.name === 'game' && (
         <CareerScreen career={screen.career} onChange={update} onExit={home} />

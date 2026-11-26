@@ -165,6 +165,16 @@ const FLOWS = {
       await p.click('.duel-live .btn.primary', { timeout: 3000 }).catch(() => {}); await p.waitForTimeout(400);
     }
   },
+  vereinsboss: async (p) => {
+    // Vereinsboss: Verein wählen, Vorstandssitzung entscheiden, einen Monat spielen, Reiter durchschalten
+    await nav(p, 'Karriere'); await p.waitForTimeout(450);
+    await p.click('.m-boss', { timeout: 3000 }); await p.waitForTimeout(450);
+    if (await p.locator('.bo-clubs button').count()) { await p.click('.bo-clubs button >> nth=3', { timeout: 2000 }); await p.waitForTimeout(400); }
+    for (let i = 0; i < 8 && await p.locator('.bo-card').count(); i++) { await p.click('.bo-card .bo-opt >> nth=0', { timeout: 2000 }); await p.waitForTimeout(250); }
+    if (await p.locator('.bo-play').count()) { await p.click('.bo-play', { timeout: 2000 }); await p.waitForTimeout(500); await p.click('.bo-sheet .btn', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(300); }
+    for (const i of [1, 2, 3, 4, 0]) { await p.click(`.bo-tabs button >> nth=${i}`, { timeout: 2000 }); await p.waitForTimeout(250); }
+    await p.click('.bo .cs-link', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(300);
+  },
   profil: async (p) => {
     // Profil: Wappen und Farbe wechseln, runterscrollen
     await nav(p, 'Profil'); await p.waitForTimeout(450);
