@@ -1,23 +1,28 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Icon from './Icon';
 import ClubCrest from './ClubCrest';
 import { getClub, getLeague } from '../data/leagues';
 import { sortTable } from '../game/season';
 import { play } from '../sound';
 import {
-  type BossState, type SeasonEnd, type TicketLevel, type IncomeKey, type CostKey, type Ledger,
-  COST_NAME, EURO_MONEY, EURO_NAME, INCOME_NAME, NLZ_NAME, SEAT_STEP, TICKETS, SLOT_NAME,
-  adsYear, attendance, bossClubs, bossLeagues, canPlay, clubName, closeSeason, coachBoost, debt, decide, fireCoach, isGerman,
-  leagueOf, loadBoss, loanOptions, matchIncome, money, monthName, newBoss, nlzUpgradeCost, nlzYear, payroll,
-  playMonth, position, saveBoss, seatCost, setTicket, severance, squadCostRatio, startBuild, sumIn, sumOut, takeLoan, ticketPrice,
-  tvMoney, upgradeNlz, vipCost, wageOf, youthMinutesShare, downgradeNlz, LOAN_RATE,
+  type BossState, type SeasonEnd, type IncomeKey, type CostKey, type Ledger, type SponsorSlot, type SellPolicy, type Task,
+  COST_NAME, EURO_MONEY, EURO_NAME, INCOME_NAME, NLZ_NAME, SELL_NAME, SLOT_NAME, TRAIN_NAME, SEAT_MIN, SEAT_MAX,
+  adsYear, attendance, basePrice, bossClubs, bossLeagues, brandOf, buildGain, canPlay, clubName, closeSeason, coachBoost, coachCandidates,
+  debt, demand, fireCoach, forecast, hireCoach, homeGames, isGerman, leagueOf, loadBoss, loanMax, loanTerms, marketingYear, matchIncome, maxShare,
+  money, monthName, newBoss, nlzYear, payoffAmount, payroll, plannedRevenue, playMonth, playUntil, position, priceFans, priceRange, repayLoans,
+  saveBoss, seatCost, seatMonths, sellShares, setMarketing, setPrice, setSellPolicy, setTransferBudget, setWageBudget, severance, sharePrice,
+  signSponsor, sponsorOffer, squadCostRatio, startBuild, sumIn, sumOut, takeLoan, tasks, trainYear, transferLeft, tvMoney, upgrade, upgradeCost,
+  downgrade, vipCost, wageCap, wageOf, windowMonth, youthMinutesShare,
 } from '../game/boss';
 
 const sfx = (id: Parameters<typeof play>[0]) => { try { play(id); } catch { /* kein Ton */ } };
-type Tab = 'office' | 'money' | 'club' | 'squad' | 'table';
-const TABS: [Tab, string, string][] = [['office', 'Büro', 'calendar'], ['money', 'Finanzen', 'money'], ['club', 'Verein', 'stadium'], ['squad', 'Kader', 'shirt'], ['table', 'Tabelle', 'chart']];
+type Tab = 'home' | 'budget' | 'projects' | 'finance' | 'team';
+const TABS: [Tab, string, string][] = [['home', 'Übersicht', 'home'], ['budget', 'Budget', 'chart'], ['projects', 'Projekte', 'stadium'], ['finance', 'Finanzen', 'money'], ['team', 'Team', 'shirt']];
+const pct = (v: number) => `${Math.round(v * 100)} %`;
+const num = (v: number) => Math.round(v).toLocaleString('de-DE');
+const signed = (v: number) => `${v >= 0 ? '+' : ''}${money(v)}`;
 
-/** Vereinsboss: den Verein als Geschäftsführer leiten. */
+/** Vereinsboss: den Verein als Geschäftsführer leiten – mit Reglern und langfristigen Entscheidungen. */
 export default function BossPage({ onExit }: { onExit: () => void }) {
   const [b, setB] = useState<BossState | null>(() => loadBoss());
   const update = (n: BossState | null) => { setB(n); saveBoss(n); };
@@ -36,7 +41,7 @@ function BossStart({ onExit, onStart }: { onExit: () => void; onStart: (clubId: 
       <section className="bo-hero">
         <span className="bo-hero-ic"><Icon name="money" size={30} /></span>
         <h1>Vereinsboss</h1>
-        <p>Du leitest das Geschäft: Geld, Tickets, Sponsoren, Trainer, NLZ und Stadion. Die Spiele macht die Mannschaft.</p>
+        <p>Du leitest das Geschäft: Budgets, Tickets, Sponsoren, Projekte und Finanzierung. Die Spiele macht die Mannschaft.</p>
       </section>
       <label className="bo-field">
         <span>Liga</span>
@@ -48,7 +53,7 @@ function BossStart({ onExit, onStart }: { onExit: () => void; onStart: (clubId: 
         {clubs.map((c) => (
           <li key={c.id}>
             <button onClick={() => onStart(c.id)}>
-              <ClubCrest id={c.id} size={30} />
+              <span className="bo-crest-lg"><ClubCrest id={c.id} size={30} /></span>
               <span><b>{c.name}</b><small>Stärke {c.strength}</small></span>
               <Icon name="arrow" size={18} />
             </button>
@@ -60,9 +65,45 @@ function BossStart({ onExit, onStart }: { onExit: () => void; onStart: (clubId: 
   );
 }
 
+// ---------- Regler ----------
+/** Schieberegler: zeigt den Wert sofort, übernimmt ihn kurz nach dem Loslassen/Stoppen. */
+function Slider({ label, value, min, max, step, show, onCommit, disabled }: {
+  label: string; value: number; min: number; max: number; step: number; show: (v: number) => string; onCommit: (v: number) => void; disabled?: boolean;
+}) {
+  const [v, setV] = useState(value);
+  const t = useRef<number | null>(null);
+  useEffect(() => { setV(value); }, [value]);
+  useEffect(() => () => { if (t.current) clearTimeout(t.current); }, []);
+  const change = (n: number) => {
+    setV(n);
+    if (t.current) clearTimeout(t.current);
+    t.current = window.setTimeout(() => { t.current = null; onCommit(n); }, 180);
+  };
+  const p = max > min ? ((v - min) / (max - min)) * 100 : 0;
+  return (
+    <label className={`bo-slider ${disabled ? 'off' : ''}`}>
+      <span className="bo-slider-top"><span>{label}</span><b>{show(v)}</b></span>
+      <input type="range" min={min} max={max} step={step} value={v} disabled={disabled}
+        style={{ ['--p' as string]: `${p}%` }} onChange={(e) => change(Number(e.target.value))} aria-label={label} />
+    </label>
+  );
+}
+function Effects({ items }: { items: [string, string, ('pos' | 'neg' | '')?][] }) {
+  return <ul className="bo-eff">{items.map(([k, v, c]) => <li key={k}><span>{k}</span><b className={c ?? ''}>{v}</b></li>)}</ul>;
+}
+function Seg<T extends string>({ value, options, onChange }: { value: T; options: [T, string, string?][]; onChange: (v: T) => void }) {
+  return (
+    <div className="bo-seg">
+      {options.map(([id, name, sub]) => (
+        <button key={id} className={value === id ? 'on' : ''} onClick={() => { onChange(id); sfx('tap'); }}><b>{name}</b>{sub && <small>{sub}</small>}</button>
+      ))}
+    </div>
+  );
+}
+
 // ---------- Spiel ----------
 function BossGame({ b, onChange, onExit }: { b: BossState; onChange: (b: BossState | null) => void; onExit: () => void }) {
-  const [tab, setTab] = useState<Tab>('office');
+  const [tab, setTab] = useState<Tab>('home');
   const [toast, setToast] = useState<string | null>(null);
   const [end, setEnd] = useState<SeasonEnd | null>(null);
   const [showReport, setShowReport] = useState(false);
@@ -70,14 +111,14 @@ function BossGame({ b, onChange, onExit }: { b: BossState; onChange: (b: BossSta
   const lg = getLeague(leagueOf(b));
   const played = b.m.rows.find((r) => r.clubId === b.m.clubId)?.played ?? 0;
   const pos = played ? position(b) : 0;
+  const go = (t: Tab) => { setTab(t); sfx('tap'); window.scrollTo?.({ top: 0 }); };
+  const act = (n: BossState, msg?: string, sound: Parameters<typeof play>[0] = 'coin') => { if (n === b) return; onChange(n); sfx(sound); if (msg) setToast(msg); };
 
-  const choose = (cardId: string, act: string) => {
-    const r = decide(b, cardId, act);
-    sfx(act === 'skip' || act.endsWith('-no') ? 'tap' : 'coin');
-    onChange(r.b);
-    if (r.msg) setToast(r.msg);
+  const run = (mode: 'month' | 'winter' | 'end') => {
+    sfx('whistle');
+    onChange(mode === 'month' ? playMonth(b) : playUntil(b, mode));
+    setShowReport(true);
   };
-  const play1 = () => { sfx('whistle'); onChange(playMonth(b)); setShowReport(true); };
   const finish = () => { const r = closeSeason(b); sfx(r.end.fired ? 'tap' : 'levelUp'); setEnd(r.end); onChange(r.b); };
 
   if (b.fired && !end) {
@@ -87,10 +128,10 @@ function BossGame({ b, onChange, onExit }: { b: BossState; onChange: (b: BossSta
           <span className="bo-hero-ic"><Icon name="broken" size={30} /></span>
           <h1>Entlassen</h1>
           <p>Der Aufsichtsrat hat dir das Vertrauen entzogen. Deine Zeit bei {clubName(b)} ist vorbei.</p>
-          <Seasons b={b} />
-          <button className="btn primary big" onClick={() => onChange(null)}>Neuen Verein übernehmen</button>
-          <button className="cs-link" onClick={onExit}>‹ Menü</button>
         </section>
+        <Seasons b={b} />
+        <button className="btn primary big bo-wide" onClick={() => onChange(null)}>Neuen Verein übernehmen</button>
+        <button className="cs-link" onClick={onExit}>‹ Menü</button>
       </main>
     );
   }
@@ -102,32 +143,27 @@ function BossGame({ b, onChange, onExit }: { b: BossState; onChange: (b: BossSta
         <span className="bo-date"><Icon name="calendar" size={14} /> {monthName(b)}</span>
       </div>
       <header className="bo-head">
-        <ClubCrest id={b.m.clubId} size={44} />
+        <span className="bo-crest-lg"><ClubCrest id={b.m.clubId} size={44} /></span>
         <div className="bo-head-main">
           <b>{clubName(b)}</b>
           <small>{lg.name}{pos ? ` · Platz ${pos}` : ''} · Ziel: Platz {b.m.target}</small>
         </div>
         <div className={`bo-cash ${b.cash < 0 ? 'neg' : ''}`}><small>Kasse</small><b>{money(b.cash)}</b></div>
       </header>
-      <div className="bo-meters">
-        <Meter label="Fans" v={b.fans} icon="heart" />
-        <Meter label="Aufsichtsrat" v={b.trust} icon="handshake" />
-      </div>
 
       <nav className="bo-tabs" aria-label="Bereiche">
         {TABS.map(([id, name, icon]) => (
-          <button key={id} className={tab === id ? 'on' : ''} onClick={() => { setTab(id); sfx('tap'); }}>
+          <button key={id} className={tab === id ? 'on' : ''} onClick={() => go(id)}>
             <Icon name={icon} size={18} /><span>{name}</span>
-            {id === 'office' && b.cards.length > 0 && <i>{b.cards.length}</i>}
           </button>
         ))}
       </nav>
 
-      {tab === 'office' && <Office b={b} onChoose={choose} onPlay={play1} onFinish={finish} onReport={() => setShowReport(true)} />}
-      {tab === 'money' && <Money b={b} onChange={onChange} onToast={setToast} />}
-      {tab === 'club' && <Club b={b} onChange={onChange} onToast={setToast} onReset={() => onChange(null)} />}
-      {tab === 'squad' && <Squad b={b} />}
-      {tab === 'table' && <Table b={b} />}
+      {tab === 'home' && <Home b={b} onRun={run} onFinish={finish} onReport={() => setShowReport(true)} onTab={go} />}
+      {tab === 'budget' && <Budget b={b} onChange={(n) => onChange(n)} />}
+      {tab === 'projects' && <Projects b={b} act={act} />}
+      {tab === 'finance' && <Finance b={b} act={act} />}
+      {tab === 'team' && <Team b={b} onReset={() => onChange(null)} />}
 
       {showReport && b.report && <Report b={b} onClose={() => setShowReport(false)} />}
       {end && <SeasonSheet end={end} b={b} onClose={() => setEnd(null)} />}
@@ -136,58 +172,73 @@ function BossGame({ b, onChange, onExit }: { b: BossState; onChange: (b: BossSta
   );
 }
 
-function Meter({ label, v, icon }: { label: string; v: number; icon: string }) {
-  return (
-    <div className={`bo-meter ${v < 30 ? 'low' : v >= 70 ? 'high' : ''}`}>
-      <span><Icon name={icon} size={14} /> {label}</span>
-      <i><b style={{ transform: `scaleX(${v / 100})` }} /></i>
-      <em>{v}</em>
-    </div>
-  );
-}
-
-// ---------- Büro: Vorstandssitzung + Monat ----------
-function Office({ b, onChoose, onPlay, onFinish, onReport }: { b: BossState; onChoose: (id: string, act: string) => void; onPlay: () => void; onFinish: () => void; onReport: () => void }) {
+// ---------- Übersicht ----------
+function Home({ b, onRun, onFinish, onReport, onTab }: { b: BossState; onRun: (m: 'month' | 'winter' | 'end') => void; onFinish: () => void; onReport: () => void; onTab: (t: Tab) => void }) {
+  const todo = tasks(b);
+  const f = forecast(b);
+  const blocked = !canPlay(b);
   return (
     <section className="bo-sec">
+      {todo.length > 0 && (
+        <div className="bo-panel bo-todo">
+          <h3>Offene Punkte</h3>
+          <ul>
+            {todo.map((t: Task) => (
+              <li key={t.id}>
+                <button className={t.must ? 'must' : ''} onClick={() => onTab(t.tab)}>
+                  <Icon name={t.must ? 'warn' : 'info'} size={16} /><span>{t.text}</span><Icon name="arrow" size={14} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {b.seasonOver ? (
-        <div className="bo-panel bo-end">
+        <div className="bo-panel bo-cta">
           <h2>Saison vorbei</h2>
           <p>Zeit für die Bilanz{isGerman(leagueOf(b)) ? ', die Mitgliederversammlung' : ''} und das Urteil des Aufsichtsrats.</p>
           <button className="btn primary big" onClick={onFinish}><Icon name="chart" size={18} /> Saisonbilanz ansehen</button>
         </div>
-      ) : b.cards.length ? (
-        <>
-          <h2 className="bo-h">Vorstandssitzung · {b.cards.length} {b.cards.length === 1 ? 'Entscheidung' : 'Entscheidungen'}</h2>
-          {b.cards.slice(0, 1).map((c) => (
-            <article key={c.id} className={`bo-card k-${c.kind}`}>
-              <small>{c.kind === 'buy' ? 'Transfer' : c.kind === 'bid' ? 'Verkaufsangebot' : c.kind === 'sponsor' ? 'Sponsoring' : c.kind === 'coach' ? 'Personal' : c.kind === 'investor' ? 'Investor' : c.kind === 'license' ? 'Lizenz' : 'Ereignis'}</small>
-              <h3>{c.title}</h3>
-              <p>{c.text}</p>
-              <div className="bo-opts">
-                {c.options.map((o) => (
-                  <button key={o.act} className={`bo-opt ${o.act === 'skip' || o.act.endsWith('-no') ? 'no' : ''}`} onClick={() => onChoose(c.id, o.act)}>
-                    <b>{o.label}</b>{o.sub && <small>{o.sub}</small>}
-                  </button>
-                ))}
-              </div>
-            </article>
-          ))}
-          {b.cards.length > 1 && <p className="bo-more">Danach noch {b.cards.length - 1} weitere</p>}
-        </>
       ) : (
-        <div className="bo-panel bo-next">
+        <div className="bo-panel bo-cta">
           <h2>{monthName(b)}</h2>
-          <p>Alles entschieden. Der Trainer stellt auf, du schaust auf die Zahlen.</p>
-          <button className="btn primary big bo-play" onClick={onPlay} disabled={!canPlay(b)}><Icon name="ball" size={18} /> Monat spielen</button>
+          {windowMonth(b.month) && <p className="bo-hint">Transferfenster: Der Sportdirektor kauft und verkauft beim Spielen nach deinen Budgets.</p>}
+          <button className="btn primary big" onClick={() => onRun('month')} disabled={blocked}><Icon name="ball" size={18} /> Monat spielen</button>
+          <div className="bo-row2">
+            {b.month < 5 && <button className="btn secondary" onClick={() => onRun('winter')} disabled={blocked}>Bis Winterpause</button>}
+            <button className="btn secondary" onClick={() => onRun('end')} disabled={blocked}>Bis Saisonende</button>
+          </div>
+          {blocked && <small className="bo-hint warn">Erst einen Trainer verpflichten (Projekte).</small>}
         </div>
       )}
+
+      <div className="bo-panel">
+        <h3>Prognose für die ganze Saison</h3>
+        <Effects items={[
+          ['Einnahmen', money(sumIn(f.ledger)), 'pos'],
+          ['Ausgaben', money(sumOut(f.ledger)), 'neg'],
+          ['Ergebnis (ohne Transfers)', signed(f.profit), f.profit >= 0 ? 'pos' : 'neg'],
+          ['Kasse am Saisonende ca.', money(f.cashEnd), f.cashEnd >= 0 ? '' : 'neg'],
+        ]} />
+        <small className="bo-hint">Mit deinen aktuellen Reglern. Ergebnisse, Fans und Transfers verändern die echten Zahlen.</small>
+      </div>
+
       {b.report && !b.seasonOver && (
         <button className="bo-last" onClick={onReport}>
-          <span><small>Letzter Monat · {b.report.label}</small><b>{b.report.results.map((r) => `${r.gf}:${r.ga}`).join('  ') || 'keine Spiele'}</b></span>
-          <em className={b.report.cashAfter >= b.report.cashBefore ? 'pos' : 'neg'}>{b.report.cashAfter >= b.report.cashBefore ? '+' : ''}{money(b.report.cashAfter - b.report.cashBefore)}</em>
+          <span><small>Zuletzt · {b.report.label}</small><b>{b.report.results.slice(-6).map((r) => `${r.gf}:${r.ga}`).join('  ') || 'keine Spiele'}</b></span>
+          <em className={b.report.cashAfter >= b.report.cashBefore ? 'pos' : 'neg'}>{signed(b.report.cashAfter - b.report.cashBefore)}</em>
         </button>
       )}
+
+      <div className="bo-kpis">
+        <Kpi label="Fans" v={`${b.fans}`} bar={b.fans / 100} />
+        <Kpi label="Aufsichtsrat" v={`${b.trust}`} bar={b.trust / 100} />
+        <Kpi label="Kaderkosten" v={pct(squadCostRatio(b))} bar={Math.min(1, squadCostRatio(b))} warn={squadCostRatio(b) > 0.7} />
+        <Kpi label="Marke" v={`${Math.round(b.brandX * 100)}`} bar={Math.min(1, (b.brandX - 0.7) / 1.3)} />
+      </div>
+
+      <MiniTable b={b} />
       {b.log.length > 0 && (
         <div className="bo-panel">
           <h3>Chronik</h3>
@@ -197,8 +248,358 @@ function Office({ b, onChoose, onPlay, onFinish, onReport }: { b: BossState; onC
     </section>
   );
 }
+function Kpi({ label, v, bar, warn }: { label: string; v: string; bar: number; warn?: boolean }) {
+  return (
+    <div className={`bo-kpi ${warn ? 'warn' : bar < 0.3 ? 'low' : bar >= 0.7 ? 'high' : ''}`}>
+      <small>{label}</small><b>{v}</b>
+      <i><em style={{ transform: `scaleX(${Math.max(0.02, Math.min(1, bar))})` }} /></i>
+    </div>
+  );
+}
+function MiniTable({ b }: { b: BossState }) {
+  const rows = sortTable(b.m.rows);
+  const me = rows.findIndex((r) => r.clubId === b.m.clubId);
+  if (me < 0 || !rows.some((r) => r.played)) return null;
+  const from = Math.max(0, Math.min(rows.length - 5, me - 2));
+  return (
+    <div className="bo-panel">
+      <h3>{getLeague(leagueOf(b)).name}</h3>
+      <ol className="bo-table">
+        {rows.slice(from, from + 5).map((r, i) => (
+          <li key={r.clubId} className={r.clubId === b.m.clubId ? 'me' : ''}>
+            <em>{from + i + 1}</em><i className="bo-crest"><ClubCrest id={r.clubId} size={18} /></i><span>{getClub(r.clubId).name}</span><small>{r.played}</small><b>{r.points}</b>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+// ---------- Budget (Regler) ----------
+function Budget({ b, onChange }: { b: BossState; onChange: (b: BossState) => void }) {
+  const [lo, hi] = priceRange(b);
+  const rev = plannedRevenue(b);
+  const pay = payroll(b);
+  const cap = wageCap(b);
+  const f = forecast(b);
+  const dem = demand(b);
+  const att = attendance(b);
+  const tMax = Math.max(b.transferSpent, Math.max(0, b.cash));
+  const step = (v: number) => (v >= 1e8 ? 1e6 : v >= 1e7 ? 1e5 : v >= 1e6 ? 25e3 : 1e3);
+  const pf = priceFans(b);
+  return (
+    <section className="bo-sec">
+      <div className={`bo-sticky ${f.profit >= 0 ? 'pos' : 'neg'}`}>
+        <span>Saisonprognose</span><b>{signed(f.profit)}</b>
+      </div>
+
+      <div className="bo-panel">
+        <h3><Icon name="ticket" size={16} /> Ticketpreis</h3>
+        <Slider label="Ø-Preis pro Ticket" value={b.price} min={lo} max={hi} step={1} show={(v) => `${v} €`} onCommit={(v) => onChange(setPrice(b, v))} />
+        <Effects items={[
+          ['Zuschauer', `${num(att)} von ${num(b.cap)}`],
+          ['Nachfrage', `${num(dem)}${dem > b.cap ? ' – ausverkauft' : ''}`, dem > b.cap ? 'pos' : ''],
+          ['Pro Heimspiel', money(matchIncome(b))],
+          [`Pro Saison (${homeGames(b)} Heimspiele)`, money(matchIncome(b) * homeGames(b))],
+          ['Fan-Stimmung pro Monat', `${pf >= 0 ? '+' : ''}${pf.toLocaleString('de-DE', { maximumFractionDigits: 1 })}`, pf > 0.2 ? 'pos' : pf < -0.2 ? 'neg' : ''],
+        ]} />
+        <small className="bo-hint">Ligaschnitt {basePrice(b)} €. Bis dahin bleiben die Leute fast alle, darüber sinkt die Nachfrage deutlich. Ist das Stadion ausverkauft, kannst du den Preis anheben, ohne Plätze zu verlieren.</small>
+      </div>
+
+      <div className="bo-panel">
+        <h3><Icon name="shirt" size={16} /> Gehaltsbudget</h3>
+        <Slider label="Anteil an den Erlösen" value={b.wageBudget} min={0.35} max={0.85} step={0.01} show={(v) => `${pct(v)} · ${money(rev * v)}`} onCommit={(v) => onChange(setWageBudget(b, v))} />
+        <Effects items={[
+          ['Gehälter jetzt', money(pay), pay > cap ? 'neg' : ''],
+          [pay > cap ? 'Über Budget' : 'Spielraum', money(Math.abs(cap - pay)), pay > cap ? 'neg' : 'pos'],
+        ]} />
+        <small className="bo-hint">{pay > cap ? 'Im nächsten Transferfenster verkauft der Sportdirektor teure Spieler, bis es passt.' : 'Neue Spieler werden nur geholt, wenn ihr Gehalt noch ins Budget passt.'} Viele echte Vereine liegen bei rund 50–60 %.</small>
+      </div>
+
+      <div className="bo-panel">
+        <h3><Icon name="swap" size={16} /> Transfers</h3>
+        <Slider label="Transferbudget diese Saison" value={Math.min(b.transferBudget, tMax)} min={0} max={tMax} step={step(tMax)} show={(v) => money(v)} onCommit={(v) => onChange(setTransferBudget(b, v))} disabled={tMax <= 0} />
+        <Effects items={[['Schon ausgegeben', money(b.transferSpent)], ['Noch frei', money(transferLeft(b))]]} />
+        <p className="bo-label">Verkaufspolitik</p>
+        <Seg<SellPolicy> value={b.sellPolicy} options={(['keep', 'normal', 'sell'] as SellPolicy[]).map((k) => [k, SELL_NAME[k].name])} onChange={(v) => onChange(setSellPolicy(b, v))} />
+        <small className="bo-hint">{SELL_NAME[b.sellPolicy].text} Der Sportdirektor handelt im August und Januar. Ablösen werden für die Kaderkosten über 4 Jahre verteilt.</small>
+      </div>
+
+      <div className="bo-panel">
+        <h3><Icon name="heart" size={16} /> Marketing & Fanarbeit</h3>
+        <Slider label="Anteil an den Erlösen" value={b.marketing} min={0} max={0.05} step={0.005} show={(v) => `${(v * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 })} % · ${money(rev * v)}`} onCommit={(v) => onChange(setMarketing(b, v))} />
+        <Effects items={[
+          ['Kosten pro Saison', money(marketingYear(b)), 'neg'],
+          ['Fan-Stimmung pro Monat', `+${(b.marketing * 40).toLocaleString('de-DE', { maximumFractionDigits: 1 })}`, b.marketing > 0 ? 'pos' : ''],
+          ['Marke pro Saison', `${b.marketing * 3 - 0.02 >= 0 ? '+' : ''}${((b.marketing * 3 - 0.02) * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 })} %`, b.marketing * 3 - 0.02 >= 0 ? 'pos' : 'neg'],
+        ]} />
+        <small className="bo-hint">Langfristig: Eine stärkere Marke bringt mehr Sponsorengeld, Fanartikel und Zuschauer – auch in den nächsten Saisons. Ohne Marketing schrumpft sie langsam.</small>
+      </div>
+    </section>
+  );
+}
+
+// ---------- Projekte ----------
+function Projects({ b, act }: { b: BossState; act: (n: BossState, msg?: string, s?: Parameters<typeof play>[0]) => void }) {
+  const [seats, setSeats] = useState(5000);
+  const [years, setYears] = useState(2);
+  const cands = coachCandidates(b);
+  const gainSeats = buildGain(b, 'seats', seats);
+  const gainVip = buildGain(b, 'vip');
+  const payback = (cost: number, gain: number) => (gain > 0 ? `${(cost / gain).toLocaleString('de-DE', { maximumFractionDigits: 1 })} Saisons` : 'lohnt sich gerade nicht');
+  const level = (kind: 'nlz' | 'train') => {
+    const lvl = kind === 'nlz' ? b.nlz : b.train;
+    const names = kind === 'nlz' ? NLZ_NAME : TRAIN_NAME;
+    const yearCost = kind === 'nlz' ? nlzYear(b) : trainYear(b);
+    const next = kind === 'nlz' ? nlzYear({ m: b.m, nlz: Math.min(5, lvl + 1) }) : trainYear({ m: b.m, train: Math.min(5, lvl + 1) });
+    const cost = upgradeCost(b, kind);
+    return (
+      <>
+        <p className="muted">Stufe {lvl}: {names[lvl]} · {money(yearCost)} pro Jahr</p>
+        <div className="bo-steps">{[1, 2, 3, 4, 5].map((i) => <i key={i} className={i <= lvl ? 'on' : ''} />)}</div>
+        <div className="bo-row2">
+          <button className="btn secondary" disabled={lvl <= 0} onClick={() => { if (window.confirm('Eine Stufe zurückbauen? Spart laufende Kosten, das Geld für den Ausbau ist weg.')) act(downgrade(b, kind), 'Zurückgebaut.', 'tap'); }}>Zurückbauen</button>
+          <button className="btn primary" disabled={lvl >= 5 || cost > b.cash} onClick={() => act(upgrade(b, kind), 'Ausgebaut.')}>{lvl >= 5 ? 'Maximum' : `Ausbauen · ${money(cost)}`}</button>
+        </div>
+        {lvl < 5 && <small className="bo-hint">Danach {money(next)} pro Jahr ({signed(next - yearCost).replace('+', '+ ')} laufend).</small>}
+      </>
+    );
+  };
+  return (
+    <section className="bo-sec">
+      <div className="bo-panel">
+        <h3><Icon name="whistle" size={16} /> Trainer</h3>
+        {b.coach ? (
+          <>
+            <Effects items={[
+              [b.coach.name, `${'★'.repeat(b.coach.stars)}${'☆'.repeat(5 - b.coach.stars)}`],
+              ['Stil', `${b.coach.tactic} · ${b.coach.formation}`],
+              ['Wirkung aufs Team', `${coachBoost(b.coach) >= 0 ? '+' : ''}${coachBoost(b.coach).toLocaleString('de-DE')}`],
+              ['Gehalt', `${money(b.coach.wage)}/Jahr`],
+              ['Vertrag', `noch ${b.coach.years} ${b.coach.years === 1 ? 'Jahr' : 'Jahre'}`],
+            ]} />
+            <button className="btn secondary bo-wide" disabled={!!b.seasonOver} onClick={() => { if (window.confirm(`${b.coach!.name} entlassen? Abfindung: ${money(severance(b.coach!))}.`)) act(fireCoach(b), 'Trainer entlassen.', 'tap'); }}>Entlassen · Abfindung {money(severance(b.coach))}</button>
+          </>
+        ) : (
+          <>
+            <Slider label="Vertragslaufzeit" value={years} min={1} max={4} step={1} show={(v) => `${v} ${v === 1 ? 'Jahr' : 'Jahre'}`} onCommit={setYears} />
+            <ul className="bo-coaches">
+              {cands.map((c) => (
+                <li key={c.name}>
+                  <button onClick={() => act(hireCoach(b, c, years), `${c.name} unterschreibt.`)}>
+                    <span><b>{c.name}</b><small>{c.tactic === 'offensiv' ? 'Offensiv' : c.tactic === 'defensiv' ? 'Defensiv' : 'Ausgewogen'} · {c.formation} · Wirkung {coachBoost(c) >= 0 ? '+' : ''}{coachBoost(c).toLocaleString('de-DE')}</small></span>
+                    <span className="bo-coach-r"><em>{'★'.repeat(c.stars)}</em><small>{money(c.wage)}/Jahr</small></span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <small className="bo-hint">Entlässt du einen Trainer, kostet das eine Abfindung. Läuft der Vertrag aus, verlängert er automatisch um ein Jahr.</small>
+          </>
+        )}
+      </div>
+
+      <div className="bo-panel">
+        <h3><Icon name="rise" size={16} /> Nachwuchs (NLZ)</h3>
+        {level('nlz')}
+        <small className="bo-hint">Jede Saison {b.nlz === 0 ? 'kommen keine Talente' : b.nlz >= 5 ? 'kommen 3 Talente' : b.nlz >= 3 ? 'kommen 2 Talente' : 'kommt 1 Talent'}. Junge Spieler mit vielen Minuten bringen TV-Geld (Säule Nachwuchs, jetzt {pct(youthMinutesShare(b))} der Minuten). Nur wenige Talente werden wirklich Profis.{isGerman(leagueOf(b)) && getLeague(leagueOf(b)).tier <= 2 ? ' In der 1. und 2. Liga ist ein NLZ Pflicht für die Lizenz.' : ''}</small>
+      </div>
+
+      <div className="bo-panel">
+        <h3><Icon name="bolt" size={16} /> Trainingszentrum</h3>
+        {level('train')}
+        <small className="bo-hint">Macht das Team in jedem Spiel etwas stärker (+0,25 pro Stufe) und hilft jungen Spielern bei der Entwicklung – älteren Spielern beim Halten ihrer Form.</small>
+      </div>
+
+      <div className="bo-panel">
+        <h3><Icon name="stadium" size={16} /> Stadion</h3>
+        <Effects items={[['Plätze', num(b.cap)], ['Nachfrage', `${num(demand(b))}${demand(b) > b.cap ? ' – ausverkauft' : ''}`, demand(b) > b.cap ? 'pos' : ''], ['VIP-Logen', `Stufe ${b.vip} / 3`]]} />
+        {b.build ? <p className="bo-build"><Icon name="clock" size={14} /> Baustelle: {b.build.kind === 'seats' ? `+${num(b.build.seats ?? 5000)} Plätze` : 'VIP-Logen'} · noch {b.build.monthsLeft} {b.build.monthsLeft === 1 ? 'Monat' : 'Monate'}</p> : (
+          <>
+            <Slider label="Ausbau" value={seats} min={SEAT_MIN} max={SEAT_MAX} step={1000} show={(v) => `+${num(v)} Plätze`} onCommit={setSeats} />
+            <Effects items={[
+              ['Kosten', money(seatCost(b, seats)), 'neg'],
+              ['Bauzeit', `${seatMonths(seats)} Monate`],
+              ['Mehr Gewinn pro Saison', signed(gainSeats), gainSeats > 0 ? 'pos' : 'neg'],
+              ['Rechnet sich nach', payback(seatCost(b, seats), gainSeats)],
+            ]} />
+            <button className="btn primary bo-wide" disabled={seatCost(b, seats) > b.cash} onClick={() => act(startBuild(b, 'seats', seats), 'Bauarbeiten gestartet.')}>Ausbau starten</button>
+            <div className="bo-divider" />
+            <Effects items={[
+              ['VIP-Logen ausbauen', b.vip >= 3 ? 'Maximum' : money(vipCost(b)), 'neg'],
+              ['Mehr Gewinn pro Saison', b.vip >= 3 ? '–' : signed(gainVip), gainVip > 0 ? 'pos' : ''],
+              ['Rechnet sich nach', b.vip >= 3 ? '–' : payback(vipCost(b), gainVip)],
+            ]} />
+            <button className="btn secondary bo-wide" disabled={b.vip >= 3 || vipCost(b) > b.cash} onClick={() => act(startBuild(b, 'vip'), 'Logen werden gebaut.')}>VIP-Logen bauen · 3 Monate</button>
+          </>
+        )}
+        <small className="bo-hint">Mehr Plätze lohnen sich nur, wenn mehr Leute kommen wollen als reinpassen. Es kann nur ein Projekt gleichzeitig laufen.</small>
+      </div>
+    </section>
+  );
+}
 
 // ---------- Finanzen ----------
+function Finance({ b, act }: { b: BossState; act: (n: BossState, msg?: string, s?: Parameters<typeof play>[0]) => void }) {
+  const tv = tvMoney(b);
+  const [loanAmt, setLoanAmt] = useState(0);
+  const [loanYears, setLoanYears] = useState(3);
+  const [share, setShare] = useState(10);
+  const lMax = loanMax(b);
+  const amt = Math.min(loanAmt, lMax);
+  const terms = loanTerms(b, amt, loanYears);
+  const have = b.investor?.share ?? 0;
+  const sMax = maxShare(b) - have;
+  const sh = Math.min(share, sMax);
+  const lstep = lMax >= 1e8 ? 1e6 : lMax >= 1e7 ? 1e5 : lMax >= 1e6 ? 25e3 : 1e3;
+  return (
+    <section className="bo-sec">
+      <div className="bo-panel">
+        <h3>Diese Saison bisher</h3>
+        {sumIn(b.ledger) + sumOut(b.ledger) > 0 ? <LedgerBars l={b.ledger} /> : <p className="muted">Noch keine Buchungen – spiel den ersten Monat.</p>}
+      </div>
+
+      <div className="bo-panel">
+        <h3><Icon name="handshake" size={16} /> Sponsoren · {money(b.sponsors.reduce((a, s) => a + s.perYear, 0) + adsYear(b))}/Jahr</h3>
+        <Effects items={[
+          ...b.sponsors.map((s): [string, string] => [`${SLOT_NAME[s.slot]}: ${s.name} · noch ${s.years} J.`, money(s.perYear)]),
+          ['Banden, Partner, Logenkunden', money(adsYear(b))],
+        ]} />
+        {(['trikot', 'aermel', 'stadion'] as SponsorSlot[]).filter((s) => !b.sponsors.some((x) => x.slot === s)).map((slot) => <SponsorDeal key={slot} b={b} slot={slot} act={act} />)}
+        <small className="bo-hint">Lange Verträge geben Sicherheit, zahlen aber etwas weniger pro Jahr. Kurze Verträge kannst du neu verhandeln, wenn deine Marke gewachsen ist. Markenwert jetzt: {money(brandOf(b))}.</small>
+      </div>
+
+      <div className="bo-panel">
+        <h3><Icon name="money" size={16} /> Kredite · Schulden {money(debt(b))}</h3>
+        {b.loans.length > 0 && (
+          <>
+            <Effects items={b.loans.map((l, i): [string, string] => [`Kredit ${i + 1}: ${(l.rate * 100).toLocaleString('de-DE')} %, ${money(l.monthly)}/Monat`, `noch ${money(l.left)}`])} />
+            <button className="btn secondary bo-wide" disabled={payoffAmount(b) > b.cash} onClick={() => { if (window.confirm(`Alle Kredite für ${money(payoffAmount(b))} zurückzahlen? Künftige Zinsen fallen weg.`)) act(repayLoans(b), 'Kredite zurückgezahlt.'); }}>Vorzeitig zurückzahlen · {money(payoffAmount(b))}</button>
+            <div className="bo-divider" />
+          </>
+        )}
+        {lMax > 0 ? (
+          <>
+            <Slider label="Neuer Kredit" value={amt} min={0} max={lMax} step={lstep} show={(v) => money(v)} onCommit={setLoanAmt} />
+            <Slider label="Laufzeit" value={loanYears} min={2} max={6} step={1} show={(v) => `${v} Jahre`} onCommit={setLoanYears} />
+            <Effects items={[
+              ['Zins pro Jahr', `${(terms.rate * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 })} %`],
+              ['Rate pro Monat', money(terms.monthly), 'neg'],
+              ['Zinsen insgesamt', money(terms.total - amt), 'neg'],
+            ]} />
+            <button className="btn primary bo-wide" disabled={amt <= 0} onClick={() => { act(takeLoan(b, amt, loanYears), `Kredit über ${money(amt)} aufgenommen.`); setLoanAmt(0); }}>Kredit aufnehmen</button>
+          </>
+        ) : <p className="muted">Die Bank gibt dir gerade keinen weiteren Kredit.</p>}
+        <small className="bo-hint">Längere Laufzeit = kleinere Rate, aber mehr Zinsen. Hohe Schulden machen jeden neuen Kredit teurer. Ist die Kasse im Minus, kosten Überziehungszinsen 12 %.</small>
+      </div>
+
+      <div className="bo-panel">
+        <h3><Icon name="pillars" size={16} /> Eigentümer</h3>
+        <Effects items={[['Verein', `${100 - have} %`], ['Investor', `${have} %`]]} />
+        {sMax > 0 && !b.soldShares ? (
+          <>
+            <Slider label="Anteile verkaufen" value={sh} min={5} max={sMax} step={5} show={(v) => `${v} %`} onCommit={setShare} />
+            <Effects items={[
+              ['Einmalig', `+${money(sharePrice(b, sh))}`, 'pos'],
+              ['Danach jedes Jahr', `${have + sh} % vom Gewinn an den Investor`, 'neg'],
+              ['Fans', `−${Math.round(sh * (isGerman(leagueOf(b)) ? 0.3 : 0.15))}`, 'neg'],
+            ]} />
+            <button className="btn secondary bo-wide" onClick={() => { if (window.confirm(`${sh} % für ${money(sharePrice(b, sh))} verkaufen? Das lässt sich nicht rückgängig machen.`)) act(sellShares(b, sh), 'Anteile verkauft.'); }}>Anteile verkaufen</button>
+          </>
+        ) : <p className="muted">{sMax <= 0 ? 'Mehr Anteile darfst du nicht verkaufen.' : 'Diese Saison wurden schon Anteile verkauft.'}</p>}
+        {isGerman(leagueOf(b)) && <small className="bo-hint">50+1-Regel: In Deutschland behält der Verein immer die Mehrheit, höchstens 49 % gehen an Investoren.</small>}
+      </div>
+
+      <div className="bo-panel">
+        <h3>TV-Geld pro Saison · {money(tv.total)}</h3>
+        <Effects items={[
+          ['Gleich für alle (50 %)', money(tv.equal)],
+          [`Leistung, Platz ${b.lastPos} der Vorsaison (43 %)`, money(tv.perf)],
+          [`Nachwuchs, ${pct(youthMinutesShare(b))} U23-Minuten (4 %)`, money(tv.youth)],
+          [`Interesse, ${num(b.members)} Mitglieder (3 %)`, money(tv.interest)],
+          ...(b.europe ? [[EURO_NAME[b.europe], money(EURO_MONEY[b.europe])] as [string, string]] : []),
+        ]} />
+        <small className="bo-hint">Aufteilung angelehnt an die DFL-Verteilung.</small>
+      </div>
+      <Seasons b={b} />
+    </section>
+  );
+}
+function SponsorDeal({ b, slot, act }: { b: BossState; slot: SponsorSlot; act: (n: BossState, msg?: string) => void }) {
+  const [years, setYears] = useState(slot === 'stadion' ? 5 : 3);
+  const [bet, setBet] = useState(false);
+  const o = sponsorOffer(b, slot, years, bet);
+  return (
+    <div className="bo-deal">
+      <p className="bo-label">{SLOT_NAME[slot]}-Sponsor gesucht</p>
+      <Slider label="Laufzeit" value={years} min={1} max={5} step={1} show={(v) => `${v} ${v === 1 ? 'Jahr' : 'Jahre'}`} onCommit={setYears} />
+      {slot !== 'stadion' && (
+        <label className="bo-check"><input type="checkbox" checked={bet} onChange={(e) => setBet(e.target.checked)} /> Wettanbieter zulassen (+30 %, Fans −4)</label>
+      )}
+      <Effects items={[['Angebot', `${o.name}`], ['Pro Jahr', money(o.perYear), 'pos'], ['Gesamt', money(o.perYear * years), 'pos'], ...(slot === 'stadion' ? [['Fans', '−6 (neuer Stadionname)', 'neg'] as [string, string, 'neg']] : [])]} />
+      <button className="btn primary bo-wide" onClick={() => act(signSponsor(b, slot, years, bet), `${o.name} unterschreibt.`)}>Unterschreiben</button>
+    </div>
+  );
+}
+
+// ---------- Team ----------
+function Team({ b, onReset }: { b: BossState; onReset: () => void }) {
+  const [view, setView] = useState<'squad' | 'table'>('squad');
+  const xi = new Set(b.m.xi);
+  const list = [...b.m.squad].sort((x, y) => Number(xi.has(y.id)) - Number(xi.has(x.id)) || y.ovr - x.ovr);
+  const rows = sortTable(b.m.rows);
+  return (
+    <section className="bo-sec">
+      <Seg<'squad' | 'table'> value={view} options={[['squad', 'Kader'], ['table', 'Tabelle']]} onChange={setView} />
+      {view === 'squad' ? (
+        <div className="bo-panel">
+          <h3>{b.m.squad.length} Spieler · {money(payroll(b))}/Jahr</h3>
+          <p className="muted">Aufstellen macht der Trainer, Transfers der Sportdirektor nach deinem Budget.</p>
+          <ul className="bo-squad">
+            {list.map((p) => (
+              <li key={p.id} className={xi.has(p.id) ? 'xi' : ''}>
+                <em>{p.ovr}</em>
+                <span><b>{p.name}{p.own && <i className="bo-own">NLZ</i>}</b><small>{p.pos} · {p.age} J.{p.apps ? ` · ${p.apps} Sp. · ${p.goals} T.` : ''}</small></span>
+                <small className="bo-wage">{money(wageOf(b, p))}</small>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <div className="bo-panel">
+          <h3>{getLeague(leagueOf(b)).name}</h3>
+          <ol className="bo-table">
+            {rows.map((r, i) => (
+              <li key={r.clubId} className={r.clubId === b.m.clubId ? 'me' : ''}>
+                <em>{i + 1}</em><i className="bo-crest"><ClubCrest id={r.clubId} size={18} /></i><span>{getClub(r.clubId).name}</span><small>{r.played}</small><b>{r.points}</b>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+      <button className="bo-reset" onClick={() => { if (window.confirm('Diesen Spielstand beenden und einen neuen Verein wählen?')) onReset(); }}>Anderen Verein übernehmen</button>
+    </section>
+  );
+}
+
+function Seasons({ b }: { b: BossState }) {
+  if (!b.history.length) return null;
+  return (
+    <div className="bo-panel">
+      <h3>Bisherige Saisons</h3>
+      <ul className="bo-hist">
+        {b.history.map((h) => (
+          <li key={h.season}>
+            <b>{h.season}/{String(h.season + 1).slice(2)}</b>
+            <span>{getLeague(h.leagueId).name} · Platz {h.pos}{h.title ? ' · Meister' : ''}{h.move === 'up' ? ' · Aufstieg' : h.move === 'down' ? ' · Abstieg' : ''}</span>
+            <em className={h.profit >= 0 ? 'pos' : 'neg'}>{signed(h.profit)}</em>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// ---------- Balken ----------
 function LedgerBars({ l }: { l: Ledger }) {
   const ins = (Object.entries(l.in) as [IncomeKey, number][]).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
   const outs = (Object.entries(l.out) as [CostKey, number][]).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
@@ -223,231 +624,33 @@ function Bar({ name, v, max, kind }: { name: string; v: number; max: number; kin
   );
 }
 
-function Money({ b, onChange, onToast }: { b: BossState; onChange: (b: BossState) => void; onToast: (s: string) => void }) {
-  const tv = tvMoney(b);
-  const ratio = squadCostRatio(b);
-  const [loanOpen, setLoanOpen] = useState(false);
-  return (
-    <section className="bo-sec">
-      <div className="bo-panel">
-        <h3>Diese Saison</h3>
-        {sumIn(b.ledger) + sumOut(b.ledger) > 0 ? <LedgerBars l={b.ledger} /> : <p className="muted">Noch keine Buchungen – spiel den ersten Monat.</p>}
-      </div>
-
-      <div className="bo-panel">
-        <h3>Ticketpreise</h3>
-        <p className="muted">Ø {ticketPrice(b)} € · {attendance(b).toLocaleString('de-DE')} von {b.cap.toLocaleString('de-DE')} Plätzen · {money(matchIncome(b))} pro Heimspiel</p>
-        <div className="bo-seg">
-          {(Object.keys(TICKETS) as TicketLevel[]).map((t) => (
-            <button key={t} className={b.ticket === t ? 'on' : ''} onClick={() => { onChange(setTicket(b, t)); sfx('tap'); }}>
-              <b>{TICKETS[t].name}</b><small>{Math.round(TICKETS[t].price * 100)} %</small>
-            </button>
-          ))}
-        </div>
-        <small className="bo-hint">Teure Tickets bringen mehr pro Platz, aber weniger Zuschauer – und die Fans werden jeden Monat unzufriedener.</small>
-      </div>
-
-      <div className="bo-panel">
-        <h3>TV-Geld pro Saison · {money(tv.total)}</h3>
-        <ul className="bo-kv">
-          <li><span>Gleich für alle (50 %)</span><b>{money(tv.equal)}</b></li>
-          <li><span>Leistung, Platz {b.lastPos} der Vorsaison (43 %)</span><b>{money(tv.perf)}</b></li>
-          <li><span>Nachwuchs: {Math.round(youthMinutesShare(b) * 100)} % Minuten U23 (4 %)</span><b>{money(tv.youth)}</b></li>
-          <li><span>Interesse: Fans und {b.members.toLocaleString('de-DE')} Mitglieder (3 %)</span><b>{money(tv.interest)}</b></li>
-          {b.europe && <li><span>{EURO_NAME[b.europe]}</span><b>{money(EURO_MONEY[b.europe])}</b></li>}
-        </ul>
-        <small className="bo-hint">Aufteilung angelehnt an die DFL-Verteilung (gleich, Leistung, Nachwuchs, Interesse).</small>
-      </div>
-
-      <div className="bo-panel">
-        <h3>Sponsoren · {money(b.sponsors.reduce((a, s) => a + s.perYear, 0) + adsYear(b))}/Jahr</h3>
-        <ul className="bo-kv">
-          {b.sponsors.map((s) => <li key={s.slot}><span>{SLOT_NAME[s.slot]}: {s.name} · noch {s.years} J.</span><b>{money(s.perYear)}</b></li>)}
-          <li><span>Banden, Partner, Logenkunden</span><b>{money(adsYear(b))}</b></li>
-        </ul>
-      </div>
-
-      <div className="bo-panel">
-        <h3>Kosten im Blick</h3>
-        <ul className="bo-kv">
-          <li><span>Spielergehälter</span><b>{money(payroll(b))}/Jahr</b></li>
-          <li><span>Trainer</span><b>{money(b.coach?.wage ?? 0)}/Jahr</b></li>
-          <li><span>NLZ ({NLZ_NAME[b.nlz]})</span><b>{money(nlzYear(b))}/Jahr</b></li>
-          <li className={ratio > 0.7 ? 'warn' : ''}><span>Kaderkosten-Quote {b.europe ? '(UEFA-Grenze 70 %)' : ''}</span><b>{Math.round(ratio * 100)} %</b></li>
-        </ul>
-        {b.europe && ratio > 0.7 && <small className="bo-hint warn">Über 70 %: Am Saisonende droht eine UEFA-Strafe.</small>}
-      </div>
-
-      <div className="bo-panel">
-        <h3>Kredite · Schulden {money(debt(b))}</h3>
-        {b.loans.length > 0 && <ul className="bo-kv">{b.loans.map((l, i) => <li key={i}><span>Rate {money(l.monthly)}/Monat</span><b>noch {money(l.left)}</b></li>)}</ul>}
-        {!loanOpen ? <button className="btn secondary" onClick={() => setLoanOpen(true)}>Kredit aufnehmen</button> : (
-          <div className="bo-seg">
-            {loanOptions(b).map((a) => (
-              <button key={a} onClick={() => { onChange(takeLoan(b, a)); setLoanOpen(false); onToast(`Kredit über ${money(a)} aufgenommen.`); sfx('coin'); }}>
-                <b>{money(a)}</b><small>{Math.round(LOAN_RATE * 100)} % Zinsen</small>
-              </button>
-            ))}
-          </div>
-        )}
-        <small className="bo-hint">Rückzahlung über 30 Monate. Ist das Konto im Minus, werden 12 % Überziehungszinsen fällig.</small>
-      </div>
-    </section>
-  );
-}
-
-// ---------- Verein: Stadion, NLZ, Trainer, Fans ----------
-function Club({ b, onChange, onToast, onReset }: { b: BossState; onChange: (b: BossState) => void; onToast: (s: string) => void; onReset: () => void }) {
-  const upCost = nlzUpgradeCost(b);
-  const german = isGerman(leagueOf(b));
-  const tier = getLeague(leagueOf(b)).tier;
-  return (
-    <section className="bo-sec">
-      <div className="bo-panel">
-        <h3><Icon name="stadium" size={16} /> Stadion</h3>
-        <ul className="bo-kv">
-          <li><span>Plätze</span><b>{b.cap.toLocaleString('de-DE')}</b></li>
-          <li><span>VIP-Logen</span><b>Stufe {b.vip} / 3</b></li>
-          <li><span>Zuschauerschnitt</span><b>{attendance(b).toLocaleString('de-DE')}</b></li>
-        </ul>
-        {b.build ? <p className="bo-build"><Icon name="clock" size={14} /> Baustelle: {b.build.kind === 'seats' ? `+${SEAT_STEP.toLocaleString('de-DE')} Plätze` : 'VIP-Logen'} · noch {b.build.monthsLeft} {b.build.monthsLeft === 1 ? 'Monat' : 'Monate'}</p> : (
-          <div className="bo-btns">
-            <button className="btn secondary" disabled={seatCost(b) > b.cash} onClick={() => { onChange(startBuild(b, 'seats')); onToast('Bauarbeiten gestartet.'); sfx('coin'); }}>
-              +{SEAT_STEP.toLocaleString('de-DE')} Plätze · {money(seatCost(b))}<small>6 Monate Bauzeit</small>
-            </button>
-            <button className="btn secondary" disabled={b.vip >= 3 || vipCost(b) > b.cash} onClick={() => { onChange(startBuild(b, 'vip')); onToast('Logen werden gebaut.'); sfx('coin'); }}>
-              VIP-Logen · {money(vipCost(b))}<small>+15 % Spieltag-Einnahmen, 3 Monate</small>
-            </button>
-          </div>
-        )}
-      </div>
-
-      <div className="bo-panel">
-        <h3><Icon name="rise" size={16} /> Nachwuchs (NLZ)</h3>
-        <p className="muted">Stufe {b.nlz}: {NLZ_NAME[b.nlz]} · {money(nlzYear(b))} pro Jahr</p>
-        <div className="bo-steps">{[1, 2, 3, 4, 5].map((i) => <i key={i} className={i <= b.nlz ? 'on' : ''} />)}</div>
-        <p className="bo-hint">Jede Saison {b.nlz === 0 ? 'kommen keine Talente' : b.nlz >= 5 ? 'kommen 3 Talente' : b.nlz >= 3 ? 'kommen 2 Talente' : 'kommt 1 Talent'}. Eigene Talente einsetzen bringt TV-Geld (Säule Nachwuchs), verkaufen ist fast reiner Gewinn. Nur wenige schaffen es wirklich zu den Profis.</p>
-        {german && tier <= 2 && <p className="bo-hint">In der 1. und 2. Liga ist ein NLZ Pflicht für die Lizenz.</p>}
-        <div className="bo-btns">
-          {b.nlz < 5 && <button className="btn secondary" disabled={upCost > b.cash} onClick={() => { onChange(upgradeNlz(b)); onToast('NLZ ausgebaut.'); sfx('coin'); }}>Ausbauen · {money(upCost)}<small>danach {money(nlzYear({ ...b, nlz: b.nlz + 1 }))}/Jahr</small></button>}
-          {b.nlz > 0 && <button className="btn secondary" onClick={() => { if (window.confirm('NLZ verkleinern? Spart Kosten, bringt weniger Talente.')) onChange(downgradeNlz(b)); }}>Verkleinern</button>}
-        </div>
-      </div>
-
-      <div className="bo-panel">
-        <h3><Icon name="whistle" size={16} /> Trainer</h3>
-        {b.coach ? (
-          <>
-            <ul className="bo-kv">
-              <li><span>{b.coach.name}</span><b className="bo-stars">{'★'.repeat(b.coach.stars)}<span>{'★'.repeat(5 - b.coach.stars)}</span></b></li>
-              <li><span>Stil</span><b>{b.coach.tactic} · {b.coach.formation}</b></li>
-              <li><span>Wirkung auf das Team</span><b>{coachBoost(b.coach) >= 0 ? '+' : ''}{coachBoost(b.coach).toLocaleString('de-DE')}</b></li>
-              <li><span>Gehalt</span><b>{money(b.coach.wage)}/Jahr</b></li>
-            </ul>
-            <button className="btn secondary" disabled={!!b.seasonOver} onClick={() => { if (window.confirm(`${b.coach!.name} entlassen? Abfindung: ${money(severance(b.coach!))}.`)) { onChange(fireCoach(b)); onToast('Trainer entlassen – such einen Nachfolger im Büro.'); } }}>Entlassen · Abfindung {money(severance(b.coach))}</button>
-          </>
-        ) : <p className="muted">Kein Trainer – wähle einen im Büro.</p>}
-      </div>
-
-      <div className="bo-panel">
-        <h3><Icon name="heart" size={16} /> Fans & Eigentümer</h3>
-        <ul className="bo-kv">
-          <li><span>Fan-Stimmung</span><b>{b.fans} / 100</b></li>
-          <li><span>Mitglieder</span><b>{b.members.toLocaleString('de-DE')}</b></li>
-          <li><span>Aufsichtsrat</span><b>{b.trust} / 100</b></li>
-          <li><span>Eigentümer</span><b>{b.investor ? `${100 - b.investor.share} % Verein · ${b.investor.share} % Investor` : '100 % Verein'}</b></li>
-        </ul>
-        {german && <small className="bo-hint">50+1-Regel: In Deutschland behält der Verein immer die Mehrheit. Am Saisonende stimmt die Mitgliederversammlung über deine Arbeit ab.</small>}
-        <small className="bo-hint">Fällt das Vertrauen des Aufsichtsrats am Saisonende auf 10 oder weniger, wirst du entlassen.</small>
-      </div>
-
-      <Seasons b={b} />
-      <button className="bo-reset" onClick={() => { if (window.confirm('Diesen Spielstand beenden und einen neuen Verein wählen?')) onReset(); }}>Anderen Verein übernehmen</button>
-    </section>
-  );
-}
-
-function Seasons({ b }: { b: BossState }) {
-  if (!b.history.length) return null;
-  return (
-    <div className="bo-panel">
-      <h3>Bisherige Saisons</h3>
-      <ul className="bo-hist">
-        {b.history.map((h) => (
-          <li key={h.season}>
-            <b>{h.season}/{String(h.season + 1).slice(2)}</b>
-            <span>{getLeague(h.leagueId).name} · Platz {h.pos}{h.title ? ' · Meister' : ''}{h.move === 'up' ? ' · Aufstieg' : h.move === 'down' ? ' · Abstieg' : ''}</span>
-            <em className={h.profit >= 0 ? 'pos' : 'neg'}>{h.profit >= 0 ? '+' : ''}{money(h.profit)}</em>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-// ---------- Kader ----------
-function Squad({ b }: { b: BossState }) {
-  const xi = new Set(b.m.xi);
-  const list = [...b.m.squad].sort((x, y) => Number(xi.has(y.id)) - Number(xi.has(x.id)) || y.ovr - x.ovr);
-  return (
-    <section className="bo-sec">
-      <div className="bo-panel">
-        <h3>Kader · {b.m.squad.length} Spieler · {money(payroll(b))}/Jahr</h3>
-        <p className="muted">Aufstellen macht der Trainer. Du entscheidest über Transfers im Sommer (August) und Winter (Januar).</p>
-        <ul className="bo-squad">
-          {list.map((p) => (
-            <li key={p.id} className={xi.has(p.id) ? 'xi' : ''}>
-              <em>{p.ovr}</em>
-              <span><b>{p.name}{p.own && <i className="bo-own">NLZ</i>}</b><small>{p.pos} · {p.age} J.{p.apps ? ` · ${p.apps} Sp. · ${p.goals} T.` : ''}</small></span>
-              <small className="bo-wage">{money(wageOf(b, p))}</small>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
-  );
-}
-
-// ---------- Tabelle ----------
-function Table({ b }: { b: BossState }) {
-  const rows = sortTable(b.m.rows);
-  return (
-    <section className="bo-sec">
-      <div className="bo-panel">
-        <h3>{getLeague(leagueOf(b)).name}</h3>
-        <ol className="bo-table">
-          {rows.map((r, i) => (
-            <li key={r.clubId} className={r.clubId === b.m.clubId ? 'me' : ''}>
-              <em>{i + 1}</em><i className="bo-crest"><ClubCrest id={r.clubId} size={18} /></i><span>{getClub(r.clubId).name}</span><small>{r.played}</small><b>{r.points}</b>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </section>
-  );
-}
-
-// ---------- Monatsbericht ----------
+// ---------- Bericht ----------
 function Report({ b, onClose }: { b: BossState; onClose: () => void }) {
   const r = b.report!;
   const d = r.cashAfter - r.cashBefore;
+  const w = r.results.filter((x) => x.gf > x.ga).length, dr = r.results.filter((x) => x.gf === x.ga).length, l = r.results.length - w - dr;
   return (
-    <div className="overlay bo-sheet-wrap" role="dialog" aria-modal="true" aria-label="Monatsbericht" onClick={onClose}>
+    <div className="overlay bo-sheet-wrap" role="dialog" aria-modal="true" aria-label="Bericht" onClick={onClose}>
       <section className="bo-sheet" onClick={(e) => e.stopPropagation()}>
-        <small>Monatsbericht</small>
+        <small>Bericht</small>
         <h2>{r.label}</h2>
+        {r.results.length > 0 && <p className="muted">{w} Siege · {dr} Unentschieden · {l} Niederlagen</p>}
         <ul className="bo-results">
-          {r.results.map((x, i) => (
+          {r.results.slice(-8).map((x, i) => (
             <li key={i} className={x.gf > x.ga ? 'w' : x.gf === x.ga ? 'd' : 'l'}>
-              <span>{x.home ? 'Heim' : 'Ausw.'}</span><ClubCrest id={x.opp} size={18} /><b>{getClub(x.opp).name}</b><em>{x.gf}:{x.ga}</em>
+              <span>{x.home ? 'Heim' : 'Ausw.'}</span><b>{getClub(x.opp).name}</b><em>{x.gf}:{x.ga}</em>
             </li>
           ))}
-          {!r.results.length && <li className="d"><b>Keine Spiele in diesem Monat</b></li>}
+          {!r.results.length && <li className="d"><b>Keine Spiele</b></li>}
         </ul>
-        {r.attendance !== undefined && <p className="muted">Zuschauerschnitt: {r.attendance.toLocaleString('de-DE')}</p>}
+        {r.results.length > 8 && <p className="bo-hint">Nur die letzten 8 Spiele.</p>}
+        {(r.transfers?.length ?? 0) > 0 && (
+          <div className="bo-tal"><h4>Transfers des Sportdirektors</h4><ul>{r.transfers!.map((t) => <li key={t}>{t}</li>)}</ul></div>
+        )}
+        {r.attendance !== undefined && <p className="muted">Zuschauer zuletzt: {num(r.attendance)}</p>}
         <LedgerBars l={r.ledger} />
         {r.notes.map((n, i) => <p key={i} className="bo-hint">{n}</p>)}
-        <p className={`bo-delta ${d >= 0 ? 'pos' : 'neg'}`}>Kasse {d >= 0 ? '+' : ''}{money(d)} → <b>{money(r.cashAfter)}</b></p>
+        <p className={`bo-delta ${d >= 0 ? 'pos' : 'neg'}`}>Kasse {signed(d)} → <b>{money(r.cashAfter)}</b></p>
         <button className="btn primary big" onClick={onClose}>Weiter</button>
       </section>
     </div>
@@ -465,8 +668,8 @@ function SeasonSheet({ end, b, onClose }: { end: SeasonEnd; b: BossState; onClos
         {end.move && <p className={end.move === 'up' ? 'bo-ok' : 'bo-bad'}>{end.move === 'up' ? 'Aufstieg' : 'Abstieg'} in die {getLeague(end.newLeague!).name}</p>}
         {end.europe && <p className="bo-ok">Nächste Saison: {EURO_NAME[end.europe]}</p>}
         <LedgerBars l={end.ledger} />
-        {end.sponsorBonus > 0 && <p className="bo-hint">Sponsoren-Bonus fürs Saisonziel: {money(end.sponsorBonus)}</p>}
-        {end.uefaFine > 0 && <p className="bo-hint warn">UEFA-Strafe wegen Kaderkosten-Quote {Math.round(end.ratio * 100)} %: {money(end.uefaFine)}</p>}
+        {end.dividend > 0 && <p className="bo-hint">Gewinnanteil an den Investor: {money(end.dividend)}</p>}
+        {end.uefaFine > 0 && <p className="bo-hint warn">UEFA-Strafe wegen Kaderkosten-Quote {pct(end.ratio)}: {money(end.uefaFine)}</p>}
         {end.vote !== null && (
           <div className="bo-vote">
             <h4>Mitgliederversammlung</h4>
@@ -476,13 +679,14 @@ function SeasonSheet({ end, b, onClose }: { end: SeasonEnd; b: BossState; onClos
         )}
         <p className={end.trustDelta >= 0 ? 'bo-ok' : 'bo-bad'}>Aufsichtsrat: {end.trustDelta >= 0 ? '+' : ''}{end.trustDelta} → {end.trust} / 100</p>
         {end.license && <p className="bo-hint warn">{end.license}</p>}
+        {end.sponsorsEnded.length > 0 && <p className="bo-hint">Verträge ausgelaufen: {end.sponsorsEnded.join(', ')} – neu verhandeln unter Finanzen.</p>}
+        {end.grew > 0 && <p className="bo-hint">Trainingszentrum: {end.grew} {end.grew === 1 ? 'Spieler hat' : 'Spieler haben'} sich zusätzlich verbessert.</p>}
         {end.talents.length > 0 && (
           <div className="bo-tal"><h4>Neu aus dem NLZ</h4><ul>{end.talents.map((t) => <li key={t}>{t}</li>)}</ul></div>
         )}
-        {end.fired ? <p className="bo-bad big">Der Aufsichtsrat entlässt dich.</p> : <p className="muted">Neue Saison {b.m.season}/{String(b.m.season + 1).slice(2)} in der {getLeague(leagueOf(b)).name}.</p>}
+        {end.fired ? <p className="bo-bad big">Der Aufsichtsrat entlässt dich.</p> : <p className="muted">Neue Saison {b.m.season}/{String(b.m.season + 1).slice(2)} in der {getLeague(leagueOf(b)).name}. Prüfe deine Budgets.</p>}
         <button className="btn primary big" onClick={onClose}>{end.fired ? 'Weiter' : 'Neue Saison'}</button>
       </section>
     </div>
   );
 }
-

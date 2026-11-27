@@ -5,7 +5,15 @@ Stand: 26.11.2026 · Modus im Spiel: Startseite → „Vereinsboss“
 Du leitest einen Verein als Geschäftsführer. Nur Business: Die Spiele laufen automatisch, der Trainer stellt auf.
 Alle Vereine des Spiels sind wählbar (alle Ligen außer den Jugendligen).
 
-## Was drin ist
+## Version 2 (27.11.2026): Regler statt Ereignisse
+
+- Budget-Regler: Ticketpreis (€), Gehaltsbudget (% der Erlöse), Transferbudget, Verkaufspolitik, Marketing.
+- Projekte: NLZ, Trainingszentrum, Stadionausbau (2.000–20.000 Plätze, mit Amortisation), VIP-Logen.
+- Finanzierung: Kredit (Betrag + Laufzeit 2–6 Jahre, Zins steigt mit Laufzeit und Verschuldung), Sponsorverträge (Laufzeit 1–5 Jahre), Investor-Anteile mit Gewinnbeteiligung.
+- Sportdirektor setzt die Budgets im August und Januar automatisch um. Siegprämien, Abstiegsklausel (Gehälter −40 %).
+- Die Ereigniskarten aus Version 1 sind entfernt (auf Wunsch).
+
+## Was drin ist (Version 1)
 
 **Schritt 1 – Kern**
 - Monatlicher Ablauf (August bis Mai): Vorstandssitzung mit Entscheidungskarten, dann „Monat spielen“.

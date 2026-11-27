@@ -166,13 +166,17 @@ const FLOWS = {
     }
   },
   vereinsboss: async (p) => {
-    // Vereinsboss: Verein wählen, Vorstandssitzung entscheiden, einen Monat spielen, Reiter durchschalten
+    // Vereinsboss: Verein wählen, Trainer holen, Regler bewegen, einen Monat spielen, Reiter durchschalten
     await nav(p, 'Karriere'); await p.waitForTimeout(450);
     await p.click('.m-boss', { timeout: 3000 }); await p.waitForTimeout(450);
     if (await p.locator('.bo-clubs button').count()) { await p.click('.bo-clubs button >> nth=3', { timeout: 2000 }); await p.waitForTimeout(400); }
-    for (let i = 0; i < 8 && await p.locator('.bo-card').count(); i++) { await p.click('.bo-card .bo-opt >> nth=0', { timeout: 2000 }); await p.waitForTimeout(250); }
-    if (await p.locator('.bo-play').count()) { await p.click('.bo-play', { timeout: 2000 }); await p.waitForTimeout(500); await p.click('.bo-sheet .btn', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(300); }
-    for (const i of [1, 2, 3, 4, 0]) { await p.click(`.bo-tabs button >> nth=${i}`, { timeout: 2000 }); await p.waitForTimeout(250); }
+    if (await p.locator('.bo-todo button.must').count()) { await p.click('.bo-todo button.must', { timeout: 2000 }); await p.waitForTimeout(300); await p.click('.bo-coaches button >> nth=1', { timeout: 2000 }); await p.waitForTimeout(300); }
+    await p.click('.bo-tabs button >> nth=1', { timeout: 2000 }); await p.waitForTimeout(250);
+    await p.focus('.bo-slider input >> nth=0').catch(() => {}); for (let i = 0; i < 5; i++) await p.keyboard.press('ArrowRight'); await p.waitForTimeout(300);
+    await p.click('.bo-tabs button >> nth=0', { timeout: 2000 }); await p.waitForTimeout(250);
+    await p.click('.bo-cta .btn.primary', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(500);
+    await p.click('.bo-sheet .btn', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(300);
+    for (const i of [2, 3, 4, 0]) { await p.click(`.bo-tabs button >> nth=${i}`, { timeout: 2000 }); await p.waitForTimeout(250); }
     await p.click('.bo .cs-link', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(300);
   },
   profil: async (p) => {

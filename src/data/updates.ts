@@ -29,6 +29,19 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-27-vereinsboss-regler',
+    date: '27.11.2026',
+    title: 'Vereinsboss 2.0: Regler statt Pop-ups',
+    items: [
+      'Keine Kurz-Ereignisse mehr („Spieler will mehr Gehalt“ usw.). Du steuerst den Verein mit Reglern und langfristigen Entscheidungen.',
+      'Budget: Ticketpreis, Gehaltsbudget, Transferbudget, Verkaufspolitik, Marketing – jeder Regler zeigt sofort die Wirkung und die Saisonprognose.',
+      'Projekte: NLZ, neues Trainingszentrum, Stadionausbau in frei wählbarer Größe mit „rechnet sich nach X Saisons“, VIP-Logen.',
+      'Finanzen: Kredit mit Betrag und Laufzeit, vorzeitig zurückzahlen, Sponsorverträge mit Laufzeit, Investor-Anteile mit Gewinnbeteiligung.',
+      'Der Sportdirektor kauft und verkauft im August und Januar selbst nach deinen Budgets. Siegprämien und Abstiegsklauseln wie bei echten Verträgen.',
+      'Übersicht mit offenen Punkten, Prognose, „Monat spielen“, „Bis Winterpause“ und „Bis Saisonende“.',
+    ],
+  },
+  {
     id: '2026-11-26-vereinsboss',
     date: '26.11.2026',
     title: 'Neuer Modus: Vereinsboss',
