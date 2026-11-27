@@ -29,6 +29,19 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-27-karriere-handling',
+    date: '27.11.2026',
+    title: 'Karriere: schneller und übersichtlicher',
+    items: [
+      'Neue Steuerleiste unten, immer am selben Ort: nächster Schritt, „Ganze Saison“ und ein Knopf für Regler.',
+      'Mehrere Saisons am Stück simulieren (1–5) – mit Regler für das Transferfenster: treu, sportlich oder Geld. Auf Wunsch hält es an, wenn ein Topklub anfragt.',
+      'Regler für die Trainingsbelastung: gilt für alle kommenden Spiele und Saisons.',
+      'Saisonbilanz am Ende jeder Saison: Spiele, Tore, Vorlagen, Ø-Note, Spielzeit, Wertung, Marktwert, Wettbewerbe, Titel – mit Vergleich zur Vorsaison.',
+      'Neuer Reiter „Statistik“: Karriere gesamt, Diagramme zu Wertung und Toren, Bestwerte, Titel; dazu Torjäger-Rennen, Weltrangliste, Rivale und Rekordjagd.',
+      'Weniger Einblendungen: Titel und Auszeichnungen stehen in der Saisonbilanz, die Gala gibt es dort auf Wunsch. Live-Simulation ist aus (in den Einstellungen einschaltbar).',
+    ],
+  },
+  {
     id: '2026-11-27-vereinsboss-regler',
     date: '27.11.2026',
     title: 'Vereinsboss 2.0: Regler statt Pop-ups',

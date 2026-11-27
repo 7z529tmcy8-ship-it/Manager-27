@@ -6129,3 +6129,64 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .bo .btn.bo-wide { white-space: normal; line-height: 1.2; }
 .bo-kpi small { overflow-wrap: anywhere; letter-spacing: .02em; }
 @media (max-width: 340px) { .bo-kpi small { font-size: .62rem; letter-spacing: 0; } }
+
+/* ---------- Karriere: Steuerleiste, Saisonbilanz, Statistik ---------- */
+.cs-tabs { grid-template-columns: repeat(5, 1fr); }
+.cs-tabs button { font-size: .66rem; min-width: 0; }
+.cc-bar { position: sticky; bottom: calc(8px + env(safe-area-inset-bottom)); z-index: 35; display: flex; gap: 8px; align-items: stretch; margin: 16px -4px 0; padding: 8px; border-radius: 20px;
+  background: color-mix(in srgb, var(--bg) 90%, transparent); border: 1px solid var(--hairline); box-shadow: 0 10px 30px rgba(0,0,0,.45); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.cc-bar .btn { min-height: 52px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: normal; line-height: 1.15; padding: 8px 12px; }
+.cc-main { flex: 1.4; font-size: 1rem; }
+.cc-whole { flex: 1; font-size: .88rem; }
+.cc-grow { flex: 2.4; }
+.cc-more { flex: none; width: 52px; border-radius: 14px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); display: grid; place-items: center; cursor: pointer; transition: transform .12s; }
+.cc-more:active, .cc-bar .btn:active { transform: scale(.96); }
+.lite .cc-bar { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--bg); }
+.cc-sheet, .ss { --bo-gold: #ffd76a; --pos: #39e58c; --neg: #ff5d73; }
+.cc-sheet .pos, .ss .pos { color: var(--pos); } .cc-sheet .neg, .ss .neg { color: var(--neg); }
+.cc-close { margin-top: 8px !important; }
+.ss-club { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; overflow-wrap: anywhere; }
+.ss-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 10px; }
+.ss-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 99px; font-size: .76rem; font-weight: 800; background: rgba(255,255,255,.07); border: 1px solid var(--hairline); overflow-wrap: anywhere; }
+.ss-chip.gold { color: #ffd76a; border-color: rgba(255, 215, 106, .45); background: rgba(255, 215, 106, .12); }
+.ss-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 10px 0; }
+.ss-tile { min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: 10px 8px; border-radius: 14px; background: var(--surface); border: 1px solid var(--hairline); text-align: center; }
+.ss-tile small { font-size: .64rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); overflow-wrap: anywhere; }
+.ss-tile b { font-size: 1.25rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ss-tile em { font-style: normal; font-size: .64rem; color: var(--muted); line-height: 1.2; overflow-wrap: anywhere; }
+.ss-ovr { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--hairline); margin-bottom: 10px; }
+.ss-ovr span { display: flex; flex-direction: column; min-width: 0; }
+.ss-ovr small { font-size: .66rem; color: var(--muted); font-weight: 800; text-transform: uppercase; }
+.ss-ovr b { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.ss-ovr em { font-style: normal; font-weight: 900; font-size: 1.2rem; }
+.ss-table { width: 100%; border-collapse: collapse; font-size: .78rem; margin-bottom: 8px; }
+.ss-table th { text-align: right; color: var(--muted); font-weight: 800; padding: 4px; font-size: .68rem; }
+.ss-table th:first-child, .ss-table td:first-child { text-align: left; }
+.ss-table td { text-align: right; padding: 5px 4px; border-top: 1px solid var(--hairline); font-variant-numeric: tabular-nums; }
+.ss-list { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.ss-list button { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.ss-l-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ss-l-main b { font-size: .86rem; overflow-wrap: anywhere; }
+.ss-l-main small { font-size: .72rem; color: var(--muted); }
+.ss-l-main em { font-style: normal; font-size: .72rem; color: #ffd76a; overflow-wrap: anywhere; }
+.ss-crest { flex: none; display: grid; place-items: center; width: 22px; }
+.st .ss-grid { margin-top: 6px; }
+.st-h { margin: 16px 0 6px; font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.st .bo-eff b { max-width: 60%; }
+.st-chart { width: 100%; height: auto; display: block; background: rgba(255,255,255,.03); border-radius: 14px; }
+.st-axis { stroke: rgba(255,255,255,.15); stroke-width: 1; }
+.st-line { fill: none; stroke: #19f0ff; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.st-dot { fill: #19f0ff; }
+.st-val { fill: var(--text); font-size: 9px; font-weight: 800; text-anchor: middle; }
+.st-lab { fill: var(--muted); font-size: 9px; text-anchor: middle; }
+.st-bar { fill: #39e58c; } .st-bar.b2 { fill: #ffd76a; }
+.st .bo-eff { --pos: #39e58c; }
+.st-more { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.st-more:empty { display: none; }
+@media (max-width: 360px) { .ss-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .cs-tabs button { font-size: .6rem; } }
+.st-legend { display: flex; align-items: center; gap: 6px; margin: 6px 2px 0; font-size: .74rem; color: var(--muted); }
+.st-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; margin-left: 6px; }
+.st-legend i:first-child { margin-left: 0; }
+.st-legend i.g { background: #39e58c; } .st-legend i.a { background: #ffd76a; }
+.st-race:empty { display: none; }
+.st-race { padding: 14px; border-radius: 18px; background: var(--surface); border: 1px solid var(--hairline); }

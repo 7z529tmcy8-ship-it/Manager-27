@@ -303,7 +303,7 @@ export function ensureProgress(career: Career) {
   if (!career.seasonGoals) career.seasonGoals = createSeasonGoals(career);
   const prog = startSeason(career);
   prog.stage = 0;
-  prog.load = 'normal';
+  prog.load = career.autoLoad ?? 'normal';
   career.progress = prog;
   return prog;
 }

@@ -444,6 +444,10 @@ export interface Career {
   unlocked?: Record<string, string>;
   /** Laufende Saison zwischen Hin- und Rückrunde. */
   progress?: SeasonProgress | null;
+  /** Trainingsbelastung als Regler – gilt für alle kommenden Etappen und Saisons. */
+  autoLoad?: StageLoad;
+  /** Automatik im Transferfenster beim Mehrsaison-Simulieren (0 treu, 1 sportlich, 2 Geld). */
+  transferStyle?: 0 | 1 | 2;
   /** Spiele der zuletzt beendeten Rückrunde – nur für die Live-Simulation in der Oberfläche. */
   simReplay?: { matches: MatchLine[]; table: TableRow[]; clubId: string } | null;
   /** Wie viele Angebotsrunden in diesem Fenster noch angefragt werden können. */

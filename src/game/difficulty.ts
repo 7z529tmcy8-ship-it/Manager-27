@@ -28,7 +28,8 @@ export const settingsOf = (c?: Career | null): Required<CareerSettings> => {
     difficulty: s.difficulty ?? 'normal',
     press: s.press ?? 'normal',
     liveMatches: s.liveMatches !== false,
-    simShow: s.simShow !== false,
+    // Live-Simulation nur, wenn ausdrücklich eingeschaltet (weniger Einblendungen)
+    simShow: s.simShow === true,
     stageMode: s.stageMode !== false,
     hideSide: s.hideSide ?? [],
   };

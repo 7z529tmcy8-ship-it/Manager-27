@@ -22,12 +22,13 @@ import { Gala, WorldRaceCard } from './BigStage';
 import { Chapters, RivalCard } from './Story';
 import { TrainingWeek } from './Training';
 import { Farewell, RecordHunt } from './Legacy';
-import { galaWorthy } from '../game/bigstage';
+// (Gala öffnet jetzt aus der Saisonbilanz heraus)
 import { advanceFinal, autoFinal } from '../game/final';
 import { autoPlayFinal, keyMatchFor, playFinalStep, setKeyMatch, startKeyMatch, stayInWinter } from '../game/career';
 import { rawCareerSettings, setCareerSettings, settingsOf } from '../game/difficulty';
 import { detectMoments, type Moment } from '../game/moments';
 import SkillTree, { ArchetypePicker, LevelChip } from './SkillTree';
+import { CareerControls, CareerStats, MultiSummary, SeasonSummary } from './CareerFlow';
 import { flagOf, nationCode } from '../data/flags';
 import { getClub, getLeague } from '../data/leagues';
 import { attributeLabels, attributes, clubLeagueId, currentClubId, formatMoney, playerValue } from '../game/player';
@@ -68,8 +69,12 @@ const money = (v: number) => (v >= 1e6 ? `€${Math.round(v / 1e6)}M` : `€${Ma
 export default function CareerScreen({ career, onChange: commit, onExit }: Props) {
   // Jede Änderung läuft hier durch: große Momente (Titel, Wechsel, Wertungssprünge) werden gefeiert.
   const [moments, setMoments] = useState<Moment[]>([]);
+  // Mehrere Saisons am Stück: keine Einblendungen, alles steht in der Übersicht
+  const quiet = useRef(false);
   const onChange = (next: Career) => {
-    const found = detectMoments(career, next);
+    // Vollbild-Momente nur noch für einen Vereinswechsel – alles rund ums Saisonende steht in der Saisonbilanz.
+    const found = quiet.current ? [] : detectMoments(career, next).filter((m) => m.kind === 'transfer');
+    quiet.current = false;
     if (found.length) setMoments(found);
     else if (
       (next.phase !== career.phase && ['winter', 'window', 'retired'].includes(next.phase)) ||
@@ -87,8 +92,13 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   // Deadline-Day bleibt sichtbar, bis der Ticker durch ist (auch wenn er danach „verbraucht“ ist)
   const [ddRun, setDdRun] = useState(false);
   useEffect(() => { setDdRun(false); }, [career.history.length]);
+  // Saisonende: eine Saisonbilanz statt einzelner Einblendungen (Gala gibt es dort auf Wunsch).
+  const [summary, setSummary] = useState<SeasonRecord | null>(null);
+  const [multi, setMulti] = useState<{ seasons: SeasonRecord[]; stop: string | null } | null>(null);
+  const multiRun = useRef(false);
   useEffect(() => {
-    if (career.history.length > histLen.current && career.history.length > 0 && galaWorthy(career.history[career.history.length - 1])) setGala(career.history[career.history.length - 1]);
+    if (career.history.length === histLen.current + 1 && !multiRun.current) setSummary(career.history[career.history.length - 1]);
+    multiRun.current = false;
     histLen.current = career.history.length;
   }, [career.history.length]); // eslint-disable-line react-hooks/exhaustive-deps
   const [picked, setPicked] = useState<number | null>(null);
@@ -96,7 +106,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   const [tree, setTree] = useState(false);
   const [full, setFull] = useState(false);
   const wide = useWide();
-  type Tab = 'play' | 'dev' | 'life' | 'history';
+  type Tab = 'play' | 'dev' | 'life' | 'stats' | 'history';
   const [tab, setTabState] = useState<Tab>(() => { try { return (sessionStorage.getItem('fc-cs-tab') as Tab) || 'play'; } catch { return 'play'; } });
   const setTab = (t: Tab) => { setTabState(t); try { sessionStorage.setItem('fc-cs-tab', t); } catch { /* egal */ } window.scrollTo({ top: 0 }); };
   const show = (t: Tab) => wide || tab === t;
@@ -202,6 +212,10 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   return (
     <main className="cs">
       {gala && !moments.length && !replay && <Gala career={career} record={gala} onClose={() => setGala(null)} />}
+      {summary && !gala && !replay && !moments.length && <SeasonSummary career={career} record={summary} onGala={() => setGala(summary)} onClose={() => setSummary(null)} />}
+      {multi && !summary && !gala && (
+        <MultiSummary career={career} seasons={multi.seasons} stop={multi.stop} onOpen={(r) => setSummary(r)} onClose={() => setMulti(null)} />
+      )}
       {keyLive && (
         <LiveMatch
           title={`Topspiel · ${keyLive.key.home ? 'Heimspiel' : 'Auswärtsspiel'}`}
@@ -263,7 +277,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       </header>
       {!wide && (
         <nav className="cs-tabs" role="tablist" aria-label="Karriere-Bereiche">
-          {([['play', 'Saison', 'ball'], ['dev', 'Entwicklung', 'rise'], ['life', 'Leben', 'heart'], ['history', 'Verlauf', 'chart']] as const).map(([id, label, ic]) => (
+          {([['play', 'Saison', 'ball'], ['dev', 'Entwicklung', 'rise'], ['life', 'Leben', 'heart'], ['stats', 'Statistik', 'chart'], ['history', 'Verlauf', 'calendar']] as const).map(([id, label, ic]) => (
             <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} onClick={() => setTab(id)}>
               <Icon name={ic} size={17} />{label}
               {id === 'life' && ((career.kitOffers?.length ?? 0) > 0 || (career.gifts?.length ?? 0) > 0) && <i className="cs-tab-dot" />}
@@ -300,12 +314,12 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       {show('dev') && career.history.length > 0 && <CareerPulse career={career} />}
       {show('dev') && <AttrPanel career={career} />}
 
-      {show('play') && !retired && !off('kit') && (career.kitOffers?.length ?? 0) > 0 && (
+      {show('life') && !retired && !off('kit') && (career.kitOffers?.length ?? 0) > 0 && (
         <button className="cs-note good sk-note kit-note" onClick={() => setPanel('kit')}>
           {career.kitOffers!.length === 1 ? `${BRANDS[career.kitOffers![0].brand].name} will dich als Ausrüster` : `${career.kitOffers!.length} Ausrüster wollen dich`} – Angebot ansehen
         </button>
       )}
-      {show('play') && (career.gifts?.length ?? 0) > 0 && (
+      {show('life') && (career.gifts?.length ?? 0) > 0 && (
         <button className="cs-note good sk-note gift-note" onClick={() => setPanel('invest')}>
           {career.gifts!.length === 1 ? 'Ein Geschenk' : `${career.gifts!.length} Geschenke`} vom Aufsichtsrat – jetzt öffnen!
         </button>
@@ -357,11 +371,6 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           )}
         </section>
       )}
-      {!needType && career.phase === 'window' && !career.nlzPending && choices.length > 0 && (
-        <div className="cs-extras cs-extras-out">
-          <ScorerRace career={career} />
-        </div>
-      )}
 
       {!needType && stageMode && !askLive && <MdIntro career={career} />}
       {!needType && stageMode && !askLive && goalText && <p className="ng"><Icon name="target" size={16} /><span><small>Nächstes Ziel</small>{goalText}</span></p>}
@@ -377,9 +386,6 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           )}
           {note && <p className={`cs-note ${note.tone}`}><b>{note.title}:</b> {note.text}</p>}
           <SeasonPanel career={career} />
-          <WorldRaceCard career={career} />
-          {stageMode && <RivalCard career={career} />}
-          {stageMode && <RecordHunt career={career} />}
           {askLive ? (
             <div className="live-ask">
               <h3>Wie willst du deine Karriere spielen?</h3>
@@ -398,17 +404,10 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           ) : stageMode && career.phase === 'season' ? (
             prog?.scene
               ? <SceneCard scene={prog.scene} onPick={(id) => onChange(sceneStep(career, id, live))} />
-              : <><StageRecap career={career} /><TrainingWeek career={career} onChange={onChange} /><StageCard career={career} onPlay={runStage} onQuick={run} /></>
-          ) : stageMode && career.phase === 'winter' ? (
-            <>
-              <button className="btn primary big cs-go" onClick={() => onChange(stayInWinter(career))}>Rückrunde starten</button>
-              <button className="cs-link md-quick" onClick={run}>Bis Saisonende durchsimulieren</button>
-            </>
-          ) : (
-            <button className="btn primary big cs-go" onClick={run}>
-              {secondHalf ? 'Bis Saisonende simulieren' : 'Bis zur Winterpause simulieren'}
-            </button>
-          )}
+              : <><StageRecap career={career} /><TrainingWeek career={career} onChange={onChange} /><StageCard career={career} onPlay={runStage} onQuick={run} bare /></>
+          ) : career.phase === 'final' ? (
+            <button className="btn primary big cs-go" onClick={run}>Weiter</button>
+          ) : null}
           {career.phase === 'winter' && (
             <div className="cs-extras">
               {choices.length > 0 && (
@@ -424,7 +423,6 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
                   )}
                 </>
               )}
-              <ScorerRace career={career} />
                 </div>
           )}
         </section>
@@ -442,6 +440,20 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
         </section>
       )}
 
+      {!needType && !askLive && !keyLive && (
+        <CareerControls career={career} stageMode={stageMode} onStage={runStage} onBreak={run}
+          onWinter={() => onChange(stayInWinter(career))} onCommit={onChange}
+          onMulti={(r) => { multiRun.current = true; quiet.current = true; setMulti({ seasons: r.seasons, stop: r.stop }); onChange(r.career); }} />
+      )}
+      </>}
+      {show('stats') && <>
+        <CareerStats career={career} />
+        <div className="st-more">
+          <div className="cs-extras st-race"><ScorerRace career={career} /></div>
+          <WorldRaceCard career={career} />
+          <RivalCard career={career} />
+          <RecordHunt career={career} />
+        </div>
       </>}
       {/* Zeitleiste: standardmäßig nur die letzten Saisons, damit Entscheidungen oben bleiben */}
       {show('history') && <>

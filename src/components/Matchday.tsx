@@ -108,7 +108,7 @@ export function Kabine({ career, onChange }: { career: Career; onChange: (c: Car
 }
 
 /** Spieltag-Karte: kommende Etappe mit Gegnern und Knöpfen. */
-export function StageCard({ career, onPlay, onQuick }: { career: Career; onPlay: () => void; onQuick: () => void }) {
+export function StageCard({ career, onPlay, onQuick, bare }: { career: Career; onPlay: () => void; onQuick: () => void; bare?: boolean }) {
   const prog = career.progress;
   const stage = prog?.stage ?? 0;
   const days = stageMatchdays(career);
@@ -129,8 +129,8 @@ export function StageCard({ career, onPlay, onQuick }: { career: Career; onPlay:
       <div className="md-form">
         <span><small>Form</small><b className={form >= 7.2 ? 'up' : form <= 6.4 ? 'down' : ''}><Icon name={form >= 7.2 ? 'rise' : 'dot'} size={14} className={form <= 6.4 ? 'md-down' : ''} />{form.toFixed(1).replace('.', ',')}</b></span>
       </div>
-      <button className="btn primary big cs-go md-play" onClick={onPlay}>Etappe {stage + 1} spielen</button>
-      <button className="cs-link md-quick" onClick={onQuick}>{stage < 3 ? 'Bis zur Winterpause durchsimulieren' : 'Bis Saisonende durchsimulieren'}</button>
+      {!bare && <button className="btn primary big cs-go md-play" onClick={onPlay}>Etappe {stage + 1} spielen</button>}
+      {!bare && <button className="cs-link md-quick" onClick={onQuick}>{stage < 3 ? 'Bis zur Winterpause durchsimulieren' : 'Bis Saisonende durchsimulieren'}</button>}
     </div>
   );
 }
