@@ -1,6 +1,7 @@
 import { startMotion, stopMotion } from '../tilt';
 import { useEffect, useState } from 'react';
 import { getClubState, setClubState, useClub } from '../clubStore';
+import { isMultiverseCode } from '../game/multiverse';
 import { INFINITE_COINS, devAdvance, devAllCards, devCoins, devFlags, devLevels, devMaxCards, devOvr, devTransfer, isDevCode, isWinCode, armPlinkoWin } from '../game/dev';
 import { CLUBS, LEAGUES, getClub } from '../data/leagues';
 import { currentClubId } from '../game/player';
@@ -156,7 +157,7 @@ export default function Settings({ career, onChange, onClose, onNews, onBackup }
           )}
           {onNews && <button className="btn secondary" onClick={onNews}><Icon name="news" size={18} /> Neuigkeiten</button>}
           {onBackup && <button className="btn secondary" onClick={onBackup}><Icon name="cloud" size={18} /> Sichern & Laden</button>}
-          {!app.dev && <CodeInput onUnlock={() => set({ dev: true })} />}
+          <CodeInput onUnlock={() => set({ dev: true })} onMultiverse={() => set({ multiverse: true })} />
         </section>
 
         <section className="panel danger-zone">
@@ -173,18 +174,23 @@ export default function Settings({ career, onChange, onClose, onNews, onBackup }
 }
 
 /** Code-Feld: Der richtige Code schaltet den Entwickler-Bereich frei. */
-function CodeInput({ onUnlock }: { onUnlock: () => void }) {
+function CodeInput({ onUnlock, onMultiverse }: { onUnlock: () => void; onMultiverse: () => void }) {
   const [code, setCode] = useState('');
   const [wrong, setWrong] = useState(false);
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState<string | false>(false);
   const submit = () => {
     setDone(false);
-    if (isDevCode(code)) {
+    if (isMultiverseCode(code)) {
+      onMultiverse();
+      setDone('Multiversum-Labor freigeschaltet: In der Karriere unter Statistik → Übersicht.');
+      play('jackpot');
+    } else if (isDevCode(code)) {
       onUnlock();
+      setDone('Entwickler-Bereich freigeschaltet.');
       play('levelUp');
     } else if (isWinCode(code)) {
       armPlinkoWin();
-      setDone(true);
+      setDone('Code aktiv: Dein nächster Ball im Torwand-Plinko wird legendär.');
       play('jackpot');
     } else {
       setWrong(true);
@@ -200,7 +206,7 @@ function CodeInput({ onUnlock }: { onUnlock: () => void }) {
         <button className="btn secondary small" disabled={!code.trim()}>OK</button>
       </form>
       {wrong && <p className="hint">Falscher Code.</p>}
-      {done && <p className="cs-note good" role="status">Code aktiv: Dein nächster Ball im Torwand-Plinko wird legendär.</p>}
+      {done && <p className="cs-note good" role="status">{done}</p>}
     </div>
   );
 }

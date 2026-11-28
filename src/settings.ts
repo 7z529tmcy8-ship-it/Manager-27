@@ -11,6 +11,8 @@ export interface AppSettings {
   volume: number;
   /** Entwickler-Bereich freigeschaltet (Code in den Einstellungen). */
   dev?: boolean;
+  /** Multiversum-Labor (Code „multiversum“) freigeschaltet. */
+  multiverse?: boolean;
   /** Halloween-Design während des Events (Standard an). */
   halloween?: boolean;
   /** 3D-Karten folgen der Handy-Neigung (Standard an). */

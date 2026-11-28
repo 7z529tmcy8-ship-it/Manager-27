@@ -31,6 +31,8 @@ import SkillTree, { ArchetypePicker, LevelChip } from './SkillTree';
 import { CareerControls, CareerStats, MultiSummary, SeasonSummary } from './CareerFlow';
 import { SeasonHeft } from './SeasonHeft';
 import { DevView, GamesView, RecordsView } from './StatsViews';
+import Multiverse from './Multiverse';
+import { useSettings } from '../settings';
 import { flagOf, nationCode } from '../data/flags';
 import { getClub, getLeague } from '../data/leagues';
 import { attributeLabels, attributes, clubLeagueId, currentClubId, formatMoney, playerValue, seasonLabel } from '../game/player';
@@ -97,6 +99,8 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   // Saisonende: eine Saisonbilanz statt einzelner Einblendungen (Gala gibt es dort auf Wunsch).
   const [summary, setSummary] = useState<SeasonRecord | null>(null);
   const [heft, setHeft] = useState(false);
+  const [mv, setMv] = useState(false);
+  const appSettings = useSettings();
   const [statTab, setStatTab] = useState<'sum' | 'games' | 'dev' | 'rec'>('sum');
   const [multi, setMulti] = useState<{ seasons: SeasonRecord[]; stop: string | null } | null>(null);
   const multiRun = useRef(false);
@@ -218,6 +222,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       {gala && !moments.length && !replay && <Gala career={career} record={gala} onClose={() => setGala(null)} />}
       {summary && !gala && !replay && !moments.length && <SeasonSummary career={career} record={summary} onGala={() => setGala(summary)} onClose={() => setSummary(null)} />}
       {heft && <SeasonHeft career={career} onClose={() => setHeft(false)} />}
+      {mv && <Multiverse career={career} onClose={() => setMv(false)} onAdopt={(c) => { setMv(false); quiet.current = true; multiRun.current = true; onChange(c); }} />}
       {multi && !summary && !gala && (
         <MultiSummary career={career} seasons={multi.seasons} stop={multi.stop} onOpen={(r) => setSummary(r)} onClose={() => setMulti(null)} />
       )}
@@ -469,6 +474,13 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       {show('stats') && statTab === 'dev' && <DevView career={career} />}
       {show('stats') && statTab === 'rec' && <RecordsView career={career} />}
       {show('stats') && statTab === 'sum' && <>
+        {appSettings.multiverse && !retired && (
+          <button className="hf-card mv-card" onClick={() => setMv(true)}>
+            <Icon name="globe" size={22} />
+            <span><b>Multiversum-Labor</b><small>Deine Karriere in vielen parallelen Zukünften</small></span>
+            <Icon name="arrow" size={16} />
+          </button>
+        )}
         {!retired && (
           <button className="hf-card" onClick={() => setHeft(true)}>
             <Icon name="book" size={22} />
