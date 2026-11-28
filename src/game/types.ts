@@ -289,6 +289,11 @@ export interface SeasonRecord {
   events?: GameEvent[];
   /** Erklärung der Entwicklung (Leistung, Spielzeit, Alter …). */
   devReasons?: string[];
+  /** Alle Spiele der Saison, kompakt (siehe stats.ts). */
+  games?: import('./stats').GameRow[];
+  /** Attribute und Potenzial am Saisonende (für die Entwicklung in Zahlen). */
+  attrs?: number[];
+  potEnd?: number;
   /** Saisonziele des Trainers und ob sie erreicht wurden. */
   goalResults?: GoalResult[];
   /** In dieser Saison freigeschaltete Erfolge (Namen). */

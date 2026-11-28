@@ -610,6 +610,9 @@ function completeSeason(career: Career): Career {
   }
   record.events = prog.events ?? [];
   record.devReasons = prog.devReasons ?? [];
+  // Entwicklung in Zahlen: Attribute und Potenzial am Saisonende festhalten
+  record.attrs = attributes(p);
+  record.potEnd = p.potential;
   career.simReplay = { matches: prog.matches.filter((m) => m.half === 2), table: record.table, clubId: record.clubId };
   career.progress = null;
 

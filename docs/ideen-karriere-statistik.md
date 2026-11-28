@@ -16,17 +16,17 @@ Eigener Name im Spiel („Saison-Sonderheft“), keine fremden Marken oder Layou
 - Ranglisten der Liga: Torjäger, Scorer (Tore + Vorlagen), Notenschnitt – du mittendrin.
 - Elf der Saison (Positionen, Noten).
 
-## 3 – Statistik pro Spiel
+## 3 – Statistik pro Spiel ✅ umgesetzt (28.11.2026)
 - Jedes Spiel wird gespeichert: Gegner, Ergebnis, Minuten, Tore, Vorlagen, Note (auch als Schulnote 1–6 umschaltbar).
 - Daraus: Notenverteilung, Heim/Auswärts, Serien (Tor-Serie, Spiele ohne Niederlage), Minuten pro Tor,
   Torbeteiligung in % der Mannschaftstore.
 
-## 4 – Entwicklung in Zahlen
+## 4 – Entwicklung in Zahlen ✅ umgesetzt (28.11.2026)
 - Verlauf von Wertung, Potenzial, Marktwert und **jedem Attribut** Saison für Saison (Tabelle + Linie).
 - Vergleich: du gegen echte Spieler im gleichen Alter und auf deiner Position (aus der Spieler-Datenbank).
 - Erklärung pro Saison: warum +3 oder −1 (Spielzeit, Noten, Alter, Training).
 
-## 5 – Rekordbuch
+## 5 – Rekordbuch ✅ umgesetzt (28.11.2026)
 - Deine Karriere-Rekorde (meiste Tore in einer Saison, beste Note, längste Serie …).
 - Bestenliste über alle deine Karrieren.
 - Echte Liga-Rekorde nur, wenn sie vorher geprüft sind.

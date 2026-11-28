@@ -144,7 +144,7 @@ export function deepCompact(career: Career, active: boolean): Career {
   const c = compactCareer(career);
   return {
     ...c,
-    history: c.history.map((r, i) => (i < c.history.length - 1 ? { ...r, table: [] } : r)),
+    history: c.history.map((r, i) => (i < c.history.length - 1 ? { ...r, table: [], games: i < c.history.length - 3 ? undefined : r.games } : r)),
     inbox: active ? c.inbox?.slice(0, 5) : [],
     news: active ? c.news?.slice(0, 10) : [],
   };

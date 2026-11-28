@@ -29,6 +29,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-28-statistik',
+    date: '28.11.2026',
+    title: 'Karriere: Spiele, Entwicklung, Rekordbuch',
+    items: [
+      'Statistik hat jetzt vier Bereiche: Übersicht, Spiele, Entwicklung und Rekorde.',
+      'Spiele: jedes Spiel einzeln (Gegner, Ergebnis, Minuten, Tore, Vorlagen, Note), dazu Heim/Auswärts, Notenverteilung, Tor-Serien, Minuten pro Tor und Anteil an den Teamtoren. Noten auf Wunsch als Schulnoten 1–6.',
+      'Entwicklung: Wertung, Potenzial, Marktwert und jedes Attribut Saison für Saison – mit Erklärung, warum es hoch oder runter ging, und dem Vergleich mit echten Spielern deines Alters und deiner Position.',
+      'Rekordbuch: deine Saison- und Spielrekorde plus Bestenliste über alle Karrieren.',
+      'Einzelspiele und Attribute werden ab jetzt gespeichert – bei älteren Saisons fehlen sie.',
+    ],
+  },
+  {
     id: '2026-11-28-sonderheft',
     date: '28.11.2026',
     title: 'Karriere: Saison-Sonderheft und Rückblick',

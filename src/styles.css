@@ -6245,3 +6245,39 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 
 .ss .hf-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(58px, 1fr)); gap: 4px; overflow: visible; }
 .ss .hf-tabs button { padding: 0 4px; font-size: .74rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- Statistik: Spiele, Entwicklung, Rekorde ---------- */
+.sv-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin: 4px 0 10px; }
+.sv-tabs button { min-height: 40px; min-width: 0; padding: 0 4px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface); color: var(--muted); font: inherit; font-size: .76rem; font-weight: 800; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sv-tabs button.on { color: var(--text); border-color: #e8304a; background: rgba(232, 48, 74, .16); }
+.sv-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.sv-head h2 { margin: 0; }
+.sv-toggle { min-height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--hairline); background: transparent; color: var(--muted); font: inherit; font-size: .74rem; font-weight: 800; cursor: pointer; }
+.sv-toggle.on { color: var(--text); border-color: #ffd76a; background: rgba(255, 215, 106, .12); }
+.sv-seasons { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 10px 0 4px; padding-bottom: 2px; }
+.sv-seasons::-webkit-scrollbar { display: none; }
+.sv-seasons button { flex: none; min-height: 34px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--hairline); background: transparent; color: var(--muted); font: inherit; font-size: .76rem; font-weight: 800; cursor: pointer; }
+.sv-seasons button.on { color: var(--text); border-color: #e8304a; background: rgba(232, 48, 74, .16); }
+.sv-bars { display: flex; flex-direction: column; gap: 6px; }
+.sv-bar { display: grid; grid-template-columns: 52px 1fr 28px; align-items: center; gap: 8px; font-size: .76rem; }
+.sv-bar span { color: var(--muted); font-variant-numeric: tabular-nums; }
+.sv-bar i { height: 10px; border-radius: 99px; background: rgba(255,255,255,.06); overflow: hidden; }
+.sv-bar em { display: block; height: 100%; border-radius: 99px; background: #19f0ff; transform-origin: left; transition: transform .4s ease-out; }
+.sv-bar b { text-align: right; font-variant-numeric: tabular-nums; }
+.sv-log { max-height: 420px; overflow-y: auto; overscroll-behavior: contain; border-radius: 12px; border: 1px solid var(--hairline); }
+.sv-log .hf-table thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.sv-off td { opacity: .45; }
+.sv-res { font-weight: 800; }
+.sv-res.w { color: #39e58c; } .sv-res.l { color: #ff5d73; }
+.st .hf-table td.pos { color: #39e58c; } .st .hf-table td.neg { color: #ff5d73; }
+.sv-click { cursor: pointer; }
+.sv-recs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.sv-recs li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--hairline); }
+.sv-recs li.me { border-color: rgba(255, 215, 106, .5); }
+.sv-recs span { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.sv-recs b { font-size: .86rem; overflow-wrap: anywhere; }
+.sv-recs small { font-size: .72rem; color: var(--muted); overflow-wrap: anywhere; }
+.sv-recs strong { flex: none; font-size: 1.1rem; color: #ffd76a; font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) { .sv-bar em { transition: none; } }
+
+.st .ss-tile b { font-size: clamp(.95rem, 5vw, 1.25rem); }

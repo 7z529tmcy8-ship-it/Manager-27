@@ -30,6 +30,7 @@ import { detectMoments, type Moment } from '../game/moments';
 import SkillTree, { ArchetypePicker, LevelChip } from './SkillTree';
 import { CareerControls, CareerStats, MultiSummary, SeasonSummary } from './CareerFlow';
 import { SeasonHeft } from './SeasonHeft';
+import { DevView, GamesView, RecordsView } from './StatsViews';
 import { flagOf, nationCode } from '../data/flags';
 import { getClub, getLeague } from '../data/leagues';
 import { attributeLabels, attributes, clubLeagueId, currentClubId, formatMoney, playerValue, seasonLabel } from '../game/player';
@@ -96,6 +97,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   // Saisonende: eine Saisonbilanz statt einzelner Einblendungen (Gala gibt es dort auf Wunsch).
   const [summary, setSummary] = useState<SeasonRecord | null>(null);
   const [heft, setHeft] = useState(false);
+  const [statTab, setStatTab] = useState<'sum' | 'games' | 'dev' | 'rec'>('sum');
   const [multi, setMulti] = useState<{ seasons: SeasonRecord[]; stop: string | null } | null>(null);
   const multiRun = useRef(false);
   useEffect(() => {
@@ -456,7 +458,17 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
           onMulti={(r) => { multiRun.current = true; quiet.current = true; setMulti({ seasons: r.seasons, stop: r.stop }); onChange(r.career); }} />
       )}
       </>}
-      {show('stats') && <>
+      {show('stats') && (
+        <nav className="sv-tabs" aria-label="Statistik-Bereiche">
+          {([['sum', 'Übersicht'], ['games', 'Spiele'], ['dev', 'Entwicklung'], ['rec', 'Rekorde']] as const).map(([id, label]) => (
+            <button key={id} className={statTab === id ? 'on' : ''} onClick={() => setStatTab(id)}>{label}</button>
+          ))}
+        </nav>
+      )}
+      {show('stats') && statTab === 'games' && <GamesView career={career} />}
+      {show('stats') && statTab === 'dev' && <DevView career={career} />}
+      {show('stats') && statTab === 'rec' && <RecordsView career={career} />}
+      {show('stats') && statTab === 'sum' && <>
         {!retired && (
           <button className="hf-card" onClick={() => setHeft(true)}>
             <Icon name="book" size={22} />

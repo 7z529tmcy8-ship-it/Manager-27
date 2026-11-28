@@ -1,3 +1,4 @@
+import { packGames } from './stats';
 import { CLUBS, LEAGUES, SIM_CLUBS, SIM_LEAGUES, canPlayIn, getClub, getLeague } from '../data/leagues';
 import { getNation } from '../data/players';
 import {
@@ -872,6 +873,7 @@ export function finishSeason(career: Career, prog: SeasonProgress): SeasonOutcom
     cupReached: prog.cup.reached || (prog.cup.eligible ? 'Sieger' : 'nach Wechsel nicht dabei'),
     notes,
     winterMove: prog.winterMove,
+    games: packGames(matches),
   };
   return { record, tables };
 }
