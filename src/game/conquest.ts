@@ -6,8 +6,15 @@
 export type Owner = -1 | 0 | 1 | 2 | 3; // −1 neutral, 0 du, 1–3 Gegner
 export interface Node { id: number; x: number; y: number; size: 1 | 2 | 3; owner: Owner; units: number }
 export interface Squad { id: number; from: number; to: number; owner: Owner; count: number; t: number; dur: number }
+/** Ereignisse für die Anzeige (Effekte, Töne) – die Anzeige liest und leert sie. */
+export type ConquestEvent =
+  | { k: 'send'; id: number; owner: Owner; n: number }
+  | { k: 'hit'; id: number; by: Owner; n: number }
+  | { k: 'join'; id: number; owner: Owner; n: number }
+  | { k: 'cap'; id: number; from: Owner; to: Owner; n: number };
 export interface Conquest {
   level: number;
+  events: ConquestEvent[];
   nodes: Node[];
   squads: Squad[];
   time: number;
@@ -62,7 +69,7 @@ export function makeLevel(level: number, aspect = 1.5): Conquest {
     nodes.push({ id: nodes.length, x, y, size, owner: -1, units: Math.round(5 + r() * (6 + size * 6) + lv * 0.4) });
   }
   return {
-    level: lv, nodes, squads: [], time: 0, aiCount,
+    level: lv, nodes, squads: [], events: [], time: 0, aiCount,
     aiDelay: Math.max(1.1, 4.2 - lv * 0.12),
     aiNext: Array.from({ length: aiCount }, (_, i) => 1.5 + i * 0.4),
     result: null, seed: lv * 104729, nextId: 1,
@@ -82,6 +89,7 @@ export function send(s: Conquest, from: number[], to: number, owner: Owner = 0):
     n.units -= count;
     total += count;
     s.squads.push({ id: s.nextId++, from: id, to, owner, count, t: 0, dur: Math.max(0.35, dist(n, target) / SPEED) });
+    emit(s, { k: 'send', id, owner, n: count });
   }
   return total;
 }
@@ -89,9 +97,14 @@ export function send(s: Conquest, from: number[], to: number, owner: Owner = 0):
 /** Ankunft: Verstärkung oder Angriff (Fans heben sich gegenseitig auf, Überschuss erobert). */
 function arrive(s: Conquest, q: Squad): void {
   const n = s.nodes[q.to];
-  if (n.owner === q.owner) { n.units += q.count; return; }
+  if (n.owner === q.owner) { n.units += q.count; emit(s, { k: 'join', id: n.id, owner: q.owner, n: q.count }); return; }
   n.units -= q.count;
-  if (n.units < 0) { n.owner = q.owner; n.units = -n.units; }
+  if (n.units < 0) { const from = n.owner; n.owner = q.owner; n.units = -n.units; emit(s, { k: 'cap', id: n.id, from, to: q.owner, n: q.count }); }
+  else emit(s, { k: 'hit', id: n.id, by: q.owner, n: q.count });
+}
+function emit(s: Conquest, e: ConquestEvent): void {
+  (s.events ??= []).push(e);
+  if (s.events.length > 240) s.events.splice(0, 120);
 }
 
 /** Gegner-Zug: stärkstes eigenes Stadion greift ein lohnendes, gut erreichbares Ziel an (oder verstärkt bedrohte Stadien). */

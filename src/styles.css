@@ -6392,7 +6392,7 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .rk-field canvas { display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
 .rk-over { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(2, 8, 10, .72); padding: 16px; }
 .rk-over section { width: min(340px, 100%); display: flex; flex-direction: column; gap: 10px; padding: 20px; border-radius: 20px; background: var(--bg); border: 1px solid rgba(25, 240, 255, .35); text-align: center; }
-.rk-over h2 { margin: 0; font-size: 1.5rem; }
+.rk-over h2 { margin: 0; font-size: 1.5rem; justify-content: center; }
 .rk-over p { margin: 0; line-height: 1.4; }
 .rk-over .btn { width: 100%; }
 .rk-stars { font-size: 2rem; letter-spacing: 4px; color: #ffd76a; }
@@ -6401,3 +6401,21 @@ button.cz-chips > svg:last-child { margin-left: 2px; padding: 2px; border-radius
 .rk-legend span { display: inline-flex; align-items: center; gap: 5px; }
 .rk-legend i { width: 10px; height: 10px; border-radius: 50%; }
 @media (prefers-reduced-motion: reduce) { .rk-share i { transition: none; } }
+/* Revierkampf: Spielgefühl (Leiste, Ergebnis, Sterne) */
+.rk-bar-mid b { display: flex; align-items: baseline; gap: 8px; }
+.rk-bar-mid b em { font-style: normal; font-size: .76rem; font-weight: 800; color: #19f0ff; font-variant-numeric: tabular-nums; }
+.rk-share { box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+.rk-share i.me { box-shadow: 0 0 10px rgba(25, 240, 255, .8); position: relative; z-index: 1; }
+.rk-field { background: #0b2420; box-shadow: 0 0 0 1px rgba(25, 240, 255, .08), 0 10px 40px rgba(0, 0, 0, .45); }
+.rk-over.end { animation: rk-fade .25s ease-out both; }
+.rk-over.end section { animation: rk-pop .38s cubic-bezier(.2, 1.5, .4, 1) both; }
+.rk-over.end.win section { border-color: rgba(25, 240, 255, .7); box-shadow: 0 0 0 1px rgba(25, 240, 255, .25), 0 0 60px rgba(25, 240, 255, .25); }
+.rk-over.end.lose section { border-color: rgba(255, 107, 138, .6); }
+.rk-over.end.win h2 { color: #19f0ff; }
+.rk-stars { display: flex; justify-content: center; gap: 6px; }
+.rk-stars span { opacity: .18; display: inline-block; }
+.rk-stars span.on { opacity: 1; text-shadow: 0 0 16px rgba(255, 215, 106, .8); animation: rk-star .42s cubic-bezier(.2, 1.8, .4, 1) both; }
+@keyframes rk-fade { from { opacity: 0; } }
+@keyframes rk-pop { from { opacity: 0; transform: scale(.86) translateY(10px); } }
+@keyframes rk-star { 0% { opacity: .18; transform: scale(.3) rotate(-30deg); } 70% { transform: scale(1.35) rotate(8deg); } 100% { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .rk-over.end, .rk-over.end section, .rk-stars span.on { animation: none; } }

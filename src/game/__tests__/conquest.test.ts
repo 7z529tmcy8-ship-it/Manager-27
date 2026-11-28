@@ -77,3 +77,18 @@ describe('Revierkampf', () => {
     }
   });
 });
+
+describe('Revierkampf-Ereignisse', () => {
+  it('meldet Losschicken, Treffer und Eroberung für die Effekte', () => {
+    const s = makeLevel(1);
+    s.aiNext = [1e9];
+    const target = s.nodes.find((n) => n.owner === -1)!;
+    target.units = 1;
+    s.nodes[0].units = 40;
+    send(s, [0], target.id);
+    expect(s.events.some((e) => e.k === 'send' && e.owner === 0)).toBe(true);
+    for (let i = 0; i < 200 && !s.events.some((e) => e.k === 'cap'); i++) step(s, 0.1);
+    const cap = s.events.find((e) => e.k === 'cap');
+    expect(cap).toMatchObject({ k: 'cap', id: target.id, from: -1, to: 0 });
+  });
+});

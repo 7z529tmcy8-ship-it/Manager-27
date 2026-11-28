@@ -29,6 +29,18 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-28-revierkampf-look',
+    date: '28.11.2026',
+    title: 'Revierkampf: neuer Look, mehr Wumms',
+    items: [
+      'Stadien mit Tribünen-Segmenten, die sich mit Fans füllen, und Flutlicht-Leuchten. Rasen mit Platz-Linien.',
+      'Fans ziehen als leuchtender Pulk mit Schweif übers Feld.',
+      'Eroberung: Farbwelle, Druckring, Funken, kurzes Beben und „erobert“-Schrift. Mehrere Eroberungen kurz hintereinander werden zur Serie (Doppelschlag, Dreierpack) mit steigendem Ton.',
+      'Beim Ziehen siehst du vorher, ob es reicht: grün „15 gegen 10“ = du übernimmst, rot = zu wenig.',
+      'Sieg mit Welle über die Karte, Konfetti und Sternen, die nacheinander aufploppen. Vibration auf Android.',
+    ],
+  },
+  {
     id: '2026-11-28-revierkampf',
     date: '28.11.2026',
     title: 'Neuer Modus: Revierkampf',
