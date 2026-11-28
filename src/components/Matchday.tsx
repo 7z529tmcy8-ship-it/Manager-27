@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Icon from './Icon';
+import { settingsOf } from '../game/difficulty';
 import { getClub } from '../data/leagues';
 import { currentClubId } from '../game/player';
 import { upcomingFixtures } from '../game/season';
@@ -27,6 +28,7 @@ export function Kabine({ career, onChange }: { career: Career; onChange: (c: Car
   const [agentOpen, setAgentOpen] = useState(false);
   const [answer, setAnswer] = useState<{ text: string; tone: string } | null>(null);
   const task = career.progress?.coachTask;
+  const hide = settingsOf(career).hideSide;
   // Trainer und Konkurrent gibt es ab dem ersten Blick in die Kabine (bei Vereinswechsel neu)
   const club = currentClubId(career.player);
   useEffect(() => {
@@ -65,13 +67,13 @@ export function Kabine({ career, onChange }: { career: Career; onChange: (c: Car
       <div className="kb-fans"><small>Fans</small><span className="kb-trust-bar fans"><i style={{ width: `${Math.max(4, fans.pct * 100)}%` }} /></span><b>{fans.word}</b></div>
       <div className="kb-people">
         {t && <span><Icon name="whistle" size={16} /><b>{t.name}</b><small>{TRAINER_STYLE[t.style]}</small></span>}
-        {comp && <span><Icon name="duel" size={16} /><b>{comp.name}</b><small>OVR {comp.ovr} · {duelText(career)}</small></span>}
+        {comp && !hide.includes('competitor') && <span><Icon name="duel" size={16} /><b>{comp.name}</b><small>OVR {comp.ovr} · {duelText(career)}</small></span>}
       </div>
 
-      <div className="kb-agent">
+      {!hide.includes('agent') && <div className="kb-agent">
         <span><Icon name="handshake" size={16} /><b>{career.agent ? AGENTS[career.agent].name : 'Kein Berater'}</b><small>{career.agent ? AGENTS[career.agent].title : 'Du verhandelst selbst'}</small></span>
         {canChangeAgent(career) && !agentOpen && <button className="cs-link" onClick={() => setAgentOpen(true)}>{career.agent ? 'Wechseln' : 'Berater wählen'}</button>}
-      </div>
+      </div>}
       {agentOpen && (
         <div className="kb-talk" role="group" aria-label="Berater wählen">
           {(Object.keys(AGENTS) as AgentId[]).map((id) => (

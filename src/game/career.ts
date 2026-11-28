@@ -30,6 +30,7 @@ import {
 import { maybeDecision } from './decisions';
 import { checkAchievements } from './achievements';
 import { createSeasonGoals, evaluateGoals } from './goals';
+import { ensurePrognosis } from './preview';
 import { applyTraining } from './training';
 import { progressRetrain } from './position';
 import { scenarioSeasonEnd } from './scenario';
@@ -305,6 +306,8 @@ export function ensureProgress(career: Career) {
   prog.stage = 0;
   prog.load = career.autoLoad ?? 'normal';
   career.progress = prog;
+  // Sonderheft: Prognose für die neue Saison festhalten (für den Vergleich am Saisonende)
+  try { ensurePrognosis(career); } catch { /* Prognose ist nur Anzeige */ }
   return prog;
 }
 

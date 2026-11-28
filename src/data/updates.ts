@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-28-sonderheft',
+    date: '28.11.2026',
+    title: 'Karriere: Saison-Sonderheft und Rückblick',
+    items: [
+      'Vor jeder Saison gibt es das Saison-Sonderheft: Liga-Vorschau mit Stärke, Kaderwert und Prognose-Platz aller Vereine, dein Kader mit Alter, Nation, Wertung und Marktwert, deine Prognose und die Stars der Liga.',
+      'Am Saisonende: Prognose gegen Wirklichkeit, Ranglisten (Torjäger, Scorer, Notenschnitt), Elf der Saison und Abschlusstabelle – direkt in der Saisonbilanz.',
+      'Im Reiter „Statistik“: das Sonderheft der laufenden Saison und alle bisherigen Saison-Rückblicke zum Nachlesen.',
+      'Neben-Systeme (Ausrüster, Kickgram, Look, Klinik, Vermögen, Konkurrent, Berater) sind jetzt standardmäßig aus – in den Einstellungen wieder einschaltbar, nichts wurde gelöscht.',
+    ],
+  },
+  {
     id: '2026-11-27-karriere-handling',
     date: '27.11.2026',
     title: 'Karriere: schneller und übersichtlicher',

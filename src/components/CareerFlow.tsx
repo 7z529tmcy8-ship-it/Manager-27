@@ -7,6 +7,7 @@ import { LOAD_INFO } from '../game/drill';
 import { galaWorthy } from '../game/bigstage';
 import { play } from '../sound';
 import type { Career, SeasonRecord } from '../game/types';
+import { SeasonReview } from './SeasonHeft';
 
 const sfx = (id: Parameters<typeof play>[0]) => { try { play(id); } catch { /* kein Ton */ } };
 const euro = (v: number) => (v >= 1e6 ? `${(v / 1e6).toLocaleString('de-DE', { maximumFractionDigits: 1 })} Mio. €` : `${Math.round(v / 1e3)} Tsd. €`);
@@ -122,6 +123,7 @@ export function SeasonSummary({ career, record, onClose, onGala }: { career: Car
             {r.awards.map((t) => <span key={t} className="ss-chip"><Icon name="medal" size={14} />{t}</span>)}
           </div>
         )}
+        <SeasonReview career={career} record={r}>
         <div className="ss-grid">
           <Tile label="Spiele" value={`${r.apps}`} sub={`${r.starts} von Beginn`} />
           <Tile label="Tore" value={`${r.goals}`} sub={delta(r.goals, prev?.goals)} />
@@ -144,6 +146,7 @@ export function SeasonSummary({ career, record, onClose, onGala }: { career: Car
         {(r.cupReached || r.europe) && <p className="bo-hint">{[r.cupReached && `Pokal: ${r.cupReached}`, r.europe && `${r.europe.competition}: ${r.europe.reached}`].filter(Boolean).join(' · ')}</p>}
         {(r.injuryWeeks ?? 0) > 0 && <p className="bo-hint">Verletzt: {r.injuryWeeks} Wochen</p>}
         {(r.devReasons?.length ?? 0) > 0 && <p className="bo-hint">{r.devReasons!.slice(0, 2).join(' ')}</p>}
+        </SeasonReview>
         {onGala && galaWorthy(r) && <button className="btn secondary bo-wide" onClick={onGala}><Icon name="star" size={16} />Gala-Abend ansehen</button>}
         <button className="btn primary big" onClick={onClose}>Weiter</button>
       </section>

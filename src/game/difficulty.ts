@@ -31,7 +31,8 @@ export const settingsOf = (c?: Career | null): Required<CareerSettings> => {
     // Live-Simulation nur, wenn ausdrücklich eingeschaltet (weniger Einblendungen)
     simShow: s.simShow === true,
     stageMode: s.stageMode !== false,
-    hideSide: s.hideSide ?? [],
+    // Neben-Systeme sind standardmäßig aus (Statistik-Fokus) – in den Einstellungen wieder einschaltbar.
+    hideSide: s.hideSide ?? ['invest', 'clinic', 'look', 'gram', 'kit', 'competitor', 'agent'],
   };
 };
 

@@ -444,6 +444,8 @@ export interface Career {
   unlocked?: Record<string, string>;
   /** Laufende Saison zwischen Hin- und Rückrunde. */
   progress?: SeasonProgress | null;
+  /** Saison-Prognosen aus dem Sonderheft (Saison → Prognose). */
+  prognoses?: Record<string, import('./preview').Prognosis>;
   /** Trainingsbelastung als Regler – gilt für alle kommenden Etappen und Saisons. */
   autoLoad?: StageLoad;
   /** Automatik im Transferfenster beim Mehrsaison-Simulieren (0 treu, 1 sportlich, 2 Geld). */
@@ -766,7 +768,7 @@ export interface CareerSettings {
   /** Spieltag-Modus: Saison in 6 Etappen mit Szenen und Trainergespräch (Standard an). */
   stageMode?: boolean;
   /** Ausgeblendete Neben-Bereiche im Leben-Tab (nichts wird gelöscht, nur nicht angezeigt). */
-  hideSide?: ('invest' | 'clinic' | 'look' | 'gram' | 'kit')[];
+  hideSide?: ('invest' | 'clinic' | 'look' | 'gram' | 'kit' | 'competitor' | 'agent')[];
 }
 
 export type InboxKind = 'national' | 'welcome' | 'goals' | 'season' | 'offer' | 'contract' | 'transfer' | 'event' | 'decision' | 'press' | 'achievement' | 'lotto' | 'casino' | 'holiday' | 'retire';

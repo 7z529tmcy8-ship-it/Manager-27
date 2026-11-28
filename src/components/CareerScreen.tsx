@@ -29,9 +29,10 @@ import { rawCareerSettings, setCareerSettings, settingsOf } from '../game/diffic
 import { detectMoments, type Moment } from '../game/moments';
 import SkillTree, { ArchetypePicker, LevelChip } from './SkillTree';
 import { CareerControls, CareerStats, MultiSummary, SeasonSummary } from './CareerFlow';
+import { SeasonHeft } from './SeasonHeft';
 import { flagOf, nationCode } from '../data/flags';
 import { getClub, getLeague } from '../data/leagues';
-import { attributeLabels, attributes, clubLeagueId, currentClubId, formatMoney, playerValue } from '../game/player';
+import { attributeLabels, attributes, clubLeagueId, currentClubId, formatMoney, playerValue, seasonLabel } from '../game/player';
 import { ATTR_WEIGHTS } from '../game/attributes';
 import { halfStats } from '../game/season';
 import Negotiation from './Negotiation';
@@ -94,6 +95,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
   useEffect(() => { setDdRun(false); }, [career.history.length]);
   // Saisonende: eine Saisonbilanz statt einzelner Einblendungen (Gala gibt es dort auf Wunsch).
   const [summary, setSummary] = useState<SeasonRecord | null>(null);
+  const [heft, setHeft] = useState(false);
   const [multi, setMulti] = useState<{ seasons: SeasonRecord[]; stop: string | null } | null>(null);
   const multiRun = useRef(false);
   useEffect(() => {
@@ -213,6 +215,7 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
     <main className="cs">
       {gala && !moments.length && !replay && <Gala career={career} record={gala} onClose={() => setGala(null)} />}
       {summary && !gala && !replay && !moments.length && <SeasonSummary career={career} record={summary} onGala={() => setGala(summary)} onClose={() => setSummary(null)} />}
+      {heft && <SeasonHeft career={career} onClose={() => setHeft(false)} />}
       {multi && !summary && !gala && (
         <MultiSummary career={career} seasons={multi.seasons} stop={multi.stop} onOpen={(r) => setSummary(r)} onClose={() => setMulti(null)} />
       )}
@@ -373,6 +376,13 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       )}
 
       {!needType && stageMode && !askLive && <MdIntro career={career} />}
+      {!needType && !askLive && career.phase === 'season' && (prog?.stage ?? 0) === 0 && !prog?.scene && (prog?.matches.length ?? 0) === 0 && (
+        <button className="hf-card" onClick={() => setHeft(true)}>
+          <Icon name="book" size={22} />
+          <span><b>Saison-Sonderheft {seasonLabel(career.year)}</b><small>Liga-Vorschau, Kader, deine Prognose, Stars der Liga</small></span>
+          <Icon name="arrow" size={16} />
+        </button>
+      )}
       {!needType && stageMode && !askLive && goalText && <p className="ng"><Icon name="target" size={16} /><span><small>Nächstes Ziel</small>{goalText}</span></p>}
       {!needType && stageMode && !askLive && (career.phase === 'season' || career.phase === 'winter') && !p.absent && <Kabine career={career} onChange={onChange} />}
       {!needType && (career.phase === 'season' || career.phase === 'winter' || career.phase === 'final') && (
@@ -447,7 +457,27 @@ export default function CareerScreen({ career, onChange: commit, onExit }: Props
       )}
       </>}
       {show('stats') && <>
+        {!retired && (
+          <button className="hf-card" onClick={() => setHeft(true)}>
+            <Icon name="book" size={22} />
+            <span><b>Sonderheft {seasonLabel(career.year)}</b><small>Liga, Kader, Prognose und Stars der laufenden Saison</small></span>
+            <Icon name="arrow" size={16} />
+          </button>
+        )}
         <CareerStats career={career} />
+        {career.history.length > 0 && (
+          <section className="cs-window">
+            <h2>Saison-Rückblicke</h2>
+            <ul className="ss-list">
+              {[...career.history].reverse().map((r) => (
+                <li key={r.season}><button onClick={() => setSummary(r)}>
+                  <span className="ss-l-main"><b>{r.season} · {getClub(r.clubId).name}</b><small>{r.apps} Sp · {r.goals} T · {r.assists} V · Platz {r.leaguePosition || '–'}</small></span>
+                  <Icon name="arrow" size={14} />
+                </button></li>
+              ))}
+            </ul>
+          </section>
+        )}
         <div className="st-more">
           <div className="cs-extras st-race"><ScorerRace career={career} /></div>
           <WorldRaceCard career={career} />

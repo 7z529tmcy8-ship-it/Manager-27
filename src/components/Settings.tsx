@@ -90,9 +90,9 @@ export default function Settings({ career, onChange, onClose, onNews, onBackup }
             hint={DIFFICULTIES[cs.difficulty].hint}
           />
           <div className="setting-row side-row">
-            <span className="setting-label">Bereiche im Leben-Tab</span>
+            <span className="setting-label">Neben-Systeme (Standard: aus)</span>
             <span className="side-chips">
-              {([['invest', 'Vermögen'], ['clinic', 'Klinik'], ['look', 'Look'], ['gram', 'Kickgram'], ['kit', 'Ausrüster']] as const).map(([id, label]) => {
+              {([['invest', 'Vermögen'], ['clinic', 'Klinik'], ['look', 'Look'], ['gram', 'Kickgram'], ['kit', 'Ausrüster'], ['competitor', 'Konkurrent'], ['agent', 'Berater']] as const).map(([id, label]) => {
                 const hidden = cs.hideSide.includes(id);
                 return <button key={id} className={hidden ? '' : 'on'} onClick={() => setC({ hideSide: hidden ? cs.hideSide.filter((x) => x !== id) : [...cs.hideSide, id] })}>{label}</button>;
               })}
