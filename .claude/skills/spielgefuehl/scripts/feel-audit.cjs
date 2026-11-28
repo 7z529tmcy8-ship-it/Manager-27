@@ -179,6 +179,15 @@ const FLOWS = {
     for (const i of [2, 3, 4, 0]) { await p.click(`.bo-tabs button >> nth=${i}`, { timeout: 2000 }); await p.waitForTimeout(250); }
     await p.click('.bo .cs-link', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(300);
   },
+  revierkampf: async (p) => {
+    // Revierkampf: Levelauswahl, Level 1 starten, ein paar Sekunden laufen lassen (Canvas-Spielschleife), zurück
+    await nav(p, 'Karriere'); await p.waitForTimeout(450);
+    await p.click('.m-revier', { timeout: 3000 }); await p.waitForTimeout(450);
+    await p.click('.rk-lv >> nth=0', { timeout: 2000 }); await p.waitForTimeout(2500);
+    await p.mouse.click(60, 400); await p.waitForTimeout(300);
+    await p.click('.rk-bar .rk-ic >> nth=0', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(300);
+    await p.click('.rk .cs-link', { timeout: 2000 }).catch(() => {}); await p.waitForTimeout(300);
+  },
   profil: async (p) => {
     // Profil: Wappen und Farbe wechseln, runterscrollen
     await nav(p, 'Profil'); await p.waitForTimeout(450);

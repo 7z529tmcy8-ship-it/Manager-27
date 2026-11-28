@@ -15,6 +15,7 @@ const ProfilePage = lazy(() => import('./components/ProfilePage'));
 const CasinoPage = lazy(() => import('./components/casino/CasinoPage'));
 const ShopPage = lazy(() => import('./components/ShopPage'));
 const BossPage = lazy(() => import('./components/Boss'));
+const RevierPage = lazy(() => import('./components/Revier'));
 import UpdateBanner, { unseenUpdates } from './components/UpdateBanner';
 import { UPDATES, type UpdateNote } from './data/updates';
 import { creditCareer, removeOwnCareerCards, removeSeasonPlayerCards, rewardPending } from './game/club';
@@ -39,6 +40,7 @@ type Screen =
   | { name: 'profile' }
   | { name: 'casino' }
   | { name: 'boss' }
+  | { name: 'revier' }
   | { name: 'create' }
   | { name: 'game'; career: Career };
 
@@ -143,7 +145,7 @@ export default function App() {
   const go = (t: NavTarget) => setScreen(t === 'career' ? { name: 'home' } : ({ name: t } as Screen));
   const navActive: NavTarget | null = screen.name === 'home' || screen.name === 'create' ? 'career' : screen.name === 'team' || screen.name === 'shop' || screen.name === 'duels' || screen.name === 'casino' || screen.name === 'profile' ? screen.name : null;
   // In der laufenden Karriere hat das Spiel eigene Leisten – dort keine Hauptnavigation.
-  const showNav = screen.name !== 'game' && !CASINO_ONLY;
+  const showNav = screen.name !== 'game' && screen.name !== 'revier' && !CASINO_ONLY;
 
   return (
     <div className={`app ${showNav ? 'has-nav' : ''}`}>
@@ -174,6 +176,7 @@ export default function App() {
           onDuels={() => setScreen({ name: 'duels' })}
           onCollection={() => setScreen({ name: 'team', tab: 'collection' })}
           onBoss={() => setScreen({ name: 'boss' })}
+          onRevier={() => setScreen({ name: 'revier' })}
         />
       )}
       {screen.name === 'team' && <TeamScreen key={screen.tab ?? 'x'} tab={screen.tab} onDuels={() => setScreen({ name: 'duels' })} onShop={toShop} onCasino={() => setScreen({ name: 'casino' })} />}
@@ -184,6 +187,7 @@ export default function App() {
         ? <CasinoPage intro={introOnStart} onSettings={() => setSettingsOpen(true)} />
         : <CasinoPage onExit={home} />)}
       {screen.name === 'boss' && <BossPage onExit={home} />}
+      {screen.name === 'revier' && <RevierPage onExit={home} />}
       {screen.name === 'create' && <CreateCareer onCancel={home} onCreate={update} />}
       {screen.name === 'game' && (
         <CareerScreen career={screen.career} onChange={update} onExit={home} />

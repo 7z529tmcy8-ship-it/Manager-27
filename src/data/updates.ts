@@ -29,6 +29,17 @@ export const RETIRED_IDS = ['2026-10-05-sounds', '2026-10-31-hoeher-tiefer-5'];
 
 export const UPDATES: UpdateNote[] = [
   {
+    id: '2026-11-28-revierkampf',
+    date: '28.11.2026',
+    title: 'Neuer Modus: Revierkampf',
+    items: [
+      'Erobere alle Stadien der Karte: In deinen Stadien wachsen Fans nach, zieh von deinem Stadion zum Ziel und schick 60 % los. Wer mehr Fans hinbringt, übernimmt.',
+      'Über mehrere eigene Stadien wischen = alle greifen gemeinsam an. Oder erst antippen, dann das Ziel.',
+      'Bolzplatz, Stadion und Arena wachsen unterschiedlich schnell. Bis zu drei Computer-Gegner, die sich auch gegenseitig angreifen.',
+      '30 Level mit bis zu drei Sternen – schneller gewinnen gibt mehr Sterne.',
+    ],
+  },
+  {
     id: '2026-11-28-statistik',
     date: '28.11.2026',
     title: 'Karriere: Spiele, Entwicklung, Rekordbuch',

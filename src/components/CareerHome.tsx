@@ -32,6 +32,11 @@ const statusOf = (c: Career) =>
 /** Kompakte Anzeige in der Kopfzeile: ab 100.000 als „1,2 Mio.“ usw. – damit nichts abgeschnitten wird. */
 const short = (n: number) => (n >= 1e9 ? `${(n / 1e9).toFixed(1).replace('.', ',')} Mrd.` : n >= 1e6 ? `${(n / 1e6).toFixed(1).replace('.', ',')} Mio.` : n >= 1e5 ? `${Math.round(n / 1e3)} Tsd.` : Math.round(n).toLocaleString('de-DE'));
 
+/** Kurzinfo zum Revierkampf-Fortschritt (ohne die Spiel-Logik zu laden). */
+function revierTeaser(): string {
+  try { const p = JSON.parse(localStorage.getItem('fc-revier') || '{}') as { unlocked?: number }; return p.unlocked && p.unlocked > 1 ? `Level ${p.unlocked} von 30` : 'Stadien erobern'; } catch { return 'Stadien erobern'; }
+}
+
 /** Kurzinfo zum Vereinsboss-Spielstand (ohne die ganze Logik zu laden). */
 function bossTeaser(): string {
   try {
@@ -45,8 +50,8 @@ function bossTeaser(): string {
   } catch { return 'Leite einen Verein: Geld, NLZ, Stadion'; }
 }
 
-export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile, onCasino, onShop, onDuels, onCollection, onBoss }: {
-  onNew: () => void; onLoad: (c: Career) => void; onNews: () => void; onReward: (c: Career) => void; onProfile: () => void; onCasino: () => void; onShop: () => void; onDuels: () => void; onCollection: () => void; onBoss?: () => void;
+export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile, onCasino, onShop, onDuels, onCollection, onBoss, onRevier }: {
+  onNew: () => void; onLoad: (c: Career) => void; onNews: () => void; onReward: (c: Career) => void; onProfile: () => void; onCasino: () => void; onShop: () => void; onDuels: () => void; onCollection: () => void; onBoss?: () => void; onRevier?: () => void;
 }) {
   const club = useClub();
   const me = profileOf(club);
@@ -170,6 +175,11 @@ export default function CareerHome({ onNew, onLoad, onNews, onReward, onProfile,
           <span className="ch3-mode-ic"><Icon name="money" size={26} /></span>
           <b>Vereinsboss</b>
           <small>{bossTeaser()}</small>
+        </button>}
+        {onRevier && <button className="ch3-mode m-revier" onClick={onRevier}>
+          <span className="ch3-mode-ic"><Icon name="stadium" size={26} /></span>
+          <b>Revierkampf</b>
+          <small>{revierTeaser()}</small>
         </button>}
         <button className="ch3-mode m-casino" onClick={onCasino}>
           <span className="ch3-mode-ic"><Icon name="dice" size={26} /></span>
