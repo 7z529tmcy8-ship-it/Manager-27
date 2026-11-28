@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { slugify } from '../../data/leagues';
 import { createCareer } from '../career';
-import { analyze, isMultiverseCode, runFuture } from '../multiverse';
+import { analyze, applyExperiment, futureSeasons, isMultiverseCode, listFutures, runFuture, summarize } from '../multiverse';
+import { currentClubId } from '../player';
 
 const base = (age = 21) => createCareer({ name: 'Multi', nation: 'Deutschland', position: 'ST', age, ovr: 76, potential: 88, clubId: slugify('Hamburger SV') });
 
@@ -28,5 +29,29 @@ describe('Multiversum-Labor', () => {
     const f = runFuture(base(33), 'end', 0, 1);
     expect(f.retired).toBe(true);
     expect(f.career.player.age).toBeLessThanOrEqual(39);
+  });
+  it('Experiment ändert nur die Kopie: Wertung, Potenzial, Verein, Belastung', () => {
+    const c = base();
+    const snap = JSON.stringify(c);
+    const e = applyExperiment(c, { ovr: 88, pot: 93, clubId: slugify('FC Bayern München'), load: 'rest' });
+    expect(JSON.stringify(c)).toBe(snap);
+    expect(e.player.ovr).toBe(88);
+    expect(e.player.potential).toBe(93);
+    expect(currentClubId(e.player)).toBe(slugify('FC Bayern München'));
+    expect(e.autoLoad).toBe('rest');
+    // Potenzial nie unter der Wertung
+    expect(applyExperiment(c, { ovr: 95 }).player.potential).toBeGreaterThanOrEqual(95);
+  });
+  it('Vergleich, Liste mit Filter/Sortierung und Saison-Details', () => {
+    const c = base();
+    const fs = Array.from({ length: 5 }, (_, i) => runFuture(c, 2, 1, i));
+    const s = summarize(fs);
+    expect(s.n).toBe(5);
+    expect(s.pCL).toBeGreaterThanOrEqual(0);
+    const byGoals = listFutures(fs, 'goals', 'all');
+    for (let i = 1; i < byGoals.length; i++) expect(byGoals[i - 1].goals).toBeGreaterThanOrEqual(byGoals[i].goals);
+    expect(listFutures(fs, 'score', 'ballon').every((f) => f.ballon > 0)).toBe(true);
+    expect(futureSeasons(fs[0]).length).toBe(fs[0].seasons);
+    expect(futureSeasons(fs[0])[0].season).not.toBe(c.history[c.history.length - 1]?.season);
   });
 });

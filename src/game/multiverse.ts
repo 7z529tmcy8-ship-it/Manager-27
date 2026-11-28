@@ -4,9 +4,11 @@
 // Eine Zukunft kann übernommen werden (überschreibt den Spielstand – nur im Entwickler-Modus).
 
 import { applyChoice, seasonChoices } from './simple';
-import { simulateSeasons, type TransferStyle } from './autosim';
+import { setAutoLoad, simulateSeasons, type TransferStyle } from './autosim';
+import { devTransfer } from './dev';
+import { currentClubId } from './player';
 import { getClub } from '../data/leagues';
-import type { Career } from './types';
+import type { Career, SeasonRecord, StageLoad } from './types';
 
 export const MULTIVERSE_CODE = 'multiversum';
 export const isMultiverseCode = (input: string) => input.trim().toLowerCase() === MULTIVERSE_CODE;
@@ -22,6 +24,8 @@ export interface Future {
   ovrPath: number[];
   clubs: string[];
   score: number;
+  /** Index der ersten simulierten Saison im Verlauf (für die Saison-Details). */
+  from: number;
 }
 
 /** Eine Zukunft: `seasons` Saisons (oder bis zum Karriereende, wenn 'end') mit fester Transfer-Regel. */
@@ -59,7 +63,7 @@ export function runFuture(start: Career, seasons: number | 'end', style: Transfe
   return {
     id, career: c, seasons: h.length, goals, assists, apps: h.reduce((a, r) => a + r.apps, 0),
     titles, ballon, awards, peak: Math.max(...ovrPath), finalOvr: c.player.ovr, retired: c.phase === 'retired',
-    ovrPath, clubs, score: goals + assists * 0.6 + titles.length * 8 + awards * 6 + ballon * 40,
+    ovrPath, clubs, score: goals + assists * 0.6 + titles.length * 8 + awards * 6 + ballon * 40, from,
   };
 }
 
@@ -109,3 +113,43 @@ export function analyze(fs: Future[]): Analysis | null {
 }
 
 export const clubLabel = (id: string) => { try { return getClub(id).name; } catch { return id; } };
+
+// ---------- Experimente (Was-wäre-wenn) ----------
+/** Startbedingungen, die nur für die Simulation gelten – der echte Spielstand bleibt unberührt. */
+export interface Experiment { ovr?: number; pot?: number; clubId?: string; load?: StageLoad }
+export function applyExperiment(start: Career, e: Experiment): Career {
+  let c: Career = structuredClone(start);
+  if (e.ovr !== undefined) c.player.ovr = Math.max(40, Math.min(99, Math.round(e.ovr)));
+  if (e.pot !== undefined) c.player.potential = Math.max(c.player.ovr, Math.min(99, Math.round(e.pot)));
+  else c.player.potential = Math.max(c.player.potential, c.player.ovr);
+  if (e.clubId && e.clubId !== currentClubId(c.player)) c = devTransfer(c, e.clubId);
+  if (e.load) c = setAutoLoad(c, e.load);
+  return c;
+}
+
+/** Kennzahlen für den Vergleich mehrerer Multiversen. */
+export interface Summary { n: number; goals: number; assists: number; titles: number; peak: number; finalOvr: number; pMeister: number; pCL: number; pBallon: number; p90: number; score: number }
+export function summarize(fs: Future[]): Summary {
+  const n = Math.max(1, fs.length);
+  const avg = (f: (x: Future) => number) => fs.reduce((a, x) => a + f(x), 0) / n;
+  return {
+    n: fs.length, goals: avg((f) => f.goals), assists: avg((f) => f.assists), titles: avg((f) => f.titles.length), peak: avg((f) => f.peak), finalOvr: avg((f) => f.finalOvr),
+    pMeister: share(fs, (f) => f.titles.some((t) => t.startsWith('Meister'))), pCL: share(fs, (f) => f.titles.includes('Champions League')),
+    pBallon: share(fs, (f) => f.ballon > 0), p90: share(fs, (f) => f.peak >= 90), score: avg((f) => f.score),
+  };
+}
+
+// ---------- Liste, Filter, Details ----------
+export type FutureSort = 'score' | 'goals' | 'titles' | 'peak';
+export type FutureFilter = 'all' | 'meister' | 'cl' | 'ballon' | 'top90' | 'retired';
+export function listFutures(fs: Future[], sort: FutureSort, filter: FutureFilter): Future[] {
+  const ok = (f: Future) => filter === 'all' ? true
+    : filter === 'meister' ? f.titles.some((t) => t.startsWith('Meister'))
+      : filter === 'cl' ? f.titles.includes('Champions League')
+        : filter === 'ballon' ? f.ballon > 0
+          : filter === 'top90' ? f.peak >= 90 : f.retired;
+  const key = (f: Future) => (sort === 'score' ? f.score : sort === 'goals' ? f.goals : sort === 'titles' ? f.titles.length : f.peak);
+  return fs.filter(ok).sort((a, b) => key(b) - key(a) || b.score - a.score);
+}
+/** Die simulierten Saisons einer Zukunft. */
+export const futureSeasons = (f: Future): SeasonRecord[] => f.career.history.slice(f.from);
