@@ -1,5 +1,7 @@
 # Karriere „Big Juicy“ – Ideen-Pakete
 
+> Verworfen am 28.11.2026 – ersetzt durch `ideen-karriere-statistik.md`.
+
 Stand: 28.11.2026 · Ziel: mehr Fußball-Karriere, weniger Text und Scrollen, mehr „noch eine Saison“-Gefühl.
 Neben-Systeme (Ausrüster, Kickgram, Look, Klinik, Vermögen, Konkurrent, Berater) werden **nicht gelöscht**, nur
 standardmäßig ausgeblendet. Belohnungen sind **keine Karten** (Karten gibt es weiter nur am Karriereende).
